@@ -1,6 +1,6 @@
 # TopMod 3D — MASTER
 
-**Current: v3.7 (build 7)** · bundle `com.amaximal.topmodjs` · team 7VP47VH46A
+**Current: v3.8 (build 8)** · bundle `com.amaximal.topmodjs` · team 7VP47VH46A
 
 Every update starts here.
 
@@ -26,6 +26,7 @@ python3 tools/ship.py --version 3.8   # new version without hand-editing the wor
 ```
 
 ## History
+- **v3.8 b8 (2026-10-01)**: fresh start from the unified v3.7 master; first App Store Connect upload from ~/AMAXiMAL.
 - **v3.7 b7 (2026-10-01)**: unified release. Sep 30 master (v3.1 + Demo mode, boolean/greeble/metaballs/voxel/
   differential growth/measure/printer/hands) merged with the Sep 26 App Store work (topmodjs_210: Full Screen
   Shift+F, G = wide zoom-to-fit, in-app Render (orange glass, studio env, bloom) + MagicaCSG hand-off, floating
