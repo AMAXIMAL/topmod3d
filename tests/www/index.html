@@ -1,0 +1,48 @@
+<!doctype html><html><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>TOPMOD 3D — Test Report Hub</title>
+<style>
+*{box-sizing:border-box} html,body{margin:0;height:100%;background:#0b1018;color:#cfe8ff;font:14px system-ui,sans-serif;overflow:hidden}
+#top{height:52px;display:flex;align-items:center;gap:14px;padding:0 14px;border-bottom:1px solid #1d2a38;background:#0f1620}
+#top h1{font-size:15px;margin:0;font-weight:700;white-space:nowrap}
+#tabs{display:flex;gap:6px;overflow-x:auto;flex:1;height:52px;align-items:center}
+.tab{white-space:nowrap;padding:7px 13px;border-radius:8px 8px 0 0;border:1px solid transparent;color:#9fc0d8;background:transparent;cursor:pointer;font-size:13px}
+.tab:hover{background:#16273a}
+.tab.active{background:#16273a;color:#fff;border-color:#2a4a63;border-bottom-color:#16273a}
+.tab i{margin-right:6px;opacity:.8}
+#frameWrap{position:absolute;top:52px;left:0;right:0;bottom:0;background:#0b1018}
+iframe{width:100%;height:100%;border:0;display:block;background:#0b1018}
+#dl{font-size:12px;color:#7fa6c4;text-decoration:none;border:1px solid #244;padding:6px 10px;border-radius:6px;white-space:nowrap}
+#dl:hover{background:#16273a;color:#dff}
+</style></head><body>
+<div id="top">
+  <h1>TOPMOD 3D — Test Report Hub</h1>
+  <div id="tabs"></div>
+  <a id="dl" href="#" target="_blank">open in new tab ↗</a>
+</div>
+<div id="frameWrap"><iframe id="frame" title="report"></iframe></div>
+<script>
+const TABS=[
+  {key:"explorer", label:"Matrix Explorer", src:"viewer_all.html", kind:"html"},
+  {key:"pxo",      label:"Primitive × Operator", src:"report_pxo.html", kind:"html"},
+  {key:"pairs",    label:"Pairwise Sequences", src:"report_pairs.html", kind:"html"},
+  {key:"toolmod",  label:"Tool × Modifier", src:"report.html", kind:"html"},
+  {key:"other",    label:"All Other Tools", src:"report_all_other.html", kind:"html"},
+  {key:"errors",   label:"Errors & Issues", src:"report_errors.html", kind:"html"},
+  {key:"pdf1",     label:"PDF · Pairwise", src:"TOPMOD3D_pairwise_sequences.pdf", kind:"pdf"},
+  {key:"pdf2",     label:"PDF · Tool×Modifier", src:"TOPMOD3D_tool_modifier.pdf", kind:"pdf"}
+];
+const tabsEl=document.getElementById('tabs'), frame=document.getElementById('frame'), dl=document.getElementById('dl');
+let active=null;
+function select(t){
+  active=t;
+  document.querySelectorAll('.tab').forEach(b=>b.classList.toggle('active',b.dataset.k===t.key));
+  frame.src=t.src; dl.href=t.src;
+  dl.textContent = t.kind==='pdf' ? 'download / open PDF ↗' : 'open in new tab ↗';
+  location.hash=t.key;
+}
+TABS.forEach(t=>{ const b=document.createElement('button'); b.className='tab'; b.dataset.k=t.key;
+  const ic=t.kind==='pdf'?'ti-file-type-pdf':'ti-table';
+  b.textContent=t.label; b.addEventListener('click',()=>select(t)); tabsEl.appendChild(b); });
+const start=TABS.find(t=>t.key===location.hash.slice(1))||TABS[0];
+select(start);
+</script></body></html>

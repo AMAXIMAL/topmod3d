@@ -1,0 +1,74 @@
+<!doctype html><meta charset=utf-8><title>TOPMOD 3D — error log</title>
+<style>
+body{background:#0d1420;color:#cfe8ff;font:13px system-ui,sans-serif;margin:0;padding:22px}
+h1{font-size:20px;margin:0 0 2px} .sub{color:#7fa6c4;font-size:12px;margin:0 0 16px}
+table{border-collapse:collapse;width:100%} th,td{border:1px solid #21303f;padding:8px;vertical-align:top;text-align:left}
+thead th{background:#16202c;position:sticky;top:0}
+.sev{color:#fff;font-weight:700;font-size:11px;padding:3px 7px;border-radius:4px;white-space:nowrap}
+code{color:#6f93ad;font-size:11px} .err{font-family:ui-monospace,monospace;color:#ffb4b4;font-size:11.5px}
+.loc{color:#8aa;font-size:11px;margin-top:3px} .fix{color:#bfe6c8} .sh img{width:120px;border-radius:5px;background:#000}
+</style>
+<h1>TOPMOD 3D — error &amp; issue log</h1>
+<p class=sub>Aggregated from 415 tested combinations. HIGH = JS crash to fix · REVIEW = destructive, confirm intended · LIMITATION = needs manual interaction (maybe by design).</p>
+<table><thead><tr><th>Severity</th><th>Tool</th><th>Mode(s)</th><th>Verdict</th><th>Error / detail</th><th>Likely cause</th><th>Suggested fix</th><th>Shot</th></tr></thead>
+<tbody><tr><td><span class=sev style="background:#9c0006">HIGH — crash</span></td>
+<td><b>Paper / Unfold (Slab)</b><br><code>slab</code></td><td>vert, edge, face (all)</td><td>FAIL</td>
+<td class=err>Uncaught TypeError: ops[tpState.op] is not a function<div class=loc>topmodjs.html:7333:18</div></td>
+<td>The popover Apply handler falls through to the generic ops[tpState.op]() at line 7333, but &#x27;slab&#x27; has no entry in the ops{} map. Slab/papercraft is normally driven by the fab flow (data-act fabPaper/fabLayers/fabFaces/fabLaser/fabWaffle -&gt; openToolPop(&#x27;slab&#x27;) -&gt; previewFab()/syncFabRows()), not by a direct ops[&#x27;slab&#x27;] call.</td><td class=fix>In the #tpApply handler (~line 7333), add a branch for tpState.op===&#x27;slab&#x27; that calls the fab commit (e.g. previewFab()/bakeFab equivalent) instead of falling through to ops[op](); OR register ops.slab as the papercraft commit. Also guard the fallthrough: if(typeof ops[tpState.op]!==&#x27;function&#x27;){ /* close + warn */ return; }</td><td class=sh><a href="shots/op2__vert__slab.jpg" target="_blank"><img src="shots/op2__vert__slab.jpg"></a></td></tr><tr><td><span class=sev style="background:#b1003a">HIGH — freeze</span></td>
+<td><b>Remesh/subdivide ops on high-poly primitives</b><br><code>(multiple remeshing ops)</code></td><td>face</td><td>FREEZE</td>
+<td class=err>UI freeze — main thread blocks synchronously &gt;30s (tab unresponsive; required browser restart)<div class=loc>operator mesh rebuild (synchronous)</div></td>
+<td>Subdivision/remesh operators rebuild the entire mesh synchronously with no upper bound. base_faces x op_multiplier explodes (Menger ~x20, Honeycomb/DoubleStellate ~x7, Catmull/Doo-Sabin/Loop ~x4). On primitives that already have hundreds-to-thousands of faces this produces tens of thousands of faces and locks the UI. 128 of 368 primitive x operator combos exceed a safe ~6000-face budget.</td><td class=fix>Add a pre-op face-budget check with a confirm dialog when projected faces exceed a threshold; OR run heavy remeshes in a Web Worker / chunk with a progress bar and cancel; OR cap subdivision so a single op cannot exceed N faces. Affected primitives: Rossler, Sine-wave, Cymatics, Pseudospherical, Weave, Chain mail, Voronoi, Tree, Gem, Maze, Maze 3D.</td><td class=sh></td></tr><tr><td><span class=sev style="background:#9c5700">REVIEW — destructive</span></td>
+<td><b>Delete Face</b><br><code>deleteFace</code></td><td>face</td><td>DESTROYS</td>
+<td class=err>mesh emptied<div class=loc></div></td>
+<td>Delete removes all selected elements -&gt; empty mesh (likely by design).</td><td class=fix>Warn/no-op if deletion would empty the whole mesh.</td><td class=sh><a href="shots/face__deleteFace.jpg" target="_blank"><img src="shots/face__deleteFace.jpg"></a></td></tr><tr><td><span class=sev style="background:#9c5700">REVIEW — destructive</span></td>
+<td><b>Delete Selected</b><br><code>deleteSel</code></td><td>face, vert</td><td>DESTROYS</td>
+<td class=err>mesh emptied<div class=loc></div></td>
+<td>Delete removes all selected elements -&gt; empty mesh (likely by design).</td><td class=fix>Warn/no-op if deletion would empty the whole mesh.</td><td class=sh><a href="shots/op2__face__deleteSel.jpg" target="_blank"><img src="shots/op2__face__deleteSel.jpg"></a></td></tr><tr><td><span class=sev style="background:#9c5700">REVIEW — destructive</span></td>
+<td><b>Delete Vertex</b><br><code>deleteVertex</code></td><td>vert</td><td>DESTROYS</td>
+<td class=err>mesh emptied<div class=loc></div></td>
+<td>Delete removes all selected elements -&gt; empty mesh (likely by design).</td><td class=fix>Warn/no-op if deletion would empty the whole mesh.</td><td class=sh><a href="shots/vert__deleteVertex.jpg" target="_blank"><img src="shots/vert__deleteVertex.jpg"></a></td></tr><tr><td><span class=sev style="background:#8a6d00">LIMITATION</span></td>
+<td><b>Bridge (2 faces)</b><br><code>bridge</code></td><td>edge, face, vert</td><td>NOEFFECT</td>
+<td class=err>no change (may need manual interaction)<div class=loc></div></td>
+<td>Needs a manual pick/gesture or specific selection.</td><td class=fix>Add hint/disabled-state when prerequisites unmet.</td><td class=sh><a href="shots/op2__vert__bridge.jpg" target="_blank"><img src="shots/op2__vert__bridge.jpg"></a></td></tr><tr><td><span class=sev style="background:#8a6d00">LIMITATION</span></td>
+<td><b>Delete Edge</b><br><code>deleteEdge</code></td><td>edge, face, vert</td><td>NOEFFECT</td>
+<td class=err>no change<div class=loc></div></td>
+<td>Needs a manual pick/gesture or specific selection.</td><td class=fix>Add hint/disabled-state when prerequisites unmet.</td><td class=sh><a href="shots/vert__deleteEdge.jpg" target="_blank"><img src="shots/vert__deleteEdge.jpg"></a></td></tr><tr><td><span class=sev style="background:#8a6d00">LIMITATION</span></td>
+<td><b>Fill Holes</b><br><code>fillHoles</code></td><td>edge, face, vert</td><td>NOEFFECT</td>
+<td class=err>no change<div class=loc></div></td>
+<td>Needs a manual pick/gesture or specific selection.</td><td class=fix>Add hint/disabled-state when prerequisites unmet.</td><td class=sh><a href="shots/vert__fillHoles.jpg" target="_blank"><img src="shots/vert__fillHoles.jpg"></a></td></tr><tr><td><span class=sev style="background:#8a6d00">LIMITATION</span></td>
+<td><b>Flip Normals</b><br><code>flipNormals</code></td><td>edge, vert</td><td>NOEFFECT</td>
+<td class=err>no change (may need manual interaction)<div class=loc></div></td>
+<td>Needs a manual pick/gesture or specific selection.</td><td class=fix>Add hint/disabled-state when prerequisites unmet.</td><td class=sh><a href="shots/op2__vert__flipNormals.jpg" target="_blank"><img src="shots/op2__vert__flipNormals.jpg"></a></td></tr><tr><td><span class=sev style="background:#8a6d00">LIMITATION</span></td>
+<td><b>Add Handle</b><br><code>handle</code></td><td>edge, face, vert</td><td>NOEFFECT</td>
+<td class=err>no change<div class=loc></div></td>
+<td>Needs a manual pick/gesture or specific selection.</td><td class=fix>Add hint/disabled-state when prerequisites unmet.</td><td class=sh><a href="shots/vert__handle.jpg" target="_blank"><img src="shots/vert__handle.jpg"></a></td></tr><tr><td><span class=sev style="background:#8a6d00">LIMITATION</span></td>
+<td><b>Heal</b><br><code>heal</code></td><td>edge, vert</td><td>NOEFFECT</td>
+<td class=err>no change (may need manual interaction)<div class=loc></div></td>
+<td>Needs a manual pick/gesture or specific selection.</td><td class=fix>Add hint/disabled-state when prerequisites unmet.</td><td class=sh><a href="shots/op2__vert__heal.jpg" target="_blank"><img src="shots/op2__vert__heal.jpg"></a></td></tr><tr><td><span class=sev style="background:#8a6d00">LIMITATION</span></td>
+<td><b>Insert Edge</b><br><code>insertEdge</code></td><td>edge, face, vert</td><td>NOEFFECT</td>
+<td class=err>no change<div class=loc></div></td>
+<td>Needs a manual pick/gesture or specific selection.</td><td class=fix>Add hint/disabled-state when prerequisites unmet.</td><td class=sh><a href="shots/vert__insertEdge.jpg" target="_blank"><img src="shots/vert__insertEdge.jpg"></a></td></tr><tr><td><span class=sev style="background:#8a6d00">LIMITATION</span></td>
+<td><b>Lattice (Cage)</b><br><code>lattice</code></td><td>edge, face, vert</td><td>NOEFFECT</td>
+<td class=err>no change (may need manual interaction)<div class=loc></div></td>
+<td>Needs a manual pick/gesture or specific selection.</td><td class=fix>Add hint/disabled-state when prerequisites unmet.</td><td class=sh><a href="shots/op2__vert__lattice.jpg" target="_blank"><img src="shots/op2__vert__lattice.jpg"></a></td></tr><tr><td><span class=sev style="background:#8a6d00">LIMITATION</span></td>
+<td><b>Move/Rotate/Scale</b><br><code>move</code></td><td>face, vert</td><td>NOEFFECT</td>
+<td class=err>no change (may need manual interaction)<div class=loc></div></td>
+<td>Needs a manual pick/gesture or specific selection.</td><td class=fix>Add hint/disabled-state when prerequisites unmet.</td><td class=sh><a href="shots/op2__vert__move.jpg" target="_blank"><img src="shots/op2__vert__move.jpg"></a></td></tr><tr><td><span class=sev style="background:#8a6d00">LIMITATION</span></td>
+<td><b>Orient to ground</b><br><code>orient</code></td><td>edge, vert</td><td>NOEFFECT</td>
+<td class=err>no change (may need manual interaction)<div class=loc></div></td>
+<td>Needs a manual pick/gesture or specific selection.</td><td class=fix>Add hint/disabled-state when prerequisites unmet.</td><td class=sh><a href="shots/op2__vert__orient.jpg" target="_blank"><img src="shots/op2__vert__orient.jpg"></a></td></tr><tr><td><span class=sev style="background:#8a6d00">LIMITATION</span></td>
+<td><b>Pinch Extrude</b><br><code>pinch</code></td><td>edge, vert</td><td>NOEFFECT</td>
+<td class=err>no change (may need manual interaction)<div class=loc></div></td>
+<td>Needs a manual pick/gesture or specific selection.</td><td class=fix>Add hint/disabled-state when prerequisites unmet.</td><td class=sh><a href="shots/op2__vert__pinch.jpg" target="_blank"><img src="shots/op2__vert__pinch.jpg"></a></td></tr><tr><td><span class=sev style="background:#8a6d00">LIMITATION</span></td>
+<td><b>Planarize</b><br><code>planarize</code></td><td>edge, vert</td><td>NOEFFECT</td>
+<td class=err>no change (may need manual interaction)<div class=loc></div></td>
+<td>Needs a manual pick/gesture or specific selection.</td><td class=fix>Add hint/disabled-state when prerequisites unmet.</td><td class=sh><a href="shots/op2__vert__planarize.jpg" target="_blank"><img src="shots/op2__vert__planarize.jpg"></a></td></tr><tr><td><span class=sev style="background:#8a6d00">LIMITATION</span></td>
+<td><b>Quad Remesh</b><br><code>quadRemesh</code></td><td>edge, vert</td><td>NOEFFECT</td>
+<td class=err>no change (may need manual interaction)<div class=loc></div></td>
+<td>Needs a manual pick/gesture or specific selection.</td><td class=fix>Add hint/disabled-state when prerequisites unmet.</td><td class=sh><a href="shots/op2__vert__quadRemesh.jpg" target="_blank"><img src="shots/op2__vert__quadRemesh.jpg"></a></td></tr><tr><td><span class=sev style="background:#8a6d00">LIMITATION</span></td>
+<td><b>Uniform Scale</b><br><code>scale</code></td><td>edge, vert</td><td>NOEFFECT</td>
+<td class=err>no change (may need manual interaction)<div class=loc></div></td>
+<td>Needs a manual pick/gesture or specific selection.</td><td class=fix>Add hint/disabled-state when prerequisites unmet.</td><td class=sh><a href="shots/op2__vert__scale.jpg" target="_blank"><img src="shots/op2__vert__scale.jpg"></a></td></tr><tr><td><span class=sev style="background:#8a6d00">LIMITATION</span></td>
+<td><b>Seam</b><br><code>sliceEdges</code></td><td>edge, vert</td><td>NOEFFECT</td>
+<td class=err>no change (may need manual interaction)<div class=loc></div></td>
+<td>Needs a manual pick/gesture or specific selection.</td><td class=fix>Add hint/disabled-state when prerequisites unmet.</td><td class=sh><a href="shots/op2__vert__sliceEdges.jpg" target="_blank"><img src="shots/op2__vert__sliceEdges.jpg"></a></td></tr></tbody></table>

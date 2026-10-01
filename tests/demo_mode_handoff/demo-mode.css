@@ -1,0 +1,14 @@
+/* TopMod 3D — Demo mode styles. Paste inside the app <style> (or a <style> in <head>). */
+#amxDemo{position:fixed;left:50%;top:calc(58px + env(safe-area-inset-top,0px));transform:translateX(-50%);z-index:9999;display:flex;align-items:center;gap:10px;
+  padding:7px 8px 7px 14px;border-radius:999px;background:rgba(8,10,18,0.9);border:1px solid rgba(0,229,255,0.45);box-shadow:0 8px 30px rgba(0,0,0,.5),0 0 0 4px rgba(0,229,255,0.08);
+  font:600 12px/1 var(--font,system-ui);color:#f0f0f5;letter-spacing:.02em;-webkit-backdrop-filter:blur(8px);backdrop-filter:blur(8px);max-width:calc(100vw - 24px)}
+#amxDemo .dot{width:8px;height:8px;border-radius:50%;background:#00E5FF;box-shadow:0 0 10px #00E5FF;animation:amxBlink 1.2s ease-in-out infinite;flex:none}
+#amxDemo b{color:#00E5FF;font-weight:700;letter-spacing:.12em;text-transform:uppercase;font-size:11px;white-space:nowrap}
+#amxDemo .step{color:rgba(255,255,255,.72);font-weight:500;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;min-width:0}
+#amxDemo button{all:unset;cursor:pointer;width:26px;height:26px;border-radius:50%;display:grid;place-items:center;font-size:17px;line-height:1;color:#080a12;background:#00E5FF;flex:none}
+#amxDemo button:hover{background:#FF8C22}
+#amxDemo button:focus-visible{outline:2px solid #FF8C22;outline-offset:2px}
+@keyframes amxBlink{50%{opacity:.35}}
+.amxPulse{outline:2px solid #FF8C22 !important;outline-offset:2px;box-shadow:0 0 18px rgba(255,140,34,.65) !important;transition:box-shadow .2s}
+#tpApply.amxPulse{background:#FF8C22 !important;color:#080a12 !important}
+@media (prefers-reduced-motion:reduce){#amxDemo .dot{animation:none}}

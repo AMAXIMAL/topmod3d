@@ -1,0 +1,87 @@
+<!-- ===== TopMod iPhone layout: on an iPhone (or any small touch screen) the panels resize and dock ===== -->
+<style>
+html.tm-phone #cmdWrap{display:none!important}
+html.tm-phone #menubar{padding-left:calc(8px + env(safe-area-inset-left))!important;padding-right:calc(8px + env(safe-area-inset-right))!important}
+html.tm-phone #navcube{right:calc(6px + env(safe-area-inset-right))!important;left:auto!important;top:calc(34px + env(safe-area-inset-top))!important;transform:scale(.6);transform-origin:top right}
+html.tm-phone #status{padding-left:calc(8px + env(safe-area-inset-left))!important;padding-right:calc(8px + env(safe-area-inset-right))!important;overflow-x:auto;scrollbar-width:none}
+html.tm-phone #status::-webkit-scrollbar{display:none}
+html.tm-phone #tbTab{display:none!important}
+/* portrait: Tools become a full-width sheet above the status bar; Layers and Options sit above it */
+/* landscape: Tools on the left, Layers on the right, both clear of the notch */
+/* really small bars and buttons on the phone */
+html.tm-phone #menubar{padding-top:calc(2px + env(safe-area-inset-top))!important;padding-bottom:2px!important;gap:3px!important;min-height:0!important}
+html.tm-phone #wordmark{font-size:10px!important;letter-spacing:1.5px!important;margin-right:4px!important}
+html.tm-phone #wordmark .ver{font-size:7px!important}
+html.tm-phone .mtitle{padding:2px 7px!important;font-size:8.5px!important;letter-spacing:.3px!important;border-radius:11px!important}
+html.tm-phone .mbp{width:22px!important;height:22px!important}
+html.tm-phone .mbp .mbpi{width:16px!important;height:16px!important}
+html.tm-phone #tbHead,html.tm-phone #layersHead{padding:2px 8px!important}
+html.tm-phone #tbTitle,html.tm-phone #layersHead span:first-child{font-size:8px!important}
+html.tm-phone #toolbar .trow{gap:4px!important;padding:4px!important}
+html.tm-phone .tgrp{padding:3px!important;gap:2px!important;border-radius:8px!important}
+html.tm-phone .tgrp::before{display:none!important}
+html.tm-phone button.tb{width:30px!important;height:30px!important;border-radius:7px!important;padding:0!important}
+html.tm-phone button.tb img.ticon{width:20px!important;height:20px!important}
+html.tm-phone button.tb svg{width:15px!important;height:15px!important}
+html.tm-phone button.tb .tlbl{display:none!important}
+html.tm-phone #status{gap:3px!important;padding-top:2px!important;padding-bottom:calc(2px + env(safe-area-inset-bottom))!important;font-size:8px!important}
+html.tm-phone #status *{font-size:8px!important}
+html.tm-phone #status button,html.tm-phone #status .cell,html.tm-phone #topo,html.tm-phone #genusBadge{padding:1px 6px!important;border-radius:6px!important;line-height:1.4!important}
+html.tm-phone #amxDemo{transform:translateX(-50%) scale(.7)!important;transform-origin:top center!important;top:calc(30px + env(safe-area-inset-top))!important}
+/* portrait: Tools are ONE slim row above the status bar (swipe sideways for more) */
+html.tm-phone.tm-portrait #toolbar{left:6px!important;right:6px!important;top:auto!important;bottom:calc(26px + env(safe-area-inset-bottom))!important;width:auto!important;max-width:none!important;height:auto!important;max-height:none!important;transform:none!important;border-radius:10px!important}
+html.tm-phone.tm-portrait #layersPanel{left:6px!important;right:6px!important;width:auto!important;top:auto!important;bottom:calc(72px + env(safe-area-inset-bottom))!important;max-height:40vh!important;transform:none!important}
+/* landscape: Tools are ONE slim column down the right edge; Layers moves to the left */
+html.tm-phone:not(.tm-portrait) #toolbar{left:auto!important;right:calc(4px + env(safe-area-inset-right))!important;top:calc(30px + env(safe-area-inset-top))!important;bottom:calc(26px + env(safe-area-inset-bottom))!important;width:auto!important;max-width:none!important;height:auto!important;max-height:none!important;transform:none!important;border-radius:10px!important}
+html.tm-phone:not(.tm-portrait) #layersPanel{right:auto!important;left:calc(6px + env(safe-area-inset-left))!important;top:calc(30px + env(safe-area-inset-top))!important;width:min(30vw,220px)!important;max-height:calc(100vh - 64px)!important;transform:none!important}
+html.tm-phone:not(.tm-portrait) #navcube{right:calc(52px + env(safe-area-inset-right))!important}
+/* shared: no Tools header, groups run inline, one line of buttons */
+html.tm-phone #toolbar #tbHead{display:none!important}
+html.tm-phone #toolbar .trow{display:flex!important;gap:3px!important;padding:3px!important;scrollbar-width:none;-webkit-overflow-scrolling:touch}
+html.tm-phone #toolbar .trow::-webkit-scrollbar{display:none}
+html.tm-phone #toolbar .trow>*{margin:0!important}
+html.tm-phone #toolbar .tgrp{width:auto!important;flex:0 0 auto!important;flex-wrap:nowrap!important;padding:2px!important;gap:2px!important;border-radius:7px!important}
+html.tm-phone.tm-portrait #toolbar .trow{flex-direction:row!important;flex-wrap:nowrap!important;overflow-x:auto!important;overflow-y:hidden!important}
+html.tm-phone.tm-portrait #toolbar .tgrp{flex-direction:row!important}
+html.tm-phone:not(.tm-portrait) #toolbar .trow{flex-direction:column!important;flex-wrap:nowrap!important;overflow-y:auto!important;overflow-x:hidden!important}
+html.tm-phone:not(.tm-portrait) #toolbar .tgrp{flex-direction:column!important}
+html.tm-phone button.tb{width:28px!important;height:28px!important}
+html.tm-phone button.tb img.ticon{width:19px!important;height:19px!important}
+html.tm-phone #layersPanel{font-size:10px!important;border-radius:10px!important}
+html.tm-phone #layersPanel *{font-size:10px!important}
+/* Options: one thin row — title, then each setting inline (label · slider · value), Apply and × at the end */
+html.tm-phone #toolpop{display:flex!important;flex-direction:row!important;align-items:center!important;height:auto!important;min-height:0!important;max-height:none!important;padding:0!important;border-radius:9px!important;transform:none!important}
+html.tm-phone #toolpop.empty,html.tm-phone #toolpop.hiddenPanel{display:none!important}
+html.tm-phone.tm-portrait #toolpop{left:6px!important;right:6px!important;width:auto!important;top:auto!important;bottom:calc(62px + env(safe-area-inset-bottom))!important}
+html.tm-phone:not(.tm-portrait) #toolpop{left:calc(6px + env(safe-area-inset-left))!important;right:calc(48px + env(safe-area-inset-right))!important;width:auto!important;top:auto!important;bottom:calc(28px + env(safe-area-inset-bottom))!important}
+html.tm-phone.tm-portrait #layersPanel{bottom:calc(96px + env(safe-area-inset-bottom))!important}
+html.tm-phone #toolpop #tpTab,html.tm-phone #toolpop #tpGrip,html.tm-phone #toolpop #tpResize,html.tm-phone #toolpop #tpEmpty,html.tm-phone #toolpop .modEditNote{display:none!important}
+html.tm-phone #toolpop #tpHead{flex:0 0 auto!important;padding:0 6px 0 8px!important;border:0!important;background:transparent!important;order:0;max-width:30%}
+html.tm-phone #toolpop #tpTitle{font-size:8px!important;letter-spacing:1px!important}
+html.tm-phone #toolpop #tpClose{order:9;width:18px!important;height:18px!important;font-size:12px!important;line-height:1!important;padding:0!important;margin-left:2px}
+html.tm-phone #toolpop #tpBody{display:flex!important;flex-direction:row!important;flex-wrap:nowrap!important;align-items:center!important;gap:10px!important;padding:4px 6px!important;overflow-x:auto!important;overflow-y:hidden!important;flex:1 1 auto!important;min-width:0!important;scrollbar-width:none}
+html.tm-phone #toolpop #tpBody::-webkit-scrollbar{display:none}
+html.tm-phone #toolpop #tpBody>*,html.tm-phone #toolpop .modEditBody{display:flex!important;flex-direction:row!important;align-items:center!important;gap:10px!important;flex:0 0 auto!important;padding:0!important;margin:0!important}
+html.tm-phone #toolpop .param,html.tm-phone #toolpop .modParam{display:flex!important;flex-direction:row!important;align-items:center!important;gap:4px!important;width:auto!important;min-width:0!important;flex:0 0 auto!important;margin:0!important;padding:0!important}
+html.tm-phone #toolpop .param label,html.tm-phone #toolpop .modParam label{display:inline!important;margin:0!important;white-space:nowrap!important;font-size:8px!important}
+html.tm-phone #toolpop *{font-size:8.5px!important}
+html.tm-phone #toolpop input[type=range]{width:72px!important;height:12px!important;margin:0!important}
+html.tm-phone #toolpop .numbox,html.tm-phone #toolpop input[type=number],html.tm-phone #toolpop input[type=text]{width:32px!important;padding:0 2px!important;height:16px!important}
+html.tm-phone #toolpop select{width:auto!important;padding:1px 4px!important}
+html.tm-phone #toolpop #tpApply{flex:0 0 auto!important;order:8;padding:3px 8px!important;margin:0 2px!important;border-radius:6px!important}
+</style>
+<script>
+(function(){
+  var ua = navigator.userAgent, iphone = /iPhone|iPod/.test(ua);
+  var small = matchMedia("(pointer:coarse)").matches && Math.min(screen.width, screen.height) <= 500;
+  if (!(iphone || small)) return;
+  var html = document.documentElement;
+  html.classList.add("tm-phone"); if (iphone) html.classList.add("tm-iphone");
+  function orient(){ html.classList.toggle("tm-portrait", innerHeight > innerWidth); }
+  orient(); addEventListener("resize", orient); addEventListener("orientationchange", function(){ setTimeout(orient, 120); });
+  // start with the Layers panel closed so the model is visible; the Layers button in the status bar opens it
+  function closeLayers(){ var p = document.getElementById("layersPanel"), t = document.getElementById("layersToggle");
+    if (p) p.classList.remove("show"); if (t) t.classList.remove("on"); }
+  if (document.readyState === "complete") setTimeout(closeLayers, 300); else addEventListener("load", function(){ setTimeout(closeLayers, 300); });
+})();
+</script>
