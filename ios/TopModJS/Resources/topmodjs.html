@@ -721,6 +721,9 @@ canvas#view{width:100%;height:100%;display:block;touch-action:none;outline:none;
       <div class="msep"></div>
       <div class="mi" data-act="import">Import OBJ&hellip;</div>
       <div class="mi" data-act="export">Export OBJ&hellip;</div>
+      <div class="mi" data-act="exportWire">Export Wireframe &mdash; edges only (OBJ curves)&hellip;</div>
+      <div class="mi" data-act="exportWireDXF">Export Wireframe &mdash; edges only (DXF 3D lines)&hellip;</div>
+      <div class="mi" data-act="exportWireSVG">Export Wireframe &mdash; current view (SVG)&hellip;</div>
       <div class="mi" data-act="screenshot">Screenshot (JPG)&hellip;</div>
       <div class="mi" data-act="spinExport">Export Spin Video (MP4/WebM)&hellip;</div>
     </div></div>
@@ -8022,7 +8025,7 @@ function saveProjectAs(){
 }
 
 $("#btnExport").addEventListener("click",()=>{
-  const obj=TM.toOBJ(mesh);
+  const obj=TM.toOBJ((typeof dispMesh==="function")?dispMesh():mesh);   // what's on screen: base + live modifiers
   const mh=window.webkit&&window.webkit.messageHandlers;
   // native save bridge (WKWebView): Swift presents the system save / Files sheet
   if(mh&&mh.saveOBJ){ mh.saveOBJ.postMessage({filename:"topmod.obj",text:obj}); return; }
@@ -11041,6 +11044,9 @@ function initMenus(){
     else if(a==="hands"){ const hb=$("#handFab"); if(hb) hb.click(); else toast&&toast("Hand tracking isn't available in this build",true); }
     else if(a==="import")$("#fileImport").click();
     else if(a==="export")$("#btnExport").click();
+    else if(a==="exportWire") exportWireframe("obj");
+    else if(a==="exportWireDXF") exportWireframe("dxf");
+    else if(a==="exportWireSVG") exportWireframe("svg");
     else if(a==="clearsel")clearSel();
     else if(a==="tgE"){const t=$("#tgEdges");t.checked=!t.checked;t.dispatchEvent(new Event("change"));}
     else if(a==="tgV"){const t=$("#tgVerts");t.checked=!t.checked;t.dispatchEvent(new Event("change"));}
@@ -11437,6 +11443,37 @@ function netToPDF(){
   for(let n=1;n<totalObj;n++) pdf+=(String(offsets[n]||0).padStart(10,"0"))+" 00000 n \n";
   pdf+="trailer\n<< /Size "+totalObj+" /Root 1 0 R >>\nstartxref\n"+xref+"\n%%EOF";
   return pdf;
+}
+// Wireframe export: just the edges of the on-screen mesh (base + live modifiers), no faces.
+//  obj -> "v" + "l" polylines (Rhino / Blender / C4D import them as curves), dxf -> 3D LINE entities (inches),
+//  svg -> 2D projection of the current camera view (all edges), for plotting / laser / print.
+function exportWireframe(kind){
+  const M=(typeof dispMesh==="function")?dispMesh():mesh;
+  if(!M||!M.faces||!M.faces.length){ toast&&toast("Nothing to export",true); return; }
+  const E=TM.edges(M), fmt=n=>(+n).toFixed(6).replace(/\.?0+$/,"")||"0";
+  const base=((typeof currentProjectName!=="undefined"&&currentProjectName)||"topmod").replace(/[\/\\:*?"<>|]/g,"_")+"_wireframe";
+  if(kind==="obj"){
+    let o="# TOPMOD 3D wireframe — "+E.length+" edges (units: inches)\no wireframe\n";
+    for(const v of M.verts) o+="v "+fmt(v[0])+" "+fmt(v[1])+" "+fmt(v[2])+"\n";
+    for(const e of E) o+="l "+(e.a+1)+" "+(e.b+1)+"\n";
+    downloadText(o, base+".obj", "text/plain"); return;
+  }
+  if(kind==="dxf"){
+    const L=["0","SECTION","2","HEADER","9","$INSUNITS","70","1","0","ENDSEC","0","SECTION","2","ENTITIES"];
+    for(const e of E){ const a=M.verts[e.a], b=M.verts[e.b];
+      L.push("0","LINE","8","WIREFRAME","10",fmt(a[0]),"20",fmt(-a[2]),"30",fmt(a[1]),"11",fmt(b[0]),"21",fmt(-b[2]),"31",fmt(b[1])); }   // Y-up -> Z-up for CAD
+    L.push("0","ENDSEC","0","EOF");
+    downloadText(L.join("\n")+"\n", base+".dxf", "application/dxf"); return;
+  }
+  // svg: project with the live camera
+  const P2=M.verts.map(v=>{ const q=new THREE.Vector3(v[0],v[1],v[2]).project(camera); return [q.x,-q.y]; });
+  let mnx=1e9,mny=1e9,mxx=-1e9,mxy=-1e9; for(const p of P2){ if(p[0]<mnx)mnx=p[0]; if(p[0]>mxx)mxx=p[0]; if(p[1]<mny)mny=p[1]; if(p[1]>mxy)mxy=p[1]; }
+  const W=1000, sc=W/Math.max(mxx-mnx,mxy-mny,1e-9), pad=20, H=(mxy-mny)*sc;
+  const X=p=>(pad+(p[0]-mnx)*sc).toFixed(2), Y=p=>(pad+(p[1]-mny)*sc).toFixed(2);
+  let d=""; for(const e of E){ const a=P2[e.a], b=P2[e.b]; d+="M"+X(a)+" "+Y(a)+"L"+X(b)+" "+Y(b); }
+  const svg='<svg xmlns="http://www.w3.org/2000/svg" width="'+((mxx-mnx)*sc+2*pad).toFixed(0)+'" height="'+(H+2*pad).toFixed(0)+'" viewBox="0 0 '+((mxx-mnx)*sc+2*pad).toFixed(2)+' '+(H+2*pad).toFixed(2)+'">'
+    +'<path d="'+d+'" fill="none" stroke="#000" stroke-width="1" stroke-linecap="round"/></svg>';
+  downloadText(svg, base+".svg", "image/svg+xml");
 }
 function downloadText(text,fn,mime){
   const mh=window.webkit&&window.webkit.messageHandlers;
