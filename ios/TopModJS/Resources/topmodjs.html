@@ -679,6 +679,30 @@ canvas#view{width:100%;height:100%;display:block;touch-action:none;outline:none;
 .ppStatus{font-size:11px;min-height:16px;white-space:pre-wrap}
 .ppStatus.ok{color:var(--cyan)} .ppStatus.err{color:#ff8a8a} .ppStatus.work{color:#ffcf6a}
 </style>
+
+<style id="v39css">
+/* v3.9: modifier stack in its own adjustable window (narrow by default) */
+#modPanel{position:fixed;right:12px;top:270px;z-index:9997;width:210px;height:auto;max-height:190px;display:none;flex-direction:column;
+  background:rgba(11,15,22,0.97);border:1px solid var(--cyan-dim);border-radius:12px;box-shadow:0 14px 40px rgba(0,0,0,0.55);overflow:hidden}
+#modPanel.show{display:flex}
+#modHead{cursor:move;user-select:none;background:rgba(0,229,255,0.1);border-bottom:1px solid rgba(0,229,255,0.18);padding:7px 10px}
+#modHead #modLayerName{flex:1;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+#modClose{background:transparent;border:0;color:#9fb4c8;font-size:15px;cursor:pointer;padding:0 2px;line-height:1}
+#modClose:hover{color:#fff}
+#modPanel #modList{flex:1;max-height:none;min-height:40px}
+#modPanel .modRow{font-size:12px;padding:5px 6px;gap:5px}
+#modPanel #modBar{flex-wrap:wrap;gap:4px}
+#modPanel #modHint{font-size:9.5px}
+#modGrip{position:absolute;right:2px;bottom:0;width:16px;height:16px;cursor:nwse-resize;color:rgba(127,216,239,0.55);font-size:12px;line-height:16px;text-align:center;user-select:none}
+.rightTucked #modPanel{transform:translateX(calc(100% + 24px));transition:transform .28s ease}
+@media (max-width:900px){ #modPanel{right:12px;top:auto;bottom:70px;width:200px;max-height:34vh} }
+/* v3.9: smaller tool icons */
+@media (min-width:901px){
+  button.tb{width:38px;height:40px;border-radius:9px;padding:1px}
+  button.tb img.ticon{width:20px;height:20px}
+  button.tb .tlbl{font-size:6.5px;letter-spacing:0.1px}
+}
+</style>
 </head>
 <body>
 <div id="frame">
@@ -686,7 +710,7 @@ canvas#view{width:100%;height:100%;display:block;touch-action:none;outline:none;
   <div id="titlebar"><span class="dot"></span> untitled.obj &mdash; TOPMOD</div>
 
   <div id="menubar">
-    <span id="wordmark"><span class="cy">TOP</span>MOD 3D <span class="ver">v3.8</span></span>
+    <span id="wordmark"><span class="cy">TOP</span>MOD 3D <span class="ver">v3.9</span></span>
     <div class="menu"><span class="mtitle">File</span><div class="mlist">
       <div class="mi" data-act="newProject">New<span class="kbd">&#8679;&#8984;N</span></div>
       <div class="msep"></div>
@@ -954,12 +978,13 @@ canvas#view{width:100%;height:100%;display:block;touch-action:none;outline:none;
         <div id="layersHead"><span>&#9783; LAYERS</span><span id="layersGrip">⠿</span><button id="layersClose">&times;</button></div>
         <div id="layerList"></div>
         <div id="modPanel">
-          <div id="modHead">&#9881; MODIFIERS <span class="modSep">·</span> <span id="modLayerName">—</span></div>
+          <div id="modHead">&#9881; MODIFIERS <span class="modSep">·</span> <span id="modLayerName">—</span><button id="modClose" title="Hide (Layers button brings it back)">&times;</button></div>
           <div id="modList"></div>
           <div id="modBar">
             <span id="modHint">Add from the <b>Modifiers</b> tools above</span>
             <button id="modFlatten" title="Bake the stack into editable geometry (like Make Editable)">Flatten</button>
           </div>
+          <div id="modGrip" title="Drag to resize">&#8690;</div>
         </div>
         <button id="layerAdd">+ Add layer</button>
         <div id="fabNode" title="Fabricate the whole visible model — flattens every layer + its modifiers into the fab parts when on" style="display:flex;align-items:center;gap:6px;margin-top:8px;padding:8px 6px 2px;border-top:1px solid var(--cyan-dim);cursor:pointer;font-size:11px">
@@ -1080,12 +1105,12 @@ canvas#view{width:100%;height:100%;display:block;touch-action:none;outline:none;
         <h3>Extrude</h3>
         <div class="param"><label>Distance</label>
           <input type="range" id="pExDist" min="0.05" max="2" step="0.05" value="0.6"><output id="pExDistV"></output></div>
-        <div class="param"><label>Scale</label>
-          <input type="range" id="pExScale" min="0.3" max="1.5" step="0.05" value="0.85"><output id="pExScaleV"></output></div>
+        <div class="param"><label>Taper (end size)</label>
+          <input type="range" id="pExScale" min="0.05" max="2" step="0.01" value="1"><output id="pExScaleV"></output></div>
         <div class="param"><label>Twist &deg;</label>
-          <input type="range" id="pExTwist" min="-45" max="45" step="1" value="0"><output id="pExTwistV"></output></div>
+          <input type="range" id="pExTwist" min="-180" max="180" step="1" value="0"><output id="pExTwistV"></output></div>
         <div class="param"><label>Segments</label>
-          <input type="range" id="pExSeg" min="1" max="6" step="1" value="1"><output id="pExSegV"></output></div>
+          <input type="range" id="pExSeg" min="1" max="16" step="1" value="1"><output id="pExSegV"></output></div>
         <div class="param"><label>Pinch length</label>
           <input type="range" id="pPinchDist" min="0.4" max="5" step="0.1" value="2.0"><output id="pPinchDistV"></output></div>
         <div class="param"><label>Pinch segments</label>
@@ -6260,6 +6285,14 @@ const MODS={
   pinch:   {label:"Pinch Extrude", grp:"Topology", params:[{k:"dist",l:"Distance",min:0.4,max:5,step:0.1,def:2.0},{k:"segments",l:"Segments",min:3,max:40,step:1,def:14},{k:"neck",l:"Neck",min:0.05,max:0.8,step:0.01,def:0.18},{k:"bulge",l:"Bulge",min:0.5,max:1.6,step:0.05,def:1.0}],
             apply:(m,p)=>{ let out=m; const faces=(p.faces||[]).filter(f=>f<out.faces.length).sort((a,b)=>b-a);
               for(const fi of faces){ try{ out=TM.pinchExtrude(out,fi,{dist:p.dist,segments:Math.round(p.segments),neck:p.neck,bulge:p.bulge}).mesh; }catch(e){} } return out; }},
+  extrude: {label:"Extrude", grp:"Topology", params:[{k:"dist",l:"Distance",min:-2,max:4,step:0.01,def:0.6},{k:"taper",l:"Taper (end size)",min:0.05,max:2,step:0.01,def:1},{k:"twist",l:"Twist°",min:-180,max:180,step:1,def:0},{k:"segments",l:"Segments",min:1,max:16,step:1,def:1}],
+            apply:(m,p)=>{ let out=m; const faces=(p.faces||[]).filter(f=>f<out.faces.length).sort((a,b)=>b-a);
+              const n=Math.max(1,Math.round(p.segments||1)), tp=Math.max(0.01,+p.taper||1);
+              const o={dist:(+p.dist||0)/n, scale:Math.pow(tp,1/n), twist:(+p.twist||0)/n, segments:n};
+              for(const fi of faces){ try{ out=TM.extrudeFace(out,fi,o).mesh; }catch(e){} } return out; }},
+  tool:    {label:"Tool", grp:"Topology", params:[],
+            apply:(m,p)=>{ const fn=TOOL_FNS.get(p.key); if(fn){ const r=fn({verts:m.verts.map(v=>v.slice()),faces:m.faces.map(f=>f.slice())}); if(r&&r.verts&&r.faces) return r; }
+              return p.baked||m; }},
   handle:  {label:"Handle", grp:"Topology", params:[{k:"pinch",l:"Pinch",min:0.3,max:1.6,step:0.05,def:0.85},{k:"segments",l:"Segments",min:1,max:10,step:1,def:5},{k:"curve",l:"Curve",min:0,max:3,step:0.1,def:1.5}],
             apply:(m,p)=>{ if(p.fa==null||p.fb==null||p.fa===p.fb||p.fa>=m.faces.length||p.fb>=m.faces.length) return m;
               try{ return TM.addHandle(m,p.fa,p.fb,p.pinch,Math.round(p.segments),p.curve,p.va,p.vb); }catch(e){ return m; } }},
@@ -6271,6 +6304,7 @@ const OP_AS_MOD={ catmull:"subdivide", doosabin:"smooth", loop:"loop", root3:"ro
   pentagonalize:"pentagon", honeycomb:"honeycomb", planarize:"planarize",
   triangulate:"triangulate", subdivEdge:"subdivedges", quadRemesh:"quadremesh",
   pipe:"pipe", wireframe:"wireframe", simplify:"simplify" };
+const TOOL_FNS=new Map(); let toolSeq=1;     // live tool modifiers: op closures (selection frozen at add time); baked result kept for reload
 function modDefaults(type){ const r=MODS[type]; const p={}; (r.params||[]).forEach(d=>p[d.k]=(d.axis?d.def:d.def)); return p; }
 function evalMods(base, mods){
   let m=base;
@@ -6283,7 +6317,7 @@ function layerEval(L){
   if(!L) return mesh;
   const mods=(L.modifiers||[]).filter(x=>x.on);
   if(!mods.length) return L.mesh;
-  const key=L.mesh.verts.length+"_"+L.mesh.faces.length+"_"+JSON.stringify(L.modifiers)+"_"+(L._stamp||0);
+  const key=L.mesh.verts.length+"_"+L.mesh.faces.length+"_"+JSON.stringify(L.modifiers,(k,v)=>k==="baked"?undefined:v)+"_"+(L._stamp||0);
   if(L._evKey===key && L._ev) return L._ev;
   const r=evalMods(L.mesh, mods); L._evKey=key; L._ev=r; return r;
 }
@@ -6307,6 +6341,12 @@ function addModifier(type, opts){
     params.faces=fs;
     if($("#pPinchDist")){ params.dist=P("#pPinchDist"); params.segments=Math.round(P("#pPinchSeg")); params.neck=P("#pPinchNeck"); params.bulge=P("#pPinchBulge"); }
   }
+  if(type==="extrude"){
+    const fs=(opts&&opts.faces)||[...sel.faces]; if(!fs.length){ toast&&toast("Select one or more faces first",true); return; }
+    params.faces=fs;
+    if(opts&&opts.params) Object.assign(params,opts.params);
+    else if($("#pExDist")){ params.dist=P("#pExDist"); params.taper=P("#pExScale"); params.twist=P("#pExTwist"); params.segments=Math.round(P("#pExSeg")); }
+  }
   if(type==="handle"){
     if(typeof cornerSel!=="undefined" && cornerSel.length===2){ params.fa=cornerSel[0].f; params.fb=cornerSel[1].f; params.va=cornerSel[0].v; params.vb=cornerSel[1].v; }
     else { const fs=[...sel.faces]; if(fs.length!==2){ toast&&toast("Select exactly 2 faces for a handle",true); return; } params.fa=fs[0]; params.fb=fs[1]; }
@@ -6315,7 +6355,9 @@ function addModifier(type, opts){
   snapshot();                                              // make the add undoable (same architecture as every other op)
   const m={id:modSeq++, type, on:true, params};
   L.modifiers.push(m);
+  if(type==="extrude"||type==="pinch"||type==="handle"){ try{ clearSel(false); }catch(e){} }
   rebuild(); renderModStack();
+  if(opts&&opts.returnMod) return m;
   if(!(opts&&opts.silent) && typeof openModEdit==="function") openModEdit(m.id);   // hand menu passes {silent:true}
   toast&&toast("Added "+MODS[type].label);
 }
@@ -6359,7 +6401,7 @@ function renderModStack(){
     const R=MODS[md.type]||{label:md.type,params:[]};
     const row=document.createElement("div"); row.className="modRow"+(md.on?"":" off")+(md.id===modEditId?" sel":"");
     const on=mk("modOn",md.on?"&#9679;":"&#9675;",md.on?"Enabled (click to disable)":"Disabled",()=>toggleModifier(md.id));
-    const nmS=document.createElement("span"); nmS.className="modName"; nmS.textContent=R.label;
+    const nmS=document.createElement("span"); nmS.className="modName"; nmS.textContent=(md.type==="tool"&&md.params&&md.params.label)||R.label;
     const up=mk("modBtn","&#9650;","Move up",()=>moveModifier(md.id,-1),i===0);
     const dn=mk("modBtn","&#9660;","Move down",()=>moveModifier(md.id,+1),i===mods.length-1);
     const del=mk("modBtn","&#10005;","Remove",()=>removeModifier(md.id));
@@ -6476,7 +6518,7 @@ function openModEdit(id){
   saved.textContent="✓ Live — changes save automatically (no Apply needed).";
   wrap.appendChild(saved);
   body.appendChild(wrap);
-  $("#tpTitle").textContent=R.label;
+  $("#tpTitle").textContent=(md.type==="tool"&&md.params&&md.params.label)||R.label;
   $("#tpApply")&&($("#tpApply").style.display="none");        // modifiers are live & auto-saved — no Apply step
   const pop=$("#toolpop"); pop.classList.remove("hiddenPanel","empty");
   $("#optionsToggle")&&$("#optionsToggle").classList.add("on");
@@ -6892,7 +6934,7 @@ function sceneScale(){
 // ---------- topology readout ----------
 let lastGenus=0;
 function updateTopo(){
-  const e=TM.eulerInfo(mesh);
+  let e; try{ e=TM.eulerInfo((typeof dispMesh==="function")?dispMesh():mesh); }catch(_){ e=TM.eulerInfo(mesh); }   // what's on screen (base + live modifiers)
   $("#tV").textContent=e.V; $("#tE").textContent=e.E; $("#tF").textContent=e.F;
   $("#tChi").textContent=e.chi;
   const g=Number.isInteger(e.genus)?e.genus:e.genus.toFixed(1);
@@ -6980,6 +7022,29 @@ function toast(msg,bad){
 }
 function applyWhole(fn,label,keepCrust){
   if(typeof isActiveLocked==="function" && isActiveLocked()){ toast&&toast("Layer is locked — unlock to edit",true); return; }
+  // Every tool that transforms the current mesh lands in the modifier stack (live, reorderable, undoable).
+  // Generators / moves (no input mesh) and rind ops still edit the base directly.
+  if(fn.length>=1 && !keepCrust && layers[activeLayer] && !fabActive){
+    const L=layers[activeLayer];
+    const fz={verts:new Set(sel.verts),edges:new Set(sel.edges),faces:new Set(sel.faces)};
+    const fzC=JSON.parse(JSON.stringify(cornerSel||[])), fzO=(orientSel||[]).slice(), fzI=ieFace;
+    const live=m=>{ const s0=sel,c0=cornerSel,o0=orientSel,i0=ieFace;
+      sel={verts:new Set(fz.verts),edges:new Set(fz.edges),faces:new Set(fz.faces)}; cornerSel=JSON.parse(JSON.stringify(fzC)); orientSel=fzO.slice(); ieFace=fzI;
+      try{ return fn(m); } finally{ sel=s0; cornerSel=c0; orientSel=o0; ieFace=i0; } };
+    let res;
+    try{ const cur=dispMesh(); res=live({verts:cur.verts.map(v=>v.slice()),faces:cur.faces.map(f=>f.slice())}); const err=TM.validate(res); if(err) throw err; }
+    catch(e){ toast(String(e),true); return; }
+    snapshot();
+    const key="t"+(toolSeq++)+"_"+Date.now().toString(36);
+    TOOL_FNS.set(key, live);
+    if(!L.modifiers) L.modifiers=[];
+    const md={id:modSeq++, type:"tool", on:true, params:{key, label:String(label||"Tool").replace(/\s*✓$/,""), baked:res}};
+    L.modifiers.push(md);
+    if(!keepCrust){ crustPairs=null; updateCrustUI(); }
+    clearSel(false); rebuild(); renderModStack();
+    toast(label+" ✓ — added to modifiers");
+    return;
+  }
   if(modStackActive){ toast&&toast("Layer has live modifiers — Flatten the stack before a destructive edit (or use a modifier)",true); return; }
   try{
     snapshot();
@@ -7524,15 +7589,7 @@ const ops={
     const L=Math.round(P("#pMenger"));
     applyWhole(()=>TM.mengerSponge(L),"Menger sponge L"+L+" — genus "+(L===1?5:L===2?81:1409));
   },
-  extrude(){
-    if(!sel.faces.size) return toast("Select one or more faces first",true);
-    const opt={dist:P("#pExDist"),scale:P("#pExScale"),twist:P("#pExTwist"),segments:Math.round(P("#pExSeg"))};
-    applyWhole(m=>{
-      let out=m;
-      [...sel.faces].sort((a,b)=>b-a).forEach(fi=>{ out=TM.extrudeFace(out,fi,opt).mesh; });
-      return out;
-    },"Extrude");
-  },
+  extrude(){ if(typeof addModifier==="function") addModifier("extrude"); },   // live modifier: faces + distance/taper/twist/segments stay editable
   pinch(){ if(typeof addModifier==="function") addModifier("pinch"); },     // stored as a live modifier (faces + options captured, undoable, adjustable)
   insertEdge2_removed_dup(){ /* removed: duplicate key was shadowing the interactive insertEdge above */ },
   deleteEdge(){
@@ -8939,11 +8996,12 @@ $("#pArrUniform")&&$("#pArrUniform").addEventListener("change",()=>{ applyArrMod
 let exPreview=null; // {base, faces:[fi], dist}
 function faceNormalScreenDir(fi){
   // returns a normalized 2D screen direction (x right, y DOWN in CSS px) of the face's outward normal
-  const f=mesh.faces[fi]; if(!f) return {x:0,y:-1};
+  const M=(typeof dispMesh==="function")?dispMesh():mesh;
+  const f=M.faces[fi]; if(!f) return {x:0,y:-1};
   // centroid + normal in world space
-  const c=[0,0,0]; for(const vi of f){ c[0]+=mesh.verts[vi][0]; c[1]+=mesh.verts[vi][1]; c[2]+=mesh.verts[vi][2]; }
+  const c=[0,0,0]; for(const vi of f){ c[0]+=M.verts[vi][0]; c[1]+=M.verts[vi][1]; c[2]+=M.verts[vi][2]; }
   c[0]/=f.length; c[1]/=f.length; c[2]/=f.length;
-  const a=mesh.verts[f[0]], b=mesh.verts[f[1]], d=mesh.verts[f[2]];
+  const a=M.verts[f[0]], b=M.verts[f[1]], d=M.verts[f[2]];
   const u=[b[0]-a[0],b[1]-a[1],b[2]-a[2]], w=[d[0]-a[0],d[1]-a[1],d[2]-a[2]];
   let n=[u[1]*w[2]-u[2]*w[1], u[2]*w[0]-u[0]*w[2], u[0]*w[1]-u[1]*w[0]];
   const nl=Math.hypot(...n)||1; n=[n[0]/nl,n[1]/nl,n[2]/nl];
@@ -8956,27 +9014,27 @@ function faceNormalScreenDir(fi){
 }
 function beginExtrudePreview(){
   if(!sel.faces.size) return false;
-  if(modStackActive){ toast&&toast("Layer has live modifiers — Flatten to extrude destructively, or use the Pinch modifier",true); return false; }
-  exPreview={ base:{verts:mesh.verts.map(v=>v.slice()),faces:mesh.faces.map(f=>f.slice())},
-              faces:[...sel.faces], dist:0 };
+  if(isActiveLocked&&isActiveLocked()){ toast&&toast("Layer is locked — unlock to edit",true); return false; }
+  const faces=[...sel.faces];
+  const md=addModifier("extrude",{silent:true,returnMod:true,faces,params:{dist:0,taper:($("#pExScale")?P("#pExScale"):1),twist:0,segments:1}});
+  if(!md) return false;
+  exPreview={ modId:md.id, faces, dist:0 };
   return true;
 }
 function updateExtrudePreview(dist){
   if(!exPreview) return;
   exPreview.dist=dist;
-  let out=exPreview.base;
-  // extrude highest-index first so indices stay valid
-  [...exPreview.faces].sort((a,b)=>b-a).forEach(fi=>{ out=TM.extrudeFace(out,fi,{dist,scale:1,twist:0,segments:1}).mesh; });
-  mesh=out; rebuild();
+  const L=layers[activeLayer]; const md=L&&(L.modifiers||[]).find(x=>x.id===exPreview.modId); if(!md) return;
+  md.params.dist=dist; rebuild();
 }
 function endExtrudePreview(commit){
   if(!exPreview) return;
   const pr=exPreview; exPreview=null;
+  const L=layers[activeLayer];
   if(commit && Math.abs(pr.dist)>0.001){
-    mesh=pr.base; // restore, then apply through undo
-    applyWhole(m=>{ let out=m; [...pr.faces].sort((a,b)=>b-a).forEach(fi=>{ out=TM.extrudeFace(out,fi,{dist:pr.dist,scale:1,twist:0,segments:1}).mesh; }); return out; },"Extrude (gesture)");
-  } else {
-    mesh=pr.base; rebuild();
+    renderModStack(); toast&&toast("Extrude "+pr.dist.toFixed(2)+" ✓ — live in modifiers (tap it to adjust taper)");
+  } else if(L&&L.modifiers){
+    L.modifiers=L.modifiers.filter(x=>x.id!==pr.modId); undoStack.pop(); updateUndoUI(); rebuild(); renderModStack();
   }
 }
 function beginScalePreview(){
@@ -10161,6 +10219,12 @@ initLayers(); renderLayerList();
 $("#layersPanel")&&$("#layersPanel").classList.add("show");
 $("#layersToggle")&&$("#layersToggle").classList.add("on");
 makeFloatable($("#layersPanel"), $("#layersHead"), null, {skip:el=>el===$("#layersClose")});
+// Modifier stack: its own window — drag by the header, resize from the corner grip
+(function(){ const mp=$("#modPanel"); if(!mp) return; const fr=$("#frame")||document.body; fr.appendChild(mp); mp.classList.add("show");
+  makeFloatable(mp, $("#modHead"), $("#modGrip"), {minW:170,minH:110, skip:el=>el===$("#modClose")});
+  $("#modClose")&&$("#modClose").addEventListener("click",e=>{ e.stopPropagation(); mp.classList.remove("show"); });
+  $("#layersToggle")&&$("#layersToggle").addEventListener("click",()=>{ const on=$("#layersPanel").classList.contains("show"); mp.classList.toggle("show",on); });
+})();
 $("#layersToggle")&&$("#layersToggle").addEventListener("click",()=>{ const p=$("#layersPanel"); const on=!p.classList.contains("show"); p.classList.toggle("show",on); $("#layersToggle").classList.toggle("on",on); if(on) renderLayerList(); });
 $("#layersClose")&&$("#layersClose").addEventListener("click",()=>{ $("#layersPanel").classList.remove("show"); $("#layersToggle").classList.remove("on"); });
 $("#optionsToggle")&&$("#optionsToggle").addEventListener("click",()=>{ const tp=$("#toolpop"); const hidden=tp.classList.toggle("hiddenPanel"); $("#optionsToggle").classList.toggle("on",!hidden); });
