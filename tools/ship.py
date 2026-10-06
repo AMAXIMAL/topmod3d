@@ -83,7 +83,7 @@ if a.site:
     else: print("  site   -> sync_topmod.py not found, skipped")
 
 if not a.push:
-    git("add", "-A"); git("commit", "-qm", f"Update v{ver} (working copy, build {build} not uploaded)")
+    git("add", "-A"); git("commit", "-qm", f"Update v{ver} (working copy; last App Store build {uploaded})")
     print(time.strftime("%Y-%m-%d %H:%M")); sys.exit(0)
 
 # ---------------- App Store push ----------------
