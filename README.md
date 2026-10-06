@@ -1,6 +1,6 @@
 # TopMod 3D — MASTER
 
-**Current: v3.9 (build 13)** · bundle `com.amaximal.topmodjs` · team 7VP47VH46A
+**Current: v3.9 — App Store: build 8 uploaded (v3.8); next upload = build 9** · bundle `com.amaximal.topmodjs` · team 7VP47VH46A
 
 Every update starts here.
 
@@ -18,14 +18,15 @@ Every update starts here.
 cd ~/AMAXiMAL/projects/topmod
 # 1. edit TOPMOD.html  (bump the wordmark  <span class="ver">v3.8</span>  when it's a new version)
 # 2. ship
-python3 tools/ship.py            # copies into Xcode, build +1, zips to dist/, git commit + tag
+python3 tools/ship.py            # copies into Xcode, zips dist/TopModJS-Xcode_v<ver>.zip, git commit (build NOT bumped)
 python3 tools/ship.py --site     # same, plus updates amaximal.com's TopMod page
 python3 tools/ship.py --version 3.8   # new version without hand-editing the wordmark
-# 3. Xcode: open ios/TOPMOD 3D.xcodeproj → Product ▸ Archive → upload
+# 3. App Store (only when ION says so): python3 tools/ship.py --push  → build = last uploaded + 1, archive, upload, tag
 # 4. Site live: cd ~/AMAXiMAL/website/portfolio && python3 tools/build_site.py --deploy
 ```
 
 ## History
+- 2026-10-06: build numbers now bump ONLY on an App Store upload (tools/appstore_build.txt = last uploaded, 8). Working builds b9–b13 were never uploaded; their files moved to dist/never_uploaded/.
 - **v3.9 b13 (2026-10-06)**: Ctrl/Cmd+Z works after touching a slider (keyboard handler ignored keys while a slider/checkbox had focus); Ctrl/Cmd+Shift+Z and Ctrl+Y redo; layout-independent.
 - **v3.9 b12 (2026-10-06)**: File > Export Wireframe (edges only) as OBJ curves, DXF 3D lines (inches, Z-up) or SVG of the current view. Export OBJ now exports what is on screen (base + live modifiers).
 - **v3.9 b11 (2026-10-06)**: File > New always starts a fresh Cube layer (the confirm() dialog was swallowed by the iOS web view so New did nothing; New also stops a running demo). iOS shell now shows JS alert/confirm/prompt (layer rename, save-as). Includes the typeable on-screen slider boxes (b10 shipped without the HTML change).
