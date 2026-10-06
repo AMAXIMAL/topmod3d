@@ -277,7 +277,8 @@ canvas#view{width:100%;height:100%;display:block;touch-action:none;outline:none;
 .fsRow{display:flex;align-items:center;gap:12px}
 .fsL{font:600 10px var(--mono);color:var(--cyan);text-transform:uppercase;letter-spacing:.8px;min-width:96px;text-align:right}
 .fsR{width:min(56vw,460px);height:20px;accent-color:var(--cyan);cursor:pointer}
-.fsV{font:600 11px var(--mono);color:#eaffff;min-width:52px}
+.fsV{font:600 11px var(--mono);color:#eaffff;width:58px;min-width:52px;background:rgba(0,229,255,0.08);border:1px solid rgba(0,229,255,0.35);border-radius:6px;padding:4px 6px;text-align:right;outline:none}
+.fsV:focus{border-color:var(--cyan);background:rgba(0,229,255,0.18)}
 #floatApply{position:fixed;left:50%;bottom:86px;transform:translateX(-50%);z-index:9998;display:none;gap:14px;padding:10px 14px;background:rgba(11,15,22,0.92);border:1px solid rgba(0,229,255,0.5);border-radius:14px;box-shadow:0 10px 40px rgba(0,0,0,0.55)}
 #floatApply.show{display:flex}
 .faBtn{min-width:124px;padding:14px 20px;border-radius:10px;font:700 15px var(--mono);cursor:pointer;border:1px solid #2a3a4d;background:#141c28;color:#dfe8f2}
@@ -6547,15 +6548,26 @@ function syncFloat(){
       const lab=document.createElement("span"); lab.className="fsL"; lab.textContent=paramLabelFor(inp);
       const r=document.createElement("input"); r.type="range"; r.className="fsR";
       r.min=inp.min||0; r.max=(inp.max!==""&&inp.max!=null)?inp.max:100; r.step=inp.step||"any"; r.value=inp.value; r._bound=inp;
-      const v=document.createElement("span"); v.className="fsV"; v.textContent=fmtV(inp.value);
-      r.addEventListener("input",()=>{ v.textContent=fmtV(r.value); inp.value=r.value; inp.dispatchEvent(new Event("input",{bubbles:true})); });
+      const v=document.createElement("input"); v.type="text"; v.inputMode="decimal"; v.className="fsV"; v.value=fmtV(inp.value); v.title="Type a value, then Enter";
+      r.addEventListener("input",()=>{ v.value=fmtV(r.value); inp.value=r.value; inp.dispatchEvent(new Event("input",{bubbles:true})); });
+      r.addEventListener("change",()=>{ inp.dispatchEvent(new Event("change",{bubbles:true})); });
+      const commitTyped=()=>{ const n=parseFloat(v.value); if(!isFinite(n)){ v.value=fmtV(inp.value); return; }
+        // if the panel row has its own number box (modifier rows, editable value boxes), use it so an exact / out-of-range value is honoured
+        const row0=inp.closest(".modParam,.param")||inp.parentElement;
+        const nb=row0&&[...row0.querySelectorAll('input[type="text"],input[type="number"]')].find(x=>x!==v);
+        if(nb){ nb.value=String(n); nb.dispatchEvent(new Event("input",{bubbles:true})); nb.dispatchEvent(new Event("change",{bubbles:true})); }
+        else { inp.value=String(n); inp.dispatchEvent(new Event("input",{bubbles:true})); inp.dispatchEvent(new Event("change",{bubbles:true})); }
+        r.value=inp.value; v.value=fmtV(nb?n:inp.value); };
+      v.addEventListener("change",commitTyped);
+      v.addEventListener("keydown",e=>{ e.stopPropagation(); if(e.key==="Enter"){ e.preventDefault(); commitTyped(); v.blur(); } if(e.key==="Escape"){ v.value=fmtV(inp.value); v.blur(); } });
+      v.addEventListener("focus",()=>{ try{ v.select(); }catch(_){} });
       row.appendChild(lab); row.appendChild(r); row.appendChild(v); el.appendChild(row);
     });
     el.style.display="flex";
   }
   el.querySelectorAll(".fsRow").forEach(row=>{ const r=row.querySelector(".fsR"), inp=r&&r._bound; if(!inp) return;
     if(document.activeElement!==r && String(r.value)!==String(inp.value)) r.value=inp.value;
-    const v=row.querySelector(".fsV"); if(v) v.textContent=fmtV(inp.value); });
+    const v=row.querySelector(".fsV"); if(v && document.activeElement!==v){ const nb=(inp.closest(".modParam,.param")||inp.parentElement).querySelector('input[type="text"]:not(.fsV),input[type="number"]'); v.value=fmtV(nb&&nb.value!==""?nb.value:inp.value); } });
 }
 (function wireFloat(){ setInterval(syncFloat, 160); })();
 // ---- floating hand-sized Apply / Cancel: press the Options window's real Apply / close buttons ----
@@ -6983,12 +6995,14 @@ function newProject(){
   snapshot();                                                   // ⌘Z restores the previous scene
   try{ clearSel(); }catch(e){}
   layers.length=0;
-  layers.push({id:layerSeq++, name:"Layer 1", mesh:TM.primitives.cube(), visible:true, locked:false, modifiers:[], groups:[]});
+  if(window.__demo&&window.__demo.on&&window.__demo.on()&&!window.__demoFresh){ try{ window.__demo.stop(); }catch(e){} }   // New always wins over a running demo
+  layers.push({id:layerSeq++, name:"Cube", mesh:TM.primitives.cube(), visible:true, locked:false, modifiers:[], groups:[]});
   activeLayer=0; mesh=layers[0].mesh;
   const L=layers[0]; L.gen=null; L._ev=null; L._evKey=null;
   rebuild(); typeof renderModStack==="function"&&renderModStack(); typeof renderLayerList==="function"&&renderLayerList();
   const tb=$("#titlebar"); if(tb) tb.innerHTML='<span class="dot"></span> untitled.obj &mdash; TOPMOD';
-  toast&&toast("New project");
+  try{ window.__tm&&window.__tm.frameAll&&window.__tm.frameAll(); }catch(e){}
+  if(!window.__demoFresh) toast&&toast("New project — cube (Undo restores the previous scene)");
 }
 function snapshot(){
   undoStack.push(_docSnap());
@@ -11023,7 +11037,7 @@ function initMenus(){
     e.stopPropagation();close();
     const a=it.dataset.act;
     if(a==="undo")undo(); else if(a==="redo")redo();
-    else if(a==="newProject"){ if(!mesh||!mesh.faces.length||confirm("Start a new project? (⌘Z will undo)")) newProject(); }
+    else if(a==="newProject"){ newProject(); }   // no confirm(): blocked in the iOS web view — ⌘Z / Undo restores the previous scene
     else if(a==="hands"){ const hb=$("#handFab"); if(hb) hb.click(); else toast&&toast("Hand tracking isn't available in this build",true); }
     else if(a==="import")$("#fileImport").click();
     else if(a==="export")$("#btnExport").click();
@@ -13556,7 +13570,7 @@ applyOriginalIcons(); }catch(e){ console.warn("icon render skipped:",e); }
   // Demo-only "new file": start every primitive from a clean slate so modifiers never pile up
   function fresh(){
     // demo-only "new file": same as File → New, plus drop undo history so heavy meshes are released
-    try { newProject(); } catch(e){ console.warn("demo fresh() failed", e); }
+    window.__demoFresh=true; try { newProject(); } catch(e){ console.warn("demo fresh() failed", e); } finally { window.__demoFresh=false; }
     try { undoStack.length = 0; redoStack.length = 0; } catch(e){}
   }
   // Greeble with live slider drags: coverage, panel height, spike chance, then re-roll the seed

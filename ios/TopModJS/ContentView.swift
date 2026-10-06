@@ -242,6 +242,39 @@ final class WebUIDelegate: NSObject, WKUIDelegate {
                  decisionHandler: @escaping (WKPermissionDecision) -> Void) {
         decisionHandler(.grant)   // NSCameraUsageDescription still gates the real OS prompt
     }
+
+    // JavaScript alert / confirm / prompt — WKWebView silently drops these unless the UI delegate shows them.
+    // (Without this, confirm() returns false and prompt() returns nil: rename layer, save-as, etc. did nothing.)
+    private func topVC() -> UIViewController? {
+        let scene = UIApplication.shared.connectedScenes.compactMap { $0 as? UIWindowScene }.first
+        var vc = scene?.windows.first(where: { $0.isKeyWindow })?.rootViewController ?? scene?.windows.first?.rootViewController
+        while let p = vc?.presentedViewController { vc = p }
+        return vc
+    }
+    func webView(_ webView: WKWebView, runJavaScriptAlertPanelWithMessage message: String,
+                 initiatedByFrame frame: WKFrameInfo, completionHandler: @escaping () -> Void) {
+        guard let vc = topVC() else { completionHandler(); return }
+        let a = UIAlertController(title: nil, message: message, preferredStyle: .alert)
+        a.addAction(UIAlertAction(title: "OK", style: .default) { _ in completionHandler() })
+        vc.present(a, animated: true)
+    }
+    func webView(_ webView: WKWebView, runJavaScriptConfirmPanelWithMessage message: String,
+                 initiatedByFrame frame: WKFrameInfo, completionHandler: @escaping (Bool) -> Void) {
+        guard let vc = topVC() else { completionHandler(false); return }
+        let a = UIAlertController(title: nil, message: message, preferredStyle: .alert)
+        a.addAction(UIAlertAction(title: "Cancel", style: .cancel) { _ in completionHandler(false) })
+        a.addAction(UIAlertAction(title: "OK", style: .default) { _ in completionHandler(true) })
+        vc.present(a, animated: true)
+    }
+    func webView(_ webView: WKWebView, runJavaScriptTextInputPanelWithPrompt prompt: String, defaultText: String?,
+                 initiatedByFrame frame: WKFrameInfo, completionHandler: @escaping (String?) -> Void) {
+        guard let vc = topVC() else { completionHandler(nil); return }
+        let a = UIAlertController(title: nil, message: prompt, preferredStyle: .alert)
+        a.addTextField { $0.text = defaultText }
+        a.addAction(UIAlertAction(title: "Cancel", style: .cancel) { _ in completionHandler(nil) })
+        a.addAction(UIAlertAction(title: "OK", style: .default) { _ in completionHandler(a.textFields?.first?.text) })
+        vc.present(a, animated: true)
+    }
 }
 
 // MARK: - Loopback server (secure context for getUserMedia)
