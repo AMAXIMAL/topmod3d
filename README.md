@@ -1,6 +1,6 @@
 # TopMod 3D — MASTER
 
-**Current: v3.9 (build 9)** · bundle `com.amaximal.topmodjs` · team 7VP47VH46A
+**Current: v3.9 (build 10)** · bundle `com.amaximal.topmodjs` · team 7VP47VH46A
 
 Every update starts here.
 
@@ -26,6 +26,7 @@ python3 tools/ship.py --version 3.8   # new version without hand-editing the wor
 ```
 
 ## History
+- **v3.9 b10 (2026-10-06)**: on-screen (floating, hand-sized) sliders get typeable number boxes — Enter to apply; exact values beyond the slider range are honoured on modifier params.
 - **v3.9 b9 (2026-10-06)**: Extrude is a live modifier with a Taper (end size) slider plus distance/twist/segments; works on a mesh that already has modifiers. Every mesh tool now lands in the modifier stack (live, reorderable, undoable) instead of being blocked; hand push/pull extrude also becomes a live Extrude modifier. Modifier stack moved to its own narrow, draggable, resizable window. Smaller tool icons. Topology readout shows the on-screen (modified) mesh.
 - **v3.8 b8 (2026-10-01)**: fresh start from the unified v3.7 master; first App Store Connect upload from ~/AMAXiMAL.
 - **v3.7 b7 (2026-10-01)**: unified release. Sep 30 master (v3.1 + Demo mode, boolean/greeble/metaballs/voxel/
