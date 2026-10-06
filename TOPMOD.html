@@ -9642,6 +9642,13 @@ function handleClick(x,y,shift){
 
 // ---------- keyboard ----------
 addEventListener("keydown",e=>{
+  // Undo / redo work everywhere except while typing in a text box (sliders, checkboxes and buttons keep focus after use)
+  { const k=(e.key||"").toLowerCase(), t=e.target, typing=(t&&(t.tagName==="TEXTAREA"||t.isContentEditable||(t.tagName==="INPUT"&&!/^(range|checkbox|radio|button|submit|color)$/i.test(t.type||"text"))));
+    if((e.metaKey||e.ctrlKey)&&!e.altKey&&!typing&&(k==="z"||e.code==="KeyZ"||k==="y"||e.code==="KeyY")){
+      e.preventDefault(); e.stopPropagation();
+      if(t&&t.blur&&t!==document.body) try{ t.blur(); }catch(_){}
+      if(k==="y"||e.code==="KeyY"||e.shiftKey) redo(); else undo();
+      return; } }
   if(e.target.tagName==="INPUT") return;
   if(e.shiftKey && !e.metaKey && !e.ctrlKey && !e.altKey && (e.key==="F"||e.key==="f")){ e.preventDefault(); toggleFullscreen(); return; }   // Shift+F: full screen on/off
   if(e.key==="Delete"||e.key==="Backspace"){
