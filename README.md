@@ -1,6 +1,6 @@
 # TopMod 3D — MASTER
 
-**Current: v3.9 (build 11)** · bundle `com.amaximal.topmodjs` · team 7VP47VH46A
+**Current: v3.9 (build 12)** · bundle `com.amaximal.topmodjs` · team 7VP47VH46A
 
 Every update starts here.
 
@@ -26,6 +26,7 @@ python3 tools/ship.py --version 3.8   # new version without hand-editing the wor
 ```
 
 ## History
+- **v3.9 b12 (2026-10-06)**: File > Export Wireframe (edges only) as OBJ curves, DXF 3D lines (inches, Z-up) or SVG of the current view. Export OBJ now exports what is on screen (base + live modifiers).
 - **v3.9 b11 (2026-10-06)**: File > New always starts a fresh Cube layer (the confirm() dialog was swallowed by the iOS web view so New did nothing; New also stops a running demo). iOS shell now shows JS alert/confirm/prompt (layer rename, save-as). Includes the typeable on-screen slider boxes (b10 shipped without the HTML change).
 - **v3.9 b10 (2026-10-06)**: on-screen (floating, hand-sized) sliders get typeable number boxes — Enter to apply; exact values beyond the slider range are honoured on modifier params.
 - **v3.9 b9 (2026-10-06)**: Extrude is a live modifier with a Taper (end size) slider plus distance/twist/segments; works on a mesh that already has modifiers. Every mesh tool now lands in the modifier stack (live, reorderable, undoable) instead of being blocked; hand push/pull extrude also becomes a live Extrude modifier. Modifier stack moved to its own narrow, draggable, resizable window. Smaller tool icons. Topology readout shows the on-screen (modified) mesh.
