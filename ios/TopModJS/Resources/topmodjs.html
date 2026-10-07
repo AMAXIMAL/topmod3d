@@ -682,6 +682,10 @@ canvas#view{width:100%;height:100%;display:block;touch-action:none;outline:none;
 </style>
 
 <style id="v39css">
+.modSelect{flex:1;min-width:0;background:rgba(0,229,255,0.08);color:#cfe8ff;border:1px solid rgba(0,229,255,0.35);border-radius:6px;padding:3px 6px;font:12px var(--font)}
+.latInfo{margin-top:10px;padding:8px 10px;border:1px solid rgba(0,229,255,0.25);border-radius:8px;background:rgba(0,229,255,0.05);color:#cfe8ff}
+.latRow{display:flex;justify-content:space-between;gap:8px;font-size:12px;margin:2px 0}.latRow b{color:#FF8C22;font-family:var(--mono)}
+.latSub{font-size:10px;color:#8aa3b8;margin-top:4px;line-height:1.4}
 /* v3.9: modifier stack in its own adjustable window (narrow by default) */
 #modPanel{position:fixed;right:12px;top:270px;z-index:9997;width:210px;height:auto;max-height:190px;display:none;flex-direction:column;
   background:rgba(11,15,22,0.97);border:1px solid var(--cyan-dim);border-radius:12px;box-shadow:0 14px 40px rgba(0,0,0,0.55);overflow:hidden}
@@ -801,6 +805,7 @@ canvas#view{width:100%;height:100%;display:block;touch-action:none;outline:none;
       <div class="mi" data-op="handle">Add Handle (2 faces)</div>
       <div class="mi" data-op="crust">Create Rind / Crust</div>
       <div class="mi" data-op="wireframe">Wireframe Modeling</div>
+      <div class="mi" data-op="latticeFill">Lattice Fill (TPMS infill)&hellip;</div>
       <div class="mi" data-op="menger">Menger Sponge</div>
     </div></div>
     <div class="menu"><span class="mtitle">Remeshing</span><div class="mlist">
@@ -919,6 +924,7 @@ canvas#view{width:100%;height:100%;display:block;touch-action:none;outline:none;
         <button class="tb" data-op="diffGrow" title="Differential Growth — grow the active mesh like coral/brain: edges split, the surface inflates along its normals and wrinkles. Grow ×N frames, then Apply to bake."><svg width="22" height="22" viewBox="0 0 22 22"><path d="M11 19V11M11 11C11 8 8 7.5 7 5M11 11c0-3 3-3.5 4-6M7 5c-1.6 0-2.4-1.2-2.4-1.2M15 5c1.6 0 2.4-1.2 2.4-1.2M11 11c-2.2 0-3 1.6-4.6 1.6" fill="none" stroke="#00E5FF" stroke-width="1.3" stroke-linecap="round" stroke-linejoin="round"/><circle cx="7" cy="5" r="1.3" fill="#FF8C22"/><circle cx="15" cy="5" r="1.3" fill="#FF8C22"/></svg><span class="tlbl">Growth</span></button>
         <button class="tb" data-op="menger" title="Menger sponge"><img class="ticon" alt="Menger sponge"><span class="tlbl">Sponge</span></button>
         <button class="tb" data-op="gyroid" title="Gyroid surface"><img class="ticon" alt="Gyroid"><span class="tlbl">Gyroid</span></button>
+        <button class="tb" data-op="latticeFill" title="Lattice Fill — fill the shape with a TPMS lattice (gyroid, Schwarz P, diamond, Neovius, I-WP): sheet or solid, cell size, wall, density grading, outer skin. Shows relative density + estimated stiffness. Live modifier."><svg width="22" height="22" viewBox="0 0 22 22"><rect x="3" y="3" width="16" height="16" rx="3" stroke="#00E5FF" stroke-width="1.3" fill="none"/><path d="M3 9c3-3 5 3 8 0s5 3 8 0M3 15c3-3 5 3 8 0s5 3 8 0M9 3c-3 3 3 5 0 8s3 5 0 8M15 3c-3 3 3 5 0 8s3 5 0 8" stroke="#FF8C22" stroke-width="1.1" fill="none"/></svg><span class="tlbl">Lattice</span></button>
         <button class="tb" data-op="sierpinski" title="Sierpinski tetrahedron (tetrix)"><img class="ticon" alt="Sierp"><span class="tlbl">Sierp</span></button>
         <button class="tb" data-op="hybrid" title="Schoen hybrid P/F-RD (Brakke patch construction)"><img class="ticon" alt="Hybrid"><span class="tlbl">Hybrid</span></button>
         <button class="tb" data-p="rossler" title="Rössler attractor — chaotic tube (parametric)"><img class="ticon" alt="rossler"><span class="tlbl">Rössler</span></button>
@@ -6233,6 +6239,183 @@ function renderLayerList(){
 // Each layer carries an ordered list of modifiers; the displayed mesh is the base
 // mesh folded through every ENABLED modifier, recomputed live. Topology editing is
 // suspended while a stack is active (the output is a generator result, like C4D).
+// ================= Lattice Fill (TPMS infill) + density / stiffness estimate =================
+// Fills a closed mesh with a triply-periodic minimal-surface lattice (gyroid, Schwarz P, diamond,
+// Neovius, I-WP), clipped to the shape, with an optional solid outer skin and density grading.
+// Pipeline: node grid over the bbox -> inside test (z-ray parity per column) -> signed distance
+// (exact near the surface, voxel EDT elsewhere) -> field f = max(D, min(L, -D-skin)) -> marching
+// tetrahedra (watertight, manifold, consistently wound) -> largest shells kept.
+const LAT_TYPES=["Gyroid","Schwarz P","Diamond","Neovius","I-WP"];
+const LAT_GRADES=["None","Bottom → top","Skin → core"];
+function _latTPMS(type,x,y,z){
+  const sx=Math.sin(x),sy=Math.sin(y),sz=Math.sin(z),cx=Math.cos(x),cy=Math.cos(y),cz=Math.cos(z);
+  switch(type){
+    case 1: return (cx+cy+cz)/1.6;                                                     // Schwarz P
+    case 2: return (sx*sy*sz+sx*cy*cz+cx*sy*cz+cx*cy*sz)/1.2;                           // Schwarz D (diamond)
+    case 3: return (3*(cx+cy+cz)+4*cx*cy*cz)/5.5;                                       // Neovius
+    case 4: return (2*(cx*cy+cy*cz+cz*cx)-(Math.cos(2*x)+Math.cos(2*y)+Math.cos(2*z)))/3.2; // I-WP
+    default: return sx*cy+sy*cz+sz*cx;                                                   // gyroid
+  }
+}
+function _ptTriDist2(p,a,b,c){            // squared distance from p to triangle abc (Ericson)
+  const ab=[b[0]-a[0],b[1]-a[1],b[2]-a[2]], ac=[c[0]-a[0],c[1]-a[1],c[2]-a[2]], ap=[p[0]-a[0],p[1]-a[1],p[2]-a[2]];
+  const D=(u,v)=>u[0]*v[0]+u[1]*v[1]+u[2]*v[2];
+  const d1=D(ab,ap), d2=D(ac,ap); let q;
+  if(d1<=0&&d2<=0) q=a; else {
+    const bp=[p[0]-b[0],p[1]-b[1],p[2]-b[2]], d3=D(ab,bp), d4=D(ac,bp);
+    if(d3>=0&&d4<=d3) q=b; else {
+      const vc=d1*d4-d3*d2;
+      if(vc<=0&&d1>=0&&d3<=0){ const v=d1/(d1-d3); q=[a[0]+ab[0]*v,a[1]+ab[1]*v,a[2]+ab[2]*v]; } else {
+        const cp=[p[0]-c[0],p[1]-c[1],p[2]-c[2]], d5=D(ab,cp), d6=D(ac,cp);
+        if(d6>=0&&d5<=d6) q=c; else {
+          const vb=d5*d2-d1*d6;
+          if(vb<=0&&d2>=0&&d6<=0){ const w=d2/(d2-d6); q=[a[0]+ac[0]*w,a[1]+ac[1]*w,a[2]+ac[2]*w]; } else {
+            const va=d3*d6-d5*d4;
+            if(va<=0&&(d4-d3)>=0&&(d5-d6)>=0){ const w=(d4-d3)/((d4-d3)+(d5-d6)); q=[b[0]+(c[0]-b[0])*w,b[1]+(c[1]-b[1])*w,b[2]+(c[2]-b[2])*w]; }
+            else { const den=1/(va+vb+vc), v=vb*den, w=vc*den; q=[a[0]+ab[0]*v+ac[0]*w,a[1]+ab[1]*v+ac[1]*w,a[2]+ab[2]*v+ac[2]*w]; }
+          }
+        }
+      }
+    }
+  }
+  const dx=p[0]-q[0],dy=p[1]-q[1],dz=p[2]-q[2]; return dx*dx+dy*dy+dz*dz;
+}
+function _edt1(f,n){                       // 1-D squared Euclidean distance transform (Felzenszwalb)
+  const d=new Float64Array(n), v=new Int32Array(n), z=new Float64Array(n+1); let k=0; v[0]=0; z[0]=-1e20; z[1]=1e20;
+  for(let q=1;q<n;q++){ let s; while(true){ s=((f[q]+q*q)-(f[v[k]]+v[k]*v[k]))/(2*q-2*v[k]); if(s<=z[k]&&k>0) k--; else break; }
+    if(s<=z[k]){ k=0; v[0]=q; z[0]=-1e20; z[1]=1e20; continue; } k++; v[k]=q; z[k]=s; z[k+1]=1e20; }
+  k=0; for(let q=0;q<n;q++){ while(z[k+1]<q) k++; const t=q-v[k]; d[q]=t*t+f[v[k]]; } return d;
+}
+function _edt3(mask,nx,ny,nz){              // squared distance (in cells) from each node to the nearest node where mask==0
+  const N=nx*ny*nz, g=new Float64Array(N), I=(i,j,k)=>(i*ny+j)*nz+k, BIG=1e12;
+  for(let t=0;t<N;t++) g[t]=mask[t]?BIG:0;
+  let buf=new Float64Array(Math.max(nx,ny,nz));
+  for(let i=0;i<nx;i++)for(let j=0;j<ny;j++){ for(let k=0;k<nz;k++) buf[k]=g[I(i,j,k)]; const d=_edt1(buf,nz); for(let k=0;k<nz;k++) g[I(i,j,k)]=d[k]; }
+  for(let i=0;i<nx;i++)for(let k=0;k<nz;k++){ for(let j=0;j<ny;j++) buf[j]=g[I(i,j,k)]; const d=_edt1(buf,ny); for(let j=0;j<ny;j++) g[I(i,j,k)]=d[j]; }
+  for(let j=0;j<ny;j++)for(let k=0;k<nz;k++){ for(let i=0;i<nx;i++) buf[i]=g[I(i,j,k)]; const d=_edt1(buf,nx); for(let i=0;i<nx;i++) g[I(i,j,k)]=d[i]; }
+  return g;
+}
+function latticeFill(m, p){
+  p=p||{};
+  const type=Math.max(0,Math.min(4,Math.round(p.type||0)));
+  const sheet=!p.solid;
+  const res=Math.max(16,Math.min(110,Math.round(p.res||48)));        // max grid cells along the longest axis
+  // triangles
+  const T=[]; for(const f of m.faces){ const a=m.verts[f[0]]; for(let i=1;i<f.length-1;i++) T.push([a,m.verts[f[i]],m.verts[f[i+1]]]); }
+  if(!T.length) return m;
+  let mn=[1e9,1e9,1e9],mx=[-1e9,-1e9,-1e9];
+  for(const v of m.verts) for(let d=0;d<3;d++){ if(v[d]<mn[d])mn[d]=v[d]; if(v[d]>mx[d])mx[d]=v[d]; }
+  const span=Math.max(mx[0]-mn[0],mx[1]-mn[1],mx[2]-mn[2])||1;
+  const cell=Math.max(span/40, +p.cell||span/3);
+  let wall=Math.max(1e-4, +p.thick||cell*0.12);                      // sheet wall thickness (model units)
+  const gmul=(p.thick2!=null&&p.thick2!=="")? Math.max(0.05,+p.thick2) : 1;
+  // grid: fine enough to resolve the thinnest wall (>=1.5 cells) and the cell (>=8 cells), capped by Detail
+  const need=Math.min(sheet? wall*Math.min(1,gmul)/1.5 : 1e9, cell/8);
+  const h=span/res, pad=2; void need;
+  let wallRaised=false; if(sheet && wall*Math.min(1,gmul)<1.5*h){ wall=1.5*h/Math.min(1,gmul); wallRaised=true; }
+  const nx=Math.ceil((mx[0]-mn[0])/h)+1+2*pad, ny=Math.ceil((mx[1]-mn[1])/h)+1+2*pad, nz=Math.ceil((mx[2]-mn[2])/h)+1+2*pad;
+  const o=[mn[0]-pad*h, mn[1]-pad*h, mn[2]-pad*h];
+  const N=nx*ny*nz, I=(i,j,k)=>(i*ny+j)*nz+k;
+  // ---- inside test: ray parity along +z for every (x,y) column, triangles binned by xy bbox
+  const inside=new Uint8Array(N);
+  const B=Math.max(1,Math.round(Math.sqrt(T.length)/2)), bw=(nx*h)/B, bh=(ny*h)/B, bins=Array.from({length:B*B},()=>[]);
+  T.forEach((t,ti)=>{ const x0=Math.min(t[0][0],t[1][0],t[2][0]),x1=Math.max(t[0][0],t[1][0],t[2][0]),y0=Math.min(t[0][1],t[1][1],t[2][1]),y1=Math.max(t[0][1],t[1][1],t[2][1]);
+    const bi0=Math.max(0,Math.floor((x0-o[0])/bw)),bi1=Math.min(B-1,Math.floor((x1-o[0])/bw)),bj0=Math.max(0,Math.floor((y0-o[1])/bh)),bj1=Math.min(B-1,Math.floor((y1-o[1])/bh));
+    for(let a=bi0;a<=bi1;a++)for(let b=bj0;b<=bj1;b++) bins[a*B+b].push(ti); });
+  const zs=[];
+  for(let i=0;i<nx;i++)for(let j=0;j<ny;j++){
+    const x=o[0]+i*h+1.3e-7*span, y=o[1]+j*h+0.7e-7*span;           // tiny jitter: never exactly on an edge
+    const bin=bins[Math.min(B-1,Math.max(0,Math.floor((x-o[0])/bw)))*B+Math.min(B-1,Math.max(0,Math.floor((y-o[1])/bh)))];
+    zs.length=0;
+    for(const ti of bin){ const t=T[ti], a=t[0],b=t[1],c=t[2];
+      const d=(b[1]-c[1])*(a[0]-c[0])+(c[0]-b[0])*(a[1]-c[1]); if(Math.abs(d)<1e-14) continue;
+      const l1=((b[1]-c[1])*(x-c[0])+(c[0]-b[0])*(y-c[1]))/d, l2=((c[1]-a[1])*(x-c[0])+(a[0]-c[0])*(y-c[1]))/d, l3=1-l1-l2;
+      if(l1<0||l2<0||l3<0) continue; zs.push(l1*a[2]+l2*b[2]+l3*c[2]); }
+    if(zs.length<2) continue; zs.sort((u,v)=>u-v);
+    let q=0;
+    for(let k=0;k<nz;k++){ const z=o[2]+k*h; while(q<zs.length&&zs[q]<z) q++; if(q&1) inside[I(i,j,k)]=1; }
+  }
+  // ---- signed distance D (model units): voxel EDT, refined with exact triangle distance near the surface
+  const din=_edt3(inside,nx,ny,nz), out=new Uint8Array(N); for(let t=0;t<N;t++) out[t]=inside[t]?0:1;
+  const dout=_edt3(out,nx,ny,nz);
+  const D=new Float32Array(N);
+  for(let t=0;t<N;t++) D[t]= inside[t] ? -(Math.sqrt(din[t])-0.5)*h : (Math.sqrt(dout[t])-0.5)*h;
+  { // exact refinement within ~2.5 cells of the surface (3-D triangle bins)
+    const C=Math.max(h*3,span/24), gx=Math.ceil(nx*h/C)+1, gy=Math.ceil(ny*h/C)+1, gz=Math.ceil(nz*h/C)+1, G3=new Map();
+    T.forEach((t,ti)=>{ const lo=[0,1,2].map(d=>Math.floor((Math.min(t[0][d],t[1][d],t[2][d])-o[d])/C)), hi=[0,1,2].map(d=>Math.floor((Math.max(t[0][d],t[1][d],t[2][d])-o[d])/C));
+      for(let a=lo[0];a<=hi[0];a++)for(let b=lo[1];b<=hi[1];b++)for(let c=lo[2];c<=hi[2];c++){ const key=(a*gy+b)*gz+c; let L=G3.get(key); if(!L){L=[];G3.set(key,L);} L.push(ti); } });
+    for(let i=0;i<nx;i++)for(let j=0;j<ny;j++)for(let k=0;k<nz;k++){ const t=I(i,j,k); if(Math.abs(D[t])>2.5*h) continue;
+      const P3=[o[0]+i*h,o[1]+j*h,o[2]+k*h], ci=Math.floor((P3[0]-o[0])/C), cj=Math.floor((P3[1]-o[1])/C), ck=Math.floor((P3[2]-o[2])/C);
+      let best=1e30; for(let a=ci-1;a<=ci+1;a++)for(let b=cj-1;b<=cj+1;b++)for(let c=ck-1;c<=ck+1;c++){ const L=G3.get((a*gy+b)*gz+c); if(!L) continue;
+        for(const ti of L){ const tr=T[ti]; const d2=_ptTriDist2(P3,tr[0],tr[1],tr[2]); if(d2<best) best=d2; } }
+      if(best<1e29){ const d=Math.sqrt(best); D[t]=inside[t]?-d:d; } }
+  }
+  // ---- lattice field
+  const k2=2*Math.PI/cell;
+  const frac=Math.min(0.95,Math.max(0.05,(p.frac!=null&&p.frac!=="")? +p.frac : 0.35));  // solid-strut volume fraction target
+  const grade=Math.round(p.grade||0); let skin=Math.max(0,+p.skin||0); if(skin>0&&skin<1.5*h) skin=1.5*h;   // a skin thinner than the grid aliases
+  let maxDepth=0; for(let t=0;t<N;t++) if(-D[t]>maxDepth) maxDepth=-D[t];
+  const gscale=cell/(2*Math.PI*1.15);                                 // field units -> ~model units
+  const F=new Float64Array(N); let nIn=0,nLat=0;
+  for(let i=0;i<nx;i++)for(let j=0;j<ny;j++)for(let k=0;k<nz;k++){
+    const t=I(i,j,k), x=o[0]+i*h, y=o[1]+j*h, z=o[2]+k*h;
+    let g=0; if(grade===1) g=(y-mn[1])/((mx[1]-mn[1])||1); else if(grade===2) g=maxDepth>0? Math.min(1,Math.max(0,-D[t]/maxDepth)) : 0;
+    const gm=1+(gmul-1)*Math.min(1,Math.max(0,g));                     // grading multiplier along the chosen direction
+    const tv=_latTPMS(type,x*k2,y*k2,z*k2);
+    const L= sheet ? Math.abs(tv)*gscale - wall*gm/2                   // constant-thickness sheet straddling the surface
+                   : (tv - Math.min(1.4,Math.max(-1.4,(Math.min(0.95,frac*gm)-0.5)*3)))*gscale;   // solid network, iso from target fraction
+    const d=D[t];
+    let f = skin>0 ? Math.max(d, Math.min(L, -d-skin)) : Math.max(d, L);
+    if(d<0){ nIn++; if(L<0) nLat++; }
+    if(Math.abs(f)<1e-9) f=-1e-9;
+    F[t]=-f;                                                            // >0 = solid
+  }
+  // ---- marching tetrahedra (Freudenthal split; same construction as the gyroid generator)
+  const verts=[], vmap=new Map(), faces=[];
+  const W=a=>{ const k=a%nz, j=((a-k)/nz)%ny, i=(a-k-j*nz)/(ny*nz); return [o[0]+i*h,o[1]+j*h,o[2]+k*h]; };
+  const EV=(a,b)=>{ const key=a<b? a*N+b : b*N+a; let id=vmap.get(key); if(id!==undefined) return id;
+    const fa=F[a], fb=F[b], s=fa/(fa-fb), A=W(a), Bv=W(b); id=verts.length; verts.push([A[0]+(Bv[0]-A[0])*s,A[1]+(Bv[1]-A[1])*s,A[2]+(Bv[2]-A[2])*s]); vmap.set(key,id); return id; };
+  const orient=(ids,ref)=>{ const A=verts[ids[0]],Bv=verts[ids[1]],Cv=verts[ids[2]];
+    const u=[Bv[0]-A[0],Bv[1]-A[1],Bv[2]-A[2]], w=[Cv[0]-A[0],Cv[1]-A[1],Cv[2]-A[2]], n=[u[1]*w[2]-u[2]*w[1],u[2]*w[0]-u[0]*w[2],u[0]*w[1]-u[1]*w[0]];
+    let cx=0,cy=0,cz=0; for(const q of ids){ cx+=verts[q][0];cy+=verts[q][1];cz+=verts[q][2]; } cx/=ids.length;cy/=ids.length;cz/=ids.length;
+    return (n[0]*(cx-ref[0])+n[1]*(cy-ref[1])+n[2]*(cz-ref[2]))>=0 ? ids : ids.slice().reverse(); };
+  const TETS=[[0,5,1,6],[0,1,2,6],[0,2,3,6],[0,3,7,6],[0,7,4,6],[0,4,5,6]];
+  for(let i=0;i<nx-1;i++)for(let j=0;j<ny-1;j++)for(let k=0;k<nz-1;k++){
+    const c=[I(i,j,k),I(i+1,j,k),I(i+1,j+1,k),I(i,j+1,k),I(i,j,k+1),I(i+1,j,k+1),I(i+1,j+1,k+1),I(i,j+1,k+1)];
+    let any=0,all=1; for(const q of c){ if(F[q]>0) any=1; else all=0; } if(!any||all) continue;
+    for(const Tt of TETS){ const ids=[c[Tt[0]],c[Tt[1]],c[Tt[2]],c[Tt[3]]], inb=ids.map(q=>F[q]>0), cnt=inb[0]+inb[1]+inb[2]+inb[3];
+      if(cnt===0||cnt===4) continue;
+      if(cnt===1||cnt===3){ const want=cnt===1; let a=-1; for(let q=0;q<4;q++) if(inb[q]===want) a=q; const ot=[0,1,2,3].filter(q=>q!==a);
+        const tri=[EV(ids[a],ids[ot[0]]),EV(ids[a],ids[ot[1]]),EV(ids[a],ids[ot[2]])];
+        faces.push(orient(tri, W(cnt===1? ids[a] : ids[ot[0]])));
+      } else { const ins=[],outs=[]; for(let q=0;q<4;q++) (inb[q]?ins:outs).push(q);
+        const qd=[EV(ids[ins[0]],ids[outs[0]]),EV(ids[ins[0]],ids[outs[1]]),EV(ids[ins[1]],ids[outs[1]]),EV(ids[ins[1]],ids[outs[0]])];
+        const wa=W(ids[ins[0]]), wb=W(ids[ins[1]]);
+        faces.push(orient(qd,[(wa[0]+wb[0])/2,(wa[1]+wb[1])/2,(wa[2]+wb[2])/2])); }
+    }
+  }
+  // drop degenerate faces (repeated verts), then keep shells holding >=2% of the faces (strays from clipping)
+  const clean=faces.filter(f=>new Set(f).size===f.length);
+  const par=new Int32Array(verts.length); for(let q=0;q<par.length;q++) par[q]=q;
+  const fnd=a=>{ while(par[a]!==a){ par[a]=par[par[a]]; a=par[a]; } return a; };
+  for(const f of clean){ const r=fnd(f[0]); for(let q=1;q<f.length;q++){ const s=fnd(f[q]); if(s!==r) par[s]=r; } }
+  const cnt=new Map(); for(const f of clean){ const r=fnd(f[0]); cnt.set(r,(cnt.get(r)||0)+1); }
+  const keep=new Set([...cnt].filter(([r,c])=>c>=Math.max(8,clean.length*0.02)).map(([r])=>r));
+  const remap=new Map(), V2=[], F2=[];
+  for(const f of clean){ if(!keep.has(fnd(f[0]))) continue; F2.push(f.map(q=>{ let id=remap.get(q); if(id===undefined){ id=V2.length; V2.push(verts[q]); remap.set(q,id); } return id; })); }
+  // ---- light Taubin smoothing (λ/μ, no shrink): removes marching-tet faceting, keeps topology watertight
+  { const nb=Array.from({length:V2.length},()=>[]);
+    for(const f of F2) for(let q=0;q<f.length;q++){ const a=f[q],b2=f[(q+1)%f.length]; nb[a].push(b2); nb[b2].push(a); }
+    let P=V2; const pass=l=>{ const Q=new Array(P.length); for(let q=0;q<P.length;q++){ const L=nb[q], v=P[q]; if(!L.length){ Q[q]=v; continue; } let ax=0,ay=0,az=0; for(const j of L){ ax+=P[j][0];ay+=P[j][1];az+=P[j][2]; } const iv=1/L.length; Q[q]=[v[0]+l*(ax*iv-v[0]),v[1]+l*(ay*iv-v[1]),v[2]+l*(az*iv-v[2])]; } P=Q; };
+    const it=Math.max(0,Math.round(p.smooth!=null?p.smooth:3)); for(let q=0;q<it;q++){ pass(0.5); pass(-0.53); }
+    for(let q=0;q<V2.length;q++) V2[q]=P[q]; }
+  // ---- density / stiffness estimate (Gibson–Ashby style; for ranking, not a simulation)
+  const rho=nIn? nLat/nIn : 0;
+  const C0=sheet?0.55:0.3, n0=sheet?1.5:2.0;
+  p._info={ rho, E:C0*Math.pow(rho,n0), n:n0, mode:sheet?"sheet — stretch/bend mixed (n≈1.5)":"solid struts — bending-dominated (n≈2)",
+            cell, wall:sheet?wall:null, wallRaised, faces:F2.length, grid:nx+"×"+ny+"×"+nz };
+  return F2.length? {verts:V2, faces:F2} : m;
+}
 const AX=["x","y","z"];
 const MODS={
   // --- deformers (topology-preserving) ---
@@ -6289,6 +6472,8 @@ const MODS={
   pinch:   {label:"Pinch Extrude", grp:"Topology", params:[{k:"dist",l:"Distance",min:0.4,max:5,step:0.1,def:2.0},{k:"segments",l:"Segments",min:3,max:40,step:1,def:14},{k:"neck",l:"Neck",min:0.05,max:0.8,step:0.01,def:0.18},{k:"bulge",l:"Bulge",min:0.5,max:1.6,step:0.05,def:1.0}],
             apply:(m,p)=>{ let out=m; const faces=(p.faces||[]).filter(f=>f<out.faces.length).sort((a,b)=>b-a);
               for(const fi of faces){ try{ out=TM.pinchExtrude(out,fi,{dist:p.dist,segments:Math.round(p.segments),neck:p.neck,bulge:p.bulge}).mesh; }catch(e){} } return out; }},
+  latfill: {label:"Lattice Fill (TPMS)", grp:"Generate", heavy:true, params:[{k:"type",l:"Lattice",opts:LAT_TYPES,def:0},{k:"solid",l:"Solid struts (off = sheet walls)",bool:true,def:false},{k:"cell",l:"Cell size",min:0.05,max:4,step:0.01,def:0.66},{k:"thick",l:"Wall thickness (sheet)",min:0.005,max:0.5,step:0.005,def:0.08},{k:"frac",l:"Solid fraction (struts)",min:0.05,max:0.95,step:0.01,def:0.35},{k:"grade",l:"Grade",opts:LAT_GRADES,def:0},{k:"thick2",l:"Graded ×",min:0.2,max:3,step:0.05,def:2},{k:"skin",l:"Outer skin (0 = open)",min:0,max:0.5,step:0.005,def:0},{k:"res",l:"Detail",min:16,max:110,step:1,def:40},{k:"smooth",l:"Smooth",min:0,max:10,step:1,def:3}],
+            apply:(m,p)=>latticeFill(m,p)},
   extrude: {label:"Extrude", grp:"Topology", params:[{k:"dist",l:"Distance",min:-2,max:4,step:0.01,def:0.6},{k:"taper",l:"Taper (end size)",min:0.05,max:2,step:0.01,def:1},{k:"twist",l:"Twist°",min:-180,max:180,step:1,def:0},{k:"segments",l:"Segments",min:1,max:16,step:1,def:1}],
             apply:(m,p)=>{ let out=m; const faces=(p.faces||[]).filter(f=>f<out.faces.length).sort((a,b)=>b-a);
               const n=Math.max(1,Math.round(p.segments||1)), tp=Math.max(0.01,+p.taper||1);
@@ -6303,7 +6488,7 @@ const MODS={
 };
 // Whole-mesh toolbar ops that should drop onto the active layer's stack as live modifiers
 // (instead of baking destructively) when chosen from the tools.
-const OP_AS_MOD={ catmull:"subdivide", doosabin:"smooth", loop:"loop", root3:"root3",
+const OP_AS_MOD={ latticeFill:"latfill", catmull:"subdivide", doosabin:"smooth", loop:"loop", root3:"root3",
   dual:"dual", stellate:"stellate", doubleStellate:"dstellate", truncate:"truncate",
   pentagonalize:"pentagon", honeycomb:"honeycomb", planarize:"planarize",
   triangulate:"triangulate", subdivEdge:"subdivedges", quadRemesh:"quadremesh",
@@ -6321,7 +6506,7 @@ function layerEval(L){
   if(!L) return mesh;
   const mods=(L.modifiers||[]).filter(x=>x.on);
   if(!mods.length) return L.mesh;
-  const key=L.mesh.verts.length+"_"+L.mesh.faces.length+"_"+JSON.stringify(L.modifiers,(k,v)=>k==="baked"?undefined:v)+"_"+(L._stamp||0);
+  const key=L.mesh.verts.length+"_"+L.mesh.faces.length+"_"+JSON.stringify(L.modifiers,(k,v)=>(k==="baked"||(k&&k.charAt(0)==="_"))?undefined:v)+"_"+(L._stamp||0);
   if(L._evKey===key && L._ev) return L._ev;
   const r=evalMods(L.mesh, mods); L._evKey=key; L._ev=r; return r;
 }
@@ -6344,6 +6529,14 @@ function addModifier(type, opts){
     const fs=[...sel.faces]; if(!fs.length){ toast&&toast("Select one or more faces first",true); return; }
     params.faces=fs;
     if($("#pPinchDist")){ params.dist=P("#pPinchDist"); params.segments=Math.round(P("#pPinchSeg")); params.neck=P("#pPinchNeck"); params.bulge=P("#pPinchBulge"); }
+  }
+  if(type==="latfill"){
+    try{ const M=dispMesh(); let a=[1e9,1e9,1e9],b=[-1e9,-1e9,-1e9]; for(const v of M.verts) for(let d=0;d<3;d++){ if(v[d]<a[d])a[d]=v[d]; if(v[d]>b[d])b[d]=v[d]; }
+      const sp=Math.max(b[0]-a[0],b[1]-a[1],b[2]-a[2])||2; params.cell=+(sp/3).toFixed(3); params.thick=+(sp/3*0.12).toFixed(3); params.skin=0;
+      const R=MODS.latfill.params, pc=R.find(x=>x.k==="cell"), ps=R.find(x=>x.k==="skin"), pt=R.find(x=>x.k==="thick");
+      pc.max=Math.max(4,+(sp*1.5).toFixed(2)); pc.min=+(sp/40).toFixed(3); ps.max=Math.max(0.5,+(sp*0.25).toFixed(2)); pt.max=Math.max(0.5,+(sp*0.25).toFixed(2)); pt.min=+(sp/400).toFixed(4);
+      const e=TM.eulerInfo(M); if(e.boundaries) toast&&toast("Lattice Fill needs a closed mesh — this one has "+e.boundaries+" open boundary loop(s); results may leak",true);
+    }catch(e){}
   }
   if(type==="extrude"){
     const fs=(opts&&opts.faces)||[...sel.faces]; if(!fs.length){ toast&&toast("Select one or more faces first",true); return; }
@@ -6486,6 +6679,11 @@ function _modParamRow(md,d){
       b.onclick=()=>{ md.params[d.k]=a; [...seg.children].forEach(c=>c.classList.toggle("on",c.textContent.toLowerCase()===a)); rebuild(); };
       seg.appendChild(b); });
     row.appendChild(seg);
+  } else if(d.opts){
+    const sl=document.createElement("select"); sl.className="modSelect";
+    d.opts.forEach((t,i)=>{ const op=document.createElement("option"); op.value=i; op.textContent=t; if(Math.round(md.params[d.k]||0)===i) op.selected=true; sl.appendChild(op); });
+    sl.onchange=()=>{ snapshot(); md.params[d.k]=+sl.value; rebuild(); };
+    row.appendChild(sl);
   } else if(d.bool){
     const cb=document.createElement("input"); cb.type="checkbox"; cb.checked=!!md.params[d.k]; cb.className="modCheck";
     cb.onchange=()=>{ md.params[d.k]=cb.checked; rebuild(); };
@@ -6494,9 +6692,11 @@ function _modParamRow(md,d){
     const fmtN=v=>{ const n=+v; return Number.isInteger(n)? String(n) : String(+n.toFixed(d.step<1?3:0)); };
     const s=document.createElement("input"); s.type="range"; s.min=d.min; s.max=d.max; s.step=d.step; s.value=md.params[d.k];
     const box=document.createElement("input"); box.type="text"; box.className="modVal numbox"; box.value=fmtN(md.params[d.k]);
-    s.oninput=()=>{ if(!s._snap){ snapshot(); s._snap=true; } md.params[d.k]=parseFloat(s.value); box.value=fmtN(md.params[d.k]); scheduleRebuild(); };   // one undo step per drag, captured BEFORE the first change
-    s.onchange=()=>{ s._snap=false; };                                    // drag ended (mouse release, or the hand lifting off the ball) -> the next drag is a new step
+    const heavy=!!(MODS[md.type]&&MODS[md.type].heavy);          // heavy generators (lattice fill) recompute on release, not every frame
+    s.oninput=()=>{ if(!s._snap){ snapshot(); s._snap=true; } md.params[d.k]=parseFloat(s.value); box.value=fmtN(md.params[d.k]); if(!heavy) scheduleRebuild(); };   // one undo step per drag, captured BEFORE the first change
+    s.onchange=()=>{ s._snap=false; if(heavy) rebuild(); };                                    // drag ended (mouse release, or the hand lifting off the ball) -> the next drag is a new step
     const commit=()=>{ let v=parseFloat(box.value); if(!isFinite(v)){ box.value=fmtN(md.params[d.k]); return; }
+      if(v!==md.params[d.k]) snapshot();                                   // typed values are undoable too
       md.params[d.k]=v;                                            // honour the exact typed value (may exceed slider range)
       const mn=parseFloat(d.min), mx=parseFloat(d.max);
       s.value=(isFinite(mx)&&v>mx)?mx:((isFinite(mn)&&v<mn)?mn:v);  // park the thumb at the nearest end
@@ -6518,6 +6718,7 @@ function openModEdit(id){
   const wrap=document.createElement("div"); wrap.className="modEditBody";
   if(!R.params.length){ const e=document.createElement("div"); e.className="modEditNote"; e.textContent="No parameters — toggle it in the stack to enable/disable."; wrap.appendChild(e); }
   R.params.forEach(d=>wrap.appendChild(_modParamRow(md,d)));
+  if(md.type==="latfill"){ const inf=document.createElement("div"); inf.id="latInfo"; inf.className="modEditNote latInfo"; inf.dataset.mod=md.id; wrap.appendChild(inf); updateLatInfo(); }
   const saved=document.createElement("div"); saved.className="modEditNote"; saved.style.color="#8fce9b"; saved.style.marginTop="8px";
   saved.textContent="✓ Live — changes save automatically (no Apply needed).";
   wrap.appendChild(saved);
@@ -6530,6 +6731,18 @@ function openModEdit(id){
   $("#hint")&&($("#hint").textContent="Live modifier — changes apply and save automatically (no Apply needed). Enable/disable or reorder it in the stack; Flatten to bake.");
   renderModStack();
 }
+function updateLatInfo(){
+  const el=document.getElementById("latInfo"); if(!el) return;
+  const L=layers[activeLayer]; const md=L&&(L.modifiers||[]).find(x=>String(x.id)===el.dataset.mod); const i=md&&md.params&&md.params._info;
+  if(!i){ el.innerHTML="<i>computing…</i>"; return; }
+  const pct=v=>(v*100).toFixed(1)+"%";
+  el.innerHTML='<div class="latRow"><span>Relative density (core)</span><b>'+pct(i.rho)+'</b></div>'
+    +'<div class="latRow"><span>Est. stiffness E/E<sub>s</sub></span><b>'+(i.E*100).toFixed(2)+'%</b></div>'
+    +'<div class="latSub">'+i.mode+' &middot; E/E<sub>s</sub> ≈ C·ρ<sup>'+i.n+'</sup> (Gibson–Ashby estimate — rank designs, verify before relying on it)</div>'
+    +'<div class="latSub">cell '+(+i.cell).toFixed(3)+(i.wall!=null?' &middot; wall '+(+i.wall).toFixed(3):'')+' &middot; '+i.faces.toLocaleString()+' faces &middot; grid '+i.grid+'</div>'
+    +(i.wallRaised?'<div class="latSub" style="color:#FF8C22">Wall raised to the thinnest this Detail can resolve — raise Detail for thinner walls.</div>':'');
+}
+setInterval(updateLatInfo, 500);
 // ---- floating parameter panel: mirrors EVERY slider of the active Options panel (two-way), hand-touchable ----
 let floatBoundList=[];
 function visibleRanges(root){ if(!root) return []; try{ if(getComputedStyle(root).display==="none") return []; }catch(e){} return [...root.querySelectorAll('input[type="range"]')].filter(r=>r.offsetParent!==null); }
