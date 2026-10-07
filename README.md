@@ -26,6 +26,7 @@ python3 tools/ship.py --version 3.8   # new version without hand-editing the wor
 ```
 
 ## History
+- 2026-10-07 (working copy): Render tool / Render menu now toggle Live Render by default; high-res PNG via the live bar camera button or Render > Save High-Res Render.
 - 2026-10-07 (working copy, not uploaded): Live Render — the glass / studio-light / bloom render runs in the viewport while you work (L, Render menu, or Live on screen in the Render dialog); floating bar for glass colour, glow, background, snapshot.
 - 2026-10-07 (working copy, not uploaded): Lattice Fill (TPMS infill) live modifier — gyroid / Schwarz P / diamond / Neovius / I-WP, sheet walls or solid struts, cell size, wall thickness / solid fraction, density grading (bottom→top, skin→core), optional outer skin, detail + smoothing; watertight marching-tet output; relative density + Gibson–Ashby stiffness estimate in the panel. Modifier panels support dropdowns; typed values are undoable.
 - 2026-10-06: build numbers now bump ONLY on an App Store upload (tools/appstore_build.txt = last uploaded, 8). Working builds b9–b13 were never uploaded; their files moved to dist/never_uploaded/.
