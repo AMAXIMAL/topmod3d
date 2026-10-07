@@ -682,6 +682,15 @@ canvas#view{width:100%;height:100%;display:block;touch-action:none;outline:none;
 </style>
 
 <style id="v39css">
+#liveBar{position:fixed;left:50%;bottom:calc(52px + env(safe-area-inset-bottom,0px));transform:translateX(-50%);z-index:9996;display:none;align-items:center;gap:10px;padding:7px 10px 7px 14px;border-radius:999px;background:rgba(8,10,18,0.9);border:1px solid rgba(255,140,34,0.55);box-shadow:0 8px 30px rgba(0,0,0,.5);font:600 11px var(--font,system-ui);color:#f0f0f5;-webkit-backdrop-filter:blur(8px);backdrop-filter:blur(8px)}
+#liveBar.show{display:flex}
+#liveBar b{color:#FF8C22;letter-spacing:.12em}
+#liveBar .lbDot{width:8px;height:8px;border-radius:50%;background:#FF8C22;box-shadow:0 0 10px #FF8C22;animation:amxBlink 1.2s ease-in-out infinite}
+#liveBar select{background:rgba(255,140,34,0.1);color:#f0f0f5;border:1px solid rgba(255,140,34,0.4);border-radius:6px;padding:3px 5px;font:11px var(--font,system-ui)}
+#liveBar label{display:flex;align-items:center;gap:6px;color:#cfd6e2}#liveBar input[type=range]{width:90px;accent-color:#FF8C22}
+#liveBar button{all:unset;cursor:pointer;width:26px;height:26px;border-radius:50%;display:grid;place-items:center;font-size:14px;background:rgba(255,140,34,0.18);color:#fff}
+#liveBar button:hover{background:#FF8C22}
+#miLiveRender.on{color:#FF8C22}
 .modSelect{flex:1;min-width:0;background:rgba(0,229,255,0.08);color:#cfe8ff;border:1px solid rgba(0,229,255,0.35);border-radius:6px;padding:3px 6px;font:12px var(--font)}
 .latInfo{margin-top:10px;padding:8px 10px;border:1px solid rgba(0,229,255,0.25);border-radius:8px;background:rgba(0,229,255,0.05);color:#cfe8ff}
 .latRow{display:flex;justify-content:space-between;gap:8px;font-size:12px;margin:2px 0}.latRow b{color:#FF8C22;font-family:var(--mono)}
@@ -832,6 +841,7 @@ canvas#view{width:100%;height:100%;display:block;touch-action:none;outline:none;
       <div class="mi" data-act="fabRender">Render &mdash; MagicaCSG / MagicaVoxel (SDF path tracer)&hellip;</div>
     </div></div>
     <div class="menu"><span class="mtitle">Render</span><div class="mlist">
+      <div class="mi" data-act="liveRender" id="miLiveRender">Live Render &mdash; on screen<span class="kbd">L</span></div>
       <div class="mi" data-act="fabRender">Render &mdash; MagicaCSG / MagicaVoxel (SDF path tracer)&hellip;</div>
     </div></div>
     <div class="menu"><span class="mtitle">Help</span><div class="mlist">
@@ -1622,6 +1632,7 @@ canvas#view{width:100%;height:100%;display:block;touch-action:none;outline:none;
       <div class="rdlgBtns">
         <button id="rdlgSave" class="rdlgBtn go">Save PNG</button>
         <button id="rdlgAgain" class="rdlgBtn">Re-render</button>
+        <button id="rdlgLive" class="rdlgBtn">Live on screen</button>
         <button id="rdlgClose" class="rdlgBtn ghost">Close</button>
       </div>
     </div>
@@ -11024,7 +11035,7 @@ function renderPatent3D(){           // anaglyph: halftone each eye, pack leftâ†
   renderer.render(_anaScene,_ptCam);
 }
 
-(function loop(){ requestAnimationFrame(loop); updateBBoxLabels(); if(window.__ncSync)window.__ncSync(); const t=performance.now()*0.001; for(const m of SHADER_MATS) m.uniforms.u_time.value=t; if(renderMode==="patent") renderPatent(); else if(renderMode==="patent3d") renderPatent3D(); else renderer.render(scene,camera); })();
+(function loop(){ requestAnimationFrame(loop); updateBBoxLabels(); if(window.__ncSync)window.__ncSync(); const t=performance.now()*0.001; for(const m of SHADER_MATS) m.uniforms.u_time.value=t; if(renderMode==="patent") renderPatent(); else if(renderMode==="patent3d") renderPatent3D(); else if(window.__liveRender&&window.__liveRender.on) window.__liveRender.frame(); else renderer.render(scene,camera); })();
 
 // ---------- TopMod-style toolbar icons: real renders of each op ----------
 function makeIconRenderer(){
@@ -13749,6 +13760,79 @@ applyOriginalIcons(); }catch(e){ console.warn("icon render skipped:",e); }
     }catch(e){ console.error(e); toast&&toast("Render failed: "+(e&&e.message||e),true); }
     finally{ if(busy) busy.style.display="none"; } },30);
   }
+
+  // ---- Live Render: the same glass / studio-light / bloom look, running in the viewport every frame ----
+  const LR={ on:false, glass:null, key:"", lights:null, rt:null, rtA:null, rtB:null, w:0, h:0 };
+  function _lrSettings(){ return { hex:parseInt(($("#rdColor")&&$("#rdColor").value)||"ff8c22",16), glow:parseFloat(($("#rdGlow")&&$("#rdGlow").value)||"0.6"), bg:($("#rdBg")&&$("#rdBg").value)||"dark" }; }
+  function _lrGlass(st){
+    const key=st.hex+"_"+st.glow; if(LR.glass&&LR.key===key) return LR.glass;
+    const col=new THREE.Color(st.hex);
+    if(!LR.glass) LR.glass=new THREE.MeshPhysicalMaterial({roughness:0.06, metalness:0, ior:1.52, thickness:1.6, clearcoat:1, clearcoatRoughness:0.05, transparent:true, opacity:1, side:THREE.DoubleSide, envMapIntensity:1.3, flatShading:true});
+    LR.glass.color.copy(col); LR.glass.emissive.copy(col); LR.glass.emissiveIntensity=0.12+0.25*st.glow; LR.glass.transmission=st.hex===0x1a1a1a?0.55:0.92; LR.glass.needsUpdate=true;
+    LR.key=key; return LR.glass;
+  }
+  function _lrTargets(){
+    const sz=renderer.getDrawingBufferSize(new THREE.Vector2()), W=Math.max(2,sz.x|0), H=Math.max(2,sz.y|0);
+    if(LR.rt&&LR.w===W&&LR.h===H) return;
+    [LR.rt,LR.rtA,LR.rtB].forEach(t=>t&&t.dispose());
+    const o={minFilter:THREE.LinearFilter,magFilter:THREE.LinearFilter,format:THREE.RGBAFormat};
+    LR.rt=(renderer.capabilities.isWebGL2&&THREE.WebGLMultisampleRenderTarget)? new THREE.WebGLMultisampleRenderTarget(W,H,o) : new THREE.WebGLRenderTarget(W,H,o);
+    if(LR.rt.samples!==undefined) LR.rt.samples=4;
+    const bw=Math.max(64,W>>2), bh=Math.max(64,H>>2); LR.rtA=new THREE.WebGLRenderTarget(bw,bh,o); LR.rtB=new THREE.WebGLRenderTarget(bw,bh,o); LR.w=W; LR.h=H;
+  }
+  function _lrLights(){
+    if(LR.lights) return LR.lights;
+    const g=new THREE.Group(); g.name="liveRenderLights";
+    const key=new THREE.DirectionalLight(0xffffff,1.6); key.position.set(4,7,6); g.add(key);
+    const a=new THREE.DirectionalLight(0xffc27a,1.2); a.position.set(-7,2,-4); g.add(a);
+    const b=new THREE.DirectionalLight(0x9fd8ff,0.9); b.position.set(6,-1,-6); g.add(b);
+    g.visible=false; scene.add(g); LR.lights=g; return g;
+  }
+  function liveFrame(){
+    try{
+      const st=_lrSettings(), glass=_lrGlass(st);
+      if(meshObj && meshObj.material!==glass) meshObj.material=glass;      // rebuilds swap the mesh: keep re-dressing it
+      _lrTargets(); const lights=_lrLights();
+      const pBg=scene.background, pEnv=scene.environment, pTone=renderer.toneMapping, pExp=renderer.toneMappingExposure;
+      scene.background=new THREE.Color(st.bg==="white"?0xf4f6fa: st.bg==="black"?0x000000:0x0b0f18); scene.environment=_studioEnv(); lights.visible=true;
+      renderer.toneMapping=THREE.ACESFilmicToneMapping; renderer.toneMappingExposure=1.05;
+      renderer.setRenderTarget(LR.rt); renderer.clear(); renderer.render(scene,camera);
+      renderer.toneMapping=pTone; renderer.toneMappingExposure=pExp; lights.visible=false; scene.background=pBg; scene.environment=pEnv;
+      _brightMat.uniforms.t.value=LR.rt.texture; _brightMat.uniforms.th.value=st.bg==="white"?0.8:0.5; renderer.setRenderTarget(LR.rtA); renderer.render(_brightScene,_fsQuadCam);
+      _blurMat.uniforms.px.value.set(1/LR.rtA.width,1/LR.rtA.height);
+      for(let i=0;i<2;i++){ _blurMat.uniforms.t.value=LR.rtA.texture; _blurMat.uniforms.dir.value.set(1,0); renderer.setRenderTarget(LR.rtB); renderer.render(_blurScene,_fsQuadCam);
+                            _blurMat.uniforms.t.value=LR.rtB.texture; _blurMat.uniforms.dir.value.set(0,1); renderer.setRenderTarget(LR.rtA); renderer.render(_blurScene,_fsQuadCam); }
+      _compMat.uniforms.base.value=LR.rt.texture; _compMat.uniforms.bloom.value=LR.rtA.texture; _compMat.uniforms.k.value=st.glow*1.4;
+      renderer.setRenderTarget(null); renderer.render(_compScene,_fsQuadCam);
+    }catch(e){ console.error(e); setLive(false); toast&&toast("Live render stopped: "+(e&&e.message||e),true); }
+  }
+  function setLive(on){
+    LR.on=!!on; window.__liveRender.on=LR.on;
+    const bar=$("#liveBar"); if(bar) bar.classList.toggle("show",LR.on);
+    const mi=$("#miLiveRender"); if(mi) mi.classList.toggle("on",LR.on);
+    const lb=$("#rdlgLive"); if(lb) lb.textContent=LR.on?"Stop live":"Live on screen";
+    if(!LR.on){ try{ rebuild(); }catch(e){} }                               // back to the normal viewport material
+    toast&&toast(LR.on?"Live render on â€” orbit, edit, sculpt; press L to turn off":"Live render off");
+  }
+  window.__liveRender={ on:false, frame:liveFrame, set:setLive, toggle:()=>setLive(!LR.on) };
+  { const bar=document.createElement("div"); bar.id="liveBar";
+    bar.innerHTML='<span class="lbDot"></span><b>LIVE RENDER</b>'
+      +'<select id="lbColor" title="Glass colour"></select>'
+      +'<label>Glow <input id="lbGlow" type="range" min="0" max="2" step="0.05"></label>'
+      +'<select id="lbBg" title="Background"></select>'
+      +'<button id="lbShot" title="Save a high-res render (PNG)">&#128247;</button><button id="lbOff" title="Turn live render off (L)">&times;</button>';
+    (document.getElementById("frame")||document.body).appendChild(bar);
+    const sync=(src,dst)=>{ const a=$("#"+src), b=$("#"+dst); if(!a||!b) return; if(a.tagName==="SELECT"&&!b.options.length) b.innerHTML=a.innerHTML; b.value=a.value; };
+    sync("rdColor","lbColor"); sync("rdGlow","lbGlow"); sync("rdBg","lbBg");
+    [["lbColor","rdColor"],["lbGlow","rdGlow"],["lbBg","rdBg"]].forEach(([a,b])=>{ const el=$("#"+a); el&&el.addEventListener("input",()=>{ const t=$("#"+b); if(t) t.value=el.value; }); el&&el.addEventListener("change",()=>{ const t=$("#"+b); if(t) t.value=el.value; }); });
+    $("#lbOff").addEventListener("click",()=>setLive(false));
+    $("#lbShot").addEventListener("click",()=>renderOpen());
+    bar.addEventListener("keydown",e=>e.stopPropagation());
+  }
+  $("#rdlgLive")&&$("#rdlgLive").addEventListener("click",()=>{ setLive(!LR.on); if(LR.on){ const d=$("#renderDlg"); if(d) d.style.display="none"; } });
+  document.querySelectorAll('[data-act="liveRender"]').forEach(el=>el.addEventListener("click",()=>{ document.querySelectorAll("#menubar .menu.open").forEach(m=>m.classList.remove("open")); setLive(!LR.on); }));
+  addEventListener("keydown",e=>{ const t=e.target; if(t&&(t.tagName==="INPUT"||t.tagName==="TEXTAREA"||t.tagName==="SELECT"||t.isContentEditable)) return;
+    if((e.key==="l"||e.key==="L")&&!e.metaKey&&!e.ctrlKey&&!e.altKey){ e.preventDefault(); setLive(!LR.on); } });
   function renderOpen(){ const d=$("#renderDlg"); if(d) d.style.display="flex"; renderImage(); }
   $("#tbRender")&&$("#tbRender").addEventListener("click",renderOpen);
   document.querySelectorAll('[data-act="fabRender"]').forEach(el=>el.addEventListener("click",()=>{ document.querySelectorAll("#menubar .menu.open").forEach(m=>m.classList.remove("open")); renderOpen(); }));
