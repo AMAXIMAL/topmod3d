@@ -26,6 +26,7 @@ python3 tools/ship.py --version 3.8   # new version without hand-editing the wor
 ```
 
 ## History
+- 2026-10-07 (working copy): Render materials — glass (6), metals (chrome, gold, copper, brushed steel, bronze, blue titanium), ceramic/stone (white, black, celadon, terracotta, marble, concrete), wood (oak, walnut, bamboo ply), plastic, rubber, carbon fibre; procedural textures projected triplanar (no UVs needed); per-material exposure/bloom; Edges toggle on the live bar; View > Render (live) after X-Ray.
 - 2026-10-07 (working copy): Render tool / Render menu now toggle Live Render by default; high-res PNG via the live bar camera button or Render > Save High-Res Render.
 - 2026-10-07 (working copy, not uploaded): Live Render — the glass / studio-light / bloom render runs in the viewport while you work (L, Render menu, or Live on screen in the Render dialog); floating bar for glass colour, glow, background, snapshot.
 - 2026-10-07 (working copy, not uploaded): Lattice Fill (TPMS infill) live modifier — gyroid / Schwarz P / diamond / Neovius / I-WP, sheet walls or solid struts, cell size, wall thickness / solid fraction, density grading (bottom→top, skin→core), optional outer skin, detail + smoothing; watertight marching-tet output; relative density + Gibson–Ashby stiffness estimate in the panel. Modifier panels support dropdowns; typed values are undoable.

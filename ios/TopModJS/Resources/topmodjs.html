@@ -690,7 +690,8 @@ canvas#view{width:100%;height:100%;display:block;touch-action:none;outline:none;
 #liveBar label{display:flex;align-items:center;gap:6px;color:#cfd6e2}#liveBar input[type=range]{width:90px;accent-color:#FF8C22}
 #liveBar button{all:unset;cursor:pointer;width:26px;height:26px;border-radius:50%;display:grid;place-items:center;font-size:14px;background:rgba(255,140,34,0.18);color:#fff}
 #liveBar button:hover{background:#FF8C22}
-#miLiveRender.on{color:#FF8C22}
+[data-act="liveRender"].on{color:#FF8C22}
+#liveBar input[type=checkbox]{accent-color:#FF8C22}
 .modSelect{flex:1;min-width:0;background:rgba(0,229,255,0.08);color:#cfe8ff;border:1px solid rgba(0,229,255,0.35);border-radius:6px;padding:3px 6px;font:12px var(--font)}
 .latInfo{margin-top:10px;padding:8px 10px;border:1px solid rgba(0,229,255,0.25);border-radius:8px;background:rgba(0,229,255,0.05);color:#cfe8ff}
 .latRow{display:flex;justify-content:space-between;gap:8px;font-size:12px;margin:2px 0}.latRow b{color:#FF8C22;font-family:var(--mono)}
@@ -757,6 +758,7 @@ canvas#view{width:100%;height:100%;display:block;touch-action:none;outline:none;
       <div class="mi" data-rm="solid">Solid</div>
       <div class="mi" data-rm="normals">Normals</div>
       <div class="mi" data-rm="xray">X-Ray<span class="kbd">X</span></div>
+      <div class="mi" data-act="liveRender">Render (live)<span class="kbd">L</span></div>
       <div class="msep"></div>
       <div class="mi" data-rm="galaxy">Galaxy</div>
       <div class="mi" data-rm="matrix">Matrix</div>
@@ -1624,7 +1626,7 @@ canvas#view{width:100%;height:100%;display:block;touch-action:none;outline:none;
       <div class="rdlgTitle">Render</div>
       <div class="rdlgImgWrap"><img id="rdlgImg" alt="Render"><div id="rdlgBusy">Rendering…</div></div>
       <div class="rdlgCtl">
-        <label>Glass <select id="rdColor"><option value="ff8c22" selected>Orange</option><option value="00e5ff">Cyan</option><option value="ffffff">Clear</option><option value="ff2d75">Magenta</option><option value="7cff5a">Lime</option><option value="1a1a1a">Smoke</option></select></label>
+        <label>Material <select id="rdColor"><option value="ff8c22" selected>Orange</option><option value="00e5ff">Cyan</option><option value="ffffff">Clear</option><option value="ff2d75">Magenta</option><option value="7cff5a">Lime</option><option value="1a1a1a">Smoke</option></select></label>
         <label>Glow <input id="rdGlow" type="range" min="0" max="2" step="0.05" value="0.6"></label>
         <label>Background <select id="rdBg"><option value="dark" selected>Dark studio</option><option value="white">White</option><option value="black">Black</option></select></label>
         <label>Size <select id="rdSize"><option value="1">1×</option><option value="2" selected>2×</option><option value="3">3×</option></select></label>
@@ -13698,6 +13700,89 @@ applyOriginalIcons(); }catch(e){ console.warn("icon render skipped:",e); }
     const blob=new Blob([obj],{type:"text/plain"}); const a=document.createElement("a"); a.href=URL.createObjectURL(blob); a.download=fn; a.click(); URL.revokeObjectURL(a.href); toast&&toast("Exported "+fn); return true;
   }
   // ---- In-app render: orange glass with a soft glow, by default. Off-screen at 1-3x, studio env, mini bloom. ----
+  // ---- Render materials: glass, metals, ceramics/stone, woods, plastics. Textures are procedural (canvas) and
+  //      projected triplanar in the shader, so they work on any mesh without UVs. Shared by Live Render and the PNG render.
+  const RD_MATS=[
+    ["Glass",[["g:ff8c22","Orange glass"],["g:00e5ff","Cyan glass"],["g:ffffff","Clear glass"],["g:ff2d75","Magenta glass"],["g:7cff5a","Lime glass"],["g:1a1a1a","Smoke glass"]]],
+    ["Metal",[["m:chrome","Chrome"],["m:gold","Gold"],["m:copper","Copper"],["m:brushed","Brushed steel"],["m:bronze","Bronze"],["m:titanium","Blue titanium"]]],
+    ["Ceramic & stone",[["c:white","White ceramic"],["c:black","Black ceramic"],["c:celadon","Celadon glaze"],["c:clay","Terracotta"],["t:marble","Marble"],["t:concrete","Concrete"]]],
+    ["Wood",[["t:oak","Oak"],["t:walnut","Walnut"],["t:bamboo","Bamboo ply"]]],
+    ["Other",[["p:orange","Orange plastic"],["p:white","White plastic"],["p:rubber","Black rubber"],["t:carbon","Carbon fibre"]]]
+  ];
+  const _rdTex={};
+  function _vn(){ const P=new Uint8Array(512); for(let i=0;i<256;i++) P[i]=i; for(let i=255;i>0;i--){ const j=(Math.sin(i*12.9898)*43758.5453%1+1)%1*(i+1)|0; const t=P[i];P[i]=P[j];P[j]=t; } for(let i=0;i<256;i++) P[i+256]=P[i];
+    const f=t=>t*t*(3-2*t), L=(a,b,t)=>a+(b-a)*t, g=(x,y)=>P[(P[x&255]+y)&255]/255;
+    return (x,y)=>{ const xi=Math.floor(x), yi=Math.floor(y), xf=x-xi, yf=y-yi; return L(L(g(xi,yi),g(xi+1,yi),f(xf)),L(g(xi,yi+1),g(xi+1,yi+1),f(xf)),f(yf)); }; }
+  function _rdCanvasTex(kind){
+    if(_rdTex[kind]) return _rdTex[kind];
+    const S=512, cv=document.createElement("canvas"); cv.width=cv.height=S; const cx=cv.getContext("2d"), im=cx.createImageData(S,S), d=im.data, n=_vn();
+    const fbm=(x,y,o)=>{ let a=0,amp=0.5,f=1; for(let i=0;i<(o||5);i++){ a+=amp*n(x*f,y*f); amp*=0.5; f*=2; } return a; };
+    const mix=(c1,c2,t)=>[c1[0]+(c2[0]-c1[0])*t,c1[1]+(c2[1]-c1[1])*t,c1[2]+(c2[2]-c1[2])*t];
+    for(let y=0;y<S;y++) for(let x=0;x<S;x++){
+      const u=x/S, v=y/S; let c;
+      if(kind==="oak"||kind==="walnut"){
+        const w=fbm(u*3,v*24,4)*6, r=(Math.sin((u*18+w)*Math.PI)*0.5+0.5), fine=n(u*220,v*6)*0.25, t=Math.pow(r,2.2)*0.75+fine;
+        c= kind==="oak"? mix([214,170,112],[150,98,52],t) : mix([110,70,44],[52,30,18],t);
+      } else if(kind==="bamboo"){
+        const band=Math.floor(u*8)%2, node=Math.abs(((v*3)%1)-0.5)<0.012?0.35:0, fib=n(u*300,v*4)*0.2;
+        c=mix(band?[226,196,140]:[204,170,112],[150,112,64],fib+node);
+      } else if(kind==="marble"){
+        const t=Math.abs(Math.sin((u*5+v*3+fbm(u*4,v*4,6)*5)*Math.PI)), vein=Math.pow(1-t,9);
+        c=mix(mix([246,245,242],[222,222,226],fbm(u*8,v*8,3)),[92,96,108],vein*0.85);
+      } else if(kind==="concrete"){
+        const g=fbm(u*16,v*16,5), pit=n(u*90,v*90)>0.83?0.35:0;
+        c=mix([168,166,160],[118,116,112],g*0.9+pit);
+      } else if(kind==="carbon"){
+        const k=32, cxu=Math.floor(u*k), cyv=Math.floor(v*k), dir=((cxu+cyv)>>1)&1, fu=(u*k)%1, fv=(v*k)%1, s=dir?Math.sin(fu*Math.PI):Math.sin(fv*Math.PI);
+        c=mix([18,18,22],[70,72,80],s*0.9);
+      } else if(kind==="brushed"){
+        const s=n(u*2,v*400)*0.6+n(u*8,v*900)*0.4; c=mix([150,154,160],[210,214,220],s);
+      } else c=[200,200,200];
+      const o=(y*S+x)*4; d[o]=c[0]; d[o+1]=c[1]; d[o+2]=c[2]; d[o+3]=255;
+    }
+    cx.putImageData(im,0,0);
+    const tex=new THREE.CanvasTexture(cv); tex.wrapS=tex.wrapT=THREE.RepeatWrapping; tex.encoding=THREE.sRGBEncoding; tex.anisotropy=Math.min(8,renderer.capabilities.getMaxAnisotropy());
+    _rdTex[kind]=tex; return tex;
+  }
+  function _triplanar(mat, tex, scale){
+    mat.map=tex; const U={value:scale}; mat.userData.triScale=U;
+    mat.onBeforeCompile=sh=>{ sh.uniforms.triScale=U;
+      sh.vertexShader=sh.vertexShader.replace("#include <common>","#include <common>\nvarying vec3 vTriP;\nvarying vec3 vTriN;")
+        .replace("#include <begin_vertex>","#include <begin_vertex>\nvTriP=(modelMatrix*vec4(transformed,1.0)).xyz;\nvTriN=normalize(mat3(modelMatrix)*objectNormal);");
+      sh.fragmentShader=sh.fragmentShader.replace("#include <common>","#include <common>\nvarying vec3 vTriP;\nvarying vec3 vTriN;\nuniform float triScale;")
+        .replace("#include <map_fragment>","vec3 tw=pow(abs(normalize(vTriN)),vec3(4.0)); tw/=(tw.x+tw.y+tw.z+1e-5);\nvec4 texelColor=texture2D(map,vTriP.yz*triScale)*tw.x+texture2D(map,vTriP.zx*triScale)*tw.y+texture2D(map,vTriP.xy*triScale)*tw.z;\ntexelColor=mapTexelToLinear(texelColor);\ndiffuseColor*=texelColor;");
+    };
+    mat.customProgramCacheKey=()=>"tri";
+    return mat;
+  }
+  // val: "g:rrggbb" | legacy "rrggbb" (glass) | "m:…" | "c:…" | "t:…" | "p:…";  span = model size (texture scale)
+  function makeRenderMaterial(val, glow, span){ const m=_makeRenderMaterial(val, glow, span); const isG=/^g:|^[0-9a-f]{6}$/i.test(String(val||"g"));
+    m.userData.rd=isG? {bloom:1.4, th:0.5, exp:1.05} : {bloom:0.35, th:0.88, exp:/:(white|marble|concrete|oak|bamboo|p:white)/.test(val)||/^c:white|^t:marble|^t:concrete|^t:oak|^t:bamboo|^p:white/.test(val)?0.72:0.9};
+    return m; }
+  function _makeRenderMaterial(val, glow, span){
+    val=String(val||"g:ff8c22"); if(/^[0-9a-f]{6}$/i.test(val)) val="g:"+val;
+    const kind=val.slice(0,1), id=val.slice(2), base={side:THREE.DoubleSide, flatShading:true, envMapIntensity:1.2};
+    const sc=1/Math.max(0.05,(span||2)*0.55);
+    if(kind==="g"){ const hex=parseInt(id,16), col=new THREE.Color(hex);
+      return new THREE.MeshPhysicalMaterial(Object.assign(base,{color:col, transmission:hex===0x1a1a1a?0.55:0.92, roughness:0.06, metalness:0, ior:1.52, thickness:1.6, clearcoat:1, clearcoatRoughness:0.05, transparent:true, opacity:1, envMapIntensity:1.3, emissive:col, emissiveIntensity:0.12+0.25*glow})); }
+    if(kind==="m"){ const M={chrome:[0xf2f4f7,0.04],gold:[0xffc35a,0.16],copper:[0xe8875a,0.2],brushed:[0xc9ccd2,0.32],bronze:[0xb07a3c,0.26],titanium:[0x6a7fe0,0.22]}[id]||[0xdddddd,0.2];
+      const m=new THREE.MeshPhysicalMaterial(Object.assign(base,{color:M[0], metalness:1, roughness:M[1], clearcoat:id==="titanium"?0.6:0, envMapIntensity:1.6}));
+      return id==="brushed"? _triplanar(m,_rdCanvasTex("brushed"),sc*1.5) : m; }
+    if(kind==="c"){ const C={white:[0xf3f1ec,0.32,1],black:[0x16161a,0.28,1],celadon:[0x9cc8b0,0.22,1],clay:[0xc0623c,0.92,0]}[id]||[0xeeeeee,0.3,1];
+      return new THREE.MeshPhysicalMaterial(Object.assign(base,{color:C[0], roughness:C[1], metalness:0, clearcoat:C[2], clearcoatRoughness:0.12})); }
+    if(kind==="p"){ const C={orange:[0xe0520a,0.38,0.35],white:[0xf0f2f5,0.42,0.3],rubber:[0x141416,0.95,0]}[id]||[0xffffff,0.4,0.3];
+      return new THREE.MeshPhysicalMaterial(Object.assign(base,{color:C[0], roughness:C[1], metalness:0, clearcoat:C[2]})); }
+    if(kind==="t"){ const T={oak:[0.62,0.15,1],walnut:[0.5,0.25,1],bamboo:[0.55,0.2,1.2],marble:[0.22,1,0.8],concrete:[0.95,0,1.5],carbon:[0.3,1,3]}[id]||[0.5,0,1];
+      const m=new THREE.MeshPhysicalMaterial(Object.assign(base,{color:0xffffff, roughness:T[0], metalness:0, clearcoat:T[1], clearcoatRoughness:0.1}));
+      return _triplanar(m,_rdCanvasTex(id),sc*T[2]); }
+    return new THREE.MeshStandardMaterial(base);
+  }
+  function _rdSpan(){ try{ const g=meshObj&&meshObj.geometry; if(!g) return 2; if(!g.boundingBox) g.computeBoundingBox(); const s=g.boundingBox.getSize(new THREE.Vector3()); return Math.max(s.x,s.y,s.z)||2; }catch(e){ return 2; } }
+  // fill both material pickers (dialog + live bar) with the grouped list
+  function _rdFillSelect(sel, keep){ if(!sel) return; const cur=keep||sel.value; sel.innerHTML="";
+    RD_MATS.forEach(([g,list])=>{ const og=document.createElement("optgroup"); og.label=g; list.forEach(([v,l])=>{ const o=document.createElement("option"); o.value=v; o.textContent=l; og.appendChild(o); }); sel.appendChild(og); });
+    sel.value=/^[0-9a-f]{6}$/i.test(cur||"")?"g:"+cur:(cur||"g:ff8c22"); if(!sel.value) sel.value="g:ff8c22"; }
+  _rdFillSelect($("#rdColor"),"g:ff8c22");
   let _rdEnv=null, _rdLastURL=null;
   function _studioEnv(){
     if(_rdEnv) return _rdEnv;
@@ -13723,14 +13808,12 @@ applyOriginalIcons(); }catch(e){ console.warn("icon render skipped:",e); }
     const M=(typeof dispMesh==="function")?dispMesh():mesh; if(!M||!M.faces.length){ toast&&toast("Nothing to render",true); return; }
     const busy=$("#rdlgBusy"); if(busy) busy.style.display="flex";
     setTimeout(()=>{ try{
-      const hex=parseInt(($("#rdColor")&&$("#rdColor").value)||"ff8c22",16), glow=parseFloat(($("#rdGlow")&&$("#rdGlow").value)||"0.6"), bg=($("#rdBg")&&$("#rdBg").value)||"dark", mult=parseInt(($("#rdSize")&&$("#rdSize").value)||"2");
+      const matVal=($("#rdColor")&&$("#rdColor").value)||"g:ff8c22", glow=parseFloat(($("#rdGlow")&&$("#rdGlow").value)||"0.6"), bg=($("#rdBg")&&$("#rdBg").value)||"dark", mult=parseInt(($("#rdSize")&&$("#rdSize").value)||"2");
       const r=canvas.getBoundingClientRect(); let W=Math.round(r.width*mult), H=Math.round(r.height*mult); const cap=3072; if(Math.max(W,H)>cap){ const k=cap/Math.max(W,H); W=Math.round(W*k); H=Math.round(H*k); }
       // scene: glass copy of what's on screen, studio env, key/rim lights
       const sc=new THREE.Scene(); sc.background=new THREE.Color(bg==="white"?0xf4f6fa: bg==="black"?0x000000:0x0b0f18); sc.environment=_studioEnv();
       const geo=meshObj&&meshObj.geometry?meshObj.geometry.clone():null; if(!geo) throw new Error("no geometry");
-      const col=new THREE.Color(hex);
-      const glass=new THREE.MeshPhysicalMaterial({color:col, transmission:hex===0x1a1a1a?0.55:0.92, roughness:0.06, metalness:0, ior:1.52, thickness:1.6, clearcoat:1, clearcoatRoughness:0.05,
-        transparent:true, opacity:1, side:THREE.DoubleSide, envMapIntensity:1.3, emissive:col, emissiveIntensity:0.12+0.25*glow, flatShading:true});
+      const glass=makeRenderMaterial(matVal, glow, _rdSpan());
       const body=new THREE.Mesh(geo,glass); if(meshObj){ body.position.copy(meshObj.position); body.rotation.copy(meshObj.rotation); body.scale.copy(meshObj.scale); } sc.add(body);
       const key=new THREE.DirectionalLight(0xffffff,1.6); key.position.set(4,7,6); sc.add(key);
       const rimA=new THREE.DirectionalLight(0xffc27a,1.2); rimA.position.set(-7,2,-4); sc.add(rimA);
@@ -13742,14 +13825,15 @@ applyOriginalIcons(); }catch(e){ console.warn("icon render skipped:",e); }
       const opts={minFilter:THREE.LinearFilter,magFilter:THREE.LinearFilter,format:THREE.RGBAFormat};
       const rtBase=new THREE.WebGLRenderTarget(W,H,opts), bw=Math.max(64,W>>2), bh=Math.max(64,H>>2), rtA=new THREE.WebGLRenderTarget(bw,bh,opts), rtB=new THREE.WebGLRenderTarget(bw,bh,opts);
       const prevTone=renderer.toneMapping, prevExp=renderer.toneMappingExposure, prevSize=renderer.getSize(new THREE.Vector2()), prevPR=renderer.getPixelRatio();
-      renderer.toneMapping=THREE.ACESFilmicToneMapping; renderer.toneMappingExposure=1.05;
+      const RD=(glass.userData&&glass.userData.rd)||{bloom:1.4,th:0.5,exp:1.05};
+      renderer.toneMapping=THREE.ACESFilmicToneMapping; renderer.toneMappingExposure=RD.exp;
       renderer.setRenderTarget(rtBase); renderer.clear(); renderer.render(sc,cam);
       // bloom: bright pass -> H blur -> V blur (x2) -> composite
-      _brightMat.uniforms.t.value=rtBase.texture; _brightMat.uniforms.th.value=bg==="white"?0.8:0.5; renderer.setRenderTarget(rtA); renderer.render(_brightScene,_fsQuadCam);
+      _brightMat.uniforms.t.value=rtBase.texture; _brightMat.uniforms.th.value=bg==="white"?Math.max(0.8,RD.th):RD.th; renderer.setRenderTarget(rtA); renderer.render(_brightScene,_fsQuadCam);
       _blurMat.uniforms.px.value.set(1/bw,1/bh);
       for(let i=0;i<2;i++){ _blurMat.uniforms.t.value=rtA.texture; _blurMat.uniforms.dir.value.set(1,0); renderer.setRenderTarget(rtB); renderer.render(_blurScene,_fsQuadCam);
                             _blurMat.uniforms.t.value=rtB.texture; _blurMat.uniforms.dir.value.set(0,1); renderer.setRenderTarget(rtA); renderer.render(_blurScene,_fsQuadCam); }
-      _compMat.uniforms.base.value=rtBase.texture; _compMat.uniforms.bloom.value=rtA.texture; _compMat.uniforms.k.value=glow*1.4;
+      _compMat.uniforms.base.value=rtBase.texture; _compMat.uniforms.bloom.value=rtA.texture; _compMat.uniforms.k.value=glow*RD.bloom;
       renderer.setRenderTarget(null); renderer.setPixelRatio(1); renderer.setSize(W,H,false); renderer.render(_compScene,_fsQuadCam);
       _rdLastURL=renderer.domElement.toDataURL("image/png");
       // restore the live viewport
@@ -13762,14 +13846,13 @@ applyOriginalIcons(); }catch(e){ console.warn("icon render skipped:",e); }
   }
 
   // ---- Live Render: the same glass / studio-light / bloom look, running in the viewport every frame ----
-  const LR={ on:false, glass:null, key:"", lights:null, rt:null, rtA:null, rtB:null, w:0, h:0 };
-  function _lrSettings(){ return { hex:parseInt(($("#rdColor")&&$("#rdColor").value)||"ff8c22",16), glow:parseFloat(($("#rdGlow")&&$("#rdGlow").value)||"0.6"), bg:($("#rdBg")&&$("#rdBg").value)||"dark" }; }
+  const LR={ on:false, edges:true, glass:null, key:"", lights:null, rt:null, rtA:null, rtB:null, w:0, h:0 };
+  function _lrSettings(){ return { mat:($("#rdColor")&&$("#rdColor").value)||"g:ff8c22", glow:parseFloat(($("#rdGlow")&&$("#rdGlow").value)||"0.6"), bg:($("#rdBg")&&$("#rdBg").value)||"dark" }; }
   function _lrGlass(st){
-    const key=st.hex+"_"+st.glow; if(LR.glass&&LR.key===key) return LR.glass;
-    const col=new THREE.Color(st.hex);
-    if(!LR.glass) LR.glass=new THREE.MeshPhysicalMaterial({roughness:0.06, metalness:0, ior:1.52, thickness:1.6, clearcoat:1, clearcoatRoughness:0.05, transparent:true, opacity:1, side:THREE.DoubleSide, envMapIntensity:1.3, flatShading:true});
-    LR.glass.color.copy(col); LR.glass.emissive.copy(col); LR.glass.emissiveIntensity=0.12+0.25*st.glow; LR.glass.transmission=st.hex===0x1a1a1a?0.55:0.92; LR.glass.needsUpdate=true;
-    LR.key=key; return LR.glass;
+    const span=_rdSpan(), key=st.mat+"_"+st.glow+"_"+span.toFixed(2); if(LR.glass&&LR.key===key) return LR.glass;
+    const old=LR.glass; LR.glass=makeRenderMaterial(st.mat, st.glow, span); LR.key=key;
+    if(old){ if(meshObj&&meshObj.material===old) meshObj.material=LR.glass; try{ old.dispose(); }catch(e){} }
+    return LR.glass;
   }
   function _lrTargets(){
     const sz=renderer.getDrawingBufferSize(new THREE.Vector2()), W=Math.max(2,sz.x|0), H=Math.max(2,sz.y|0);
@@ -13794,22 +13877,26 @@ applyOriginalIcons(); }catch(e){ console.warn("icon render skipped:",e); }
       if(meshObj && meshObj.material!==glass) meshObj.material=glass;      // rebuilds swap the mesh: keep re-dressing it
       _lrTargets(); const lights=_lrLights();
       const pBg=scene.background, pEnv=scene.environment, pTone=renderer.toneMapping, pExp=renderer.toneMappingExposure;
+      const pEdge=edgeObj?edgeObj.visible:false, pPts=pointObj?pointObj.visible:false;
+      if(edgeObj) edgeObj.visible=!!LR.edges; if(pointObj) pointObj.visible=false;
       scene.background=new THREE.Color(st.bg==="white"?0xf4f6fa: st.bg==="black"?0x000000:0x0b0f18); scene.environment=_studioEnv(); lights.visible=true;
-      renderer.toneMapping=THREE.ACESFilmicToneMapping; renderer.toneMappingExposure=1.05;
+      const RD=(glass.userData&&glass.userData.rd)||{bloom:1.4,th:0.5,exp:1.05};
+      renderer.toneMapping=THREE.ACESFilmicToneMapping; renderer.toneMappingExposure=RD.exp;
       renderer.setRenderTarget(LR.rt); renderer.clear(); renderer.render(scene,camera);
       renderer.toneMapping=pTone; renderer.toneMappingExposure=pExp; lights.visible=false; scene.background=pBg; scene.environment=pEnv;
-      _brightMat.uniforms.t.value=LR.rt.texture; _brightMat.uniforms.th.value=st.bg==="white"?0.8:0.5; renderer.setRenderTarget(LR.rtA); renderer.render(_brightScene,_fsQuadCam);
+      if(edgeObj) edgeObj.visible=pEdge; if(pointObj) pointObj.visible=pPts;
+      _brightMat.uniforms.t.value=LR.rt.texture; _brightMat.uniforms.th.value=st.bg==="white"?Math.max(0.8,RD.th):RD.th; renderer.setRenderTarget(LR.rtA); renderer.render(_brightScene,_fsQuadCam);
       _blurMat.uniforms.px.value.set(1/LR.rtA.width,1/LR.rtA.height);
       for(let i=0;i<2;i++){ _blurMat.uniforms.t.value=LR.rtA.texture; _blurMat.uniforms.dir.value.set(1,0); renderer.setRenderTarget(LR.rtB); renderer.render(_blurScene,_fsQuadCam);
                             _blurMat.uniforms.t.value=LR.rtB.texture; _blurMat.uniforms.dir.value.set(0,1); renderer.setRenderTarget(LR.rtA); renderer.render(_blurScene,_fsQuadCam); }
-      _compMat.uniforms.base.value=LR.rt.texture; _compMat.uniforms.bloom.value=LR.rtA.texture; _compMat.uniforms.k.value=st.glow*1.4;
+      _compMat.uniforms.base.value=LR.rt.texture; _compMat.uniforms.bloom.value=LR.rtA.texture; _compMat.uniforms.k.value=st.glow*RD.bloom;
       renderer.setRenderTarget(null); renderer.render(_compScene,_fsQuadCam);
     }catch(e){ console.error(e); setLive(false); toast&&toast("Live render stopped: "+(e&&e.message||e),true); }
   }
   function setLive(on){
     LR.on=!!on; window.__liveRender.on=LR.on;
     const bar=$("#liveBar"); if(bar) bar.classList.toggle("show",LR.on);
-    const mi=$("#miLiveRender"); if(mi) mi.classList.toggle("on",LR.on);
+    document.querySelectorAll('[data-act="liveRender"]').forEach(el=>el.classList.toggle("on",LR.on));
     const tb=$("#tbRender"); if(tb){ tb.classList.toggle("on",LR.on); tb.title=LR.on?"Live Render is on — click (or L) to turn off":"Render — live glass / studio-light render on screen (L). Camera button saves a high-res PNG."; }
     const lb=$("#rdlgLive"); if(lb) lb.textContent=LR.on?"Stop live":"Live on screen";
     if(!LR.on){ try{ rebuild(); }catch(e){} }                               // back to the normal viewport material
@@ -13818,7 +13905,8 @@ applyOriginalIcons(); }catch(e){ console.warn("icon render skipped:",e); }
   window.__liveRender={ on:false, frame:liveFrame, set:setLive, toggle:()=>setLive(!LR.on) };
   { const bar=document.createElement("div"); bar.id="liveBar";
     bar.innerHTML='<span class="lbDot"></span><b>LIVE RENDER</b>'
-      +'<select id="lbColor" title="Glass colour"></select>'
+      +'<select id="lbColor" title="Material"></select>'
+      +'<label title="Show polygon outline edges in the render"><input id="lbEdges" type="checkbox" checked> Edges</label>'
       +'<label>Glow <input id="lbGlow" type="range" min="0" max="2" step="0.05"></label>'
       +'<select id="lbBg" title="Background"></select>'
       +'<button id="lbShot" title="Save a high-res render (PNG)">&#128247;</button><button id="lbOff" title="Turn live render off (L)">&times;</button>';
@@ -13827,6 +13915,7 @@ applyOriginalIcons(); }catch(e){ console.warn("icon render skipped:",e); }
     sync("rdColor","lbColor"); sync("rdGlow","lbGlow"); sync("rdBg","lbBg");
     [["lbColor","rdColor"],["lbGlow","rdGlow"],["lbBg","rdBg"]].forEach(([a,b])=>{ const el=$("#"+a); el&&el.addEventListener("input",()=>{ const t=$("#"+b); if(t) t.value=el.value; }); el&&el.addEventListener("change",()=>{ const t=$("#"+b); if(t) t.value=el.value; }); });
     $("#lbOff").addEventListener("click",()=>setLive(false));
+    $("#lbEdges").addEventListener("change",e=>{ LR.edges=e.target.checked; });
     $("#lbShot").addEventListener("click",()=>renderOpen());
     bar.addEventListener("keydown",e=>e.stopPropagation());
   }
