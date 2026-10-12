@@ -837,6 +837,7 @@ canvas#view{width:100%;height:100%;display:block;touch-action:none;outline:none;
       <div class="mi" data-op="crust">Create Rind / Crust</div>
       <div class="mi" data-op="wireframe">Wireframe Modeling</div>
       <div class="mi" data-op="latticeFill">Lattice Fill (TPMS infill)&hellip;</div>
+      <div class="mi" data-act="topmodLook">The TopMod Look (dodeca · 6 twisted handles · rind)</div>
       <div class="mi" data-op="menger">Menger Sponge</div>
     </div></div>
     <div class="menu"><span class="mtitle">Remeshing</span><div class="mlist">
@@ -3278,7 +3279,7 @@ function pinchExtrude(m, fi, {dist=1.4, segments=12, neck=0.18, bulge=1.0}={}){
 }
 
 // ---------- handles (genus!) ----------
-function addHandle(m, fa, fb, pinch=1.0, segments=5, curve=1.5, va, vb){
+function addHandle(m, fa, fb, pinch=1.0, segments=5, curve=1.5, va, vb, twist=0){
   if(fa===fb) throw "pick two different faces";
   let A=m.faces[fa]; const B=m.faces[fb];
   if(A.some(v=>B.includes(v))) throw "faces touch — pick two faces that don't share a vertex";
@@ -3309,6 +3310,7 @@ function addHandle(m, fa, fb, pinch=1.0, segments=5, curve=1.5, va, vb){
       if(d<bestD){bestD=d;best=o;}
     }
   }
+  if(twist) best=(((best+Math.round(twist))%mm)+mm)%mm;                 // TopMod-style corner twist: k × (360/n)°
   const C=[]; for(let i=0;i<mm;i++) C.push(B[(best-i+2*mm)%mm]); // B reversed+aligned: runs parallel to A
   // ---- Hermite path: leave A along its outward normal, arrive at B along its outward normal ----
   // For opposite faces (normals cancel at the midpoint) this degrades to the straight tunnel;
@@ -3495,6 +3497,67 @@ function wireframeModel(m, {thickness=0.25, crustScale=null}={}){
     cur=punchPair(cur,o,t);
   }
   return cur;
+}
+
+// Rind modeling with face SETS (TopMod "remove loops of faces"): thicken into a crust, delete the chosen faces
+// from both shells and stitch walls only along the outline of the removed region, so contiguous strips /
+// face loops come out as clean slots (punchPair works one face at a time and refuses neighbours).
+function rindRemove(m, removeSet, scale=0.85){
+  const S=removeSet instanceof Set? removeSet : new Set(removeSet);
+  const {mesh:cm, crust}=createCrust(m, scale), nV=crust.nV, nF=crust.nF;
+  const dmap=directedMap(m);
+  const faces=[];
+  for(let i=0;i<nF;i++) if(!S.has(i)){ faces.push(cm.faces[i]); faces.push(cm.faces[nF+i]); }
+  for(const fi of S){ const f=m.faces[fi]; if(!f) continue;
+    for(let i=0;i<f.length;i++){ const a=f[i], b=f[(i+1)%f.length], r=dmap.get(b+">"+a);
+      if(r && !S.has(r.f)) faces.push([a,b,b+nV,a+nV]); } }
+  return compact({verts:cm.verts, faces});
+}
+// The "TopMod look" (after Nathan Ho, "TopMod and Blender"): dodecahedron -> 6 curved handles with a 72° twist ->
+// one Doo-Sabin pass -> rind modeling that removes loops of quads (two rails along every handle) -> smoothing.
+function topmodLook(opt){
+  opt=opt||{};
+  let m=primitives.dodecahedron(); const nV0=m.verts.length;
+  const N=m.faces.map(f=>V3.norm(faceNormal(m,f)));
+  const touch=(i,j)=>m.faces[i].some(v=>m.faces[j].includes(v));
+  const cand=m.faces.map((_,i)=>m.faces.map((__,j)=>j).filter(j=>j!==i&&!touch(i,j)&&(N[i][0]*N[j][0]+N[i][1]*N[j][1]+N[i][2]*N[j][2])>-0.9));
+  const mid=(i,j)=>V3.norm(V3.add(N[i],N[j]));
+  let best=-1, pick=null; const used=new Array(m.faces.length).fill(false), pairs=[];
+  (function rec(){ const i=used.indexOf(false);
+    if(i<0){ const M=pairs.map(([a,b])=>mid(a,b)); let mn=9; for(let x=0;x<M.length;x++) for(let y=x+1;y<M.length;y++) mn=Math.min(mn,Math.acos(Math.max(-1,Math.min(1,M[x][0]*M[y][0]+M[x][1]*M[y][1]+M[x][2]*M[y][2]))));
+      if(mn>best+1e-9){ best=mn; pick=pairs.slice(); } return; }
+    used[i]=true; for(const j of cand[i]){ if(used[j]) continue; used[j]=true; pairs.push([i,j]); rec(); pairs.pop(); used[j]=false; } used[i]=false; })();
+  const stages=[{label:"Dodecahedron", mesh:clone(m)}];
+  const seg=Math.max(2,Math.round(opt.segments||5)), keyF=pick.map(([a,b])=>[m.faces[a].slice(),m.faces[b].slice()]);
+  const find=(mm,arr)=>mm.faces.findIndex(f=>f.length===arr.length&&f.every((v,k)=>v===arr[k]));
+  const rings=[];   // per handle: list of rings (vertex index arrays) in order A -> B, plus the end faces
+  keyF.forEach(([A,B],h)=>{ const v0=m.verts.length;
+    m=addHandle(m, find(m,A), find(m,B), opt.pinch||1, seg, opt.curve||1.25, undefined, undefined, opt.twist==null?1:opt.twist);
+    stages.push({label:"Handle "+(h+1)+" · 72° twist", mesh:clone(m)}); rings.push({v0, n:A.length}); });
+  const ds=dooSabin(m); stages.push({label:"Doo-Sabin ×1", mesh:clone(ds)});
+  // face loops of quads on the Doo-Sabin mesh: face-face → edge-face → face-face … running ALONG the handles
+  // (TopMod "Select Face Loop"); they weave from handle to handle. Remove a set of loops that never touch.
+  const nF=m.faces.length, dd=directedMap(ds);
+  const walk=(f0,k0)=>{ const out=[f0]; let f=f0, k=k0;
+    for(let g=0; g<4000; g++){ const F=ds.faces[f]; if(F.length!==4) return null;
+      const a=F[k], b=F[(k+1)%4], r=dd.get(b+">"+a); if(!r) return null;
+      if(r.f===f0) return out; if(ds.faces[r.f].length!==4) return null;
+      out.push(r.f); f=r.f; k=(r.i+2)%4; }
+    return null; };
+  const seen=new Set(), loops=[];
+  for(let fi=0; fi<nF; fi++){ if(seen.has(fi)||ds.faces[fi].length!==4) continue; const L=walk(fi,0); if(!L) continue;
+    L.forEach(x=>{ if(x<nF) seen.add(x); }); loops.push(L); }
+  const usedV=new Set(), railFaces=new Set(); let picked=0;
+  const every=Math.max(1,Math.round(opt.every||1));
+  loops.forEach((L,li)=>{ if(li%every) return; const vs=new Set(); L.forEach(f=>ds.faces[f].forEach(v=>vs.add(v)));
+    for(const v of vs) if(usedV.has(v)) return;
+    vs.forEach(v=>usedV.add(v)); L.forEach(f=>railFaces.add(f)); picked++; });
+  stages[stages.length-1].remove=[...railFaces];
+  const rind=rindRemove(ds, railFaces, opt.scale||0.78);
+  stages.push({label:"Rind · remove "+picked+" face loops ("+railFaces.size+" quads)", mesh:rind});
+  let sm=rind; for(let i=0;i<(opt.smooth==null?1:opt.smooth);i++) sm=catmullClark(sm);
+  stages.push({label:"Catmull-Clark smooth", mesh:sm});
+  return stages;
 }
 
 // ---------- pentagonalization (Akleman-style pentagonal subdivision) ----------
@@ -5389,7 +5452,7 @@ return {V3, clone, edges, directedMap, validate, eulerInfo, faceCentroid, faceNo
   twistMesh, taperMesh, bulgeMesh, bendMesh, spherifyMesh, noiseMesh,
   fanAroundVertex, primitives, insertEdge, deleteEdge, subdivideEdge, subdivideAllEdges,
   triangulateFace, triangulateAll, catmullClark, catmullClarkCrease, dooSabin, dual, loopSubdiv, honeycomb,
-  vertexTruncate, quadRemesh, simplifyMesh, extrudeFace, pinchExtrude, stellate, extrudeFace, addHandle, createCrust, punchPair, wireframeModel, toOBJ, fromOBJ, compact,
+  vertexTruncate, quadRemesh, simplifyMesh, extrudeFace, pinchExtrude, stellate, extrudeFace, addHandle, createCrust, punchPair, rindRemove, topmodLook, wireframeModel, toOBJ, fromOBJ, compact,
   pentagonalize, root3, domeExtrude, doubleStellate, mengerSponge, voxelToMesh, gyroid, gyroidPoly, tpmsSolid, breezeBlock, reorientMesh, thickenSurface, mobiusSolid, planarize, geodesicSphere, torusRef, orientToGround, orientFaceToFace, hybridSurface, sierpinski, scaleMesh, mirrorMesh, mirrorMeshPlane, mergeMeshes, translateMesh, arrayMesh, polarArray, sphereArray, fibonacciArray, rotateMeshAxis, rotateMeshArbitrary, modifiedCornerCutting, wireframeWithCorners, insertEdgeByVerts, flipNormals, fillHoles, deleteFaces, deleteVertexMerge, deleteVertices, offsetMesh, pipes, unfoldMesh, planeCut, connectFaces, sliceLayers, insetLoop, panelizeFaces, laserPanels, selfIntersections, triangulate2D, triangulatePlanar, extrudeProfile, waffleSlices, waffleSlicesPolar, meshBBox, pointInMesh, latticeCells, latticeMorph, shellCells, shellMorph};
 })();
 
@@ -11671,6 +11734,10 @@ function initMenus(){
     else if(a==="showPrinter"){ togglePrinter(); }
     else if(a==="sendPrinter"){ sendToSlicer(); }
     else if(a==="spinExport"){ $$("#menubar .menu.open").forEach(m=>m.classList.remove("open")); openToolPop("spin",null); }
+    else if(a==="topmodLook"){ try{ snapshot(); const st=TM.topmodLook({smooth:2}), m=st[st.length-1].mesh; commitActiveToLayer&&commitActiveToLayer();
+        layers.push({id:layerSeq++, name:"TopMod Look", mesh:m, visible:true, locked:false, modifiers:[], groups:[]}); activeLayer=layers.length-1; mesh=m;
+        clearSel(false); rebuild(); renderLayerList&&renderLayerList(); renderModStack&&renderModStack(); if(window.__tm&&window.__tm.frameAll) window.__tm.frameAll();
+        toast&&toast("TopMod look: dodecahedron → 6 handles (72° twist) → Doo-Sabin → rind face loops → Catmull-Clark ×2"); }catch(e){ toast&&toast(String(e),true); } }
     else if(a==="frameAll"){ if(window.__tm&&window.__tm.frameAll){window.__tm.frameAll();toast&&toast("Zoom to fit");} }
     else if(a==="saveProject")saveProject();
     else if(a==="saveProjectAs")saveProjectAs();
@@ -14875,7 +14942,25 @@ void main(){
   async function op(id, label, param){ await press('#toolbar [data-op="'+id+'"]', label); if (param) setParam(param[0], param[1]); await apply(label + " · apply"); await wait(1300); }
   async function view(rm, label){ const b = q('[data-rm="'+rm+'"]'); if (b){ say(label); moveCursor(b); await wait(600); b.classList.add("amxPulse"); await wait(500); b.classList.remove("amxPulse"); clickFx(); b.click(); } await wait(1600); }
 
+  // load a stage mesh straight into the active layer (demo narration; no modifier entries, no undo churn)
+  function stageLoad(m){ try { mesh={verts:m.verts.map(v=>v.slice()),faces:m.faces.map(f=>f.slice())}; const L=layers[activeLayer]; L.mesh=mesh; L.name="TopMod Look"; L.gen=null; L.modifiers=[]; L._ev=null; L._evKey=null; clearSel(false); rebuild(); renderModStack&&renderModStack(); renderLayerList&&renderLayerList(); } catch(e){ console.warn(e); } }
   const SEQS = [
+    // 0 — "The TopMod look" (Nathan Ho): dodecahedron -> 6 twisted handles -> Doo-Sabin -> rind (remove face loops) -> Catmull-Clark
+    async () => {
+      fresh(); say("New scene"); await wait(450);
+      await press('#toolbar [data-p="dodecahedron"]', "The TopMod look · start from a dodecahedron"); await apply(); await wait(1000);
+      let st; try { st=TM.topmodLook({smooth:2}); } catch(e){ console.warn(e); return; }
+      for (let k=1; k<=6; k++){ const s=st[k]; if(!s) break; say(s.label+" (genus "+k+")"); stageLoad(s.mesh); if(k===1) frame(); await wait(k===1?1300:850); }
+      frame(); await wait(600);
+      const ds=st.find(x=>/^Doo-Sabin/.test(x.label)); say("Doo-Sabin ×1 — the key to the TopMod look"); stageLoad(ds.mesh); await wait(1500);
+      say("Select face loops — quads that weave from handle to handle");
+      try { setMode("face"); (ds.remove||[]).forEach(f=>sel.faces.add(f)); rebuildOverlay(); } catch(e){} await wait(1900);
+      const rind=st.find(x=>/^Rind/.test(x.label)); say("Rind modeling · "+rind.label.replace(/^Rind · /,"")); stageLoad(rind.mesh); await wait(1700);
+      say("Catmull-Clark ×2 — smooth"); stageLoad(st[st.length-1].mesh); await wait(1400);
+      try { const s=q("#rdColor"); if(s){ s.value="c:white"; } if(window.__liveRender){ window.__liveRender.set(true); say("Live render · white ceramic"); const lb=q("#lbColor"); if(lb){ lb.value="c:white"; lb.dispatchEvent(new Event("change")); } } } catch(e){}
+      await wait(3200);
+      try { window.__liveRender && window.__liveRender.set(false); } catch(e){}
+    },
     // 1 — torus (sliders) -> wireframe (sliders) -> patent halftone -> normals -> solid -> new
     async () => {
       fresh(); say("New scene"); await wait(450);
