@@ -13727,7 +13727,7 @@ window.__ek={applyWhole:applyWhole,ops:ops,snapshot:snapshot,rebuild:rebuild,toa
   let on=true, panel=null, card=null, out=null, inp=null, cur=null, extra="", busy=false, demoInfo=null;
   let last={V:0,E:0,F:0,chi:0,genus:0,comps:1};
   function css(){ const st=document.createElement("style"); st.textContent=`
-#eqPanel{position:fixed;right:12px;left:auto;bottom:58px;width:340px;height:430px;min-width:260px;min-height:170px;resize:both;overflow:hidden;z-index:9985;display:flex;flex-direction:column;border-radius:12px;background:rgba(7,10,16,.9);
+#eqPanel{position:fixed;right:12px;left:auto;bottom:58px;width:268px;height:430px;min-width:210px;min-height:170px;resize:both;overflow:hidden;z-index:9985;display:flex;flex-direction:column;border-radius:12px;background:rgba(7,10,16,.9);
   border:1px solid rgba(0,229,255,.28);box-shadow:0 10px 28px rgba(0,0,0,.5);backdrop-filter:blur(6px);color:#dbe8f3;max-height:calc(100vh - 150px)}
 #eqPanel.hide{display:none}
 #eqHead{display:flex;justify-content:space-between;align-items:center;padding:6px 10px;cursor:move;user-select:none;touch-action:none;border-bottom:1px solid rgba(255,255,255,.07);
@@ -13735,9 +13735,9 @@ window.__ek={applyWhole:applyWhole,ops:ops,snapshot:snapshot,rebuild:rebuild,toa
 #eqHead button{all:unset;cursor:pointer;color:#8aa;font-size:14px;padding:0 4px}
 #eqCard{padding:8px 12px 8px;font:12px/1.45 "Cambria Math","STIX Two Math","Times New Roman",serif}
 #eqCard .eqT{font:600 9.5px var(--font,system-ui);letter-spacing:.14em;text-transform:uppercase;color:#00E5FF;margin-bottom:3px}
-#eqCard .eqE{font-size:14.5px;color:#fff;white-space:nowrap}
+#eqCard .eqE{font-size:13px;color:#fff;white-space:nowrap}
 #eqCard .eqE b{color:#FF8C22;font-weight:600}
-#eqCard .eqL{color:#cfe0ee;font-size:13px}
+#eqCard .eqL{color:#cfe0ee;font-size:12px}
 #eqCard .eqCred{font:11px var(--font,system-ui);color:#8fa6b8;margin:-1px 0 3px}
 #eqCard .eqStep{font:12px var(--font,system-ui);color:#ffd27a}
 #eqCard .eqSep{height:1px;background:rgba(255,255,255,.1);margin:6px 0}
@@ -15550,13 +15550,11 @@ void main(){
         try { setMode("face"); (ds.remove||[]).forEach(f=>sel.faces.add(f)); rebuildOverlay(); } catch(e){} await wait(1900);
         const rind=st.find(x=>/^Rind/.test(x.label)); say("Rind modeling · "+rind.label.replace(/^Rind · /,"")); EQ("rind"); stageLoad(rind.mesh); await wait(1700);
         say("Catmull-Clark ×2 — smooth"); EQ("catmull"); stageLoad(st[st.length-1].mesh); await wait(1600);
-        // Ruby (a View setting — ray-traced gem shading in the viewport)
+        // undo one level of subdivision: back to Catmull-Clark ×1
+        say("Undo — back to one subdivision level"); let cc1=null; try{ cc1=TM.catmullClark(rind.mesh); }catch(e){} if(cc1){ stageLoad(cc1); } await wait(1500);
+        // Line Art (still — no rotation), then Sapphire
+        if(window.__lineart){ say("Line Art · wireframe, hidden lines removed"); window.__lineart.open(); EQ("lineart"); await wait(3200); window.__lineart.close(); await wait(300); }
         say("View · Sapphire (ray-traced gem)"); window.__gemOpts=Object.assign(window.__gemOpts||{}, {disp:false, bounces:4}); setRenderMode("sapphire"); try{ window.__eq&&window.__eq.gem("sapphire"); }catch(e){} await wait(3600);
-        // Line Art · Sketch, then one full turn with the drawing following the camera
-        if(window.__lineart){ say("Line Art · Sketch style"); window.__lineart.open(); window.__lineart.style("sketch"); EQ("lineart"); window.__lineart.cfg.live=true; await wait(2200);
-          say("Rotate 360°"); const y0=yaw, T=9000, t0=performance.now(), g0=runGen;
-          await new Promise(res=>{ const step=()=>{ if(!alive||g0!==runGen) return res(); const t=Math.min(1,(performance.now()-t0)/T); yaw=y0+t*Math.PI*2; applyCam(); if(t<1) requestAnimationFrame(step); else res(); }; step(); });
-          await wait(900); window.__lineart.cfg.live=false; window.__lineart.close(); }
         window.__gemOpts.disp=false; window.__gemOpts.bounces=4; setRenderMode("solid");
       } finally { spinHold=false; try{ window.__eq&&window.__eq.op(null); }catch(e){} }
     },
@@ -15572,10 +15570,6 @@ void main(){
         await window.__eq.type(FL); await wait(400); await window.__eq.run(FL); await wait(1800);
         try { window.__tm.frameAll(1.3); } catch(e){}
         say("View · Diamond — one light, overhead right"); window.__gemOpts=Object.assign(window.__gemOpts||{}, {disp:false, bounces:4}); setRenderMode("diamond"); try{ window.__eq.gem("diamond"); }catch(e){} await wait(3400);
-        if(window.__lineart){ say("Line Art · Contours"); window.__lineart.open(); window.__lineart.style("contours"); window.__lineart.cfg.live=true; await wait(2000);
-          say("Rotate 360°"); const y0=yaw, T=9000, t0=performance.now(), g0=runGen;
-          await new Promise(res=>{ const step=()=>{ if(!alive||g0!==runGen) return res(); const t=Math.min(1,(performance.now()-t0)/T); yaw=y0+t*Math.PI*2; applyCam(); if(t<1) requestAnimationFrame(step); else res(); }; step(); });
-          await wait(700); window.__lineart.cfg.live=false; window.__lineart.close(); }
         window.__gemOpts.disp=false; window.__gemOpts.bounces=4; setRenderMode("solid");
       } finally { spinHold=false; try{ window.__eq&&window.__eq.op(null); }catch(e){} }
     },
