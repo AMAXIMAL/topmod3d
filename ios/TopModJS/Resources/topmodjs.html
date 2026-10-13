@@ -841,6 +841,8 @@ canvas#view{width:100%;height:100%;display:block;touch-action:none;outline:none;
       <div class="mi" data-op="edgeLoop">Select Edge Loop</div>
       <div class="mi" data-op="edgeRing">Select Edge Ring</div>
       <div class="mi" data-op="faceLoop">Select Face Loop</div>
+      <div class="mi" data-op="loopPick">Face Loops — click faces to select their loops</div>
+      <div class="mi" data-op="rindSel">Rind — remove selected faces (crust with slots)</div>
     </div></div>
     <div class="menu"><span class="mtitle">Tools</span><div class="mlist">
       <div class="mi" data-op="insertEdge">Insert Edge</div>
@@ -935,6 +937,8 @@ canvas#view{width:100%;height:100%;display:block;touch-action:none;outline:none;
       </span>
       <span class="tgrp" data-label="Remesh">
         <button class="tb" data-op="catmull" title="Catmull-Clark"><img class="ticon" alt="Catmull-Clark"><span class="tlbl">Catmull</span></button>
+        <button class="tb" data-op="loopPick" title="Face Loops — click a face to select its whole quad loop (TopMod “Select Face Loop”); the loop runs across the edge nearest your click. Then Rind removes them"><img class="ticon" alt="Loops"><span class="tlbl">Loops</span></button>
+        <button class="tb" data-op="rindSel" title="Rind — thicken into a crust and remove the selected faces (slots), like the TopMod look demo"><img class="ticon" alt="Rind"><span class="tlbl">Rind</span></button>
         <button class="tb" data-op="crease" title="Crease — OpenSubdiv semi-sharp creases: edit the control cage (pick edges, set sharpness 0–10, drag cage points) while seeing the subdivided surface"><img class="ticon" alt="Crease"><span class="tlbl">Crease</span></button>
         <button class="tb" data-op="doosabin" title="Doo-Sabin"><img class="ticon" alt="Doo-Sabin"><span class="tlbl">DooSabin</span></button>
         <button class="tb" data-op="loop" title="Loop subdivision"><img class="ticon" alt="Loop"><span class="tlbl">Loop</span></button>
@@ -10328,6 +10332,7 @@ function nearestFaceCorner(x,y,f){
   return bv;
 }
 function handleClick(x,y,shift){
+  if(loopPick && selMode==="face" && !(tpState&&["handle","bridge"].includes(tpState.op))){ if(loopPickClick(x,y,shift)) return; }
   // a click on empty space closes a passive param tool (not the interactive ones)
   const INTERACTIVE=["handle","bridge","insertEdge","orient","cut","scale","array","move","lineart","gemview"];
   if(tpState && !INTERACTIVE.includes(tpState.op) && !crustPairs){
@@ -10879,6 +10884,34 @@ function openCreaseTool(){
   openModEdit(md.id); setCageEdit(true);
 }
 ops.crease=openCreaseTool;
+// ---- Face Loops picker + Rind of the selection ----
+let loopPick=false;
+function quadLoop(m, f0, k0){
+  const dd=TM.directedMap(m), out=[f0], seen=new Set([f0]);
+  const walk=(f,k)=>{ for(let g=0; g<4000; g++){ const F=m.faces[f]; if(!F||F.length!==4) return false; const a=F[k], b=F[(k+1)%4], r=dd.get(b+">"+a);
+      if(!r) return false; if(r.f===f0) return true; if(seen.has(r.f)||m.faces[r.f].length!==4) return false; seen.add(r.f); out.push(r.f); f=r.f; k=(r.i+2)%4; } return false; };
+  if(m.faces[f0].length!==4) return out;
+  const closed=walk(f0,k0); if(!closed) walk(f0,(k0+2)%4);
+  return out;
+}
+ops.loopPick=()=>{ loopPick=!loopPick; document.querySelectorAll('[data-op="loopPick"]').forEach(b=>b.classList.toggle("on",loopPick));
+  if(loopPick){ if(selMode!=="face") setMode("face"); toast("Face Loops on — click a face; the loop runs across the edge nearest your click. Click again to toggle off"); }
+  else toast("Face Loops off"); };
+ops.rindSel=()=>{ if(!sel.faces.size){ toast("Select faces first (Face Loops picks whole loops)",true); return; }
+  const n=sel.faces.size; applyWhole(m=>TM.rindRemove(m,new Set(sel.faces),0.6),"Rind · removed "+n+" faces"); try{ window.__eq&&window.__eq.op("rind"); }catch(e){} };
+function loopPickClick(x,y,shift){
+  const h=pickAt(x,y); if(!h||h.type!=="face") return false;
+  const M=selMesh(), f=M.faces[h.id]; if(!f) return false;
+  // edge nearest the click (screen space) = the edge the loop crosses
+  const r=canvas.getBoundingClientRect(), pr=v=>{ const q=new THREE.Vector3(v[0],v[1],v[2]).project(camera); return [r.left+(q.x+1)/2*r.width, r.top+(1-q.y)/2*r.height]; };
+  let best=0,bd=1e18; for(let i=0;i<f.length;i++){ const A=pr(M.verts[f[i]]), B=pr(M.verts[f[(i+1)%f.length]]); const dx=B[0]-A[0], dy=B[1]-A[1], L2=dx*dx+dy*dy||1;
+    const t=Math.max(0,Math.min(1,((x-A[0])*dx+(y-A[1])*dy)/L2)), d=(A[0]+dx*t-x)**2+(A[1]+dy*t-y)**2; if(d<bd){ bd=d; best=i; } }
+  const loop=quadLoop(M,h.id,best); const allIn=loop.every(fi=>sel.faces.has(fi));
+  if(allIn) loop.forEach(fi=>sel.faces.delete(fi)); else loop.forEach(fi=>sel.faces.add(fi));
+  rebuildOverlay(); updateHint&&updateHint(); try{ window.__eq&&window.__eq.op("loops"); }catch(e){}
+  toast((allIn?"Deselected":"Selected")+" a loop of "+loop.length+" faces · "+sel.faces.size+" selected — Rind removes them");
+  return true;
+}
 $$("[data-op]").filter(b=>!b.closest("#menubar")).forEach(b=>b.addEventListener("click",()=>{
   const op=b.dataset.op;
   if(op==="crease"){ openCreaseTool(); return; }
@@ -11731,6 +11764,8 @@ function buildToolbarIcons(){
     tree:safe(()=>TM.primitives.tree(4,3,2.0,0.72,0.14,0.66,36,130,16,0.18,0.2,5,3,0.5,true,0.45,7)),
     gem:safe(()=>TM.primitives.gem(7,7,1.0,"gem",0.34,1.4,"radial",1.0,1.6,30,6,7)),
     diamond:safe(()=>TM.primitives.diamond()),
+    loopPick:safe(()=>TM.primitives.torus(1,0.42,18,8)),
+    rindSel:safe(()=>{ const c=TM.catmullClark(TM.catmullClark(cube)); const S=new Set(); c.faces.forEach((f,i)=>{ const ce=TM.faceCentroid(c,f); if(Math.abs(ce[1])<0.35) S.add(i); }); return TM.rindRemove(c,S,0.6); }),
     maze:safe(()=>TM.primitives.maze(8,8,1.0,0.18,1.0,true,0.25,7)),
     maze3d:safe(()=>TM.primitives.maze3d(4,4,4,1.0,0.22,6,7)),
     tpms:safe(()=>TM.primitives.tpms(1,1,1,1,0,10,"schwarzP")),
