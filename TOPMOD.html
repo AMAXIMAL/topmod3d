@@ -6973,9 +6973,9 @@ const MODS={
   noise:   {label:"Displace (Noise)", grp:"Deform", params:[{k:"amount",l:"Amount",min:0,max:0.5,step:0.005,def:0.12},{k:"freq",l:"Scale",min:0.5,max:8,step:0.1,def:2},{k:"seed",l:"Seed",min:1,max:50,step:1,def:1}],
             apply:(m,p)=>TM.noiseMesh(m,{amount:p.amount,freq:p.freq,seed:p.seed})},
   // --- generators (change topology) ---
-  subdivide:{label:"Subdivide (Catmull-Clark · OpenSubdiv creases)", grp:"Generate", params:[{k:"levels",l:"Levels",min:1,max:4,step:1,def:1},
-              {k:"boundary",l:"Boundary",opts:["Sharp edges + corners","Sharp edges","Smooth (legacy)"],def:0},
-              {k:"cage",l:"Show control cage",bool:true,def:true}],
+  subdivide:{label:"Subdivide (Catmull-Clark)", grp:"Generate", params:[{k:"levels",l:"Levels",min:1,max:4,step:1,def:1},
+              {k:"boundary",l:"Boundary",opts:["Sharp edges + corners","Sharp edges","Smooth (classic)"],def:2},
+              {k:"cage",l:"Show control cage",bool:true,def:false}],
             apply:(m,p)=>{ let r=m; const L=Math.max(1,Math.round(p.levels));
               const bm=(p.boundary==null)?2:(+p.boundary|0);          // stacks saved before v3.9 keep the old smooth boundary
               let cr=_evalCreases(m), path=null;
@@ -7288,7 +7288,7 @@ function openModEdit(id){
   const wrap=document.createElement("div"); wrap.className="modEditBody";
   if(!R.params.length){ const e=document.createElement("div"); e.className="modEditNote"; e.textContent="No parameters — toggle it in the stack to enable/disable."; wrap.appendChild(e); }
   R.params.forEach(d=>wrap.appendChild(_modParamRow(md,d)));
-  if(md.type==="subdivide" && typeof osdPanel==="function") wrap.appendChild(osdPanel(md));
+  if(md.type==="subdivide" && typeof osdPanel==="function" && (md.params.osd || (typeof creaseCount==="function" && creaseCount(layers[activeLayer])>0))) wrap.appendChild(osdPanel(md));
   if(md.type==="latfill"){ const inf=document.createElement("div"); inf.id="latInfo"; inf.className="modEditNote latInfo"; inf.dataset.mod=md.id; wrap.appendChild(inf); updateLatInfo(); }
   const saved=document.createElement("div"); saved.className="modEditNote"; saved.style.color="#8fce9b"; saved.style.marginTop="8px";
   saved.textContent="✓ Live — changes save automatically (no Apply needed).";
@@ -11170,7 +11170,8 @@ function openCreaseTool(){
   const L=layers[activeLayer]; if(!L) return;
   if(typeof isActiveLocked==="function" && isActiveLocked()){ toast&&toast("Layer is locked",true); return; }
   let md=subdivModOf(L);
-  if(!md){ md=addModifier("subdivide",{returnMod:true}); if(!md) return; md.params.levels=2; rebuild(); renderModStack(); }
+  if(!md){ md=addModifier("subdivide",{returnMod:true}); if(!md) return; md.params.levels=2; }
+  md.params.osd=true; md.params.boundary=0; md.params.cage=true; rebuild(); renderModStack();
   openModEdit(md.id); setCageEdit(true);
 }
 ops.crease=openCreaseTool;
