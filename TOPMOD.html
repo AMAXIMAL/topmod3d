@@ -7862,11 +7862,35 @@ function gemPerfGuard(now){
   if(!GEM_RM.test(renderMode) || window.__gemGuardOff) return; const g=_gemGuard;
   if(!g.last||now-g.t0<1500){ g.last=now; g.ema=0; g.slow=0; return; }          // grace period: shader compile + BVH build
   const dt=now-g.last; g.last=now; g.ema=g.ema? g.ema*0.85+dt*0.15 : dt;
-  if(g.ema>110){ g.slow+=dt; } else g.slow=Math.max(0,g.slow-dt);              // ~9 fps or worse
+  if(g.ema>(window.__gemFallbackMs||330)){ g.slow+=dt; } else g.slow=Math.max(0,g.slow-dt);   // ~3 fps or worse (3× more tolerant)
   if(g.slow>1800){ const was=RMODES[renderMode].label; setRenderMode("solid"); toast&&toast(was+" view is too heavy for this device — back to the standard view",true); }
+}
+// Gem view options (Options window): quality preset (Fast = no fire · 4 bounces ≈ 3× the frame rate), bounces, fire, fallback
+window.__gemOpts=Object.assign({disp:false,bounces:4}, window.__gemOpts||{});
+function openGemOptions(m){
+  if(typeof closeToolPop==="function" && tpState && tpState.op!=="gemview") try{ closeToolPop(); }catch(e){}
+  const body=$("#tpBody"); if(!body) return; const o=window.__gemOpts;
+  body.innerHTML='<div class="gemOpt">'
+    +'<div class="param"><label>Quality <span id="gqLab"></span></label><input type="range" id="gq" min="1" max="3" step="1"></div>'
+    +'<div class="param"><label>Bounces <output id="gbV"></output></label><input type="range" id="gb" min="2" max="12" step="1"></div>'
+    +'<div class="param"><label class="chk"><input type="checkbox" id="gf"> Fire (dispersion — 3× slower)</label></div>'
+    +'<div class="param"><label>Fall back to standard view below <output id="gfbV"></output> fps</label><input type="range" id="gfb" min="1" max="15" step="1"></div>'
+    +'<div class="modEditNote">Light: bottom bar 💡 (1-point · 3-point · off). Fast is the default.</div></div>';
+  const q=id=>body.querySelector("#"+id), labs={1:"Fast",2:"Balanced",3:"Full (fire)"};
+  const syncLbl=()=>{ q("gbV").textContent=o.bounces; q("gf").checked=!!o.disp; q("gfbV").textContent=Math.round(1000/(window.__gemFallbackMs||330)); };
+  const qual=o.disp?3:(o.bounces>=7?2:1); q("gq").value=qual; q("gqLab").textContent="· "+labs[qual]; q("gb").value=o.bounces; q("gfb").value=Math.round(1000/(window.__gemFallbackMs||330)); syncLbl();
+  q("gq").oninput=e=>{ const v=+e.target.value; q("gqLab").textContent="· "+labs[v]; if(v===1){o.disp=false;o.bounces=4;} else if(v===2){o.disp=false;o.bounces=7;} else {o.disp=true;o.bounces=8;} q("gb").value=o.bounces; syncLbl(); _gemGuard.t0=performance.now(); };
+  q("gb").oninput=e=>{ o.bounces=+e.target.value; syncLbl(); _gemGuard.t0=performance.now(); };
+  q("gf").onchange=e=>{ o.disp=e.target.checked; syncLbl(); _gemGuard.t0=performance.now(); };
+  q("gfb").oninput=e=>{ window.__gemFallbackMs=1000/Math.max(1,+e.target.value); syncLbl(); };
+  $("#tpTitle").textContent=(RMODES[m]&&RMODES[m].label||"Gem")+" view"; $("#tpApply")&&($("#tpApply").style.display="none");
+  const pop=$("#toolpop"); pop.classList.remove("hiddenPanel","empty"); $("#optionsToggle")&&$("#optionsToggle").classList.add("on");
+  tpState={op:"gemview",btn:null,moved:[]};
 }
 function setRenderMode(m){
   if(!RMODES[m]) return;
+  if(GEM_RM.test(m) && !(window.__demo&&window.__demo.on&&window.__demo.on())) setTimeout(()=>openGemOptions(m),0);
+  else if(tpState&&tpState.op==="gemview") try{ closeToolPop(); }catch(e){}
   _gemGuard={t0:performance.now(),last:0,ema:0,slow:0};
   if(window.__lineart && !window.__lineartKeep) try{ window.__lineart.close(); }catch(e){}   // picking another view leaves Line Art
   renderMode=m;
@@ -10302,7 +10326,7 @@ function nearestFaceCorner(x,y,f){
 }
 function handleClick(x,y,shift){
   // a click on empty space closes a passive param tool (not the interactive ones)
-  const INTERACTIVE=["handle","bridge","insertEdge","orient","cut","scale","array","move","lineart"];
+  const INTERACTIVE=["handle","bridge","insertEdge","orient","cut","scale","array","move","lineart","gemview"];
   if(tpState && !INTERACTIVE.includes(tpState.op) && !crustPairs){
     if(!pickAt(x,y)){ if(cageEdit){ clearSel(false); rebuildOverlay(); updateHint&&updateHint(); return; } closeToolPop(); return; }
   }
@@ -10796,6 +10820,7 @@ function closeToolPop(){
   if(tpState.op==="mirror") endMirrorPreview();
   if(tpState.op && tpState.op.startsWith("prim:")){ endPrimPreview(false); $("#toolpop").classList.remove("prim-"+tpState.op.slice(5)); $("#toolpop").classList.remove("prim-any"); }
   if(tpState.op==="lineart"){ if(window.__lineart) window.__lineart._detach(); }
+  if(tpState.op==="gemview"){ $("#tpBody").innerHTML=""; $("#tpApply")&&($("#tpApply").style.display=""); }
   if(tpState.op==="modedit"){ if(cageEdit) setCageEdit(false,true); modEditId=null; $("#tpBody").innerHTML=""; $("#tpApply")&&($("#tpApply").style.display=""); if(typeof renderModStack==="function") renderModStack(); }
   clearCorners();
   ieFace=null; clearNormalsOverlay();
@@ -13338,6 +13363,7 @@ window.__ek={applyWhole:applyWhole,ops:ops,snapshot:snapshot,rebuild:rebuild,toa
     ["outline","Outline / silhouette","#111111",0.5],["crease","Creases","#333333",0.3],["hidden","Hidden lines (dashed)","#8a8f99",0.18],
     ["hatch","Shading hatch","#3a3f4a",0.2],["contour","Contours","#d0561b",0.25],["wire","Wireframe (visible)","#2a6fdb",0.15]];
   const STYLES={
+    inverse:  {label:"Blueprint (inverse) — blue on white", on:{outline:1,crease:1,hidden:1,wire:1}, paper:"#ffffff", ink:"#1d4e89", outlineW:0.8},
     technical:{label:"Technical",  on:{outline:1,crease:1,hidden:1}, paper:"#ffffff"},
     outline:  {label:"Clean outline", on:{outline:1}, paper:"#ffffff"},
     hatched:  {label:"Hatched",    on:{outline:1,crease:1,hatch:1}, hatch:{levels:2,spacing:1.1,angle:45}, paper:"#ffffff"},
@@ -13347,9 +13373,9 @@ window.__ek={applyWhole:applyWhole,ops:ops,snapshot:snapshot,rebuild:rebuild,toa
     xray:     {label:"X-ray (all edges)", on:{wire:1}, xray:true, paper:"#ffffff"},
     blueprint:{label:"Blueprint",  on:{outline:1,crease:1,hidden:1,wire:1}, paper:"#1d4e89", ink:"#eaf3ff"},
     sketch:   {label:"Sketch",     on:{outline:1,crease:1,hatch:1}, hatch:{levels:2,spacing:1.4,angle:35}, sketch:true, paper:"#fbf8f1"} };
-  const C={ style:"technical", on:{outline:1,crease:1,hidden:1}, colors:{}, widths:{}, crease:32, hatch:{levels:2,spacing:1.1,angle:45,tone:1},
-    contours:24, page:"a4", land:false, margin:15, merge:0.1, simplify:0.05, minLen:0.3, sort:true, sketch:false, xray:false, paper:"#ffffff", ink:null, res:1600 };
-  LAYERS.forEach(l=>{ C.colors[l[0]]=l[2]; C.widths[l[0]]=l[3]; });
+  const C={ style:"inverse", on:{outline:1,crease:1,hidden:1,wire:1}, colors:{}, widths:{}, crease:32, hatch:{levels:2,spacing:1.1,angle:45,tone:1},
+    contours:24, page:"a4", land:false, margin:15, merge:0.1, simplify:0.05, minLen:0.3, sort:true, sketch:false, xray:false, paper:"#ffffff", ink:"#1d4e89", res:1600 };
+  LAYERS.forEach(l=>{ C.colors[l[0]]=l[2]; C.widths[l[0]]=l[3]; }); C.widths.outline=0.8;
   let open=false, panel=null, view=null, svgEl=null, lastKey="", dirty=true, idleT=0, result=null, busy=false, lastGen=0;
 
   // ---- GPU passes: packed depth + lambert shade of exactly what's on screen ----
@@ -13576,6 +13602,7 @@ window.__ek={applyWhole:applyWhole,ops:ops,snapshot:snapshot,rebuild:rebuild,toa
       +'<div class="laSec">Layers · pens (mm)</div>'
       +LAYERS.map(([id,label])=>'<div class="laLay"><input type="checkbox" id="laOn_'+id+'"><label for="laOn_'+id+'">'+label+'</label><input type="color" id="laCol_'+id+'" value="'+C.colors[id]+'"><input type="number" id="laW_'+id+'" min="0.05" max="2" step="0.05" value="'+C.widths[id]+'"></div>').join("")
       +'<div class="laSec">Geometry</div>'
+      +rng("laSil","Silhouette mm",0.1,2.5,0.05,C.widths.outline)
       +rng("laCrease","Crease angle°",5,90,1,C.crease)
       +rng("laHLevels","Hatch levels",1,4,1,C.hatch.levels)+rng("laHSpace","Hatch spacing",0.4,4,0.05,C.hatch.spacing)+rng("laHAngle","Hatch angle°",0,180,1,C.hatch.angle)+rng("laHTone","Hatch darkness",0.5,1.4,0.02,C.hatch.tone)
       +rng("laCont","Contour count",2,120,1,C.contours)
@@ -13603,6 +13630,7 @@ window.__ek={applyWhole:applyWhole,ops:ops,snapshot:snapshot,rebuild:rebuild,toa
     addEventListener("resize",()=>repaint());
     const q=id=>panel.querySelector("#"+id);
     const bindR=(id,set)=>{ const r=q(id), n=q(id+"N"); const go=v=>{ r.value=v; n.value=v; set(+v); bump(); }; r.addEventListener("input",()=>go(r.value)); n.addEventListener("change",()=>go(n.value)); n.addEventListener("keydown",e=>e.stopPropagation()); };
+    bindR("laSil",v=>{ C.widths.outline=v; const w=document.getElementById("laW_outline"); if(w) w.value=v; C.on.outline=1; const c=document.getElementById("laOn_outline"); if(c) c.checked=true; });
     bindR("laCrease",v=>C.crease=v); bindR("laHLevels",v=>C.hatch.levels=v); bindR("laHSpace",v=>C.hatch.spacing=v); bindR("laHAngle",v=>C.hatch.angle=v); bindR("laHTone",v=>C.hatch.tone=v);
     bindR("laCont",v=>C.contours=v); bindR("laMerge",v=>C.merge=v); bindR("laSimp",v=>C.simplify=v); bindR("laMin",v=>C.minLen=v); bindR("laMargin",v=>C.margin=v); bindR("laRes",v=>C.res=v);
     LAYERS.forEach(([id])=>{ q("laOn_"+id).addEventListener("change",e=>{ C.on[id]=e.target.checked?1:0; bump(); });
@@ -13621,9 +13649,12 @@ window.__ek={applyWhole:applyWhole,ops:ops,snapshot:snapshot,rebuild:rebuild,toa
   function syncUI(){ if(!panel) return; const q=id=>document.getElementById(id)||panel.querySelector("#"+id);
     LAYERS.forEach(([id])=>{ q("laOn_"+id).checked=!!C.on[id]; });
     const setR=(id,v)=>{ q(id).value=v; q(id+"N").value=v; };
+    try{ setR("laSil",C.widths.outline); const w=q("laW_outline"); if(w) w.value=C.widths.outline; }catch(e){}
     setR("laHLevels",C.hatch.levels); setR("laHSpace",C.hatch.spacing); setR("laHAngle",C.hatch.angle); q("laSketch").checked=C.sketch; q("laStyle").value=C.style; }
   function applyStyle(k){ const S=STYLES[k]; if(!S) return; C.style=k; C.on={}; for(const id in S.on) C.on[id]=S.on[id];
-    if(S.hatch) Object.assign(C.hatch,S.hatch); C.sketch=!!S.sketch; C.xray=!!S.xray; C.paper=S.paper||"#ffffff"; C.ink=S.ink||null; syncUI(); bump(); }
+    if(S.hatch) Object.assign(C.hatch,S.hatch); C.sketch=!!S.sketch; C.xray=!!S.xray; C.paper=S.paper||"#ffffff"; C.ink=S.ink||null;
+    C.on.outline=1;                                                          // silhouette always on (thickness: Silhouette slider)
+    if(S.outlineW) C.widths.outline=S.outlineW; syncUI(); bump(); }
   function bump(){ dirty=true; idleT=performance.now(); }
   function place(){ const r=canvas.getBoundingClientRect(); Object.assign(view.style,{left:r.left+"px",top:r.top+"px",width:r.width+"px",height:r.height+"px"}); return r; }
   // the drawing sits ON the object: generation pixels map 1:1 onto the viewport
@@ -13693,7 +13724,7 @@ window.__ek={applyWhole:applyWhole,ops:ops,snapshot:snapshot,rebuild:rebuild,toa
     eqsurf:{t:"Equation surface", l:[]}
   };
   const GEM_N={diamond:2.418, reddiamond:2.418, ruby:1.762, sapphire:1.762, emerald:1.575};
-  let on=true, panel=null, card=null, out=null, inp=null, cur=null, extra="", busy=false;
+  let on=true, panel=null, card=null, out=null, inp=null, cur=null, extra="", busy=false, demoInfo=null;
   let last={V:0,E:0,F:0,chi:0,genus:0,comps:1};
   function css(){ const st=document.createElement("style"); st.textContent=`
 #eqPanel{position:fixed;right:12px;left:auto;bottom:58px;width:340px;height:430px;min-width:260px;min-height:170px;resize:both;overflow:hidden;z-index:9985;display:flex;flex-direction:column;border-radius:12px;background:rgba(7,10,16,.9);
@@ -13707,6 +13738,8 @@ window.__ek={applyWhole:applyWhole,ops:ops,snapshot:snapshot,rebuild:rebuild,toa
 #eqCard .eqE{font-size:14.5px;color:#fff;white-space:nowrap}
 #eqCard .eqE b{color:#FF8C22;font-weight:600}
 #eqCard .eqL{color:#cfe0ee;font-size:13px}
+#eqCard .eqCred{font:11px var(--font,system-ui);color:#8fa6b8;margin:-1px 0 3px}
+#eqCard .eqStep{font:12px var(--font,system-ui);color:#ffd27a}
 #eqCard .eqSep{height:1px;background:rgba(255,255,255,.1);margin:6px 0}
 #eqTerm{border-top:1px solid rgba(0,229,255,.18);display:flex;flex-direction:column;min-height:0;flex:1 1 auto}
 #eqCard{flex:0 0 auto;overflow:auto;max-height:45%}
@@ -13746,7 +13779,9 @@ window.__ek={applyWhole:applyWhole,ops:ops,snapshot:snapshot,rebuild:rebuild,toa
   function render(){
     if(!panel) build(); panel.classList.toggle("hide",!on); if(!on) return;
     const e=last, g=Number.isInteger(e.genus)?e.genus:(+e.genus).toFixed(1), m=v=>v<0?"− "+(-v):v;
-    let h='<div class="eqT">Euler–Poincaré · live</div><div class="eqE">V − E + F = 2 − 2g</div>'
+    let h='';
+    if(demoInfo) h+='<div class="eqDemo"><div class="eqT">Demo '+(demoInfo.n||"")+' · '+(demoInfo.name||"")+'</div>'+(demoInfo.credit?'<div class="eqCred">'+demoInfo.credit+'</div>':'')+(demoInfo.step?'<div class="eqStep">▸ '+demoInfo.step+'</div>':'')+'</div><div class="eqSep"></div>';
+    h+='<div class="eqT">Euler–Poincaré · live</div><div class="eqE">V − E + F = 2 − 2g</div>'
       +'<div class="eqE"><b>'+e.V+'</b> − <b>'+e.E+'</b> + <b>'+e.F+'</b> = <b>'+m(e.chi)+'</b>  ⇒  g = <b>'+g+'</b>'+(e.comps>1?'  ('+e.comps+' shells)':'')+'</div>';
     const f=cur&&F[cur];
     if(f){ h+='<div class="eqSep"></div><div class="eqT">'+f.t+'</div>'+f.l.map(x=>'<div class="eqL">'+x+'</div>').join("")+(extra?'<div class="eqL">'+extra+'</div>':''); }
@@ -13903,7 +13938,7 @@ window.__ek={applyWhole:applyWhole,ops:ops,snapshot:snapshot,rebuild:rebuild,toa
     if((m=ln.match(/^lineart(?:\s+(\w+))?$/i))){ if(window.__lineart){ window.__lineart.open(); if(m[1]) window.__lineart.style(m[1]); window.__eq.op("lineart"); print("line art "+(m[1]||""),"ok"); } return; }
     if((m=ln.match(/^(\w+)(?:\s+(\d+))?$/)) && !(m[1] in vars) && !FN[m[1]] && !(m[1] in CONST)){
       const id=m[1]; const k=m[2]?Math.max(1,Math.min(6,+m[2])):1;
-      if(document.querySelector('#toolbar [data-op="'+id+'"]')){ for(let i=0;i<k;i++){ clickOp('#toolbar [data-op="'+id+'"]'); await sleep(700); } try{ if(tpState&&tpState.op==="modedit") closeToolPop(); }catch(e){} const map={catmull:"catmull",doosabin:"doosabin",wireframe:"wireframe"}; if(map[id]) window.__eq.op(map[id]); print(id+(k>1?" ×"+k:"")+" ✓","ok"); return; }
+      if(document.querySelector('#toolbar [data-op="'+id+'"]')){ const t0=runTok; for(let i=0;i<k;i++){ if(t0!==runTok) return; clickOp('#toolbar [data-op="'+id+'"]'); await sleep(700); } try{ if(tpState&&tpState.op==="modedit") closeToolPop(); }catch(e){} const map={catmull:"catmull",doosabin:"doosabin",wireframe:"wireframe"}; if(map[id]) window.__eq.op(map[id]); print(id+(k>1?" ×"+k:"")+" ✓","ok"); return; }
       if(document.querySelector('#toolbar [data-p="'+id+'"]')){ clickOp('#toolbar [data-p="'+id+'"]'); print(id+" ✓","ok"); return; }
       if(!(id in live())){ print("unknown command '"+id+"' — type help","err"); return; }
     }
@@ -13959,15 +13994,17 @@ window.__ek={applyWhole:applyWhole,ops:ops,snapshot:snapshot,rebuild:rebuild,toa
     view:(name)=>{ if(RMODES[name]) setRenderMode(name); }, say:(t)=>print(String(t),"ok"), eq:(t)=>line(String(t)), topo:()=>({...last})
   };
   const isPy=t=>/^\s*(import |from \w+ import|def |class |for .+:|while .+:|if .+:|print\(|with |try:|lambda )/m.test(t) || /^\s{2,}\S/m.test(t);
+  let runTok=0;
   async function runText(text){
-    if(busy) return; busy=true;
+    if(busy) return; busy=true; const tok=++runTok;
     try{
       const lines=String(text||"").replace(/\r/g,"").split("\n"); for(const k in fields) delete fields[k];
       if(isPy(text)){
         for(const l of lines){ await typeLine(">>> "+l,"in",4); }
         try{ const py=await loadPy(); const r=await py.runPythonAsync(text); if(r!==undefined&&r!==null) print(String(r),"ok"); }catch(e){ print(String(e.message||e).split("\n").slice(-3).join("\n"),"err"); }
       } else {
-        for(const l of lines){ if(!l.trim()) continue; await typeLine("> "+l,"in"); try{ await line(l); }catch(e){ print("  "+String(e.message||e),"err"); } await sleep(120); }
+        for(const l of lines){ if(tok!==runTok) break; if(!l.trim()) continue; await typeLine("> "+l,"in"); if(tok!==runTok) break; try{ await line(l); }catch(e){ print("  "+String(e.message||e),"err"); } await sleep(120); }
+        if(tok!==runTok){ print("(stopped)","dim"); for(const k in pend) delete pend[k]; for(const k in deform) delete deform[k]; return; }
         if(pend.x&&pend.y&&pend.z){ try{ buildPending(); }catch(e){ print("  "+String(e.message||e),"err"); } }
         if(deform.x||deform.y||deform.z){ try{ applyDeform(); }catch(e){ print("  "+String(e.message||e),"err"); } }
       }
@@ -13978,7 +14015,9 @@ window.__ek={applyWhole:applyWhole,ops:ops,snapshot:snapshot,rebuild:rebuild,toa
     op(k,x){ cur=k; extra=x||""; render(); },
     toggle(v){ on=(v==null)?!on:!!v; try{ localStorage.setItem("tmEq",on?"1":"0"); }catch(_){} document.querySelectorAll('[data-act="liveEq"]').forEach(el=>el.classList.toggle("on",on)); render(); },
     gem(name){ const n=GEM_N[name]; if(n) this.op("gem","n = "+n+"  ·  θ_c = "+(Math.asin(1/n)*180/Math.PI).toFixed(1)+"°"); },
-    run:(t)=>runText(t), type:async(t)=>{ if(!panel) build(); inp.value=""; for(let i=0;i<t.length;i++){ inp.value+=t[i]; if(i%2===0) await sleep(10); } inp.scrollTop=inp.scrollHeight; },
+    demo(d){ if(d===null){ demoInfo=null; } else { demoInfo=Object.assign(demoInfo||{}, d); if(d.step===null) delete demoInfo.step; } render(); },
+    run:(t)=>runText(t), type:async(t)=>{ if(!panel) build(); const tok=runTok; inp.value=""; for(let i=0;i<t.length;i++){ if(tok!==runTok) return; inp.value+=t[i]; if(i%2===0) await sleep(10); } inp.scrollTop=inp.scrollHeight; },
+    cancel(){ runTok++; busy=false; },
     print, line
   };
   try{ if(localStorage.getItem("tmEq")==="0") on=false; }catch(_){}
@@ -15094,7 +15133,7 @@ void main(){
     if(g){ g.tri.dispose(); g.nrm.dispose(); g.bvh.dispose(); }
     g=_gemBuild(geo); g.ver=ver; _gemCache.set(geo,g); return g;
   }
-  function gemSettings(){ const s=window.__gemOpts||{}; return { bounces:s.bounces||7, disp:s.disp!==false, smooth:s.smooth, spin:s.spin!==false, gain:s.gain||1 }; }
+  function gemSettings(){ const s=window.__gemOpts||{}; return { bounces:s.bounces||4, disp:!!s.disp, smooth:s.smooth, spin:s.spin!==false, gain:s.gain||1 }; }
   function makeGemMaterial(id, bg){
     const G=GEMS[id]||GEMS.diamond;
     const U={ uTri:{value:null}, uNrm:{value:null}, uBvh:{value:null}, uTriW:{value:2048}, uBvhW:{value:2048}, uCam:{value:new THREE.Vector3()},
@@ -15382,10 +15421,12 @@ void main(){
     ["Helix Papercraft","TopMod 3D"]
   ];
   let runGen=0;
+  { const t=document.getElementById("demoTitle"); if(t) t.title="Demos — hover list (click to play / pause):\n"+DEMO_INFO.map((d,i)=>(i+1)+". "+d[0]+"  —  "+d[1]).join("\n"); }
   function pillHTML(paused){ const k=curK, I=DEMO_INFO[k]||["Demo",""];
-    return '<span class="dot"></span><button type="button" class="nav prev" title="Previous demo">&#8249;</button>'
-      +'<span class="dname"><b>'+(k+1)+' · '+I[0]+'</b><i>'+I[1]+'</i></span><button type="button" class="nav next" title="Next demo">&#8250;</button>'
-      +'<span class="step">'+(paused?'Paused — the form is yours':'')+'</span>'
+    try{ window.__eq&&window.__eq.demo({n:k+1, name:I[0], credit:I[1], step:paused?"Paused — the form is yours":null}); }catch(e){}
+    return '<span class="dot"></span><button type="button" class="nav prev" title="Back">&#8249;</button>'
+      +'<button type="button" class="nav next" title="Next">&#8250;</button>'
+      +'<span class="step" style="display:none"></span>'
       +(paused?'<button type="button" class="try" title="Resume this demo">&#9654; Resume</button>':'<button type="button" class="try" title="Pause and take over">Try for yourself &rsaquo;</button>')
       +'<button type="button" class="x sm" aria-label="Close demo" title="Close">&times;</button>'; }
   function wirePill(paused){ if(!pill) return; pill.innerHTML=pillHTML(paused); pill.classList.toggle("paused",!!paused);
@@ -15393,9 +15434,9 @@ void main(){
     pill.querySelector(".next").addEventListener("click",e=>{ e.stopPropagation(); jump(+1); });
     pill.querySelector(".try").addEventListener("click",e=>{ e.stopPropagation(); paused? resume() : stop(); });
     pill.querySelector(".x").addEventListener("click",e=>{ e.stopPropagation(); stop(true); }); }
-  function jump(d){ const n=SEQS.length; const k=((curK+d)%n+n)%n; alive=false; runGen++; clearTimeout(timer); cancelAnimationFrame(spin);
+  function jump(d){ const n=SEQS.length; const k=((curK+d)%n+n)%n; alive=false; runGen++; try{ window.__eq&&window.__eq.cancel(); }catch(e){} clearTimeout(timer); cancelAnimationFrame(spin);
     try{ if(window.__lineart) window.__lineart.close(); }catch(e){} curK=k; if(pill){ pill.remove(); pill=null; } setTimeout(()=>start(k),60); }
-  const say = t => { const s = pill && pill.querySelector(".step"); if (s) s.textContent = t; };
+  const say = t => { const s = pill && pill.querySelector(".step"); if (s) s.textContent = t; try{ window.__eq&&window.__eq.demo({step:t}); }catch(e){} };
   // ---- orange demo cursor ----
   let cur = null;
   function cursor(){ if (!cur){ cur = document.createElement("div"); cur.id = "amxCursor"; document.body.appendChild(cur); } return cur; }
@@ -15409,12 +15450,12 @@ void main(){
   // touching the scene PAUSES the demo: the pill stays with ▶ Resume and a small × to close it; the form stays usable
   let curK=0;
   function stop(close){
-    if (!alive && !close) return; const was=alive || !!pill; alive = false; clearTimeout(timer); cancelAnimationFrame(spin);
+    if (!alive && !close) return; const was=alive || !!pill; try{ window.__eq&&window.__eq.cancel(); }catch(e){} alive = false; clearTimeout(timer); cancelAnimationFrame(spin);
     document.querySelectorAll(".amxPulse").forEach(el => el.classList.remove("amxPulse"));
     if (cur) { cur.remove(); cur = null; }
     try { if(window.__lineart) window.__lineart.close(); } catch(e){}
     setTitle(false);
-    if (close || !pill) { if (pill) { pill.remove(); pill = null; } if(was) try { toast && toast("Demo closed — your turn. Pick a primitive or a tool."); } catch(e){} return; }
+    if (close || !pill) { try{ window.__eq&&window.__eq.demo(null); }catch(e){} if (pill) { pill.remove(); pill = null; } if(was) try { toast && toast("Demo closed — your turn. Pick a primitive or a tool."); } catch(e){} return; }
     runGen++; wirePill(true);
   }
   function resume(){ if (alive) return; if (pill) { pill.remove(); pill = null; } start(curK); }
@@ -15510,13 +15551,13 @@ void main(){
         const rind=st.find(x=>/^Rind/.test(x.label)); say("Rind modeling · "+rind.label.replace(/^Rind · /,"")); EQ("rind"); stageLoad(rind.mesh); await wait(1700);
         say("Catmull-Clark ×2 — smooth"); EQ("catmull"); stageLoad(st[st.length-1].mesh); await wait(1600);
         // Ruby (a View setting — ray-traced gem shading in the viewport)
-        say("View · Sapphire (ray-traced gem)"); window.__gemOpts=Object.assign(window.__gemOpts||{}, {disp:false, bounces:5}); setRenderMode("sapphire"); try{ window.__eq&&window.__eq.gem("sapphire"); }catch(e){} await wait(3600);
+        say("View · Sapphire (ray-traced gem)"); window.__gemOpts=Object.assign(window.__gemOpts||{}, {disp:false, bounces:4}); setRenderMode("sapphire"); try{ window.__eq&&window.__eq.gem("sapphire"); }catch(e){} await wait(3600);
         // Line Art · Sketch, then one full turn with the drawing following the camera
         if(window.__lineart){ say("Line Art · Sketch style"); window.__lineart.open(); window.__lineart.style("sketch"); EQ("lineart"); window.__lineart.cfg.live=true; await wait(2200);
           say("Rotate 360°"); const y0=yaw, T=9000, t0=performance.now(), g0=runGen;
           await new Promise(res=>{ const step=()=>{ if(!alive||g0!==runGen) return res(); const t=Math.min(1,(performance.now()-t0)/T); yaw=y0+t*Math.PI*2; applyCam(); if(t<1) requestAnimationFrame(step); else res(); }; step(); });
           await wait(900); window.__lineart.cfg.live=false; window.__lineart.close(); }
-        window.__gemOpts.disp=true; window.__gemOpts.bounces=7; setRenderMode("solid");
+        window.__gemOpts.disp=false; window.__gemOpts.bounces=4; setRenderMode("solid");
       } finally { spinHold=false; try{ window.__eq&&window.__eq.op(null); }catch(e){} }
     },
     // 1 — "Flame": the equation prompt builds a form, then a per-vertex equation twists it into a fan-like flame
@@ -15530,12 +15571,12 @@ void main(){
         const FL="# FLAME — twist a form into a fan\ne = (0.35 + 1.4*H)*(1 - H)^0.9\na = 3.2*H^1.3\npx = x*2.2*e + 0.15*H*sin(7*pi*H + 3*y)\npy = y*0.45*e\nx' = px*cos(a) - py*sin(a) + 0.6*H^2\ny' = px*sin(a) + py*cos(a)\nz' = z*2.4 + 0.2*H*sin(5*x)";
         await window.__eq.type(FL); await wait(400); await window.__eq.run(FL); await wait(1800);
         try { window.__tm.frameAll(1.3); } catch(e){}
-        say("View · Diamond — one light, overhead right"); window.__gemOpts=Object.assign(window.__gemOpts||{}, {disp:false, bounces:5}); setRenderMode("diamond"); try{ window.__eq.gem("diamond"); }catch(e){} await wait(3400);
+        say("View · Diamond — one light, overhead right"); window.__gemOpts=Object.assign(window.__gemOpts||{}, {disp:false, bounces:4}); setRenderMode("diamond"); try{ window.__eq.gem("diamond"); }catch(e){} await wait(3400);
         if(window.__lineart){ say("Line Art · Contours"); window.__lineart.open(); window.__lineart.style("contours"); window.__lineart.cfg.live=true; await wait(2000);
           say("Rotate 360°"); const y0=yaw, T=9000, t0=performance.now(), g0=runGen;
           await new Promise(res=>{ const step=()=>{ if(!alive||g0!==runGen) return res(); const t=Math.min(1,(performance.now()-t0)/T); yaw=y0+t*Math.PI*2; applyCam(); if(t<1) requestAnimationFrame(step); else res(); }; step(); });
           await wait(700); window.__lineart.cfg.live=false; window.__lineart.close(); }
-        window.__gemOpts.disp=true; window.__gemOpts.bounces=7; setRenderMode("solid");
+        window.__gemOpts.disp=false; window.__gemOpts.bounces=4; setRenderMode("solid");
       } finally { spinHold=false; try{ window.__eq&&window.__eq.op(null); }catch(e){} }
     },
     // 2 — torus (sliders) -> wireframe (sliders) -> patent halftone -> normals -> solid -> new
@@ -15629,7 +15670,7 @@ void main(){
     if (alive) return; if (pill) { pill.remove(); pill = null; } alive = true; startK = (typeof k0==="number") ? k0 : 0;
     pill = document.createElement("div");
     pill.id = "amxDemo"; pill.setAttribute("role","status");
-    curK = startK % SEQS.length; wirePill(false);
+    curK = startK % SEQS.length; try{ window.__eq&&window.__eq.toggle(true); }catch(e){} wirePill(false);
     document.body.appendChild(pill);
     setTitle(true);
     run().catch(() => {});
