@@ -800,17 +800,22 @@ body.opDock.opOpen #rTabs{display:flex;position:fixed;top:var(--tbTop,52px);righ
 #rTabs button{flex:1;min-width:0;background:transparent;border:0;border-right:1px solid rgba(255,255,255,.06);color:#8fa6b8;font:700 9.5px var(--font,system-ui);letter-spacing:.8px;text-transform:uppercase;cursor:pointer;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;padding:0 4px}
 #rTabs button.on{color:#00E5FF;background:rgba(0,229,255,.10);box-shadow:inset 0 -2px 0 #00E5FF}
 #rTabs button.x{flex:0 0 26px;color:#9fb4c8;font-size:14px;letter-spacing:0}
-body.opDock #toolpop,body.opDock.opOpen #layersPanel,body.opDock.opOpen #modPanel{top:calc(var(--tbTop,52px) + 28px)!important}
-body.opDock.opOpen #layersPanel,body.opDock.opOpen #modPanel{position:fixed!important;right:env(safe-area-inset-right)!important;left:auto!important;bottom:var(--tbBot,44px)!important;
+body.opDock.opOpen #layersPanel,body.opDock.opOpen #modPanel{top:calc(var(--tbTop,52px) + 28px)!important;height:calc(var(--rTop,40vh) - 28px)!important;bottom:auto!important}
+body.opDock #toolpop{top:calc(var(--tbTop,52px) + var(--rTop,40vh) + 6px)!important}
+body.opDock.opOpen #layersPanel,body.opDock.opOpen #modPanel{position:fixed!important;right:env(safe-area-inset-right)!important;left:auto!important;
   width:var(--opw,280px)!important;max-width:none!important;height:auto!important;max-height:none!important;transform:none!important;border-radius:0!important;border:0!important;
   border-left:1px solid rgba(0,229,255,.18)!important;box-shadow:none!important;background:#06080e!important;z-index:40;flex-direction:column}
-body.opDock.opOpen:not(.rt-opt) #toolpop{display:none!important}
 body.opDock.opOpen.rt-lay #layersPanel{display:flex!important}
 body.opDock.opOpen.rt-lay #modPanel{display:none!important}
 body.opDock.opOpen.rt-mod #modPanel{display:flex!important}
 body.opDock.opOpen:not(.rt-lay) #layersPanel{display:none!important}
 body.opDock.opOpen:not(.rt-mod) #modPanel{display:none!important}
 body.opDock #layersHead,body.opDock #modHead #modClose,body.opDock #layersClose,body.opDock #modGrip,body.opDock #tpClose{display:none!important}
+#rSplit{display:none}
+body.opDock.opOpen #rSplit{display:block;position:fixed;right:env(safe-area-inset-right);width:var(--opw,280px);top:calc(var(--tbTop,52px) + var(--rTop,40vh));height:6px;z-index:43;cursor:ns-resize;touch-action:none;background:#0b0f18;border-top:1px solid rgba(0,229,255,.18);border-bottom:1px solid rgba(0,229,255,.18)}
+body.opDock #rSplit::after{content:"";position:absolute;top:1px;left:50%;width:34px;height:2px;margin-left:-17px;border-radius:2px;background:rgba(0,229,255,.5)}
+body.opDock #rSplit:hover,body.opDock #rSplit.drag{background:rgba(0,229,255,.18)}
+body.opDock #tpHead{border-top:0!important}
 body.opDock.opOpen #layerList{flex:1 1 auto;min-height:0}
 body.opDock.opOpen #modList{flex:1 1 auto;min-height:0;overflow-y:auto}
 /* ---- bottom bar: no genus, no Demo button; everything fits on iPhone ---- */
@@ -821,6 +826,23 @@ body.phone #status{gap:3px!important;padding:3px 4px calc(3px + env(safe-area-in
 body.phone #status .cell,body.phone #status .selBtn{padding:3px 4.5px!important;font-size:8.5px!important;letter-spacing:0!important;border-radius:6px!important;margin:0!important;line-height:1.2!important}
 body.phone #status #hint,body.phone #status #keys,body.phone #status #topo{display:none!important}
 body.phone #status .selModes{gap:2px!important;display:inline-flex!important}
+/* ---- right column, stacked vertically: Layers · Modifiers · Options (two drag bars between) ---- */
+body.rStack #rTabs,body.rStack #rSplit{display:none!important}
+body.opDock.opOpen.rStack #layersPanel{display:flex!important;top:var(--tbTop,52px)!important;height:var(--rA,26vh)!important;bottom:auto!important}
+body.opDock.opOpen.rStack #modPanel{display:flex!important;top:calc(var(--tbTop,52px) + var(--rA,26vh) + 6px)!important;height:var(--rB,22vh)!important;bottom:auto!important}
+body.opDock.rStack #toolpop{top:calc(var(--tbTop,52px) + var(--rA,26vh) + var(--rB,22vh) + 12px)!important}
+body.opDock.rStack #layersHead{display:flex!important;cursor:default!important;padding:5px 10px!important}
+body.opDock.rStack #layersHead #layersGrip,body.opDock.rStack #layersHead #layersClose{display:none!important}
+.rSp{display:none}
+body.opDock.opOpen.rStack .rSp{display:block;position:fixed;right:env(safe-area-inset-right);width:var(--opw,280px);height:6px;z-index:43;cursor:ns-resize;touch-action:none;background:#0b0f18;border-top:1px solid rgba(0,229,255,.18);border-bottom:1px solid rgba(0,229,255,.18)}
+body.opDock.rStack .rSp::after{content:"";position:absolute;top:1px;left:50%;width:34px;height:2px;margin-left:-17px;border-radius:2px;background:rgba(0,229,255,.5)}
+body.opDock.rStack .rSp:hover,body.opDock.rStack .rSp.drag{background:rgba(0,229,255,.18)}
+body.opDock.opOpen.rStack #rSpA{top:calc(var(--tbTop,52px) + var(--rA,26vh))}
+body.opDock.opOpen.rStack #rSpB{top:calc(var(--tbTop,52px) + var(--rA,26vh) + 6px + var(--rB,22vh))}
+/* Fabrication "Start over": centred on the 3D view, just above the bottom bar */
+#fabReplay{right:auto!important;left:calc(env(safe-area-inset-left) + var(--tbw,150px) + 6px + (100vw - var(--tbw,150px) - 6px - var(--rw,0px)) / 2)!important;transform:translateX(-50%)!important;bottom:calc(var(--tbBot,44px) + 18px)!important}
+#fabReplay:hover,#fabReplay.handHover{transform:translateX(-50%) scale(1.04)!important}
+body.opDock.opOpen{--rw:calc(var(--opw,280px) + 6px)}
 /* no Math · Live window */
 #eqPanel{display:none!important}
 [data-act="liveEq"]{display:none!important}
@@ -6575,7 +6597,7 @@ let layerSeq=1;
 let modSeq=1;
 let groupSeq=1;
 let modStackActive=false;
-let layersOn=false;          // bottom-bar Layers: on = live layers/modifiers, off = step-by-step baking (default)
+let layersOn=true;           // bottom-bar Layers: on = live layers/modifiers (default), off = step-by-step baking
 let fabActive=false;  // Fabrication footer node on/off (declared early so init-time renderLayerList can read it)
 let rhinoLink=false, rhinoURL="http://127.0.0.1:8181/mesh", _rhinoT=null;  // live geometry link to Rhino (declared early; rebuild() reads rhinoLink)
 let layerObjs=[];     // THREE meshes for INACTIVE visible layers (active uses meshObj)
@@ -10510,7 +10532,43 @@ function nearestFaceCorner(x,y,f){
   }
   return bv;
 }
+// ---- TopMod-style loop picking: click a face (or edge), then double-click its neighbour → the whole loop in that direction ----
+let _lpHist=[];
+function faceLoopFromPair(M,a,b){
+  const A=M.faces[a], B=M.faces[b]; if(!A||!B||A.length!==4) return null;
+  let k=-1; for(let i=0;i<4;i++){ if(B.includes(A[i])&&B.includes(A[(i+1)%4])){ k=i; break; } }
+  if(k<0) return null; return quadLoop(M,a,k);
+}
+function edgeLoopFromPair(M,keyA,keyB){
+  const E=TM.edges(M), K=new Map(), vE=new Map();
+  E.forEach(e=>{ const kk=e.a+"_"+e.b; K.set(e.a+"_"+e.b,e); K.set(e.b+"_"+e.a,e); e.k=kk; for(const v of [e.a,e.b]){ let L=vE.get(v); if(!L){ L=[]; vE.set(v,L); } L.push(e); } });
+  const e1=K.get(keyA), e2=K.get(keyB); if(!e1||!e2) return null;
+  const v=[e1.a,e1.b].find(x=>x===e2.a||x===e2.b); if(v==null) return null;
+  const shareFace=(p,q)=>p.faces.some(f=>q.faces.includes(f));
+  if(shareFace(e1,e2)) return null;                       // neighbours across a face corner are not a loop direction
+  const out=[e1], seen=new Set([e1.k]);
+  const walk=(e,at)=>{ for(let g=0;g<4000;g++){ const L=vE.get(at)||[]; if(L.length!==4) return; const n=L.find(x=>x!==e&&!shareFace(x,e)); if(!n||seen.has(n.k)) return;
+      seen.add(n.k); out.push(n); at=(n.a===at)?n.b:n.a; e=n; } };
+  walk(e1,v); walk(e1,(e1.a===v)?e1.b:e1.a);
+  return out.map(e=>e.k);
+}
+function loopDoubleTap(h){
+  if(!h||!((h.type==="face"&&selMode==="face")||(h.type==="edge"&&selMode==="edge"))) return false;
+  const now=performance.now(), last=_lpHist[_lpHist.length-1];
+  if(last && last.type===h.type && last.id===h.id && now-last.t<420){
+    const anc=[..._lpHist].reverse().find(p=>p.type===h.type && p.id!==h.id && now-p.t<20000);
+    if(anc){ const M=selMesh(); let loop=null;
+      if(h.type==="face"){ loop=faceLoopFromPair(M,anc.id,h.id); if(loop){ loop.forEach(f=>sel.faces.add(f)); sel.faces.add(h.id); } }
+      else { loop=edgeLoopFromPair(M,anc.id,h.id); if(loop) loop.forEach(k=>sel.edges.add(k)); }
+      if(loop&&loop.length){ _lpHist=[]; rebuildOverlay(); updateHint&&updateHint(); try{ window.__eq&&window.__eq.op("loops"); }catch(e){}
+        toast((h.type==="face"?"Face":"Edge")+" loop · "+loop.length+" "+(h.type==="face"?"faces":"edges")+" selected"); return true; } }
+  }
+  _lpHist.push({type:h.type,id:h.id,t:now}); if(_lpHist.length>6) _lpHist.shift();
+  return false;
+}
+window.__tmLoops={faceLoopFromPair:(a,b)=>faceLoopFromPair(selMesh(),a,b), edgeLoopFromPair:(a,b)=>edgeLoopFromPair(selMesh(),a,b), sel:()=>({f:sel.faces.size,e:sel.edges.size}), mode:m=>setMode(m), edges:()=>TM.edges(selMesh()).slice(0,40).map(e=>[e.a,e.b,e.faces.length])};
 function handleClick(x,y,shift){
+  if(!(tpState&&["handle","bridge","insertEdge","cut","orient"].includes(tpState.op)) && loopDoubleTap(pickAt(x,y))) return;
   if(loopPick && selMode==="face" && !(tpState&&["handle","bridge"].includes(tpState.op))){ if(loopPickClick(x,y,shift)) return; }
   // a click on empty space closes a passive param tool (not the interactive ones)
   const INTERACTIVE=["handle","bridge","insertEdge","orient","cut","scale","array","move","lineart","gemview"];
@@ -11267,7 +11325,7 @@ $("#layersToggle")&&$("#layersToggle").addEventListener("click",()=>setLayersOn(
   ["pointerdown","click","keydown"].forEach(ev=>vs.addEventListener(ev,e=>e.stopPropagation()));
 })();
 // start in step-by-step mode (Layers off): panels hidden, tools bake
-setTimeout(()=>{ if(!layersOn){ const lp=$("#layersPanel"), mp=$("#modPanel"); lp&&lp.classList.remove("show"); mp&&mp.classList.remove("show"); $("#layersToggle")&&$("#layersToggle").classList.remove("on"); } },0);
+setTimeout(()=>{ if(!layersOn){ const lp=$("#layersPanel"), mp=$("#modPanel"); lp&&lp.classList.remove("show"); mp&&mp.classList.remove("show"); $("#layersToggle")&&$("#layersToggle").classList.remove("on"); } else { $("#layersToggle")&&$("#layersToggle").classList.add("on"); } },0);
 $("#layersClose")&&$("#layersClose").addEventListener("click",()=>{ $("#layersPanel").classList.remove("show"); });
 $("#optionsToggle")&&$("#optionsToggle").addEventListener("click",()=>{ const tp=$("#toolpop"); const hidden=tp.classList.toggle("hiddenPanel"); $("#optionsToggle").classList.toggle("on",!hidden); });
 // ---------- Voice control ----------
@@ -14844,24 +14902,55 @@ window.__ek={applyWhole:applyWhole,ops:ops,snapshot:snapshot,rebuild:rebuild,toa
   if(Math.min(innerWidth,innerHeight)<=500) B.classList.add("phone");
   addEventListener("resize",()=>B.classList.toggle("phone",Math.min(innerWidth,innerHeight)<=500));
   const bar=document.createElement("div"); bar.id="rTabs";
-  bar.innerHTML='<button data-t="opt">Options</button><button data-t="lay">Layers</button><button data-t="mod">Modifiers</button><button class="x" title="Hide the column">&times;</button>';
+  bar.innerHTML='<button data-t="lay">Layers</button><button data-t="mod">Modifiers</button><button class="x" title="Hide the column">&times;</button>';
   document.body.appendChild(bar);
-  let tab="opt", pinned=false;
+  let tab="lay", pinned=false;
+  // horizontal split: Layers/Modifiers on top, Options below — drag the bar to resize
+  const split=document.createElement("div"); split.id="rSplit"; split.title="Drag to resize Layers / Options"; document.body.appendChild(split);
+  let rTop=null; try{ const v=+localStorage.getItem("tmRTop"); if(v) rTop=v; }catch(e){}
+  const colH=()=>{ const cs=getComputedStyle(document.documentElement); return innerHeight-parseFloat(cs.getPropertyValue("--tbTop")||52)-parseFloat(cs.getPropertyValue("--tbBot")||44); };
+  function placeSplit(){ const H=colH(); const t=Math.round(Math.max(90,Math.min(H-120,rTop||H*0.42))); document.documentElement.style.setProperty("--rTop",t+"px"); }
+  let sd=null; split.addEventListener("pointerdown",e=>{ sd={y:e.clientY,t:parseFloat(getComputedStyle(document.documentElement).getPropertyValue("--rTop"))||200}; split.setPointerCapture(e.pointerId); split.classList.add("drag"); e.preventDefault(); e.stopPropagation(); });
+  split.addEventListener("pointermove",e=>{ if(!sd) return; rTop=sd.t+e.clientY-sd.y; placeSplit(); });
+  const sup=()=>{ if(!sd) return; sd=null; split.classList.remove("drag"); try{ localStorage.setItem("tmRTop",String(Math.round(rTop))); }catch(e){} };
+  split.addEventListener("pointerup",sup); split.addEventListener("pointercancel",sup); split.addEventListener("dblclick",()=>{ rTop=null; try{ localStorage.removeItem("tmRTop"); }catch(e){} placeSplit(); });
+  addEventListener("resize",placeSplit); setTimeout(placeSplit,0); setTimeout(placeSplit,1300);
   function setTab(t,user){ tab=t; if(user) pinned=t!=="opt"; ["opt","lay","mod"].forEach(k=>B.classList.toggle("rt-"+k,k===t)); bar.querySelectorAll("button[data-t]").forEach(b=>b.classList.toggle("on",b.dataset.t===t));
-    if(t!=="opt"){ B.classList.add("rtForce"); try{ renderLayerList&&renderLayerList(); renderModStack&&renderModStack(); }catch(e){} } else B.classList.remove("rtForce");
+    if(user) B.classList.add("rtForce"); try{ renderLayerList&&renderLayerList(); renderModStack&&renderModStack(); }catch(e){}
     B.classList.remove("rightTucked"); syncOpen(); }
   function syncOpen(){ const tpOpen=!tp.classList.contains("hiddenPanel") && !(tp.classList.contains("empty") && B.classList.contains("phone"));
-    const open=!B.classList.contains("rightTucked") && (tab!=="opt" || tpOpen);
+    const open=!B.classList.contains("rightTucked") && (!B.classList.contains("phone") || tpOpen || B.classList.contains("rtForce"));
     if(B.classList.contains("opOpen")!==open) B.classList.toggle("opOpen",open); }
   bar.querySelectorAll("button[data-t]").forEach(b=>b.addEventListener("click",e=>{ e.stopPropagation(); setTab(b.dataset.t,true); }));
-  bar.querySelector(".x").addEventListener("click",e=>{ e.stopPropagation(); pinned=false; tab="opt"; setTab("opt"); B.classList.add("rightTucked"); syncOpen(); });
+  bar.querySelector(".x").addEventListener("click",e=>{ e.stopPropagation(); pinned=false; B.classList.remove("rtForce"); B.classList.add("rightTucked"); syncOpen(); });
   // a tool opening its options brings the Options tab forward
-  new MutationObserver(()=>{ if(!tp.classList.contains("empty") && !tp.classList.contains("hiddenPanel") && tab!=="opt") setTab("opt"); syncOpen(); }).observe(tp,{attributes:true,attributeFilter:["class"]});
+  new MutationObserver(()=>{ if(!tp.classList.contains("empty") && !tp.classList.contains("hiddenPanel")) B.classList.remove("rightTucked"); syncOpen(); }).observe(tp,{attributes:true,attributeFilter:["class"]});
   // the bottom-bar Layers / Options buttons pick their tab
   const lt=document.getElementById("layersToggle"); if(lt) lt.addEventListener("click",()=>setTimeout(()=>setTab("lay",true),30));
-  const ot=document.getElementById("optionsToggle"); if(ot) ot.addEventListener("click",()=>setTimeout(()=>{ B.classList.remove("rightTucked"); setTab("opt"); },30));
+  const ot=document.getElementById("optionsToggle"); if(ot) ot.addEventListener("click",()=>setTimeout(()=>{ B.classList.remove("rightTucked"); B.classList.add("rtForce"); syncOpen(); },30));
   new MutationObserver(syncOpen).observe(B,{attributes:true,attributeFilter:["class"]});
-  setTab("opt");
+  setTab("lay");
+})();
+// ---------- capture hooks (App Store screenshots / previews) ----------
+window.__shot={ load(m){ mesh={verts:m.verts.map(v=>v.slice()),faces:m.faces.map(f=>f.slice())}; if(layers[activeLayer]) layers[activeLayer].mesh=mesh; clearSel&&clearSel(false); rebuild(); },
+  mode(rm){ setRenderMode(rm); }, get yaw(){ return yaw; }, set yaw(v){ yaw=v; try{ applyCam(); }catch(e){} }, get pitch(){ return pitch; }, set pitch(v){ pitch=v; try{ applyCam(); }catch(e){} } };
+// ---------- right column stacked: Layers (top) · Modifiers · Options (bottom), heights adjustable ----------
+(function(){
+  const B=document.body, R=document.documentElement.style; B.classList.add("rStack");
+  const mk=id=>{ const d=document.createElement("div"); d.id=id; d.className="rSp"; d.title="Drag to resize · double-click to reset"; document.body.appendChild(d); return d; };
+  const A=mk("rSpA"), Bb=mk("rSpB");
+  let ha=null, hb=null; try{ ha=+localStorage.getItem("tmRA")||null; hb=+localStorage.getItem("tmRB")||null; }catch(e){}
+  const colH=()=>{ const cs=getComputedStyle(document.documentElement); return innerHeight-(parseFloat(cs.getPropertyValue("--tbTop"))||52)-(parseFloat(cs.getPropertyValue("--tbBot"))||44); };
+  function place(){ const H=colH(), min=56; let a=ha||H*0.27, b=hb||H*0.23; a=Math.max(min,Math.min(a,H-2*min-12)); b=Math.max(min,Math.min(b,H-a-min-12)); R.setProperty("--rA",Math.round(a)+"px"); R.setProperty("--rB",Math.round(b)+"px"); }
+  function drag(el,which){ let d=null;
+    el.addEventListener("pointerdown",e=>{ const cs=getComputedStyle(document.documentElement); d={y:e.clientY,a:parseFloat(cs.getPropertyValue("--rA")),b:parseFloat(cs.getPropertyValue("--rB"))}; el.setPointerCapture(e.pointerId); el.classList.add("drag"); e.preventDefault(); e.stopPropagation(); });
+    el.addEventListener("pointermove",e=>{ if(!d) return; const dy=e.clientY-d.y; if(which==="a"){ ha=d.a+dy; hb=d.b-dy; } else { ha=d.a; hb=d.b+dy; } place(); });
+    const up=()=>{ if(!d) return; d=null; el.classList.remove("drag"); try{ localStorage.setItem("tmRA",String(Math.round(ha))); localStorage.setItem("tmRB",String(Math.round(hb))); }catch(e){} };
+    el.addEventListener("pointerup",up); el.addEventListener("pointercancel",up);
+    el.addEventListener("dblclick",()=>{ ha=hb=null; try{ localStorage.removeItem("tmRA"); localStorage.removeItem("tmRB"); }catch(e){} place(); }); }
+  drag(A,"a"); drag(Bb,"b");
+  addEventListener("resize",place); place(); setTimeout(place,400); setTimeout(place,1400);
+  try{ renderLayerList&&renderLayerList(); renderModStack&&renderModStack(); }catch(e){}
 })();
 window.__tm={
   topo:()=>TM.eulerInfo(mesh),
@@ -16386,14 +16475,15 @@ void main(){
         await press('#toolbar [data-p="dodecahedron"]', "The TopMod look · start from a dodecahedron", 400); await apply(); await wait(80);
         const EQ=(k,x)=>{ try{ window.__eq&&window.__eq.op(k,x); }catch(e){} }; EQ("dodeca");
         // frame once for the FINISHED form, then build it up in place — no camera moves while modeling
-        stageLoad(st[st.length-1].mesh); try { window.__tm.frameAll(1.3); } catch(e){} stageLoad(st[0].mesh); await wait(300);
+        const STEPS=n=>{ try{ layers[activeLayer].steps=n.slice(); renderModStack&&renderModStack(); }catch(e){} };
+        stageLoad(st[st.length-1].mesh); try { window.__tm.frameAll(1.3); } catch(e){} stageLoad(st[0].mesh); STEPS(["Dodecahedron"]); await wait(300);
         EQ("handle"); await point('#toolbar [data-op="handle"]', "Handle tool · 6 twisted handles", 300);
-        for (let k=1; k<=6; k++){ const s=st[k]; if(!s) break; say(s.label+" (genus "+k+")"); stageLoad(s.mesh); await wait(k===1?380:220); }
-        const ds=st.find(x=>/^Doo-Sabin/.test(x.label)); await point('#toolbar [data-op="doosabin"]', "Doo-Sabin ×1 — the key to the TopMod look", 260); EQ("doosabin"); stageLoad(ds.mesh); await wait(450);
+        for (let k=1; k<=6; k++){ const s=st[k]; if(!s) break; say(s.label+" (genus "+k+")"); stageLoad(s.mesh); STEPS(["Dodecahedron","Handle ×"+k+" · 72° twist"]); await wait(k===1?380:220); }
+        const ds=st.find(x=>/^Doo-Sabin/.test(x.label)); await point('#toolbar [data-op="doosabin"]', "Doo-Sabin ×1 — the key to the TopMod look", 260); EQ("doosabin"); stageLoad(ds.mesh); STEPS(["Dodecahedron","Handle ×6 · 72° twist","Doo-Sabin ×1"]); await wait(450);
         await point('#toolbar [data-op="loopPick"]', "Select face loops — quads that weave from handle to handle", 260); EQ("loops");
         try { setMode("face"); (ds.remove||[]).forEach(f=>sel.faces.add(f)); rebuildOverlay(); } catch(e){} await wait(550);
-        const rind=st.find(x=>/^Rind/.test(x.label)); await point('#toolbar [data-op="rindSel"]', "Rind modeling · "+rind.label.replace(/^Rind · /,""), 260); EQ("rind"); try{ clearSel(false); }catch(e){} stageLoad(rind.mesh); await wait(450);
-        await point('#toolbar [data-op="catmull"]', "Catmull-Clark ×2 — smooth", 260); EQ("catmull"); stageLoad(st[st.length-1].mesh); await wait(600);
+        const rind=st.find(x=>/^Rind/.test(x.label)); await point('#toolbar [data-op="rindSel"]', "Rind modeling · "+rind.label.replace(/^Rind · /,""), 260); EQ("rind"); try{ clearSel(false); }catch(e){} stageLoad(rind.mesh); STEPS(["Dodecahedron","Handle ×6 · 72° twist","Doo-Sabin ×1","Face loops","Rind"]); await wait(450);
+        await point('#toolbar [data-op="catmull"]', "Catmull-Clark ×2 — smooth", 260); EQ("catmull"); { const md=addModifier("subdivide",{returnMod:true}); if(md){ md.params.levels=2; rebuild(); renderModStack&&renderModStack(); } else stageLoad(st[st.length-1].mesh); } await wait(600);
         // one full 360° turn of the finished form (view style unchanged)
         say("360° turn"); spinHold=true; { const y0=yaw, T=6000, t0=performance.now();
           while(alive){ const u=Math.min(1,(performance.now()-t0)/T); yaw=y0+Math.PI*2*(u<.5?2*u*u:1-Math.pow(-2*u+2,2)/2); try{ applyCam(); }catch(e){} if(u>=1) break; await new Promise(r=>requestAnimationFrame(r)); }
