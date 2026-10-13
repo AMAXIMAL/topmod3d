@@ -999,7 +999,7 @@ canvas#view{width:100%;height:100%;display:block;touch-action:none;outline:none;
         <button class="tb" data-p="chainmail" title="Chain mail — sheet of interlocking ring tori (circle/oval, XY/YZ/XZ plane) with link/collision check"><img class="ticon" alt="chainmail"><span class="tlbl">Chain</span></button>
         <button class="tb" data-p="voronoi" title="Voronoi pattern — organic cells in a square/disk region; mosaic tiles or web/strut fill, with Lloyd relaxation"><img class="ticon" alt="voronoi"><span class="tlbl">Voronoi</span></button>
         <button class="tb" data-p="tree" title="Tree — recursive procedural tree: branching tubes with taper, twist, curve, droop, leaves and a seed for variation"><img class="ticon" alt="tree"><span class="tlbl">Tree</span></button>
-        <button class="tb" data-p="diamond" title="Diamond — round-brilliant gem cut (table, crown & pavilion angles, girdle, n-fold symmetry). Pair with Render → Gem (ray-traced) for real refraction, dispersion and sparkle"><img class="ticon" alt="diamond"><span class="tlbl">Diamond</span></button>
+        <button class="tb" data-p="diamond" title="Gem Cut — pick a cut: round brilliant, princess, oval, cushion, pear, marquise, emerald, asscher, radiant, trillion, baguette (table, crown & pavilion angles, girdle). Pair with Render → Gem (ray-traced) for real refraction, dispersion and sparkle"><img class="ticon" alt="diamond"><span class="tlbl">Gem Cut</span></button>
         <button class="tb" data-p="gem" title="GEM — ParaCloud-style populated matrix: a gem / pillar / spike cell at every grid node, height & twist driven by a field (radial / dome / ripple / gradient / random)"><img class="ticon" alt="gem"><span class="tlbl">GEM</span></button>
         <button class="tb" data-p="maze" title="Maze — perfect grid maze (randomized DFS) rendered as extruded walls on a base, with an entrance and exit; seeded"><img class="ticon" alt="maze"><span class="tlbl">Maze</span></button>
         <button class="tb" data-p="maze3d" title="Maze 3D — volumetric perfect maze: a 6-connected nx×ny×nz cell lattice carved into a connected tube network with junction nodes and entrance/exit stubs; seeded"><img class="ticon" alt="maze3d"><span class="tlbl">Maze 3D</span></button>
@@ -1518,6 +1518,8 @@ canvas#view{width:100%;height:100%;display:block;touch-action:none;outline:none;
         <div class="param prm-tree"><div id="pTreeInfo" style="font-size:11px;color:#8fce9b;padding:2px 0">✓ tree</div></div>
 
         <!-- DIAMOND (brilliant cut, convex facets) -->
+        <div class="param prm-dia"><label>Cut</label>
+          <select id="pDiaCut"><option value="round">Round brilliant</option><option value="princess">Princess</option><option value="oval">Oval</option><option value="cushion">Cushion</option><option value="pear">Pear</option><option value="marquise">Marquise</option><option value="emerald">Emerald (step)</option><option value="asscher">Asscher (step)</option><option value="radiant">Radiant</option><option value="trillion">Trillion</option><option value="baguette">Baguette (step)</option></select></div>
         <div class="param prm-dia"><label>Table %</label>
           <input type="range" id="pDiaTable" min="45" max="72" step="0.5" value="57"><output id="pDiaTableV"></output></div>
         <div class="param prm-dia"><label>Crown angle °</label>
@@ -2202,10 +2204,74 @@ function convexFromPlanes(planes, box){
   const remap=new Map(), V2=[]; const F2=outF.map(f=>f.map(i=>{ if(!remap.has(i)){ remap.set(i,V2.length); V2.push(verts[i]); } return remap.get(i); }));
   return {verts:V2, faces:F2};
 }
+// ---------- Gem cuts: any convex girdle outline -> faceted stone (convex intersection of facet half-spaces) ----------
+// Uses the outline's support function h(φ): every crown/pavilion facet is a plane through the girdle's support line
+// in direction φ, tilted by its facet angle. "brilliant" style = mains + stars + upper/lower halves; "step" = tiers.
+const GEM_CUTS={
+  round:"Round brilliant", princess:"Princess", oval:"Oval", cushion:"Cushion", pear:"Pear", marquise:"Marquise",
+  emerald:"Emerald (step)", asscher:"Asscher (step)", radiant:"Radiant", trillion:"Trillion", baguette:"Baguette (step)"
+};
+function gemOutline(cut){
+  const P=[], ring=(n,f)=>{ for(let i=0;i<n;i++){ const t=2*Math.PI*i/n; P.push(f(t)); } };
+  const chamfRect=(w,h,c)=>[[w-c,-h],[w,-h+c],[w,h-c],[w-c,h],[-w+c,h],[-w,h-c],[-w,-h+c],[-w+c,-h]];
+  switch(cut){
+    case "oval": ring(96,t=>[Math.cos(t),0.68*Math.sin(t)]); break;
+    case "cushion": ring(96,t=>{ const c=Math.cos(t),s=Math.sin(t); return [Math.sign(c)*Math.pow(Math.abs(c),0.6),0.92*Math.sign(s)*Math.pow(Math.abs(s),0.6)]; }); break;
+    case "marquise": { const c=0.75,R=1.25; ring(160,t=>[R*Math.cos(t),R*Math.sin(t)]); for(let i=P.length-1;i>=0;i--){ } const Q=[]; for(let i=0;i<=80;i++){ const x=-1+2*i/80, z=Math.sqrt(Math.max(0,R*R-x*x))-c; Q.push([x,z]); Q.push([x,-z]); } P.length=0; P.push(...Q); break; }
+    case "pear": { const c=0.75,R=1.25; for(let i=0;i<=40;i++){ const x=2*i/40-1, z=Math.sqrt(Math.max(0,R*R-x*x))-c; if(x>0){ P.push([x,z]); P.push([x,-z]); } } ring(96,t=>[-0.32+0.62*Math.cos(t),0.62*Math.sin(t)]); break; }
+    case "princess": P.push([1,-1],[1,1],[-1,1],[-1,-1]); break;
+    case "emerald": P.push(...chamfRect(1,0.7,0.18)); break;
+    case "asscher": P.push(...chamfRect(0.9,0.9,0.3)); break;
+    case "radiant": P.push(...chamfRect(1,0.74,0.16)); break;
+    case "baguette": P.push([1,-0.36],[1,0.36],[-1,0.36],[-1,-0.36]); break;
+    case "trillion": ring(90,t=>{ const k=Math.cos(Math.PI/3)/Math.cos(((t%(2*Math.PI/3))+2*Math.PI/3)%(2*Math.PI/3)-Math.PI/3); return [Math.pow(k,0.8)*Math.cos(t),Math.pow(k,0.8)*Math.sin(t)]; }); break;
+    default: ring(96,t=>[Math.cos(t),Math.sin(t)]);
+  }
+  return P;
+}
+function gemCut(cut="round", tablePct=57, crownDeg=34.5, pavDeg=40.8, girdlePct=3, radius=1, sym=8){
+  const O=gemOutline(cut), h=phi=>{ const c=Math.cos(phi),s=Math.sin(phi); let m=-1e9; for(const p of O){ const d=p[0]*c+p[1]*s; if(d>m) m=d; } return m; };
+  const t=tablePct/100, g=girdlePct/100*2, a=crownDeg*Math.PI/180, b=pavDeg*Math.PI/180;
+  let hmin=1e9; for(let k=0;k<180;k++) hmin=Math.min(hmin,h(Math.PI*k/180));
+  const step=/^(emerald|asscher|baguette)$/.test(cut);
+  const P=[], add=(nx,ny,nz,px,py,pz)=>{ const l=Math.hypot(nx,ny,nz); nx/=l; ny/=l; nz/=l; P.push({n:[nx,ny,nz], d:nx*px+ny*py+nz*pz}); };
+  // plane whose horizontal direction is φ, tilted `ang` from horizontal, through the outline support line pushed inward by `inset`, at height y
+  const facet=(phi,ang,up,inset,y,push=1)=>{ const c=Math.cos(phi),s=Math.sin(phi), r=h(phi)*push-inset; add(Math.sin(ang)*c, up*Math.cos(ang), Math.sin(ang)*s, r*c, y, r*s); };
+  const crownIn=(1-t)*hmin, ht=g/2+crownIn*Math.tan(a);
+  add(0,1,0, 0,ht,0);                                                                    // table
+  // girdle: vertical support planes
+  const gd=[]; if(O.length<=8){ for(let i=0;i<O.length;i++){ const A=O[i],B=O[(i+1)%O.length]; gd.push(Math.atan2(-(B[0]-A[0]),(B[1]-A[1]))); } } else for(let k=0;k<96;k++) gd.push(2*Math.PI*(k+.5)/96);
+  gd.forEach(phi=>facet(phi,Math.PI/2,1,0,0));
+  if(step){
+    // step cut: 3 crown tiers + 3 pavilion tiers on every outline edge (straight facets parallel to the girdle)
+    const dirs=gd, CT=[a+0.18,a,a-0.2], PT=[b+0.12,b,b-0.1];
+    dirs.forEach(phi=>{
+      let ins=0,y=g/2; CT.forEach(an=>{ facet(phi,an,1,ins,y); const w=crownIn/CT.length; ins+=w; y+=w*Math.tan(an); });
+      ins=0; y=-g/2; PT.forEach(an=>{ facet(phi,an,-1,ins,y); const w=hmin/PT.length; ins+=w; y-=w*Math.tan(an); });
+    });
+  } else {
+    // brilliant-style facets: n mains (crown + pavilion), stars and upper/lower girdle halves at the in-between directions
+    const n=cut==="round"?Math.max(3,Math.round(sym)):(cut==="trillion"?9:8), half=Math.PI/n, off=(cut==="princess"||cut==="radiant")?Math.PI/4*0:0;
+    const sa=Math.max(0.12,a*0.45);
+    for(let k=0;k<n;k++){
+      const phi=off+2*Math.PI*k/n, mid=phi+half;
+      facet(phi,a,1,0,g/2);                                                    // crown main (bezel)
+      facet(mid,sa,1,crownIn,ht);                                              // star
+      for(const sg of [-1,1]){ const ps=mid+sg*half*0.5;
+        facet(ps,Math.min(1.4,a+0.12),1,0,g/2,1.015);                          // upper girdle half
+        facet(ps,Math.min(1.45,b+0.035),-1,0,-g/2,1.015); }                    // lower girdle half
+      facet(phi,b,-1,0,-g/2);                                                  // pavilion main
+    }
+    if(cut==="princess"||cut==="radiant"||cut==="trillion"){ gd.forEach(phi=>{ facet(phi,b+0.02,-1,0,-g/2); facet(phi,a+0.05,1,0,g/2); }); }   // corner-safe chevrons
+  }
+  const m=convexFromPlanes(P, 4);
+  return radius===1? m : {verts:m.verts.map(v=>[v[0]*radius,v[1]*radius,v[2]*radius]), faces:m.faces};
+}
 const primitives = {
   // Round-brilliant (or n-fold) gem cut as the intersection of facet half-spaces: table, crown mains (bezels), stars,
   // upper/lower girdle halves, pavilion mains, girdle band. Convex, closed, flat facets — ideal for the Gem render.
-  diamond(tablePct=57, crownDeg=34.5, pavDeg=40.8, girdlePct=3, sym=8, radius=1, starPct=50, lowerPct=77){
+  diamond(tablePct=57, crownDeg=34.5, pavDeg=40.8, girdlePct=3, sym=8, radius=1, starPct=50, lowerPct=77, cut="round"){
+    if(cut&&cut!=="round") return gemCut(cut, tablePct, crownDeg, pavDeg, girdlePct, radius, sym);
     const n=Math.max(3,Math.round(sym)), t=tablePct/100, g=girdlePct/100*2, a=crownDeg*Math.PI/180, b=pavDeg*Math.PI/180;
     const ht=g/2+(1-t)*Math.tan(a);                                     // table height
     const P=[];                                                         // planes {n:[x,y,z], d}  (n·p <= d)
@@ -5507,7 +5573,7 @@ return {V3, orientShells, clone, edges, directedMap, validate, eulerInfo, faceCe
   twistMesh, taperMesh, bulgeMesh, bendMesh, spherifyMesh, noiseMesh,
   fanAroundVertex, primitives, insertEdge, deleteEdge, subdivideEdge, subdivideAllEdges,
   triangulateFace, triangulateAll, catmullClark, catmullClarkCrease, dooSabin, dual, loopSubdiv, honeycomb,
-  vertexTruncate, quadRemesh, simplifyMesh, extrudeFace, pinchExtrude, stellate, extrudeFace, addHandle, createCrust, punchPair, rindRemove, topmodLook, wireframeModel, toOBJ, fromOBJ, compact,
+  GEM_CUTS, gemCut, vertexTruncate, quadRemesh, simplifyMesh, extrudeFace, pinchExtrude, stellate, extrudeFace, addHandle, createCrust, punchPair, rindRemove, topmodLook, wireframeModel, toOBJ, fromOBJ, compact,
   pentagonalize, root3, domeExtrude, doubleStellate, mengerSponge, voxelToMesh, gyroid, gyroidPoly, tpmsSolid, breezeBlock, reorientMesh, thickenSurface, mobiusSolid, planarize, geodesicSphere, torusRef, orientToGround, orientFaceToFace, hybridSurface, sierpinski, scaleMesh, mirrorMesh, mirrorMeshPlane, mergeMeshes, translateMesh, arrayMesh, polarArray, sphereArray, fibonacciArray, rotateMeshAxis, rotateMeshArbitrary, modifiedCornerCutting, wireframeWithCorners, insertEdgeByVerts, flipNormals, fillHoles, deleteFaces, deleteVertexMerge, deleteVertices, offsetMesh, pipes, unfoldMesh, planeCut, connectFaces, sliceLayers, insetLoop, panelizeFaces, laserPanels, selfIntersections, triangulate2D, triangulatePlanar, extrudeProfile, waffleSlices, waffleSlicesPolar, meshBBox, pointInMesh, latticeCells, latticeMorph, shellCells, shellMorph};
 })();
 
@@ -7178,7 +7244,7 @@ const canvas=$("#view");
 const renderer=new THREE.WebGLRenderer({canvas, antialias:true, alpha:true, preserveDrawingBuffer:true});
 renderer.setPixelRatio(Math.min(devicePixelRatio||1,2));
 const scene=new THREE.Scene();
-scene.background=new THREE.Color(0x080a12);
+scene.background=new THREE.Color(0xd6d9de);
 const camera=new THREE.PerspectiveCamera(42,1,0.01,200);
 
 const keyLight=new THREE.DirectionalLight(0xfff2e0,1.0); keyLight.position.set(4,6,5);
@@ -7198,7 +7264,7 @@ function updateViewLights(){
 }
 
 const GROUND_Y=-2.6;
-const grid=new THREE.GridHelper(10,10,0x7fd8ef,0x4699b3);   // 10 x 10 ground, 1-inch cells
+const grid=new THREE.GridHelper(10,10,0x8e959e,0xb4b9c0);   // 10 x 10 ground, 1-inch cells
 grid.material.transparent=true; grid.material.opacity=0.33;
 grid.position.y=GROUND_Y; scene.add(grid);
 // 10 x 10 x 10 inch build-volume reference (child of grid -> toggles & moves with it)
@@ -8606,8 +8672,8 @@ const PARAM_PRIMS={
   maze(){ const g=TM.primitives.maze(Math.round(P("#pMazeNx")), Math.round(P("#pMazeNz")), P("#pMazeCell"), P("#pMazeWall"), P("#pMazeHeight"), $("#pMazeBase")&&$("#pMazeBase").checked, P("#pMazeBaseT"), Math.round(P("#pMazeSeed"))); const el=$("#pMazeInfo"); if(el&&g.maze){ el.textContent="✓ "+g.maze.nx+"×"+g.maze.nz+" maze · "+g.maze.cells+" cells"; el.style.color="#8fce9b"; } return g; },
   maze3d(){ const g=TM.primitives.maze3d(Math.round(P("#pM3Nx")), Math.round(P("#pM3Ny")), Math.round(P("#pM3Nz")), P("#pM3Cell"), P("#pM3Tube"), Math.round(P("#pM3Sides")), Math.round(P("#pM3Seed"))); const el=$("#pM3Info"); if(el&&g.maze3d){ el.textContent="✓ "+g.maze3d.nx+"×"+g.maze3d.ny+"×"+g.maze3d.nz+" · "+g.maze3d.cells+" cells · "+g.maze3d.corridors+" corridors"; el.style.color="#8fce9b"; } return g; },
   tpms(){ const type=($("#pTpType")&&$("#pTpType").value)||"schwarzP"; const nx=Math.round(P("#pTpNx")),ny=Math.round(P("#pTpNy")),nz=Math.round(P("#pTpNz")); const g=TM.primitives.tpms(nx,ny,nz,P("#pTpCell"),P("#pTpIso"),Math.round(P("#pTpRes")),type); const el=$("#pTpInfo"); if(el){ el.textContent="✓ "+nx+"×"+ny+"×"+nz+" "+type+" · "+g.faces.length+" faces"; el.style.color="#8fce9b"; } return g; },
-  diamond(){ const m=TM.primitives.diamond(P("#pDiaTable"),P("#pDiaCrown"),P("#pDiaPav"),P("#pDiaGirdle"),Math.round(P("#pDiaSym")),P("#pDiaR"),P("#pDiaStar"),P("#pDiaLower"));
-    const el=$("#pDiaInfo"); if(el){ el.textContent="✓ "+m.faces.length+" facets · try Render → Gem: Diamond"; } return m; },
+  diamond(){ const cut=($("#pDiaCut")&&$("#pDiaCut").value)||"round"; const m=TM.primitives.diamond(P("#pDiaTable"),P("#pDiaCrown"),P("#pDiaPav"),P("#pDiaGirdle"),Math.round(P("#pDiaSym")),P("#pDiaR"),P("#pDiaStar"),P("#pDiaLower"),cut);
+    const el=$("#pDiaInfo"); if(el){ el.textContent="✓ "+(TM.GEM_CUTS[cut]||cut)+" · "+m.faces.length+" facets · try View → a gem"; } return m; },
   breeze(){ const nx=Math.round(P("#pBrNx")),ny=Math.round(P("#pBrNy")); const g=TM.primitives.breeze(nx,ny,P("#pBrCell"),P("#pBrHole"),P("#pBrDepth"),Math.round(P("#pBrSeg"))); const el=$("#pBrInfo"); if(el){ el.textContent="✓ "+nx+"×"+ny+" screen · "+(nx*ny)+" cells"; el.style.color="#8fce9b"; } return g; },
   buckyball(){
     const form=$("#pBuckyForm")?$("#pBuckyForm").value:"soccer";
@@ -8662,7 +8728,7 @@ function endPrimPreview(commit){
   rebuild(); updateCrustUI(); if(typeof renderLayerList==="function") renderLayerList();
   primEditId=null; primEditAnchor=null;
 }
-const PRIM_LABEL_MAP={diamond:"Diamond",sineWave:"Sine Wave",maze3d:"Maze 3D",pseudospherical:"Pseudospherical",buckyball:"Buckyball",rossler:"Rössler",chainmail:"Chainmail",voronoi:"Voronoi",weave:"Weave",cymatics:"Cymatics",tpms:"TPMS Block",breeze:"Breeze Block"};
+const PRIM_LABEL_MAP={diamond:"Gem Cut",sineWave:"Sine Wave",maze3d:"Maze 3D",pseudospherical:"Pseudospherical",buckyball:"Buckyball",rossler:"Rössler",chainmail:"Chainmail",voronoi:"Voronoi",weave:"Weave",cymatics:"Cymatics",tpms:"TPMS Block",breeze:"Breeze Block"};
 function primLabel(name){ return PRIM_LABEL_MAP[name] || (name.charAt(0).toUpperCase()+name.slice(1)); }
 // Read / write the slider state for a parametric primitive op (e.g. "prim:spiral").
 function readPrimParams(op){ const ids=OP_PARAMS[op]||[]; const p={};
@@ -9775,6 +9841,7 @@ $("#pMazeBase")&&$("#pMazeBase").addEventListener("change",()=>{ if(primPreviewN
 ["#pM3Nx","#pM3Ny","#pM3Nz","#pM3Cell","#pM3Tube","#pM3Sides","#pM3Seed"].forEach(id=>{ const el=$(id); if(el) el.addEventListener("input",()=>{ if(primPreviewName) refreshPrimPreview(); }); });
 ["#pTpNx","#pTpNy","#pTpNz","#pTpCell","#pTpIso","#pTpRes"].forEach(id=>{ const el=$(id); if(el) el.addEventListener("input",()=>{ if(primPreviewName) refreshPrimPreview(); }); });
 $("#pTpType")&&$("#pTpType").addEventListener("change",()=>{ if(primPreviewName) refreshPrimPreview(); });
+$("#pDiaCut")&&$("#pDiaCut").addEventListener("change",()=>{ if(primPreviewName) refreshPrimPreview(); });
 ["#pBrNx","#pBrNy","#pBrCell","#pBrHole","#pBrDepth","#pBrSeg"].forEach(id=>{ const el=$(id); if(el) el.addEventListener("input",()=>{ if(primPreviewName) refreshPrimPreview(); }); });
 ["mkWaffleNX","mkWaffleNZ","mkWaffleDog"].forEach(id=>{ const el=$("#"+id); if(el) el.addEventListener("input",()=>{ if(tpState&&tpState.op==="slab"&&plyMode()==="waffle"){ if(id!=="mkWaffleDog") _waffleManual={}; computeSlabs(); } }); });
 $("#mkWaffleDir")&&$("#mkWaffleDir").addEventListener("change",()=>{ if(tpState&&tpState.op==="slab"&&plyMode()==="waffle"){ wfGumEnsure(); computeSlabs(); } });
@@ -10536,7 +10603,7 @@ const OP_PARAMS={
   "prim:chainmail":["pCmMode","pCmNx","pCmNz","pCmSpace","pCmR","pCmTube","pCmTilt","pCmWire","pCmRatio","pCmAngle","pCmDmin","pCmCdy","pCmCut","pCmSeg","pCmSides","pPrimSX","pPrimSY","pPrimSZ"],
   "prim:voronoi":["pVorN","pVorSize","pVorGap","pVorThick","pVorRelax","pVorSeed","pPrimSX","pPrimSY","pPrimSZ"],
   "prim:tree":["pTreeLevels","pTreeSplits","pTreeTrunk","pTreeLenR","pTreeRad","pTreeRadR","pTreeAngle","pTreeTwist","pTreeCurve","pTreeDroop","pTreeJit","pTreeSides","pTreeSegs","pTreeTaper","pTreeLeafSz","pTreeSeed","pPrimSX","pPrimSY","pPrimSZ"],
-  "prim:diamond":["pDiaTable","pDiaCrown","pDiaPav","pDiaGirdle","pDiaSym","pDiaStar","pDiaLower","pDiaR","pPrimSX","pPrimSY","pPrimSZ"],
+  "prim:diamond":["pDiaCut","pDiaTable","pDiaCrown","pDiaPav","pDiaGirdle","pDiaSym","pDiaStar","pDiaLower","pDiaR","pPrimSX","pPrimSY","pPrimSZ"],
   "prim:gem":["pGemNx","pGemNz","pGemSpace","pGemSize","pGemHeight","pGemAmp","pGemFall","pGemTwist","pGemSides","pGemSeed","pPrimSX","pPrimSY","pPrimSZ"],
   "prim:maze":["pMazeNx","pMazeNz","pMazeCell","pMazeWall","pMazeHeight","pMazeBaseT","pMazeSeed","pPrimSX","pPrimSY","pPrimSZ"],
   "prim:maze3d":["pM3Nx","pM3Ny","pM3Nz","pM3Cell","pM3Tube","pM3Sides","pM3Seed","pPrimSX","pPrimSY","pPrimSZ"],
@@ -15692,6 +15759,7 @@ void main(){
   // demo names + credits (in SEQS order)
   const DEMO_INFO=[
     ["The TopMod Look","after Nathan Ho · TopMod: Akleman, Srinivasan, Chen"],
+    ["Gem Cuts","eleven classic cuts · ray-traced in their own stones"],
     ["Flame","equation deform · TopMod 3D"],
     ["Torus → Wireframe","wireframe modeling: Akleman, Srinivasan, Mandal"],
     ["Subdivision Surface","Catmull & Clark (1978)"],
@@ -15715,7 +15783,7 @@ void main(){
   { const t=document.getElementById("demoTitle"); if(t) t.title="Demos — hover list (click to play / pause):\n"+DEMO_INFO.map((d,i)=>(i+1)+". "+d[0]+"  —  "+d[1]).join("\n"); }
   function pillHTML(paused){ const k=curK, I=DEMO_INFO[k]||["Demo",""];
     try{ window.__eq&&window.__eq.demo({n:k+1, name:I[0], credit:I[1], step:paused?"Paused — the form is yours":null}); }catch(e){}
-    return '<span class="dot"></span><button type="button" class="nav prev" title="Back">&#8249;</button>'
+    return '<span class="dot"></span><b>'+(paused?'Demo paused':'Demo mode')+'</b><button type="button" class="nav prev" title="Back">&#8249;</button>'
       +'<button type="button" class="nav next" title="Next">&#8250;</button>'
       +'<span class="step" style="display:none"></span>'
       +(paused?'<button type="button" class="try" title="Resume this demo">&#9654; Resume</button>':'<button type="button" class="try" title="Pause and take over">Try for yourself &rsaquo;</button>')
@@ -15824,34 +15892,55 @@ void main(){
   function stageLoad(m){ try { mesh={verts:m.verts.map(v=>v.slice()),faces:m.faces.map(f=>f.slice())}; const L=layers[activeLayer]; L.mesh=mesh; L.name="TopMod Look"; L.gen=null; L.modifiers=[]; L._ev=null; L._evKey=null; clearSel(false); rebuild(); renderModStack&&renderModStack(); renderLayerList&&renderLayerList(); } catch(e){ console.warn(e); } }
   const SEQS = [
     // 0 — "The TopMod look" (Nathan Ho): dodecahedron -> 6 twisted handles -> Doo-Sabin -> rind (remove face loops) -> Catmull-Clark
-    //     camera holds still while the form is modeled, then: Ruby view -> Line Art (sketch) -> one 360° turn
+    //     slow turntable while the form is modeled (fast), then one 360° turn -> Line Art (still)
     async () => {
-      spinHold=true;
+      spinHold=false;   // slow turntable while the form is modeled
       try {
         fresh(); say("New scene"); await wait(450);
         let st; try { st=TM.topmodLook({smooth:2}); } catch(e){ console.warn(e); return; }
-        await press('#toolbar [data-p="dodecahedron"]', "The TopMod look · start from a dodecahedron"); await apply(); await wait(300);
+        await press('#toolbar [data-p="dodecahedron"]', "The TopMod look · start from a dodecahedron", 400); await apply(); await wait(150);
         const EQ=(k,x)=>{ try{ window.__eq&&window.__eq.op(k,x); }catch(e){} }; EQ("dodeca");
         // frame once for the FINISHED form, then build it up in place — no camera moves while modeling
-        stageLoad(st[st.length-1].mesh); try { window.__tm.frameAll(1.3); } catch(e){} stageLoad(st[0].mesh); await wait(900);
+        stageLoad(st[st.length-1].mesh); try { window.__tm.frameAll(1.3); } catch(e){} stageLoad(st[0].mesh); await wait(500);
         EQ("handle");
-        for (let k=1; k<=6; k++){ const s=st[k]; if(!s) break; say(s.label+" (genus "+k+")"); stageLoad(s.mesh); await wait(k===1?1300:850); }
-        const ds=st.find(x=>/^Doo-Sabin/.test(x.label)); say("Doo-Sabin ×1 — the key to the TopMod look"); EQ("doosabin"); stageLoad(ds.mesh); await wait(1500);
+        for (let k=1; k<=6; k++){ const s=st[k]; if(!s) break; say(s.label+" (genus "+k+")"); stageLoad(s.mesh); await wait(k===1?700:420); }
+        const ds=st.find(x=>/^Doo-Sabin/.test(x.label)); say("Doo-Sabin ×1 — the key to the TopMod look"); EQ("doosabin"); stageLoad(ds.mesh); await wait(800);
         say("Select face loops — quads that weave from handle to handle"); EQ("loops");
-        try { setMode("face"); (ds.remove||[]).forEach(f=>sel.faces.add(f)); rebuildOverlay(); } catch(e){} await wait(1900);
-        const rind=st.find(x=>/^Rind/.test(x.label)); say("Rind modeling · "+rind.label.replace(/^Rind · /,"")); EQ("rind"); stageLoad(rind.mesh); await wait(1700);
-        say("Catmull-Clark ×2 — smooth"); EQ("catmull"); stageLoad(st[st.length-1].mesh); await wait(1600);
-        // undo one level of subdivision: back to Catmull-Clark ×1
-        say("Undo — back to one subdivision level"); let cc1=null; try{ cc1=TM.catmullClark(rind.mesh); }catch(e){} if(cc1){ stageLoad(cc1); } await wait(1500);
-        // Line Art (still — no rotation), then Sapphire
-        if(window.__lineart){ say("Line Art · wireframe, hidden lines removed"); window.__lineart.open(); EQ("lineart"); await wait(3200); window.__lineart.close(); await wait(300); }
-        say("View · Sapphire (ray-traced gem)"); window.__gemOpts=Object.assign(window.__gemOpts||{}, {disp:false, bounces:4}); setRenderMode("sapphire"); try{ window.__eq&&window.__eq.gem("sapphire"); }catch(e){} await wait(3600);
-        window.__gemOpts.disp=false; window.__gemOpts.bounces=4; setRenderMode("solid");
+        try { setMode("face"); (ds.remove||[]).forEach(f=>sel.faces.add(f)); rebuildOverlay(); } catch(e){} await wait(1000);
+        const rind=st.find(x=>/^Rind/.test(x.label)); say("Rind modeling · "+rind.label.replace(/^Rind · /,"")); EQ("rind"); try{ clearSel(false); }catch(e){} stageLoad(rind.mesh); await wait(900);
+        say("Catmull-Clark ×2 — smooth"); EQ("catmull"); stageLoad(st[st.length-1].mesh); await wait(900);
+        // one full 360° turn of the finished form (view style unchanged)
+        say("360° turn"); spinHold=true; { const y0=yaw, T=6000, t0=performance.now();
+          while(alive){ const u=Math.min(1,(performance.now()-t0)/T); yaw=y0+Math.PI*2*(u<.5?2*u*u:1-Math.pow(-2*u+2,2)/2); try{ applyCam(); }catch(e){} if(u>=1) break; await new Promise(r=>requestAnimationFrame(r)); }
+          yaw=y0; try{ applyCam(); }catch(e){} }
+        // then Line Art (still)
+        if(window.__lineart && alive){ say("Line Art · wireframe, hidden lines removed"); window.__lineart.open(); EQ("lineart"); await wait(3600); window.__lineart.close(); await wait(300); }
       } finally { spinHold=false; try{ window.__eq&&window.__eq.op(null); }catch(e){} }
     },
-    // 1 — "Flame": the equation prompt builds a form, then a per-vertex equation twists it into a fan-like flame
+    // 1 — "Gem Cuts": the Gem Cut tool cycles every cut, each shown in its matching ray-traced stone view
     async () => {
-      spinHold=true;
+      spinHold=false;
+      try {
+        fresh(); say("New scene"); await wait(400);
+        await press('#toolbar [data-p="diamond"]', "Gem Cut tool · pick a cut", 450); await apply(); await wait(300);
+        const CUTS=[["round","diamond"],["princess","reddiamond"],["oval","ruby"],["cushion","sapphire"],["pear","ruby"],["marquise","sapphire"],
+                    ["emerald","emerald"],["asscher","diamond"],["radiant","reddiamond"],["trillion","sapphire"],["baguette","diamond"]];
+        const VN={diamond:"Diamond",reddiamond:"Red Diamond",ruby:"Ruby",sapphire:"Sapphire",emerald:"Emerald"};
+        window.__gemOpts=Object.assign(window.__gemOpts||{}, {disp:false, bounces:4});
+        for(let i=0;i<CUTS.length && alive;i++){ const [cut,rm]=CUTS[i];
+          let m=null; try{ m=TM.primitives.diamond(57,34.5,40.8,3,8,1,50,77,cut); }catch(e){ console.warn(e); continue; }
+          stageLoad(m); try{ const L=layers[activeLayer]; L.name="Gem · "+(TM.GEM_CUTS[cut]||cut); renderLayerList&&renderLayerList(); }catch(e){}
+          if(i===0){ try{ window.__tm.frameAll(1.5); }catch(e){} }
+          const sel=q("#pDiaCut"); if(sel) sel.value=cut;
+          say((TM.GEM_CUTS[cut]||cut)+" · "+VN[rm]); setRenderMode(rm); try{ window.__eq&&window.__eq.gem(rm); }catch(e){}
+          await wait(2600);
+        }
+        setRenderMode("solid");
+      } finally { spinHold=false; try{ window.__eq&&window.__eq.op(null); }catch(e){} }
+    },
+    // 2 — "Flame": the equation prompt builds a form, then a per-vertex equation twists it into a fan-like flame
+    async () => {
+      spinHold=false;   // slow turntable
       try {
         fresh(); say("New scene"); await wait(450);
         try { window.__eq.toggle(true); } catch(e){}
