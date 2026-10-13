@@ -859,6 +859,25 @@ body.rStack #modList{flex:0 1 auto!important}
 
 </head>
 <body>
+<style id="inAppCss">
+/* Web + iOS app: hide web-browser-only UI and browser behaviours */
+html.inApp,html.inApp body{-webkit-user-select:none;user-select:none;-webkit-touch-callout:none;overscroll-behavior:none;-webkit-tap-highlight-color:transparent}
+html.inApp input,html.inApp textarea,html.inApp [contenteditable]{-webkit-user-select:text;user-select:text}
+html.inApp [data-act="fullscreen"],html.inApp [data-act="shortcuts"],html.inApp .kbd,html.inApp #rhinoLink,html.inApp #voiceToggle,html.inApp .webOnly{display:none!important}
+</style>
+<script>
+(function(){var mh=window.webkit&&window.webkit.messageHandlers;
+ window.TM_IN_APP=!!(mh&&(mh.exportOBJ||mh.saveOBJ||mh.photoImage));
+ document.documentElement.classList.add("inApp");
+ document.addEventListener("DOMContentLoaded",function(){document.body.classList.add("inApp");
+   if(window.TM_IN_APP){ var fi=document.getElementById("fileImport"); if(fi) fi.removeAttribute("accept"); }   // iOS greys out .stl/.3mf for unknown UTIs
+   var a=document.querySelector('[data-act="about"]'); if(a) a.textContent="About TopMod 3D";
+   document.querySelectorAll("[title]").forEach(function(e){e.removeAttribute("title")});
+ });
+ ["gesturestart","gesturechange"].forEach(function(t){document.addEventListener(t,function(e){e.preventDefault()},{passive:false})});
+ document.addEventListener("contextmenu",function(e){var t=e.target; if(!(t.closest&&t.closest("input,textarea"))) e.preventDefault()});
+})();
+</script>
 <div id="frame">
 
   <div id="titlebar"><span class="dot"></span> untitled.obj &mdash; TOPMOD</div>
@@ -872,7 +891,7 @@ body.rStack #modList{flex:0 1 auto!important}
       <div class="mi" data-act="saveProject">Save<span class="kbd">.TM3</span></div>
       <div class="mi" data-act="saveProjectAs">Save As&hellip;<span class="kbd">.TM3</span></div>
       <div class="msep"></div>
-      <div class="mi" data-act="import">Import OBJ&hellip;</div>
+      <div class="mi" data-act="import">Import Mesh (OBJ · STL · PLY · OFF · GLB · 3MF)&hellip;</div>
       <div class="mi" data-act="export">Export OBJ&hellip;</div>
       <div class="mi" data-act="exportWire">Export Wireframe &mdash; edges only (OBJ curves)&hellip;</div>
       <div class="mi" data-act="exportWireDXF">Export Wireframe &mdash; edges only (DXF 3D lines)&hellip;</div>
@@ -1899,7 +1918,7 @@ body.rStack #modList{flex:0 1 auto!important}
     <div id="conRow"><span id="conPrompt">&gt;&gt;&gt;</span><input id="conIn" type="text" spellcheck="false" autocomplete="off" placeholder="mesh.faces.length · TM.catmullClark · help()"></div>
   </div>
 
-  <input type="file" id="fileImport" accept=".obj">
+  <input type="file" id="fileImport" accept=".obj,.stl,.ply,.off,.glb,.gltf,.3mf">
   <input type="file" id="projectImport" accept=".tm3,.topmod,application/json">
   <div id="handPalette" aria-hidden="true"></div>
   <div id="handPrim" aria-hidden="true"></div>
@@ -9035,21 +9054,155 @@ $("#btnExport").addEventListener("click",()=>{
   URL.revokeObjectURL(a.href);
   toast("Saved topmod.obj");
 });
-$("#fileImport").addEventListener("change",ev=>{
-  const f=ev.target.files[0]; if(!f) return;
-  const r=new FileReader();
-  r.onload=()=>{
-    try{
-      const m=TM.fromOBJ(r.result);
-      const err=TM.validate(m);
-      if(err) throw "OBJ is not a closed manifold: "+err;
-      snapshot(); mesh=m; crustPairs=null; clearSel(false); rebuild(); updateCrustUI();
-      toast("Imported "+f.name);
-    }catch(e){ toast(String(e),true); }
-  };
-  r.readAsText(f);
-  ev.target.value="";
+// ---------- multi-format import: OBJ · STL (ascii/binary) · PLY · OFF · glTF/GLB · 3MF ----------
+const MeshImport=(()=>{
+  const ext=n=>(n.match(/\.([a-z0-9]+)$/i)||[,""])[1].toLowerCase();
+  const td=new TextDecoder();
+  function parseOBJ(t){ const v=[],f=[];
+    for(const line of t.split(/\r?\n/)){ const s=line.trim().split(/\s+/);
+      if(s[0]==="v") v.push([+s[1],+s[2],+s[3]]);
+      else if(s[0]==="f"){ const idx=s.slice(1).map(x=>{const i=parseInt(x.split("/")[0],10); return i<0?v.length+i:i-1;}); if(idx.length>=3) f.push(idx); } }
+    return {verts:v,faces:f}; }
+  function parseSTL(buf){
+    const dv=new DataView(buf), n=buf.byteLength>=84?dv.getUint32(80,true):0;
+    const head=td.decode(new Uint8Array(buf,0,Math.min(buf.byteLength,512)));
+    const isBin = buf.byteLength===84+n*50 || !/^\s*solid[\s\S]*facet/.test(head);
+    const v=[],f=[];
+    if(isBin){ for(let i=0;i<n;i++){ const o=84+i*50+12, tri=[];
+        for(let k=0;k<3;k++){ tri.push(v.length); v.push([dv.getFloat32(o+k*12,true),dv.getFloat32(o+k*12+4,true),dv.getFloat32(o+k*12+8,true)]); }
+        f.push(tri); } }
+    else { const t=td.decode(buf), re=/vertex\s+(\S+)\s+(\S+)\s+(\S+)/g; let m,tri=[];
+      while((m=re.exec(t))){ tri.push(v.length); v.push([+m[1],+m[2],+m[3]]); if(tri.length===3){ f.push(tri); tri=[]; } } }
+    return {verts:v,faces:f,zUp:true}; }
+  function parseOFF(t){ const tok=t.replace(/#.*$/gm,"").trim().split(/\s+/); let i=0;
+    if(/OFF$/i.test(tok[0])) i++;
+    const nv=+tok[i++], nf=+tok[i++]; i++; const v=[],f=[];
+    for(let k=0;k<nv;k++){ v.push([+tok[i],+tok[i+1],+tok[i+2]]); i+=3; }
+    for(let k=0;k<nf;k++){ const c=+tok[i++]; f.push(tok.slice(i,i+c).map(Number)); i+=c; }
+    return {verts:v,faces:f}; }
+  function parsePLY(buf){
+    const u8=new Uint8Array(buf), hs=td.decode(u8.subarray(0,Math.min(u8.length,4096)));
+    const he=hs.indexOf("end_header"); if(he<0) throw "PLY: missing header";
+    const lines=hs.slice(0,he).split(/\r?\n/), fmt=(lines.find(l=>l.startsWith("format"))||"").split(/\s+/)[1];
+    const els=[]; for(const l of lines){ const s=l.trim().split(/\s+/);
+      if(s[0]==="element") els.push({name:s[1],count:+s[2],props:[]});
+      else if(s[0]==="property"&&els.length) els[els.length-1].props.push(s[1]==="list"?{list:true,ct:s[2],t:s[3],name:s[4]}:{t:s[1],name:s[2]}); }
+    let off=he+"end_header".length; while(u8[off]!==10) off++; off++;
+    const v=[],f=[];
+    if(fmt==="ascii"){ const tok=td.decode(u8.subarray(off)).trim().split(/\s+/); let i=0;
+      for(const e of els) for(let k=0;k<e.count;k++){ const rec={};
+        for(const p of e.props){ if(p.list){ const c=+tok[i++]; rec[p.name]=tok.slice(i,i+c).map(Number); i+=c; } else rec[p.name]=+tok[i++]; }
+        if(e.name==="vertex") v.push([rec.x,rec.y,rec.z]); else if(e.name==="face") f.push(rec.vertex_indices||rec.vertex_index); } }
+    else { const le=fmt!=="binary_big_endian", dv=new DataView(buf);
+      const SZ={char:1,uchar:1,int8:1,uint8:1,short:2,ushort:2,int16:2,uint16:2,int:4,uint:4,int32:4,uint32:4,float:4,float32:4,double:8,float64:8};
+      const rd=t=>{ let r; switch(t){ case"char":case"int8":r=dv.getInt8(off);break; case"uchar":case"uint8":r=dv.getUint8(off);break;
+        case"short":case"int16":r=dv.getInt16(off,le);break; case"ushort":case"uint16":r=dv.getUint16(off,le);break;
+        case"int":case"int32":r=dv.getInt32(off,le);break; case"uint":case"uint32":r=dv.getUint32(off,le);break;
+        case"float":case"float32":r=dv.getFloat32(off,le);break; default:r=dv.getFloat64(off,le);} off+=SZ[t]; return r; };
+      for(const e of els) for(let k=0;k<e.count;k++){ const rec={};
+        for(const p of e.props){ if(p.list){ const c=rd(p.ct), a=[]; for(let j=0;j<c;j++) a.push(rd(p.t)); rec[p.name]=a; } else rec[p.name]=rd(p.t); }
+        if(e.name==="vertex") v.push([rec.x,rec.y,rec.z]); else if(e.name==="face") f.push(rec.vertex_indices||rec.vertex_index); } }
+    return {verts:v,faces:f}; }
+  function gltfMesh(json,bin){
+    const v=[],f=[], acc=i=>{ const a=json.accessors[i], bv=json.bufferViews[a.bufferView], comp={5120:1,5121:1,5122:2,5123:2,5125:4,5126:4}[a.componentType];
+      const n={SCALAR:1,VEC2:2,VEC3:3,VEC4:4}[a.type], stride=bv.byteStride||comp*n, base=(bv.byteOffset||0)+(a.byteOffset||0), dv=new DataView(bin.buffer,bin.byteOffset);
+      const out=[]; for(let k=0;k<a.count;k++){ const row=[]; for(let j=0;j<n;j++){ const o=base+k*stride+j*comp;
+        row.push(a.componentType===5126?dv.getFloat32(o,true):comp===4?dv.getUint32(o,true):comp===2?dv.getUint16(o,true):dv.getUint8(o)); } out.push(n===1?row[0]:row); } return out; };
+    const nodeMats=[]; const mul=(A,B)=>{const r=new Array(16).fill(0); for(let i=0;i<4;i++)for(let j=0;j<4;j++)for(let k=0;k<4;k++) r[j*4+i]+=A[k*4+i]*B[j*4+k]; return r;};
+    const local=n=>{ if(n.matrix) return n.matrix; const t=n.translation||[0,0,0], q=n.rotation||[0,0,0,1], s=n.scale||[1,1,1], [x,y,z,w]=q;
+      return [(1-2*(y*y+z*z))*s[0],2*(x*y+z*w)*s[0],2*(x*z-y*w)*s[0],0, 2*(x*y-z*w)*s[1],(1-2*(x*x+z*z))*s[1],2*(y*z+x*w)*s[1],0, 2*(x*z+y*w)*s[2],2*(y*z-x*w)*s[2],(1-2*(x*x+y*y))*s[2],0, t[0],t[1],t[2],1]; };
+    const visit=(ni,M)=>{ const n=json.nodes[ni], W=mul(M,local(n));
+      if(n.mesh!=null) for(const p of json.meshes[n.mesh].primitives){ if(p.mode!=null&&p.mode!==4) continue;
+        const P=acc(p.attributes.POSITION), b=v.length; for(const q of P) v.push([W[0]*q[0]+W[4]*q[1]+W[8]*q[2]+W[12],W[1]*q[0]+W[5]*q[1]+W[9]*q[2]+W[13],W[2]*q[0]+W[6]*q[1]+W[10]*q[2]+W[14]]);
+        const I=p.indices!=null?acc(p.indices):P.map((_,i)=>i); for(let k=0;k+2<I.length;k+=3) f.push([b+I[k],b+I[k+1],b+I[k+2]]); }
+      for(const c of n.children||[]) visit(c,W); };
+    const sc=json.scenes?json.scenes[json.scene||0].nodes:json.nodes.map((_,i)=>i);
+    for(const ni of sc) visit(ni,[1,0,0,0,0,1,0,0,0,0,1,0,0,0,0,1]);
+    return {verts:v,faces:f}; }
+  function parseGLB(buf){ const dv=new DataView(buf); if(dv.getUint32(0,true)!==0x46546C67) throw "GLB: bad magic";
+    let o=12, json=null, bin=null; while(o<buf.byteLength){ const len=dv.getUint32(o,true), type=dv.getUint32(o+4,true);
+      if(type===0x4E4F534A) json=JSON.parse(td.decode(new Uint8Array(buf,o+8,len))); else if(type===0x004E4942) bin=new Uint8Array(buf,o+8,len); o+=8+len; }
+    return gltfMesh(json,bin); }
+  function parseGLTF(t){ const json=JSON.parse(t), u=json.buffers&&json.buffers[0]&&json.buffers[0].uri;
+    if(!u||!u.startsWith("data:")) throw "glTF: only embedded buffers are supported — export as .glb";
+    const b=atob(u.split(",")[1]), bin=new Uint8Array(b.length); for(let i=0;i<b.length;i++) bin[i]=b.charCodeAt(i); return gltfMesh(json,bin); }
+  async function unzipEntry(buf,test){ const dv=new DataView(buf), u8=new Uint8Array(buf); let e=buf.byteLength-22; while(e>0&&dv.getUint32(e,true)!==0x06054b50) e--;
+    let p=dv.getUint32(e+16,true); const n=dv.getUint16(e+10,true);
+    for(let i=0;i<n;i++){ const meth=dv.getUint16(p+10,true), cs=dv.getUint32(p+20,true), nl=dv.getUint16(p+28,true), xl=dv.getUint16(p+30,true), cl=dv.getUint16(p+32,true), lo=dv.getUint32(p+42,true);
+      const name=td.decode(u8.subarray(p+46,p+46+nl)); p+=46+nl+xl+cl;
+      if(!test(name)) continue; const ds=lo+30+dv.getUint16(lo+26,true)+dv.getUint16(lo+28,true), data=u8.subarray(ds,ds+cs);
+      if(meth===0) return td.decode(data);
+      if(typeof DecompressionStream==="undefined") throw "3MF needs a newer browser (DecompressionStream)";
+      const s=new Blob([data]).stream().pipeThrough(new DecompressionStream("deflate-raw")); return await new Response(s).text(); }
+    throw "3MF: no model file found"; }
+  async function parse3MF(buf){ const x=await unzipEntry(buf,n=>/\.model$/i.test(n)), v=[],f=[];
+    const re=/<(?:\w+:)?(vertex|triangle)\s([^>]*)\/?>/g, at=(s,k)=>{const m=s.match(new RegExp("\\b"+k+'="([^"]*)"')); return m?+m[1]:0;}; let m, base=0, lastWasTri=true;
+    while((m=re.exec(x))){ if(m[1]==="vertex"){ if(lastWasTri){ base=v.length; lastWasTri=false; } v.push([at(m[2],"x"),at(m[2],"y"),at(m[2],"z")]); }
+      else { lastWasTri=true; f.push([base+at(m[2],"v1"),base+at(m[2],"v2"),base+at(m[2],"v3")]); } }
+    return {verts:v,faces:f,zUp:true}; }
+
+  // ---- clean-up: weld, drop degenerates/duplicates, fix winding, drop non-manifold faces, Z-up → Y-up, fit to view ----
+  function clean(raw){
+    let {verts,faces}=raw; if(!verts.length||!faces.length) throw "No geometry found in file";
+    let mn=[1e30,1e30,1e30], mx=[-1e30,-1e30,-1e30]; for(const p of verts) for(let k=0;k<3;k++){ if(p[k]<mn[k])mn[k]=p[k]; if(p[k]>mx[k])mx[k]=p[k]; }
+    const diag=Math.hypot(mx[0]-mn[0],mx[1]-mn[1],mx[2]-mn[2])||1, tol=diag*1e-6, map=new Map(), remap=new Int32Array(verts.length), V=[];
+    verts.forEach((p,i)=>{ const key=Math.round(p[0]/tol)+","+Math.round(p[1]/tol)+","+Math.round(p[2]/tol); let j=map.get(key); if(j===undefined){ j=V.length; V.push(p.slice()); map.set(key,j); } remap[i]=j; });
+    const seenF=new Set(); let F=[];
+    for(const f0 of faces){ const f=[]; for(const i of f0){ const j=remap[i]; if(j===undefined) continue; if(f[f.length-1]!==j) f.push(j); } if(f.length>1&&f[0]===f[f.length-1]) f.pop();
+      if(f.length<3||new Set(f).size!==f.length) continue; const k=f.slice().sort((a,b)=>a-b).join(","); if(seenF.has(k)) continue; seenF.add(k); F.push(f); }
+    // undirected edge → faces; drop faces on edges shared by >2 faces
+    const ek=(a,b)=>a<b?a+"_"+b:b+"_"+a, E=new Map();
+    F.forEach((f,fi)=>f.forEach((a,i)=>{ const k=ek(a,f[(i+1)%f.length]); (E.get(k)||E.set(k,[]).get(k)).push(fi); }));
+    const bad=new Set(); for(const l of E.values()) if(l.length>2) l.slice(2).forEach(x=>bad.add(x));
+    let dropped=bad.size; if(dropped){ F=F.filter((_,i)=>!bad.has(i)); E.clear(); F.forEach((f,fi)=>f.forEach((a,i)=>{ const k=ek(a,f[(i+1)%f.length]); (E.get(k)||E.set(k,[]).get(k)).push(fi); })); }
+    // consistent winding via BFS
+    const done=new Uint8Array(F.length), has=(f,a,b)=>{ for(let i=0;i<f.length;i++) if(f[i]===a&&f[(i+1)%f.length]===b) return true; return false; };
+    for(let s=0;s<F.length;s++){ if(done[s]) continue; done[s]=1; const q=[s];
+      while(q.length){ const fi=q.pop(), f=F[fi];
+        for(let i=0;i<f.length;i++){ const a=f[i], b=f[(i+1)%f.length];
+          for(const gi of E.get(ek(a,b))){ if(gi===fi||done[gi]) continue; if(has(F[gi],a,b)) F[gi].reverse(); done[gi]=1; q.push(gi); } } } }
+    // outward: signed volume of each closed shell >0 (approx globally)
+    let vol=0; for(const f of F){ const a=V[f[0]]; for(let i=1;i+1<f.length;i++){ const b=V[f[i]],c=V[f[i+1]]; vol+=a[0]*(b[1]*c[2]-b[2]*c[1])-a[1]*(b[0]*c[2]-b[2]*c[0])+a[2]*(b[0]*c[1]-b[1]*c[0]); } }
+    if(vol<0) F.forEach(f=>f.reverse());
+    if(raw.zUp) V.forEach(p=>{ const y=p[1]; p[1]=p[2]; p[2]=-y; });
+    // centre on origin, sit on grid, scale wildly sized files (mm STLs etc.) to ~2.5 units
+    mn=[1e30,1e30,1e30]; mx=[-1e30,-1e30,-1e30]; for(const p of V) for(let k=0;k<3;k++){ if(p[k]<mn[k])mn[k]=p[k]; if(p[k]>mx[k])mx[k]=p[k]; }
+    const size=Math.max(mx[0]-mn[0],mx[1]-mn[1],mx[2]-mn[2])||1, sc=(size>12||size<0.2)?2.5/size:1, c=[(mn[0]+mx[0])/2,(mn[1]+mx[1])/2,(mn[2]+mx[2])/2];
+    V.forEach(p=>{ p[0]=(p[0]-c[0])*sc; p[1]=(p[1]-c[1])*sc; p[2]=(p[2]-c[2])*sc; });
+    const used=new Int32Array(V.length).fill(-1), V2=[]; F=F.map(f=>f.map(i=>{ if(used[i]<0){ used[i]=V2.length; V2.push(V[i]); } return used[i]; }));
+    return {mesh:{verts:V2,faces:F}, scaled:sc!==1, scale:sc, dropped, welded:verts.length-V.length};
+  }
+  async function read(file){
+    const e=ext(file.name), buf=await file.arrayBuffer(); let raw;
+    if(e==="obj") raw=parseOBJ(td.decode(buf));
+    else if(e==="stl") raw=parseSTL(buf);
+    else if(e==="ply") raw=parsePLY(buf);
+    else if(e==="off") raw=parseOFF(td.decode(buf));
+    else if(e==="glb") raw=parseGLB(buf);
+    else if(e==="gltf") raw=parseGLTF(td.decode(buf));
+    else if(e==="3mf") raw=await parse3MF(buf);
+    else throw "Unsupported file type ."+e+" — use OBJ, STL, PLY, OFF, GLB/glTF or 3MF";
+    return clean(raw);
+  }
+  return {read, clean, parseOBJ, parseSTL, parsePLY, parseOFF, parseGLB, parseGLTF, parse3MF};
+})();
+window.__import=MeshImport;
+$("#fileImport").addEventListener("change",async ev=>{
+  const f=ev.target.files[0]; if(!f) return; ev.target.value="";
+  try{
+    toast("Importing "+f.name+"…");
+    const r=await MeshImport.read(f), m=r.mesh;
+    const err=TM.validate(m); if(err) throw "Mesh could not be repaired: "+err;
+    crustPairs=null; clearSel(false);
+    if(typeof addLayer==="function"&&Array.isArray(layers)){ addLayer(m,true); layers[activeLayer].name=f.name.replace(/\.[^.]+$/,"").slice(0,40); renderLayerList(); }   // each import gets its own layer, named after the file
+    else { snapshot(); mesh=m; rebuild(); }
+    updateCrustUI();
+    try{ window.__tm&&window.__tm.frameAll&&window.__tm.frameAll(); }catch(_){}
+    const notes=[]; if(r.scaled) notes.push("scaled ×"+(+r.scale.toPrecision(3))); if(r.dropped) notes.push(r.dropped+" non-manifold faces removed");
+    toast("Imported "+f.name+" — "+m.faces.length+" faces"+(notes.length?" ("+notes.join(", ")+")":"")+(m.faces.length>30000?" · heavy mesh, tools may be slow":""));
+  }catch(e){ toast(String(e),true); }
 });
+
 $("#projectImport")&&$("#projectImport").addEventListener("change",ev=>{
   const f=ev.target.files[0]; if(!f) return;
   const r=new FileReader();
@@ -10718,7 +10871,7 @@ addEventListener("keydown",e=>{
       if(k==="y"||e.code==="KeyY"||e.shiftKey) redo(); else undo();
       return; } }
   if(e.target.tagName==="INPUT") return;
-  if(e.shiftKey && !e.metaKey && !e.ctrlKey && !e.altKey && (e.key==="F"||e.key==="f")){ e.preventDefault(); toggleFullscreen(); return; }   // Shift+F: full screen on/off
+  if(false && e.shiftKey && !e.metaKey && !e.ctrlKey && !e.altKey && (e.key==="F"||e.key==="f")){ e.preventDefault(); toggleFullscreen(); return; }   // Shift+F: full screen on/off
   if(e.key==="Delete"||e.key==="Backspace"){
     if(selMode==="face"&&sel.faces.size){ e.preventDefault(); ops.deleteFace(); return; }
     if(selMode==="vert"&&sel.verts.size){ e.preventDefault(); ops.deleteVertex(); return; }
