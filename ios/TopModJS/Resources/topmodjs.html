@@ -775,7 +775,8 @@ canvas#view{width:100%;height:100%;display:block;touch-action:none;outline:none;
       <div class="mi" data-act="exportWire">Export Wireframe &mdash; edges only (OBJ curves)&hellip;</div>
       <div class="mi" data-act="exportWireDXF">Export Wireframe &mdash; edges only (DXF 3D lines)&hellip;</div>
       <div class="mi" data-act="exportWireSVG">Export Wireframe &mdash; current view (SVG)&hellip;</div>
-      <div class="mi" data-act="lineArt">Export Line Art &mdash; plotter (vpype SVG / HPGL / G-code)&hellip;</div>
+      <div class="mi" data-act="lineArt">Export Line Art &mdash; plotter (vpype SVG / HPGL)&hellip;</div>
+      <div class="mi" data-act="exportGuide">Export Step Guide (PDF) &mdash; every step, auto-compiled&hellip;</div>
       <div class="mi" data-act="screenshot">Screenshot (JPG)&hellip;</div>
       <div class="mi" data-act="spinExport">Export Spin Video (MP4/WebM)&hellip;</div>
     </div></div>
@@ -865,6 +866,7 @@ canvas#view{width:100%;height:100%;display:block;touch-action:none;outline:none;
       <div class="mi" data-op="wireframe">Wireframe Modeling</div>
       <div class="mi" data-op="latticeFill">Lattice Fill (TPMS infill)&hellip;</div>
       <div class="mi" data-act="topmodLook">The TopMod Look (dodeca · 6 twisted handles · rind)</div>
+      <div class="mi" data-act="lookGuide">The TopMod Look &mdash; step-by-step guide (PDF)</div>
       <div class="mi" data-op="menger">Menger Sponge</div>
     </div></div>
     <div class="menu"><span class="mtitle">Remeshing</span><div class="mlist">
@@ -6898,7 +6900,7 @@ function addModifier(type, opts){
   if(!layersOn && !(opts&&opts.returnMod)){                 // step-by-step mode: bake the operation into the mesh now
     try{ snapshot(); const r=MODS[type].apply(mesh, params); const err=r&&TM.validate(r); if(!r||!r.faces||!r.faces.length) throw "no result"; if(err&&!/^duplicate directed edge/.test(err)) throw err;
       mesh={verts:r.verts.map(v=>v.slice()),faces:r.faces.map(f=>f.slice())}; L.mesh=mesh; L.steps=(L.steps||[]).concat(MODS[type].label);
-      clearSel(false); rebuild(); renderModStack(); toast&&toast(MODS[type].label+" ✓ (baked — Layers is off)"); }
+      clearSel(false); rebuild(); renderModStack(); try{ window.__guide&&window.__guide.log(MODS[type].label); }catch(e){} toast&&toast(MODS[type].label+" ✓ (baked — Layers is off)"); }
     catch(e){ undoStack.pop(); updateUndoUI&&updateUndoUI(); toast&&toast(String(e),true); }
     return;
   }
@@ -6906,7 +6908,7 @@ function addModifier(type, opts){
   const m={id:modSeq++, type, on:true, params};
   L.modifiers.push(m);
   if(type==="extrude"||type==="pinch"||type==="handle"){ try{ clearSel(false); }catch(e){} }
-  rebuild(); renderModStack();
+  rebuild(); renderModStack(); try{ window.__guide&&window.__guide.log(MODS[type].label); }catch(e){}
   if(opts&&opts.returnMod) return m;
   if(!(opts&&opts.silent) && typeof openModEdit==="function") openModEdit(m.id);   // hand menu passes {silent:true}
   toast&&toast("Added "+MODS[type].label);
@@ -7746,6 +7748,7 @@ function snapshot(){
 }
 function undo(){
   if(!undoStack.length) return;
+  try{ window.__guide&&window.__guide.popLast(); }catch(e){}
   redoStack.push(_docSnap());
   _docRestore(undoStack.pop());
   _afterTimeTravel();
@@ -7791,6 +7794,7 @@ function applyWhole(fn,label,keepCrust){
     L.modifiers.push(md);
     if(!keepCrust){ crustPairs=null; updateCrustUI(); }
     clearSel(false); rebuild(); renderModStack();
+    try{ window.__guide&&window.__guide.log(label); }catch(e){}
     toast(label+" ✓ — added to modifiers");
     return;
   }
@@ -7803,6 +7807,7 @@ function applyWhole(fn,label,keepCrust){
     if(!keepCrust){ crustPairs=null; updateCrustUI(); }
     if(!layersOn && layers[activeLayer] && fn.length>=1){ const L=layers[activeLayer]; L.mesh=mesh; L.steps=(L.steps||[]).concat(String(label||"Tool").replace(/\s*✓$/,"")); }
     clearSel(false); rebuild();
+    try{ window.__guide&&window.__guide.log(label); }catch(e){}
     toast(label+" ✓");
   }catch(e){ undoStack.pop(); updateUndoUI(); toast(String(e),true); }
 }
@@ -7928,6 +7933,7 @@ function setRenderMode(m){
   if(!RMODES[m]) return;
   { const vs=document.getElementById("viewStyleSel"); if(vs && vs.value!==m) vs.value=m; }
   if(GEM_RM.test(m) && !(window.__demo&&window.__demo.on&&window.__demo.on())) setTimeout(()=>openGemOptions(m),0);
+  if(GEM_RM.test(m)) try{ setTimeout(()=>window.__guide&&window.__guide.log("View · "+RMODES[m].label,{key:"gem"}),400); }catch(e){}
   else if(tpState&&tpState.op==="gemview") try{ closeToolPop(); }catch(e){}
   _gemGuard={t0:performance.now(),last:0,ema:0,slow:0};
   if(window.__lineart && !window.__lineartKeep) try{ window.__lineart.close(); }catch(e){}   // picking another view leaves Line Art
@@ -8476,6 +8482,7 @@ function updateCrustUI(){
 
 // ---------- primitives & file ----------
 function loadPrim(p){
+  try{ setTimeout(()=>window.__guide&&window.__guide.log("Primitive · "+primLabel(p),{reset:true}),0); }catch(e){}
   snapshot(); mesh=TM.primitives[p](); crustPairs=null; if(layers[activeLayer]){ layers[activeLayer].steps=[]; layers[activeLayer].mesh=mesh; } clearSel(false); rebuild(); updateCrustUI(); renderModStack&&renderModStack();
 }
 // parametric primitives: build from current slider values
@@ -8647,6 +8654,7 @@ function refreshPrimPreview(){
 }
 function endPrimPreview(commit){
   if(!primPreviewName) return;
+  try{ const nm=primPreviewName; setTimeout(()=>window.__guide&&window.__guide.log("Primitive · "+primLabel(nm),{reset:true}),0); }catch(e){}
   primPreviewName=null; primPrevMesh=null; primSnapDone=false;
   // Edits are live-committed as you go (same model as modifiers), so both Apply and Close keep the
   // current form. Undo reverts the whole edit session; Redo brings it back.
@@ -13768,12 +13776,17 @@ window.__ek={applyWhole:applyWhole,ops:ops,snapshot:snapshot,rebuild:rebuild,toa
     tpState={op:"lineart",btn:null,moved:[]}; }
   function detach(){ const ctl=window.__laCtl; if(ctl&&panel&&ctl.parentNode!==panel) panel.appendChild(ctl); }
   function setOpen(on){ if(!panel) build(); open=!!on; panel.style.display="none"; view.style.display=open?"block":"none";
-    if(open){ C.paperOn=true; const pc=document.getElementById("laPaper"); if(pc) pc.checked=true; }   // line art overrides every shader: drawing on paper
+    if(open){ C.paperOn=true; const pc=document.getElementById("laPaper"); if(pc) pc.checked=true;
+      setTimeout(async()=>{ try{ if(window.__guide&&!window.__guideMute){ const im=await png(); window.__guide.log("Line Art · "+(STYLES[C.style]||{label:""}).label,{key:"lineart"}); const st=window.__guide.steps; if(im&&st.length) setTimeout(()=>{ st[st.length-1].img=im; },200); } }catch(e){} },900); }   // line art overrides every shader: drawing on paper
     else { try{ rebuild(); }catch(e){} }
     if(open) attach(); else { detach(); try{ if(tpState&&tpState.op==="lineart"){ $("#tpApply")&&($("#tpApply").style.display=""); tpState=null; const b=$("#tpBody"); if(b) b.innerHTML=""; $("#tpTitle")&&($("#tpTitle").textContent="Options"); $("#toolpop").classList.add("empty"); } }catch(e){} }
     if(open){ lastKey=""; bump(); tick(); toast&&toast("Line Art — orbit to frame the drawing; it re-plots when you stop"); }
     document.querySelectorAll('[data-act="lineArt"]').forEach(el=>el.classList.toggle("on",open)); }
-  window.__lineart={ _detach:()=>{ if(open){ open=false; view.style.display="none"; detach(); document.querySelectorAll('[data-act="lineArt"]').forEach(el=>el.classList.remove("on")); } }, open:()=>setOpen(true), close:()=>setOpen(false), toggle:()=>setOpen(!open), style:applyStyle, generate, process, toSVG, toHPGL, toGcode, cfg:C, get result(){ return result; } };
+  async function png(){
+    const g=generate(); if(!g) return null; const keep=C.paperOn; C.paperOn=true; let sv=overlaySVG(g); C.paperOn=keep;
+    sv=sv.replace('<svg ','<svg width="'+g.W+'" height="'+g.H+'" ');
+    return await new Promise(res=>{ const img=new Image(); img.onload=()=>{ const cv=document.createElement("canvas"); cv.width=g.W; cv.height=g.H; cv.getContext("2d").drawImage(img,0,0); res(cv.toDataURL("image/jpeg",0.92)); }; img.onerror=()=>res(null); img.src="data:image/svg+xml;charset=utf-8,"+encodeURIComponent(sv); }); }
+  window.__lineart={ png, _detach:()=>{ if(open){ open=false; view.style.display="none"; detach(); document.querySelectorAll('[data-act="lineArt"]').forEach(el=>el.classList.remove("on")); } }, open:()=>setOpen(true), close:()=>setOpen(false), toggle:()=>setOpen(!open), style:applyStyle, generate, process, toSVG, toHPGL, toGcode, cfg:C, get result(){ return result; } };
   document.querySelectorAll('[data-act="lineArt"]').forEach(el=>el.addEventListener("click",e=>{ e.stopPropagation(); document.querySelectorAll("#menubar .menu.open").forEach(m=>m.classList.remove("open")); setOpen(!open); }));
 })();
 // ---------- Math panel (left): live equations + equation / Python terminal ----------
@@ -13997,6 +14010,7 @@ window.__ek={applyWhole:applyWhole,ops:ops,snapshot:snapshot,rebuild:rebuild,toa
     snapshot(); mesh=m; const L=layers[activeLayer]; if(L){ L.mesh=m; L.gen=null; L.modifiers=[]; L.steps=[]; L.name=label||"Equation"; L._ev=null; L._evKey=null; }
     crustPairs=null; clearSel(false); rebuild(); renderLayerList&&renderLayerList(); renderModStack&&renderModStack();
     try{ window.__tm.frameAll(1.3); }catch(e){}
+    try{ window.__guide&&window.__guide.log(label||"Equation",{reset:true,key:"eqsurf"}); }catch(e){}
   }
   // ---- line interpreter ----
   function clickOp(sel){ const b=document.querySelector(sel); if(!b) return false; b.click();
@@ -14092,6 +14106,7 @@ window.__ek={applyWhole:applyWhole,ops:ops,snapshot:snapshot,rebuild:rebuild,toa
     op(k,x){ cur=k; extra=x||""; render(); },
     toggle(v){ on=(v==null)?!on:!!v; try{ localStorage.setItem("tmEq",on?"1":"0"); }catch(_){} document.querySelectorAll('[data-act="liveEq"]').forEach(el=>el.classList.toggle("on",on)); render(); },
     gem(name){ const n=GEM_N[name]; if(n) this.op("gem","n = "+n+"  ·  θ_c = "+(Math.asin(1/n)*180/Math.PI).toFixed(1)+"°"); },
+    formulas:F,
     demo(d){ if(d===null){ demoInfo=null; } else { demoInfo=Object.assign(demoInfo||{}, d); if(d.step===null) delete demoInfo.step; } render(); },
     run:(t)=>runText(t), type:async(t)=>{ if(!panel) build(); const tok=runTok; inp.value=""; for(let i=0;i<t.length;i++){ if(tok!==runTok) return; inp.value+=t[i]; if(i%2===0) await sleep(10); } inp.scrollTop=inp.scrollHeight; },
     cancel(){ runTok++; busy=false; },
@@ -14105,6 +14120,205 @@ window.__ek={applyWhole:applyWhole,ops:ops,snapshot:snapshot,rebuild:rebuild,toa
     else if(b.dataset.rm&&GEM_N[b.dataset.rm]) window.__eq.gem(b.dataset.rm); },true);
   document.querySelectorAll('[data-act="liveEq"]').forEach(el=>{ el.classList.toggle("on",on); el.addEventListener("click",ev=>{ ev.stopPropagation(); document.querySelectorAll("#menubar .menu.open").forEach(m=>m.classList.remove("open")); window.__eq.toggle(); }); });
   setTimeout(()=>{ try{ window.__eq.topo(TM.eulerInfo((typeof dispMesh==="function")?dispMesh():mesh)); }catch(e){ render(); } },500);
+})();
+// ---------- Step Guide compiler: every modeling step is recorded (snapshot + formula + V/E/F/g) and compiled into a PDF ----------
+// File → Export Step Guide (PDF)  · Help → The TopMod Look — step-by-step guide (PDF)
+(function(){
+  const LOG=[]; let pending=null;
+  const KEY=l=>{ l=String(l||"").toLowerCase();
+    return /catmull|subdivide/.test(l)?"catmull": /doo-?sabin|smooth \(doo/.test(l)?"doosabin": /handle/.test(l)?"handle": /rind|crust/.test(l)?"rind":
+      /loop/.test(l)?"loops": /crease/.test(l)?"crease": /wireframe/.test(l)?"wireframe": /sapphire|diamond|ruby|emerald|gem/.test(l)?"gem":
+      /line art/.test(l)?"lineart": /equation|deform|z =|r =|parametric|tube|implicit/.test(l)?"eqsurf": /dodeca/.test(l)?"dodeca": null; };
+  function snapJPEG(maxW){
+    const src=renderer.domElement, w=src.width, h=src.height, k=Math.min(1,(maxW||900)/w);
+    const c=document.createElement("canvas"); c.width=Math.round(w*k); c.height=Math.round(h*k); const x=c.getContext("2d");
+    x.fillStyle="#0b0f18"; x.fillRect(0,0,c.width,c.height); x.drawImage(src,0,0,c.width,c.height); return c.toDataURL("image/jpeg",0.9); }
+  function topoNow(){ try{ return TM.eulerInfo((typeof dispMesh==="function")?dispMesh():mesh); }catch(e){ return null; } }
+  function log(label, opt){
+    if(window.__guideMute) return;
+    opt=opt||{}; if(opt.reset) LOG.length=0;
+    const entry={label:String(label||"Step").replace(/\s*✓$/,""), key:opt.key||KEY(label), img:null, topo:null, t:Date.now()};
+    LOG.push(entry); if(LOG.length>80) LOG.shift();
+    clearTimeout(pending); pending=setTimeout(()=>requestAnimationFrame(()=>requestAnimationFrame(()=>{
+      try{ renderer.render(scene,camera); entry.img=snapJPEG(900); entry.topo=topoNow(); }catch(e){} })),60);
+  }
+  function popLast(){ LOG.pop(); }
+  // ---- page painter (canvas, 17 × 11 in @ 150 dpi) + JPEG-in-PDF writer ----
+  const PW=2550, PH=1650, DPI=150, M=56, TB=82;
+  const CY="#00a8c6", INK="#14181f", MUT="#6b7787", ORG="#e8771a", BLUE="#1f4e8c";
+  function newPage(meta, num, total, title){
+    const c=document.createElement("canvas"); c.width=PW; c.height=PH; const x=c.getContext("2d");
+    x.fillStyle="#ffffff"; x.fillRect(0,0,PW,PH); x.strokeStyle=INK; x.lineWidth=2; x.strokeRect(M,M,PW-2*M,PH-2*M);
+    // flat title bar along the bottom
+    const y0=PH-M-TB; x.beginPath(); x.moveTo(M,y0); x.lineTo(PW-M,y0); x.stroke();
+    const cells=[["PROJECT",meta.project,420],["SHEET TITLE",title,760],["SOURCE","TOPMOD 3D v3.9",300],["DRAWN BY",meta.drawn||"TOPMOD 3D",300],["DATE",meta.date,230],["STEPS",String(meta.steps),150]];
+    let cx=M; for(const [lab,val,w] of cells){ x.fillStyle=MUT; x.font="bold 15px Helvetica, Arial"; x.fillText(lab,cx+14,y0+22);
+      x.fillStyle=INK; x.font=(lab==="SHEET TITLE"||lab==="PROJECT"?"bold ":"")+"26px Helvetica, Arial"; x.fillText(fit(x,val,w-24),cx+14,y0+62); cx+=w; x.beginPath(); x.moveTo(cx,y0); x.lineTo(cx,PH-M); x.stroke(); }
+    x.fillStyle=MUT; x.font="bold 15px Helvetica, Arial"; x.fillText("SHEET",cx+14,y0+22); x.font="16px Helvetica, Arial"; x.fillText(num+" OF "+total,cx+14,y0+62);
+    x.fillStyle=INK; x.font="bold 40px Helvetica, Arial"; x.textAlign="right"; x.fillText(String(num).padStart(2,"0"),PW-M-18,y0+62); x.textAlign="left";
+    return {c,x};
+  }
+  function fit(x,s,w){ s=String(s==null?"":s); if(x.measureText(s).width<=w) return s; while(s.length>3 && x.measureText(s+"…").width>w) s=s.slice(0,-1); return s+"…"; }
+  function wrap(x,text,X,Y,w,lh){ const words=String(text).split(/\s+/); let line="", y=Y;
+    for(const wd of words){ const t=line?line+" "+wd:wd; if(x.measureText(t).width>w && line){ x.fillText(line,X,y); y+=lh; line=wd; } else line=t; }
+    if(line){ x.fillText(line,X,y); y+=lh; } return y; }
+  function loadImg(src){ return new Promise(r=>{ if(!src) return r(null); const im=new Image(); im.onload=()=>r(im); im.onerror=()=>r(null); im.src=src; }); }
+  let CROP=null;   // normalised [u0,v0,u1,v1] applied to every image (frames the form tightly)
+  function drawImgFit(x,im,X,Y,w,h,bg){ x.fillStyle=bg||"#0b0f18"; roundRect(x,X,Y,w,h,14); x.fill(); if(!im) return {X,Y,w,h,k:1,ox:X,oy:Y,dw:w,dh:h,cr:[0,0,1,1]};
+    const cr=CROP||[0,0,1,1], sx=cr[0]*im.width, sy=cr[1]*im.height, sw=(cr[2]-cr[0])*im.width, sh=(cr[3]-cr[1])*im.height;
+    const k=Math.min(w/sw,h/sh), dw=sw*k, dh=sh*k, ox=X+(w-dw)/2, oy=Y+(h-dh)/2;
+    x.save(); roundRect(x,X,Y,w,h,14); x.clip(); x.drawImage(im,sx,sy,sw,sh,ox,oy,dw,dh); x.restore(); return {X,Y,w,h,k,ox,oy,dw,dh,cr}; }
+  function roundRect(x,X,Y,w,h,r){ x.beginPath(); x.moveTo(X+r,Y); x.arcTo(X+w,Y,X+w,Y+h,r); x.arcTo(X+w,Y+h,X,Y+h,r); x.arcTo(X,Y+h,X,Y,r); x.arcTo(X,Y,X+w,Y,r); x.closePath(); }
+  function formulaLines(key){ try{ const F=window.__eq&&window.__eq.formulas; const f=F&&F[key]; return f? [f.t].concat(f.l||[]) : []; }catch(e){ return []; } }
+  function topoLine(t){ if(!t) return ""; const g=Number.isInteger(t.genus)?t.genus:(+t.genus).toFixed(1); return "V "+t.V+"  −  E "+t.E+"  +  F "+t.F+"  =  χ "+t.chi+"   ⇒   genus "+g+(t.comps>1?"  ("+t.comps+" shells)":""); }
+  function stepCard(x,s,i,X,Y,w,h,im){
+    const ih=Math.round(h*0.62); const r=drawImgFit(x,im,X,Y,w,ih,s.key==="lineart"?"#ffffff":null); if(s.key==="lineart"){ x.strokeStyle="#c9d3de"; x.lineWidth=2; roundRect(x,X,Y,w,ih,14); x.stroke(); }
+    // step badge
+    x.fillStyle=ORG; x.beginPath(); x.arc(X+38,Y+38,26,0,Math.PI*2); x.fill(); x.fillStyle="#fff"; x.font="bold 28px Helvetica, Arial"; x.textAlign="center"; x.fillText(String(i+1),X+38,Y+48); x.textAlign="left";
+    let y=Y+ih+44; x.fillStyle=INK; x.font="bold 30px Helvetica, Arial"; x.fillText(fit(x,s.label,w),X,y); y+=36;
+    if(s.instr){ x.fillStyle="#2a3340"; x.font="22px Helvetica, Arial"; y=wrap(x,s.instr,X,y,w,29)+4; }
+    const fl=formulaLines(s.key); if(fl.length){ x.fillStyle=CY; x.font="bold 17px Helvetica, Arial"; x.fillText(String(fl[0]).toUpperCase(),X,y+4); y+=28;
+      x.fillStyle=INK; x.font="21px 'Times New Roman', serif"; for(const l of fl.slice(1,4)){ x.fillText(fit(x,l,w),X,y); y+=26; } }
+    if(s.topo){ x.fillStyle=BLUE; x.font="bold 19px Helvetica, Arial"; x.fillText(fit(x,topoLine(s.topo),w),X,Math.min(y+6,Y+h-6)); }
+    return r;
+  }
+  async function compile(steps, meta, extra){
+    CROP=(extra&&extra.crop)||null;
+    meta=Object.assign({project:"TopMod 3D", drawn:"TOPMOD 3D", date:new Date().toISOString().slice(0,10)}, meta||{}); meta.steps=steps.length;
+    const per=4, nStepPages=Math.ceil(steps.length/per), hasAnat=!!(extra&&extra.anatomy), total=1+(hasAnat?1:0)+nStepPages+1; const pages=[]; let pn=1;
+    const imgs=await Promise.all(steps.map(s=>loadImg(s.img)));
+    // cover
+    { const {c,x}=newPage(meta,pn,total,"COVER"); const last=imgs[imgs.length-1]||imgs.find(Boolean);
+      drawImgFit(x,(extra&&extra.coverImg)? await loadImg(extra.coverImg) : last, M+40, M+40, 1500, PH-2*M-TB-80);
+      let X=M+1580, y=M+110; x.fillStyle=INK; x.font="bold 64px Helvetica, Arial"; y=wrap(x,meta.title||meta.project,X,y,820,72); 
+      x.fillStyle=MUT; x.font="26px Helvetica, Arial"; y=wrap(x,meta.subtitle||"Step-by-step guide · compiled automatically from the modeling steps",X,y+6,820,34)+20;
+      if(meta.credit){ x.fillStyle=CY; x.font="bold 18px Helvetica, Arial"; x.fillText("CREDIT",X,y); y+=30; x.fillStyle=INK; x.font="22px Helvetica, Arial"; y=wrap(x,meta.credit,X,y,820,30)+18; }
+      x.fillStyle=CY; x.font="bold 18px Helvetica, Arial"; x.fillText("STEPS",X,y); y+=34;
+      x.font="22px Helvetica, Arial"; steps.forEach((s,i)=>{ if(y>PH-M-TB-60) return; x.fillStyle=ORG; x.fillText(String(i+1).padStart(2,"0"),X,y); x.fillStyle=INK; x.fillText(fit(x,s.label,760),X+50,y); y+=32; });
+      if(meta.shortcut){ y+=14; x.fillStyle="#2a3340"; x.font="italic 21px Helvetica, Arial"; wrap(x,meta.shortcut,X,y,820,28); }
+      pages.push(c); pn++; }
+    // anatomy (labelled callouts on the finished form)
+    if(hasAnat){ const A=extra.anatomy, {c,x}=newPage(meta,pn,total,"ANATOMY"); const im=await loadImg(A.img);
+      const r=drawImgFit(x,im,M+40,M+40,1640,PH-2*M-TB-80);
+      x.fillStyle=INK; x.font="bold 46px Helvetica, Arial"; x.fillText("Anatomy of the form",M+1730,M+110);
+      x.fillStyle=MUT; x.font="22px Helvetica, Arial"; wrap(x,A.caption||"",M+1730,M+152,700,30);
+      let ly=M+300; (A.labels||[]).forEach((L,i)=>{ if(!L.p) return; const cr=r.cr, px=r.ox+(L.p[0]-cr[0])/(cr[2]-cr[0])*r.dw, py=r.oy+(L.p[1]-cr[1])/(cr[3]-cr[1])*r.dh;
+        const tx=M+1730, ty=ly; x.strokeStyle=BLUE; x.lineWidth=2.4; x.beginPath(); x.moveTo(px,py); x.lineTo(tx-30,ty-8); x.lineTo(tx-8,ty-8); x.stroke();
+        x.fillStyle=BLUE; x.beginPath(); x.arc(px,py,8,0,Math.PI*2); x.fill(); x.fillStyle="#fff"; x.beginPath(); x.arc(px,py,3.5,0,Math.PI*2); x.fill();
+        x.fillStyle=BLUE; x.font="bold 26px Helvetica, Arial"; x.fillText(L.name,tx,ty); x.fillStyle="#2a3340"; x.font="20px Helvetica, Arial"; ly=wrap(x,L.note||"",tx,ty+30,680,26)+30; });
+      pages.push(c); pn++; }
+    // steps, 4 per page
+    for(let p=0;p<nStepPages;p++){ const {c,x}=newPage(meta,pn,total,"STEPS "+(p*per+1)+"–"+Math.min(steps.length,(p+1)*per));
+      const gw=(PW-2*M-3*60)/2, gh=(PH-2*M-TB-3*40)/2;
+      for(let k=0;k<per;k++){ const i=p*per+k; if(i>=steps.length) break; const col=k%2, row=Math.floor(k/2);
+        stepCard(x,steps[i],i, M+60+col*(gw+60), M+40+row*(gh+40), gw, gh, imgs[i]); }
+      pages.push(c); pn++; }
+    // reference table
+    { const {c,x}=newPage(meta,pn,total,"REFERENCE"); let y=M+90; x.fillStyle=INK; x.font="bold 44px Helvetica, Arial"; x.fillText("Step reference",M+60,y); y+=60;
+      const cols=[["#",70],["STEP",620],["MATH",860],["V",120],["E",120],["F",120],["GENUS",130]]; let cx=M+60;
+      x.fillStyle="#eef2f6"; x.fillRect(M+60,y-34,cols.reduce((a,c)=>a+c[1],0),46); x.fillStyle=INK; x.font="bold 20px Helvetica, Arial"; for(const [h,w] of cols){ x.fillText(h,cx+10,y); cx+=w; } y+=46;
+      x.font="20px Helvetica, Arial";
+      steps.forEach((s,i)=>{ if(y>PH-M-TB-30) return; cx=M+60; const fl=formulaLines(s.key), t=s.topo||{};
+        const row=[String(i+1),s.label,(fl[1]||""),t.V??"",t.E??"",t.F??"",t.genus??""];
+        row.forEach((v,j)=>{ x.fillStyle=j===2?"#24303d":INK; x.fillText(fit(x,String(v),cols[j][1]-16),cx+10,y); cx+=cols[j][1]; });
+        x.strokeStyle="#d5dbe2"; x.lineWidth=1; x.beginPath(); x.moveTo(M+60,y+14); x.lineTo(cx,y+14); x.stroke(); y+=40; });
+      pages.push(c); pn++; }
+    return pdfFromCanvases(pages);
+  }
+  function b64ToBytes(b64){ const bin=atob(b64), u=new Uint8Array(bin.length); for(let i=0;i<bin.length;i++) u[i]=bin.charCodeAt(i); return u; }
+  function pdfFromCanvases(pages){
+    const enc=new TextEncoder(), parts=[]; let len=0; const offs=[];
+    const push=d=>{ const u=typeof d==="string"?enc.encode(d):d; parts.push(u); len+=u.length; };
+    const W=17*72, H=11*72; const n=pages.length;
+    // objects: 1 catalog, 2 pages, then per page: image, content, page
+    push("%PDF-1.4\n%\xE2\xE3\xCF\xD3\n");
+    const kids=[]; for(let i=0;i<n;i++) kids.push((3+i*3+2)+" 0 R");
+    offs[1]=len; push("1 0 obj\n<< /Type /Catalog /Pages 2 0 R >>\nendobj\n");
+    offs[2]=len; push("2 0 obj\n<< /Type /Pages /Count "+n+" /Kids ["+kids.join(" ")+"] >>\nendobj\n");
+    pages.forEach((c,i)=>{ const io=3+i*3, co=io+1, po=io+2; const jpg=b64ToBytes(c.toDataURL("image/jpeg",0.9).split(",")[1]);
+      offs[io]=len; push(io+" 0 obj\n<< /Type /XObject /Subtype /Image /Width "+c.width+" /Height "+c.height+" /ColorSpace /DeviceRGB /BitsPerComponent 8 /Filter /DCTDecode /Length "+jpg.length+" >>\nstream\n"); push(jpg); push("\nendstream\nendobj\n");
+      const cs="q "+W+" 0 0 "+H+" 0 0 cm /Im"+i+" Do Q";
+      offs[co]=len; push(co+" 0 obj\n<< /Length "+cs.length+" >>\nstream\n"+cs+"\nendstream\nendobj\n");
+      offs[po]=len; push(po+" 0 obj\n<< /Type /Page /Parent 2 0 R /MediaBox [0 0 "+W+" "+H+"] /Resources << /XObject << /Im"+i+" "+io+" 0 R >> >> /Contents "+co+" 0 R >>\nendobj\n"); });
+    const total=3+n*3, xref=len; let xr="xref\n0 "+total+"\n0000000000 65535 f \n"; for(let k=1;k<total;k++) xr+=String(offs[k]).padStart(10,"0")+" 00000 n \n";
+    push(xr+"trailer\n<< /Size "+total+" /Root 1 0 R >>\nstartxref\n"+xref+"\n%%EOF");
+    const out=new Uint8Array(len); let o=0; for(const p of parts){ out.set(p,o); o+=p.length; } return out;
+  }
+  function savePDF(bytes, fn){
+    const mh=window.webkit&&window.webkit.messageHandlers;
+    if(mh&&mh.saveImage){ let s=""; for(let i=0;i<bytes.length;i+=0x8000) s+=String.fromCharCode.apply(null,bytes.subarray(i,i+0x8000));
+      mh.saveImage.postMessage({filename:fn, dataURL:"data:application/pdf;base64,"+btoa(s)}); toast&&toast("Saving "+fn); return; }
+    const url=URL.createObjectURL(new Blob([bytes],{type:"application/pdf"})), a=document.createElement("a"); a.href=url; a.download=fn; document.body.appendChild(a); a.click(); a.remove(); setTimeout(()=>URL.revokeObjectURL(url),4000); toast&&toast("Saved "+fn);
+  }
+  async function exportLog(){
+    const steps=LOG.filter(s=>s.img); if(!steps.length){ toast&&toast("No recorded steps yet — model something first (each tool becomes a step)",true); return; }
+    toast&&toast("Compiling step guide…");
+    const name=((typeof currentProjectName!=="undefined"&&currentProjectName)||(layers[activeLayer]&&layers[activeLayer].name)||"TopMod model");
+    const bytes=await compile(steps,{project:name, title:name, subtitle:"Step-by-step guide · compiled automatically from your modeling steps"});
+    savePDF(bytes, name.replace(/[\/\\:*?"<>|]/g,"_")+"_steps.pdf");
+  }
+  // ---- the first demo as a guide: rebuild each stage, snapshot it, add instructions + anatomy ----
+  const FR=()=>new Promise(r=>requestAnimationFrame(()=>requestAnimationFrame(r)));
+  async function topmodLookGuide(){ window.__guideMute=true; try{ await _tlg(); } finally { window.__guideMute=false; } }
+  async function _tlg(){
+    toast&&toast("Building the TopMod Look guide…");
+    const keep={mesh, rm:renderMode, yaw, pitch, dist, tgt:target.clone()};
+    const L=layers[activeLayer]; const keepL=L?{mesh:L.mesh, mods:L.modifiers, gen:L.gen, name:L.name, steps:L.steps}:null;
+    const show=async(m)=>{ mesh=m; if(L){ L.mesh=m; L.modifiers=[]; L.gen=null; L._ev=null; L._evKey=null; } clearSel(false); rebuild(); await FR(); renderer.render(scene,camera); };
+    const shot=async()=>{ await FR(); renderer.render(scene,camera); return snapJPEG(1400); };
+    try{
+      const st=TM.topmodLook({smooth:2}), fin=st[st.length-1].mesh, ds=st.find(x=>/^Doo-Sabin/.test(x.label)), rind=st.find(x=>/^Rind/.test(x.label));
+      const cc1=TM.catmullClark(rind.mesh);
+      if(renderMode!=="solid") setRenderMode("solid");
+      await show(fin); yaw=0.7; pitch=0.45; applyCam(); window.__tm.frameAll(1.25); await FR();
+      // crop window = projected bounds of the finished form (+ margin), same for every step, aspect ~1.6
+      let crop=null; { let a=[1,1], b=[0,0]; for(const v of fin.verts){ const q=new THREE.Vector3(v[0],v[1],v[2]).project(camera); const u=(q.x+1)/2, w=(1-q.y)/2; a=[Math.min(a[0],u),Math.min(a[1],w)]; b=[Math.max(b[0],u),Math.max(b[1],w)]; }
+        const rc0=canvas.getBoundingClientRect(), asp=rc0.width/rc0.height; let cu=(a[0]+b[0])/2, cv=(a[1]+b[1])/2, hu=(b[0]-a[0])/2*1.25, hv=(b[1]-a[1])/2*1.25;
+        const want=1.6; if(hu*asp/hv<want) hu=hv*want/asp; else hv=hu*asp/want; crop=[Math.max(0,cu-hu),Math.max(0,cv-hv),Math.min(1,cu+hu),Math.min(1,cv+hv)]; }
+      const S=[];
+      const add=async(label,key,instr,m,pre)=>{ await show(m); if(pre) await pre(); const img=await shot(); S.push({label,key,instr,img,topo:TM.eulerInfo(m)}); };
+      await add("Dodecahedron","dodeca","Tools ▸ Primitives ▸ Dodeca. Twelve pentagons, genus 0 — every face will become the end of a handle.",st[0].mesh);
+      await add("Handle 1 · 72° twist","handle","Faces mode (3). Pick two faces that share no vertex, then Edit ▸ Add Handle. Click a corner on face A and the next corner round on face B — one step = 72° twist.",st[1].mesh);
+      await add("Handles 2–3","handle","Repeat on the next two face pairs. Each handle adds one to the genus (χ drops by 2).",st[3].mesh);
+      await add("All 6 handles","handle","Six handles use all twelve faces. The pairs are chosen so the loops are evenly spread around the form. Genus 6.",st[6].mesh);
+      await add("Doo-Sabin ×1","doosabin","Remeshing ▸ Doo-Sabin, once. This corner-cutting pass is what gives the TopMod look its texture.",ds.mesh);
+      await add("Select face loops","loops","Tools ▸ Loops. Click faces along the handles — the loop runs across the edge nearest your click. Choose 3 loops that never touch.",ds.mesh,async()=>{ setMode("face"); (ds.remove||[]).forEach(f=>sel.faces.add(f)); rebuildOverlay(); });
+      await add("Rind modeling","rind","Tools ▸ Rind. The surface is thickened into a crust and the selected loops are cut out as slots — walls are built only along their outline.",rind.mesh);
+      await add("Catmull-Clark ×2","catmull","Remeshing ▸ Catmull ×2 — smooths every face; the slots stay open.",fin);
+      await add("Undo one level","catmull","⌘Z once to step back to a single level of subdivision — lighter mesh, same form.",cc1);
+      // line art (overlay is SVG → rasterise)
+      let laImg=null; try{ if(window.__lineart&&window.__lineart.png){ await show(cc1); laImg=await window.__lineart.png(); } }catch(e){}
+      if(laImg) S.push({label:"Line Art",key:"lineart",instr:"View style ▾ Line Art — wireframe with hidden lines removed, blue on white. Export SVG / PNG / HPGL from the Options window.",img:laImg,topo:TM.eulerInfo(cc1)});
+      // sapphire (ray-traced view)
+      await show(cc1); const gg=window.__gemGuardOff; window.__gemGuardOff=true; setRenderMode("sapphire"); await FR(); await FR();
+      const sap=await shot(); window.__gemGuardOff=gg; setRenderMode("solid");
+      S.push({label:"Sapphire view",key:"gem",instr:"View style ▾ Sapphire. Ray-traced refraction, total internal reflection and Beer absorption; 💡 sets the light.",img:sap,topo:TM.eulerInfo(cc1)});
+      // anatomy points (screen positions in the final image)
+      await show(cc1); const anaImg=await shot(); const src=renderer.domElement, rc=canvas.getBoundingClientRect(), kk=Math.min(1,1400/src.width)*src.width/rc.width;
+      const scr=p=>{ const v=new THREE.Vector3(p[0],p[1],p[2]).project(camera); return [ (v.x+1)/2, (1-v.y)/2 ]; };
+      const H6=st[6].mesh, ring=(h,k)=>{ const b=20+h*25+k*5; const c=[0,0,0]; for(let j=0;j<5;j++){ const v=H6.verts[b+j]; c[0]+=v[0]/5; c[1]+=v[1]/5; c[2]+=v[2]/5; } return c; };
+      const rem=ds.remove||[], cen=fi=>TM.faceCentroid(ds.mesh,ds.mesh.faces[fi]);
+      const labels=[
+        {name:"Handle (×6)", note:"Curved tube between two faces; each one adds a hole — genus 6 after all six.", p:scr(ring(0,2))},
+        {name:"72° twist", note:"The tube's end is offset one corner (360°/5) — the loops spiral.", p:scr(ring(2,0))},
+        {name:"Slot (removed face loop)", note:"A loop of quads cut out by rind modeling; it weaves from handle to handle.", p:rem.length?scr(cen(rem[Math.floor(rem.length*0.3)])):null},
+        {name:"Rind wall", note:"Thickness of the crust: inner shell offset along the vertex normals, walls along the slot outline.", p:rem.length?scr(cen(rem[Math.floor(rem.length*0.7)])):null},
+        {name:"Junction", note:"Where three handles meet — an original dodecahedron vertex (valence 3 → 6).", p:scr(H6.verts[3])}
+      ];
+      const bytes=await compile(S,{project:"The TopMod Look", title:"The TopMod Look", subtitle:"Dodecahedron → 6 twisted handles → Doo-Sabin → face loops → rind → Catmull-Clark · step-by-step guide",
+        credit:"After Nathan Ho, “TopMod and Blender”. TopMod: Ergun Akleman, Vinod Srinivasan, Jianer Chen (Texas A&M).",
+        shortcut:"Shortcut: Tools ▸ The TopMod Look builds the finished form in one click; File ▸ Export Step Guide compiles your own steps the same way."},
+        {crop, coverImg:anaImg, anatomy:{img:anaImg, caption:"Catmull-Clark ×1 after rind modeling. Euler–Poincaré: V − E + F = 2 − 2g.", labels}});
+      savePDF(bytes,"TopMod_Look_step_guide.pdf");
+    } catch(e){ console.error(e); toast&&toast("Guide failed: "+(e.message||e),true); }
+    finally{
+      if(L&&keepL){ L.mesh=keepL.mesh; L.modifiers=keepL.mods; L.gen=keepL.gen; L.name=keepL.name; L.steps=keepL.steps; L._ev=null; L._evKey=null; }
+      mesh=keep.mesh; yaw=keep.yaw; pitch=keep.pitch; dist=keep.dist; target.copy(keep.tgt); applyCam(); clearSel(false); if(renderMode!==keep.rm) setRenderMode(keep.rm); rebuild();
+    }
+  }
+  window.__guide={ log, popLast, steps:LOG, exportLog, topmodLookGuide, compile, pdfFromCanvases };
+  document.querySelectorAll('[data-act="exportGuide"]').forEach(el=>el.addEventListener("click",e=>{ e.stopPropagation(); document.querySelectorAll("#menubar .menu.open").forEach(m=>m.classList.remove("open")); exportLog(); }));
+  document.querySelectorAll('[data-act="lookGuide"]').forEach(el=>el.addEventListener("click",e=>{ e.stopPropagation(); document.querySelectorAll("#menubar .menu.open").forEach(m=>m.classList.remove("open")); topmodLookGuide(); }));
 })();
 window.__tm={
   topo:()=>TM.eulerInfo(mesh),
