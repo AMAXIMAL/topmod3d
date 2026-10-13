@@ -16437,7 +16437,7 @@ void main(){
     pill.querySelector(".next").addEventListener("click",e=>{ e.stopPropagation(); jump(+1); });
     pill.querySelector(".try").addEventListener("click",e=>{ e.stopPropagation(); paused? resume() : stop(); });
     pill.querySelector(".x").addEventListener("click",e=>{ e.stopPropagation(); stop(true); }); }
-  function jump(d){ const n=SEQS.length; const k=((curK+d)%n+n)%n; alive=false; runGen++; try{ window.__eq&&window.__eq.cancel(); }catch(e){} clearTimeout(timer); cancelAnimationFrame(spin);
+  function jump(d){ const n=SEQS.length; const k=((curK+d)%n+n)%n; alive=false; paused=false; runGen++; flushWaiters(); try{ window.__eq&&window.__eq.cancel(); }catch(e){} clearTimeout(timer); cancelAnimationFrame(spin);
     try{ if(window.__lineart) window.__lineart.close(); }catch(e){} curK=k; if(pill){ pill.remove(); pill=null; } setTimeout(()=>start(k),60); }
   const say = t => { const s = pill && pill.querySelector(".step"); if (s) s.textContent = t; try{ window.__eq&&window.__eq.demo({step:t}); }catch(e){} };
   // ---- orange demo cursor ----
@@ -16457,12 +16457,18 @@ void main(){
   async function slide(id, from, to, steps = 12, label){ const el = q("#" + id); if (!el) return; if (label) say(label); moveCursor(el); await wait(600);
     for (let i = 0; i <= steps && alive; i++){ const v = from + (to - from) * i / steps; el.value = v; el.dispatchEvent(new Event("input", { bubbles:true })); const o = q("#" + id + "V"); if (o) o.textContent = (+v).toFixed(2).replace(/\.?0+$/,""); await wait(110); }
     if (alive) el.dispatchEvent(new Event("change", { bubbles:true })); }
-  const wait = ms => { const g=runGen; return new Promise((ok, no) => { timer = setTimeout(() => (alive && g===runGen) ? ok() : no("stopped"), ms); }); };
+  // paused = the sequence holds exactly where it is; ▶ Resume continues from that step
+  let paused=false, pauseWaiters=[];
+  const flushWaiters=()=>{ const w=pauseWaiters; pauseWaiters=[]; w.forEach(f=>{ try{ f(); }catch(e){} }); };
+  const untilResumed=()=>paused?new Promise(r=>pauseWaiters.push(r)):Promise.resolve();
+  const wait = ms => { const g=runGen; return new Promise((ok, no) => { const fire=()=>{ if(!(alive && g===runGen)) return no("stopped"); if(paused){ pauseWaiters.push(()=>{ (alive && g===runGen) ? ok() : no("stopped"); }); return; } ok(); }; timer = setTimeout(fire, ms); }); };
   function setTitle(on){ const t=q("#demoTitle"); if(t){ t.innerHTML = on ? "&#9632; Demo" : "&#9654; Demo"; t.classList.toggle("on",on); } }
   // touching the scene PAUSES the demo: the pill stays with ▶ Resume and a small × to close it; the form stays usable
   let curK=0;
   function stop(close){
-    if (!alive && !close) return; const was=alive || !!pill; try{ window.__eq&&window.__eq.cancel(); }catch(e){} alive = false; clearTimeout(timer); cancelAnimationFrame(spin);
+    if (!close){ if (!alive || paused) return; paused=true; document.querySelectorAll(".amxPulse").forEach(el => el.classList.remove("amxPulse")); if (cur) { cur.remove(); cur = null; }
+      try{ const CL=window.__cloth; if(CL&&CL.cfg.playing){ CL.pause(); CL._demoWasPlaying=true; } }catch(e){} setTitle(false); wirePill(true); return; }
+    if (!alive && !close) return; const was=alive || !!pill; try{ window.__eq&&window.__eq.cancel(); }catch(e){} alive = false; paused=false; flushWaiters(); clearTimeout(timer); cancelAnimationFrame(spin);
     document.querySelectorAll(".amxPulse").forEach(el => el.classList.remove("amxPulse"));
     if (cur) { cur.remove(); cur = null; }
     try { if(window.__lineart) window.__lineart.close(); } catch(e){}
@@ -16470,17 +16476,28 @@ void main(){
     if (close || !pill) { try{ window.__eq&&window.__eq.demo(null); }catch(e){} if (pill) { pill.remove(); pill = null; } if(was) try { toast && toast("Demo closed — your turn. Pick a primitive or a tool."); } catch(e){} return; }
     runGen++; wirePill(true);
   }
-  function resume(){ if (alive) return; if (pill) { pill.remove(); pill = null; } start(curK); }
+  function resume(){ if (paused && alive){ paused=false; setTitle(true); wirePill(false); try{ const CL=window.__cloth; if(CL&&CL._demoWasPlaying){ CL._demoWasPlaying=false; CL.play(); } }catch(e){} flushWaiters(); return; }
+    if (alive) return; if (pill) { pill.remove(); pill = null; } start(curK); }
   addEventListener("keydown", e => { if (e.key === "Escape" && alive) stop(); });
-  ["pointerdown","wheel","keydown","touchstart"].forEach(ev => addEventListener(ev, e => {
-    if (!alive || !e.isTrusted) return;
-    const t = e.target; if (t && t.closest && (t.closest("#amxDemo") || t.closest("#demoMenu") || t.closest("#demoTitle"))) return;
+  // In demo mode you can orbit / zoom the view freely; the demo pauses only when you TAP the model's surface
+  // (or touch any tool / panel / key).
+  let dTap=null;
+  const onCanvas=t=>t && (t.id==="view" || (t.closest && t.closest("#viewWrap") && t.tagName==="CANVAS"));
+  ["pointerdown","keydown"].forEach(ev => addEventListener(ev, e => {
+    if (!alive || paused || !e.isTrusted) return;
+    const t = e.target; if (t && t.closest && (t.closest("#amxDemo") || t.closest("#demoMenu") || t.closest("#demoTitle") || t.closest("#navcube"))) return;
+    if (ev==="pointerdown" && onCanvas(t)){ dTap={x:e.clientX,y:e.clientY,t:performance.now()}; return; }   // maybe an orbit — decide on release
     stop();
   }, { capture:true, passive:true }));
+  addEventListener("pointerup", e => {
+    if (!alive || paused || !dTap || !e.isTrusted) { dTap=null; return; }
+    const moved=Math.hypot(e.clientX-dTap.x, e.clientY-dTap.y), quick=performance.now()-dTap.t<600; dTap=null;
+    if (moved<7 && quick){ let hit=null; try{ hit=pickAt(e.clientX,e.clientY); }catch(_){} if (hit) stop(); }
+  }, { capture:true, passive:true });
 
   // slow turntable while the demo runs
   let spinHold=false;   // a sequence can hold the camera still (e.g. while a form is being modeled)
-  function turn(){ if (!alive) return; try { if(!spinHold){ yaw += 0.0025; applyCam(); } } catch(e){} spin = requestAnimationFrame(turn); }
+  function turn(){ if (!alive) return; try { if(!spinHold && !paused){ yaw += 0.0025; applyCam(); } } catch(e){} spin = requestAnimationFrame(turn); }
 
   async function press(sel, label, hold = 650){
     const b = q(sel); if (!b) return false;
@@ -16578,8 +16595,8 @@ void main(){
         await point('#toolbar [data-op="catmull"]', "Catmull-Clark — smooth", 260); EQ("catmull");
         S.on=true; S.params.levels=1; rebuild(); show(S); await wait(350); S.params.levels=2; rebuild(); show(S); say("Catmull-Clark ×2"); await wait(600);
         // one full 360° turn of the finished form (view style unchanged)
-        say("360° turn"); spinHold=true; { const y0=yaw, T=6000, t0=performance.now();
-          while(alive){ const u=Math.min(1,(performance.now()-t0)/T); yaw=y0+Math.PI*2*(u<.5?2*u*u:1-Math.pow(-2*u+2,2)/2); try{ applyCam(); }catch(e){} if(u>=1) break; await new Promise(r=>requestAnimationFrame(r)); }
+        say("360° turn"); spinHold=true; { const y0=yaw, T=6000; let t0=performance.now();
+          while(alive){ if(paused){ const tp=performance.now(); await untilResumed(); t0+=performance.now()-tp; if(!alive) break; } const u=Math.min(1,(performance.now()-t0)/T); yaw=y0+Math.PI*2*(u<.5?2*u*u:1-Math.pow(-2*u+2,2)/2); try{ applyCam(); }catch(e){} if(u>=1) break; await new Promise(r=>requestAnimationFrame(r)); }
           yaw=y0; try{ applyCam(); }catch(e){} }
         // then Line Art (still)
         if(window.__lineart && alive){ say("Line Art · wireframe, hidden lines removed"); window.__lineart.open(); EQ("lineart"); await wait(3600); window.__lineart.close(); await wait(300); }
@@ -16732,8 +16749,8 @@ void main(){
     run().catch(() => {});
   }
   let startK=0;
-  window.__demo = { start, stop, resume, on: () => alive };
-  { const t=q("#demoTitle"); if(t){ t.addEventListener("click", e => { e.stopPropagation(); alive ? stop() : (pill ? resume() : start()); });
+  window.__demo = { start, stop, resume, on: () => alive && !paused, get paused(){ return paused; } };
+  { const t=q("#demoTitle"); if(t){ t.addEventListener("click", e => { e.stopPropagation(); alive ? (paused ? resume() : stop()) : (pill ? resume() : start()); });
       // the Demo button lives on the bottom bar (first cell)
       const st=q("#status"), dm=q("#demoMenu"); if(st){ t.classList.add("cell"); t.id="demoTitle"; st.insertBefore(t, st.firstChild); if(dm) dm.style.display="none"; } } }
   if (AUTO) { if (document.readyState === "complete") start(); else addEventListener("load", start); }
