@@ -25,6 +25,12 @@
 body:has(#amxDemo) #eqPanel{bottom:112px}
 #amxDemo button.x.sm{position:absolute;top:-7px;right:-7px;width:18px;height:18px;font-size:12px;background:#1b2430;color:#cfe;border:1px solid rgba(255,255,255,.25)}
 #amxDemo button.x.sm:hover{background:#e5384d;color:#fff}
+#amxDemo .dname{display:flex;flex-direction:column;line-height:1.15;min-width:0;max-width:230px}
+#amxDemo .dname b{color:#00E5FF;font-size:11.5px;letter-spacing:.06em;text-transform:none;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+#amxDemo .dname i{font-style:normal;color:rgba(255,255,255,.5);font-size:10px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+#amxDemo button.nav{width:24px;height:24px;font-size:18px;background:rgba(0,229,255,.16);color:#bff3ff}
+#amxDemo button.nav:hover{background:#00E5FF;color:#04222a}
+#amxDemo .step:empty{display:none}
 #amxDemo.paused .dot{background:#FF8C22;box-shadow:0 0 8px #FF8C22;animation:none}
 #amxDemo.paused button.try{background:#FF8C22;color:#1a0d00}
 #amxCursor{position:fixed;left:50%;top:50%;width:22px;height:22px;margin:-11px 0 0 -11px;border-radius:50%;background:#FF8C22;box-shadow:0 0 0 4px rgba(255,140,34,.28),0 0 18px rgba(255,140,34,.85);z-index:100000;pointer-events:none;opacity:0;transition:left .55s cubic-bezier(.2,.8,.2,1),top .55s cubic-bezier(.2,.8,.2,1),transform .12s,opacity .3s}
@@ -149,7 +155,7 @@ canvas#view{width:100%;height:100%;display:block;touch-action:none;outline:none;
   opacity:0;transition:opacity .18s;pointer-events:none;white-space:nowrap}
 #toast.show{opacity:1}
 #toast.bad{border-color:var(--orange-dim);box-shadow:0 8px 28px rgba(0,0,0,0.55),0 0 18px rgba(255,140,34,0.18)}
-#navcube{position:absolute;top:12px;right:clamp(12px, calc(100vw - 116px), 326px);width:92px;height:92px;z-index:31;user-select:none}
+#navcube{position:absolute;top:12px;right:12px;width:92px;height:92px;z-index:31;user-select:none}
 #ncCanvas{width:92px;height:92px;display:block;cursor:pointer}
 #ncHome{position:absolute;top:-2px;left:-22px;width:16px;height:16px;border-radius:50%;
   background:rgba(0,229,255,0.14);border:1px solid rgba(0,229,255,0.4);color:var(--cyan);
@@ -485,7 +491,7 @@ canvas#view{width:100%;height:100%;display:block;touch-action:none;outline:none;
   #topo{font-size:9px;padding:4px 8px}
   #genusBadge{font-size:9px;padding:4px 8px}
   #toast{font-size:10.5px;padding:6px 13px;max-width:88vw;white-space:normal;text-align:center}
-  #navcube{position:absolute;top:14px;right:326px;width:104px;height:120px;z-index:30;user-select:none}
+  #navcube{position:absolute;top:14px;right:14px;width:104px;height:120px;z-index:30;user-select:none}
 #ncCanvas{width:74px;height:74px;display:block;cursor:pointer}
 #ncHome{position:absolute;top:-2px;left:-22px;width:16px;height:16px;border-radius:50%;
   background:rgba(0,229,255,0.14);border:1px solid rgba(0,229,255,0.4);color:var(--cyan);
@@ -7139,7 +7145,18 @@ const camera=new THREE.PerspectiveCamera(42,1,0.01,200);
 const keyLight=new THREE.DirectionalLight(0xfff2e0,1.0); keyLight.position.set(4,6,5);
 const rimLight=new THREE.DirectionalLight(0x6fa8ff,0.35); rimLight.position.set(-5,2,-4);
 const amb=new THREE.AmbientLight(0x404b5a,0.9);
-scene.add(keyLight,rimLight,amb);
+const fillLight=new THREE.DirectionalLight(0xdfe9ff,0.0);
+scene.add(keyLight,rimLight,amb,fillLight);
+// Bottom-bar 💡 light also drives the viewport shading: 1-point (overhead right of the viewer), 3-point (key · fill · rim), off (original studio)
+function updateViewLights(){
+  const mode=(window.__gemLight==null)?1:window.__gemLight;
+  if(mode===0){ keyLight.position.set(4,6,5); keyLight.intensity=1.0; rimLight.position.set(-5,2,-4); rimLight.intensity=0.35; rimLight.color.setHex(0x6fa8ff); fillLight.intensity=0; amb.intensity=0.9; return; }
+  const e=camera.matrixWorld.elements, R=[e[0],e[1],e[2]], B=[e[8],e[9],e[10]], d=12;
+  const at=(a,b,c)=>[ (R[0]*a+B[0]*c)*d, (R[1]*a+b+B[1]*c)*d, (R[2]*a+B[2]*c)*d ];
+  keyLight.position.set(...at(0.55,0.82,0.18)); keyLight.intensity=mode===3?1.25:1.45;
+  if(mode===3){ fillLight.position.set(...at(-0.75,0.22,0.6)); fillLight.intensity=0.45; rimLight.position.set(...at(0.1,0.6,-0.8)); rimLight.intensity=0.8; rimLight.color.setHex(0xfff1dd); amb.intensity=0.45; }
+  else { fillLight.intensity=0; rimLight.intensity=0; amb.intensity=0.6; }
+}
 
 const GROUND_Y=-2.6;
 const grid=new THREE.GridHelper(10,10,0x7fd8ef,0x4699b3);   // 10 x 10 ground, 1-inch cells
@@ -7153,7 +7170,7 @@ const BUILD_IN=10; const UNIT="in";
   vbox.position.set(0,BUILD_IN/2,0); grid.add(vbox);
 })();
 
-const matFace=new THREE.MeshStandardMaterial({color:0xff8c22,flatShading:true,roughness:0.62,metalness:0.05,polygonOffset:true,polygonOffsetFactor:1,polygonOffsetUnits:1,side:THREE.DoubleSide});
+const matFace=new THREE.MeshPhysicalMaterial({color:0xff8c22,flatShading:true,roughness:0.42,metalness:0.05,clearcoat:0.45,clearcoatRoughness:0.22,polygonOffset:true,polygonOffsetFactor:1,polygonOffsetUnits:1,side:THREE.DoubleSide});
 const matEdge=new THREE.LineBasicMaterial({color:0x1a0e02,transparent:true,opacity:0.9});
 const PO={polygonOffset:true,polygonOffsetFactor:1,polygonOffsetUnits:1,side:THREE.DoubleSide};
 const matXray=new THREE.MeshBasicMaterial(Object.assign({color:0x00e5ff,transparent:true,opacity:0.25,depthWrite:false,side:THREE.DoubleSide}));
@@ -11564,7 +11581,7 @@ function renderPatent3D(){           // anaglyph: halftone each eye, pack left�
   renderer.render(_anaScene,_ptCam);
 }
 
-(function loop(){ requestAnimationFrame(loop); try{ gemPerfGuard(performance.now()); }catch(e){} updateBBoxLabels(); if(window.__ncSync)window.__ncSync(); const t=performance.now()*0.001; for(const m of SHADER_MATS) m.uniforms.u_time.value=t; if(renderMode==="patent") renderPatent(); else if(renderMode==="patent3d") renderPatent3D(); else if(window.__liveRender&&window.__liveRender.on) window.__liveRender.frame(); else renderer.render(scene,camera); })();
+(function loop(){ requestAnimationFrame(loop); try{ gemPerfGuard(performance.now()); updateViewLights(); }catch(e){} updateBBoxLabels(); if(window.__ncSync)window.__ncSync(); const t=performance.now()*0.001; for(const m of SHADER_MATS) m.uniforms.u_time.value=t; if(renderMode==="patent") renderPatent(); else if(renderMode==="patent3d") renderPatent3D(); else if(window.__liveRender&&window.__liveRender.on) window.__liveRender.frame(); else renderer.render(scene,camera); })();
 
 // ---------- TopMod-style toolbar icons: real renders of each op ----------
 function makeIconRenderer(){
@@ -13575,7 +13592,7 @@ window.__ek={applyWhole:applyWhole,ops:ops,snapshot:snapshot,rebuild:rebuild,toa
       +'<div id="laStats"></div><div id="laCmd"></div></div>';
     document.body.appendChild(panel);
     view=document.createElement("div"); view.id="laOver"; document.body.appendChild(view);
-    panel.querySelector("#laPaper").addEventListener("change",e=>{ C.paperOn=e.target.checked; repaint(); });
+    panel.querySelector("#laPaper").addEventListener("change",e=>{ C.paperOn=e.target.checked; if(!C.paperOn) try{ rebuild(); }catch(_){} repaint(); });
     // floating window: drag by the title bar (mouse + touch), resize from the corner, fold the settings away
     const hd=panel.querySelector("h4"); let dg=null;
     hd.addEventListener("pointerdown",e=>{ if(e.target.closest("button")) return; const r=panel.getBoundingClientRect(); dg={dx:e.clientX-r.left, dy:e.clientY-r.top}; hd.setPointerCapture(e.pointerId); });
@@ -13630,6 +13647,7 @@ window.__ek={applyWhole:applyWhole,ops:ops,snapshot:snapshot,rebuild:rebuild,toa
   let lastGen0=null;
   function regen(){ if(busy) return; busy=true; try{ lastGen0=generate(); result=process(lastGen0); repaint(); }catch(e){ console.error(e); toast&&toast("Line art: "+(e.message||e),true); } busy=false; dirty=false; }
   function tick(){ if(!open) return; requestAnimationFrame(tick);
+    if(C.paperOn){ for(const o of [meshObj,edgeObj,pointObj]) if(o) o.visible=false; }
     const key=camera.matrixWorld.elements.map(x=>x.toFixed(4)).join(",")+"|"+(meshObj&&meshObj.geometry?meshObj.geometry.uuid:"")+"|"+canvas.clientWidth+"x"+canvas.clientHeight;
     if(key!==lastKey){ lastKey=key; bump(); if(svgEl) svgEl.style.opacity="0.35"; }
     const now=performance.now();
@@ -13642,6 +13660,8 @@ window.__ek={applyWhole:applyWhole,ops:ops,snapshot:snapshot,rebuild:rebuild,toa
     tpState={op:"lineart",btn:null,moved:[]}; }
   function detach(){ const ctl=window.__laCtl; if(ctl&&panel&&ctl.parentNode!==panel) panel.appendChild(ctl); }
   function setOpen(on){ if(!panel) build(); open=!!on; panel.style.display="none"; view.style.display=open?"block":"none";
+    if(open){ C.paperOn=true; const pc=document.getElementById("laPaper"); if(pc) pc.checked=true; }   // line art overrides every shader: drawing on paper
+    else { try{ rebuild(); }catch(e){} }
     if(open) attach(); else { detach(); try{ if(tpState&&tpState.op==="lineart"){ $("#tpApply")&&($("#tpApply").style.display=""); tpState=null; const b=$("#tpBody"); if(b) b.innerHTML=""; $("#tpTitle")&&($("#tpTitle").textContent="Options"); $("#toolpop").classList.add("empty"); } }catch(e){} }
     if(open){ lastKey=""; bump(); tick(); toast&&toast("Line Art — orbit to frame the drawing; it re-plots when you stop"); }
     document.querySelectorAll('[data-act="lineArt"]').forEach(el=>el.classList.toggle("on",open)); }
@@ -13676,7 +13696,7 @@ window.__ek={applyWhole:applyWhole,ops:ops,snapshot:snapshot,rebuild:rebuild,toa
   let on=true, panel=null, card=null, out=null, inp=null, cur=null, extra="", busy=false;
   let last={V:0,E:0,F:0,chi:0,genus:0,comps:1};
   function css(){ const st=document.createElement("style"); st.textContent=`
-#eqPanel{position:fixed;left:248px;bottom:58px;width:330px;z-index:9985;display:flex;flex-direction:column;border-radius:12px;background:rgba(7,10,16,.9);
+#eqPanel{position:fixed;right:12px;left:auto;bottom:58px;width:340px;height:430px;min-width:260px;min-height:170px;resize:both;overflow:hidden;z-index:9985;display:flex;flex-direction:column;border-radius:12px;background:rgba(7,10,16,.9);
   border:1px solid rgba(0,229,255,.28);box-shadow:0 10px 28px rgba(0,0,0,.5);backdrop-filter:blur(6px);color:#dbe8f3;max-height:calc(100vh - 150px)}
 #eqPanel.hide{display:none}
 #eqHead{display:flex;justify-content:space-between;align-items:center;padding:6px 10px;cursor:move;user-select:none;touch-action:none;border-bottom:1px solid rgba(255,255,255,.07);
@@ -13688,8 +13708,9 @@ window.__ek={applyWhole:applyWhole,ops:ops,snapshot:snapshot,rebuild:rebuild,toa
 #eqCard .eqE b{color:#FF8C22;font-weight:600}
 #eqCard .eqL{color:#cfe0ee;font-size:13px}
 #eqCard .eqSep{height:1px;background:rgba(255,255,255,.1);margin:6px 0}
-#eqTerm{border-top:1px solid rgba(0,229,255,.18);display:flex;flex-direction:column;min-height:0}
-#eqOut{height:130px;overflow:auto;padding:6px 10px;font:11.5px/1.5 ui-monospace,"SF Mono",Menlo,Consolas,monospace;color:#7CFFB2;background:#04070b;white-space:pre-wrap;word-break:break-word}
+#eqTerm{border-top:1px solid rgba(0,229,255,.18);display:flex;flex-direction:column;min-height:0;flex:1 1 auto}
+#eqCard{flex:0 0 auto;overflow:auto;max-height:45%}
+#eqOut{flex:1 1 auto;min-height:50px;height:auto;overflow:auto;padding:6px 10px;font:11.5px/1.5 ui-monospace,"SF Mono",Menlo,Consolas,monospace;color:#7CFFB2;background:#04070b;white-space:pre-wrap;word-break:break-word}
 #eqOut .in{color:#9fe8ff}#eqOut .err{color:#ff7b7b}#eqOut .dim{color:#5c7a6a}#eqOut .ok{color:#ffd27a}
 #eqOut .cur::after{content:"▋";color:#7CFFB2;animation:amxBlink 1s steps(1) infinite}
 #eqInRow{display:flex;gap:6px;padding:6px 8px 8px;background:#04070b;border-radius:0 0 12px 12px}
@@ -13700,7 +13721,7 @@ window.__ek={applyWhole:applyWhole,ops:ops,snapshot:snapshot,rebuild:rebuild,toa
 #eqInRow button{background:#0f2430;color:#bff3ff;border:1px solid #2a4a5a;border-radius:7px;padding:5px 8px;font:600 11px var(--font,system-ui);cursor:pointer}
 #eqInRow button:hover{background:#163648}
 #eqPanel.fold #eqTerm{display:none}
-@media (max-width:760px){ #eqPanel{left:8px;top:auto;bottom:60px;width:calc(100vw - 16px);max-height:55vh} #eqOut{height:110px} }`; document.head.appendChild(st); }
+@media (max-width:760px){ #eqPanel{right:8px;left:auto;top:auto;bottom:60px;width:calc(100vw - 16px);height:300px;max-height:55vh} }`; document.head.appendChild(st); }
   function build(){
     css(); panel=document.createElement("div"); panel.id="eqPanel";
     panel.innerHTML='<div id="eqHead"><span>MATH · LIVE</span><span><button id="eqFold" title="Show / hide the terminal">▾</button><button id="eqX" title="Hide (View → Live Equations)">×</button></span></div>'
@@ -13718,7 +13739,7 @@ window.__ek={applyWhole:applyWhole,ops:ops,snapshot:snapshot,rebuild:rebuild,toa
     // drag by the header
     const hd=panel.querySelector("#eqHead"); let dg=null;
     hd.addEventListener("pointerdown",e=>{ if(e.target.closest("button")) return; const r=panel.getBoundingClientRect(); dg={dx:e.clientX-r.left,dy:e.clientY-r.top}; hd.setPointerCapture(e.pointerId); });
-    hd.addEventListener("pointermove",e=>{ if(!dg) return; const r=panel.getBoundingClientRect(); const x=Math.max(0,Math.min(innerWidth-80,e.clientX-dg.dx)), y=Math.max(0,Math.min(innerHeight-40,e.clientY-dg.dy)); Object.assign(panel.style,{left:x+"px",bottom:Math.max(0,innerHeight-(y+r.height))+"px",top:"auto"}); });
+    hd.addEventListener("pointermove",e=>{ if(!dg) return; const r=panel.getBoundingClientRect(); const x=Math.max(0,Math.min(innerWidth-80,e.clientX-dg.dx)), y=Math.max(0,Math.min(innerHeight-40,e.clientY-dg.dy)); Object.assign(panel.style,{left:x+"px",right:"auto",bottom:Math.max(0,innerHeight-(y+r.height))+"px",top:"auto"}); });
     hd.addEventListener("pointerup",()=>dg=null);
     print("TOPMOD math terminal — equations or Python, one per line. type help","dim");
   }
@@ -15338,6 +15359,42 @@ void main(){
   const AUTO=!/nodemo/i.test(location.hash + location.search);   // demo is ON by default; add #nodemo to skip
   let alive = false, timer = null, spin = null, pill = null;
   const q = s => document.querySelector(s);
+  // demo names + credits (in SEQS order)
+  const DEMO_INFO=[
+    ["The TopMod Look","after Nathan Ho · TopMod: Akleman, Srinivasan, Chen"],
+    ["Flame","equation deform · TopMod 3D"],
+    ["Torus → Wireframe","wireframe modeling: Akleman, Srinivasan, Mandal"],
+    ["Subdivision Surface","Catmull & Clark (1978)"],
+    ["Doo-Sabin + Pentagons","Doo & Sabin (1978) · pentagonalization: Akleman"],
+    ["Menger Sponge","Karl Menger (1926)"],
+    ["Honeycomb Buckyball","Goldberg polyhedra · Buckminster Fuller"],
+    ["Organic Blobs","metaballs: Jim Blinn (1982)"],
+    ["Greeble Panels","greebling: Industrial Light & Magic"],
+    ["Differential Growth","after Anders Hoff (inconvergent)"],
+    ["Gyroid + Voxel","gyroid: Alan Schoen (1970)"],
+    ["Dual · √3 Subdivision","√3 subdivision: Leif Kobbelt (2000)"],
+    ["Sierpiński Tetrix","Wacław Sierpiński (1915)"],
+    ["Möbius Wireframe","August Möbius (1858)"],
+    ["Truncate + Loop","Loop subdivision: Charles Loop (1987)"],
+    ["Pipes","TopMod 3D"],
+    ["Schoen Hybrid Surface","Alan Schoen"],
+    ["Handle (genus +1)","TopMod handles: Akleman, Chen, Srinivasan"],
+    ["Helix Papercraft","TopMod 3D"]
+  ];
+  let runGen=0;
+  function pillHTML(paused){ const k=curK, I=DEMO_INFO[k]||["Demo",""];
+    return '<span class="dot"></span><button type="button" class="nav prev" title="Previous demo">&#8249;</button>'
+      +'<span class="dname"><b>'+(k+1)+' · '+I[0]+'</b><i>'+I[1]+'</i></span><button type="button" class="nav next" title="Next demo">&#8250;</button>'
+      +'<span class="step">'+(paused?'Paused — the form is yours':'')+'</span>'
+      +(paused?'<button type="button" class="try" title="Resume this demo">&#9654; Resume</button>':'<button type="button" class="try" title="Pause and take over">Try for yourself &rsaquo;</button>')
+      +'<button type="button" class="x sm" aria-label="Close demo" title="Close">&times;</button>'; }
+  function wirePill(paused){ if(!pill) return; pill.innerHTML=pillHTML(paused); pill.classList.toggle("paused",!!paused);
+    pill.querySelector(".prev").addEventListener("click",e=>{ e.stopPropagation(); jump(-1); });
+    pill.querySelector(".next").addEventListener("click",e=>{ e.stopPropagation(); jump(+1); });
+    pill.querySelector(".try").addEventListener("click",e=>{ e.stopPropagation(); paused? resume() : stop(); });
+    pill.querySelector(".x").addEventListener("click",e=>{ e.stopPropagation(); stop(true); }); }
+  function jump(d){ const n=SEQS.length; const k=((curK+d)%n+n)%n; alive=false; runGen++; clearTimeout(timer); cancelAnimationFrame(spin);
+    try{ if(window.__lineart) window.__lineart.close(); }catch(e){} curK=k; if(pill){ pill.remove(); pill=null; } setTimeout(()=>start(k),60); }
   const say = t => { const s = pill && pill.querySelector(".step"); if (s) s.textContent = t; };
   // ---- orange demo cursor ----
   let cur = null;
@@ -15347,21 +15404,18 @@ void main(){
   async function slide(id, from, to, steps = 12, label){ const el = q("#" + id); if (!el) return; if (label) say(label); moveCursor(el); await wait(600);
     for (let i = 0; i <= steps && alive; i++){ const v = from + (to - from) * i / steps; el.value = v; el.dispatchEvent(new Event("input", { bubbles:true })); const o = q("#" + id + "V"); if (o) o.textContent = (+v).toFixed(2).replace(/\.?0+$/,""); await wait(110); }
     if (alive) el.dispatchEvent(new Event("change", { bubbles:true })); }
-  const wait = ms => new Promise((ok, no) => { timer = setTimeout(() => alive ? ok() : no("stopped"), ms); });
+  const wait = ms => { const g=runGen; return new Promise((ok, no) => { timer = setTimeout(() => (alive && g===runGen) ? ok() : no("stopped"), ms); }); };
   function setTitle(on){ const t=q("#demoTitle"); if(t){ t.innerHTML = on ? "&#9632; Demo" : "&#9654; Demo"; t.classList.toggle("on",on); } }
   // touching the scene PAUSES the demo: the pill stays with ▶ Resume and a small × to close it; the form stays usable
   let curK=0;
   function stop(close){
-    if (!alive && !close) return; const was=alive; alive = false; clearTimeout(timer); cancelAnimationFrame(spin);
+    if (!alive && !close) return; const was=alive || !!pill; alive = false; clearTimeout(timer); cancelAnimationFrame(spin);
     document.querySelectorAll(".amxPulse").forEach(el => el.classList.remove("amxPulse"));
     if (cur) { cur.remove(); cur = null; }
     try { if(window.__lineart) window.__lineart.close(); } catch(e){}
     setTitle(false);
     if (close || !pill) { if (pill) { pill.remove(); pill = null; } if(was) try { toast && toast("Demo closed — your turn. Pick a primitive or a tool."); } catch(e){} return; }
-    pill.classList.add("paused");
-    pill.innerHTML = '<span class="dot"></span><b>Demo</b><span class="step">Paused — the form is yours</span><button type="button" class="try" title="Resume the demo">&#9654; Resume</button><button type="button" class="x sm" aria-label="Close demo" title="Close">&times;</button>';
-    pill.querySelector(".try").addEventListener("click", e => { e.stopPropagation(); resume(); });
-    pill.querySelector(".x").addEventListener("click", e => { e.stopPropagation(); stop(true); });
+    runGen++; wirePill(true);
   }
   function resume(){ if (alive) return; if (pill) { pill.remove(); pill = null; } start(curK); }
   addEventListener("keydown", e => { if (e.key === "Escape" && alive) stop(); });
@@ -15459,8 +15513,8 @@ void main(){
         say("View · Sapphire (ray-traced gem)"); window.__gemOpts=Object.assign(window.__gemOpts||{}, {disp:false, bounces:5}); setRenderMode("sapphire"); try{ window.__eq&&window.__eq.gem("sapphire"); }catch(e){} await wait(3600);
         // Line Art · Sketch, then one full turn with the drawing following the camera
         if(window.__lineart){ say("Line Art · Sketch style"); window.__lineart.open(); window.__lineart.style("sketch"); EQ("lineart"); window.__lineart.cfg.live=true; await wait(2200);
-          say("Rotate 360°"); const y0=yaw, T=9000, t0=performance.now();
-          await new Promise(res=>{ const step=()=>{ if(!alive) return res(); const t=Math.min(1,(performance.now()-t0)/T); yaw=y0+t*Math.PI*2; applyCam(); if(t<1) requestAnimationFrame(step); else res(); }; step(); });
+          say("Rotate 360°"); const y0=yaw, T=9000, t0=performance.now(), g0=runGen;
+          await new Promise(res=>{ const step=()=>{ if(!alive||g0!==runGen) return res(); const t=Math.min(1,(performance.now()-t0)/T); yaw=y0+t*Math.PI*2; applyCam(); if(t<1) requestAnimationFrame(step); else res(); }; step(); });
           await wait(900); window.__lineart.cfg.live=false; window.__lineart.close(); }
         window.__gemOpts.disp=true; window.__gemOpts.bounces=7; setRenderMode("solid");
       } finally { spinHold=false; try{ window.__eq&&window.__eq.op(null); }catch(e){} }
@@ -15478,8 +15532,8 @@ void main(){
         try { window.__tm.frameAll(1.3); } catch(e){}
         say("View · Diamond — one light, overhead right"); window.__gemOpts=Object.assign(window.__gemOpts||{}, {disp:false, bounces:5}); setRenderMode("diamond"); try{ window.__eq.gem("diamond"); }catch(e){} await wait(3400);
         if(window.__lineart){ say("Line Art · Contours"); window.__lineart.open(); window.__lineart.style("contours"); window.__lineart.cfg.live=true; await wait(2000);
-          say("Rotate 360°"); const y0=yaw, T=9000, t0=performance.now();
-          await new Promise(res=>{ const step=()=>{ if(!alive) return res(); const t=Math.min(1,(performance.now()-t0)/T); yaw=y0+t*Math.PI*2; applyCam(); if(t<1) requestAnimationFrame(step); else res(); }; step(); });
+          say("Rotate 360°"); const y0=yaw, T=9000, t0=performance.now(), g0=runGen;
+          await new Promise(res=>{ const step=()=>{ if(!alive||g0!==runGen) return res(); const t=Math.min(1,(performance.now()-t0)/T); yaw=y0+t*Math.PI*2; applyCam(); if(t<1) requestAnimationFrame(step); else res(); }; step(); });
           await wait(700); window.__lineart.cfg.live=false; window.__lineart.close(); }
         window.__gemOpts.disp=true; window.__gemOpts.bounces=7; setRenderMode("solid");
       } finally { spinHold=false; try{ window.__eq&&window.__eq.op(null); }catch(e){} }
@@ -15565,8 +15619,9 @@ void main(){
   async function run(){
     await wait(1200);
     turn();
-    for (let k = startK % SEQS.length; alive; k = (k + 1) % SEQS.length) {
-      curK = k;
+    const myGen = ++runGen;
+    for (let k = startK % SEQS.length; alive && myGen===runGen; k = (k + 1) % SEQS.length) {
+      if (k !== curK || !pill.querySelector(".dname")) { curK = k; wirePill(false); } curK = k;
       try { await SEQS[k](); await frame(); } catch(e){ if (e === "stopped") return; }
     }
   }
@@ -15574,9 +15629,7 @@ void main(){
     if (alive) return; if (pill) { pill.remove(); pill = null; } alive = true; startK = (typeof k0==="number") ? k0 : 0;
     pill = document.createElement("div");
     pill.id = "amxDemo"; pill.setAttribute("role","status");
-    pill.innerHTML = '<span class="dot"></span><b>Demo</b><span class="step">Starting…</span><button type="button" class="try" title="Stop the demo and take over">Try for yourself &rsaquo;</button><button type="button" class="x" aria-label="Stop and close demo mode" title="Stop demo">&times;</button>';
-    pill.querySelector(".try").addEventListener("click", e => { e.stopPropagation(); stop(); });
-    pill.querySelector(".x").classList.add("sm"); pill.querySelector(".x").addEventListener("click", e => { e.stopPropagation(); stop(true); });
+    curK = startK % SEQS.length; wirePill(false);
     document.body.appendChild(pill);
     setTitle(true);
     run().catch(() => {});
