@@ -15892,23 +15892,23 @@ void main(){
   function stageLoad(m){ try { mesh={verts:m.verts.map(v=>v.slice()),faces:m.faces.map(f=>f.slice())}; const L=layers[activeLayer]; L.mesh=mesh; L.name="TopMod Look"; L.gen=null; L.modifiers=[]; L._ev=null; L._evKey=null; clearSel(false); rebuild(); renderModStack&&renderModStack(); renderLayerList&&renderLayerList(); } catch(e){ console.warn(e); } }
   const SEQS = [
     // 0 — "The TopMod look" (Nathan Ho): dodecahedron -> 6 twisted handles -> Doo-Sabin -> rind (remove face loops) -> Catmull-Clark
-    //     slow turntable while the form is modeled (fast), then one 360° turn -> Line Art (still)
+    //     fast build straight to the final subdivision, camera still, view style unchanged -> one 360° turn -> Line Art
     async () => {
-      spinHold=false;   // slow turntable while the form is modeled
+      spinHold=true;    // camera holds still while the form is modeled
       try {
         fresh(); say("New scene"); await wait(450);
         let st; try { st=TM.topmodLook({smooth:2}); } catch(e){ console.warn(e); return; }
-        await press('#toolbar [data-p="dodecahedron"]', "The TopMod look · start from a dodecahedron", 400); await apply(); await wait(150);
+        await press('#toolbar [data-p="dodecahedron"]', "The TopMod look · start from a dodecahedron", 400); await apply(); await wait(80);
         const EQ=(k,x)=>{ try{ window.__eq&&window.__eq.op(k,x); }catch(e){} }; EQ("dodeca");
         // frame once for the FINISHED form, then build it up in place — no camera moves while modeling
-        stageLoad(st[st.length-1].mesh); try { window.__tm.frameAll(1.3); } catch(e){} stageLoad(st[0].mesh); await wait(500);
+        stageLoad(st[st.length-1].mesh); try { window.__tm.frameAll(1.3); } catch(e){} stageLoad(st[0].mesh); await wait(300);
         EQ("handle");
-        for (let k=1; k<=6; k++){ const s=st[k]; if(!s) break; say(s.label+" (genus "+k+")"); stageLoad(s.mesh); await wait(k===1?700:420); }
-        const ds=st.find(x=>/^Doo-Sabin/.test(x.label)); say("Doo-Sabin ×1 — the key to the TopMod look"); EQ("doosabin"); stageLoad(ds.mesh); await wait(800);
+        for (let k=1; k<=6; k++){ const s=st[k]; if(!s) break; say(s.label+" (genus "+k+")"); stageLoad(s.mesh); await wait(k===1?380:220); }
+        const ds=st.find(x=>/^Doo-Sabin/.test(x.label)); say("Doo-Sabin ×1 — the key to the TopMod look"); EQ("doosabin"); stageLoad(ds.mesh); await wait(450);
         say("Select face loops — quads that weave from handle to handle"); EQ("loops");
-        try { setMode("face"); (ds.remove||[]).forEach(f=>sel.faces.add(f)); rebuildOverlay(); } catch(e){} await wait(1000);
-        const rind=st.find(x=>/^Rind/.test(x.label)); say("Rind modeling · "+rind.label.replace(/^Rind · /,"")); EQ("rind"); try{ clearSel(false); }catch(e){} stageLoad(rind.mesh); await wait(900);
-        say("Catmull-Clark ×2 — smooth"); EQ("catmull"); stageLoad(st[st.length-1].mesh); await wait(900);
+        try { setMode("face"); (ds.remove||[]).forEach(f=>sel.faces.add(f)); rebuildOverlay(); } catch(e){} await wait(550);
+        const rind=st.find(x=>/^Rind/.test(x.label)); say("Rind modeling · "+rind.label.replace(/^Rind · /,"")); EQ("rind"); try{ clearSel(false); }catch(e){} stageLoad(rind.mesh); await wait(450);
+        say("Catmull-Clark ×2 — smooth"); EQ("catmull"); stageLoad(st[st.length-1].mesh); await wait(600);
         // one full 360° turn of the finished form (view style unchanged)
         say("360° turn"); spinHold=true; { const y0=yaw, T=6000, t0=performance.now();
           while(alive){ const u=Math.min(1,(performance.now()-t0)/T); yaw=y0+Math.PI*2*(u<.5?2*u*u:1-Math.pow(-2*u+2,2)/2); try{ applyCam(); }catch(e){} if(u>=1) break; await new Promise(r=>requestAnimationFrame(r)); }
