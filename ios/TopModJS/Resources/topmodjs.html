@@ -13363,7 +13363,7 @@ window.__ek={applyWhole:applyWhole,ops:ops,snapshot:snapshot,rebuild:rebuild,toa
     ["outline","Outline / silhouette","#111111",0.5],["crease","Creases","#333333",0.3],["hidden","Hidden lines (dashed)","#8a8f99",0.18],
     ["hatch","Shading hatch","#3a3f4a",0.2],["contour","Contours","#d0561b",0.25],["wire","Wireframe (visible)","#2a6fdb",0.15]];
   const STYLES={
-    inverse:  {label:"Blueprint (inverse) — blue on white", on:{outline:1,crease:1,hidden:1,wire:1}, paper:"#ffffff", ink:"#1d4e89", outlineW:0.8},
+    inverse:  {label:"Wireframe · hidden removed — blue on white", on:{outline:1,crease:1,wire:1}, paper:"#ffffff", ink:"#1d4e89", outlineW:0.8},
     technical:{label:"Technical",  on:{outline:1,crease:1,hidden:1}, paper:"#ffffff"},
     outline:  {label:"Clean outline", on:{outline:1}, paper:"#ffffff"},
     hatched:  {label:"Hatched",    on:{outline:1,crease:1,hatch:1}, hatch:{levels:2,spacing:1.1,angle:45}, paper:"#ffffff"},
@@ -13373,7 +13373,7 @@ window.__ek={applyWhole:applyWhole,ops:ops,snapshot:snapshot,rebuild:rebuild,toa
     xray:     {label:"X-ray (all edges)", on:{wire:1}, xray:true, paper:"#ffffff"},
     blueprint:{label:"Blueprint",  on:{outline:1,crease:1,hidden:1,wire:1}, paper:"#1d4e89", ink:"#eaf3ff"},
     sketch:   {label:"Sketch",     on:{outline:1,crease:1,hatch:1}, hatch:{levels:2,spacing:1.4,angle:35}, sketch:true, paper:"#fbf8f1"} };
-  const C={ style:"inverse", on:{outline:1,crease:1,hidden:1,wire:1}, colors:{}, widths:{}, crease:32, hatch:{levels:2,spacing:1.1,angle:45,tone:1},
+  const C={ style:"inverse", on:{outline:1,crease:1,wire:1}, colors:{}, widths:{}, crease:32, hatch:{levels:2,spacing:1.1,angle:45,tone:1},
     contours:24, page:"a4", land:false, margin:15, merge:0.1, simplify:0.05, minLen:0.3, sort:true, sketch:false, xray:false, paper:"#ffffff", ink:"#1d4e89", res:1600 };
   LAYERS.forEach(l=>{ C.colors[l[0]]=l[2]; C.widths[l[0]]=l[3]; }); C.widths.outline=0.8;
   let open=false, panel=null, view=null, svgEl=null, lastKey="", dirty=true, idleT=0, result=null, busy=false, lastGen=0;
