@@ -15027,7 +15027,7 @@ vec3 env(vec3 d){
   col+=vec3(0.25)*smoothstep(-0.2,-0.35,d.y)*(1.0-uBg);                     // floor bounce
   if(uKey>0.5){                                                    // + one point light, overhead and to the right of the viewer
     float k=max(0.0,dot(d0,uKeyDir));
-    col+=vec3(1.0,0.97,0.92)*(pow(k,300.0)*30.0 + pow(k,30.0)*2.0);
+    col+=vec3(1.0,0.97,0.92)*(pow(k,300.0)*24.0 + pow(k,30.0)*1.2);
     if(uKey>2.0){                                                  // 3-point: + soft fill (left) + rim/back light
       float f=max(0.0,dot(d0,uFillDir)), r=max(0.0,dot(d0,uRimDir));
       col+=vec3(0.85,0.92,1.0)*(pow(f,60.0)*5.0 + pow(f,6.0)*0.25) + vec3(1.0,0.95,0.88)*(pow(r,400.0)*20.0 + pow(r,40.0)*1.2);
@@ -15164,7 +15164,7 @@ void main(){
       U.uKey.value=(window.__gemLight==null)?1:window.__gemLight;
       if(U.uKey.value>0.5){ const R=new THREE.Vector3().setFromMatrixColumn(cam.matrixWorld,0), B=new THREE.Vector3().setFromMatrixColumn(cam.matrixWorld,2), Up=new THREE.Vector3(0,1,0);
         const mk=(a,b,c)=>R.clone().multiplyScalar(a).add(Up.clone().multiplyScalar(b)).add(B.clone().multiplyScalar(c)).transformDirection(inv).normalize();
-        U.uKeyDir.value.copy(mk(0.55,0.82,0.18)); U.uFillDir.value.copy(mk(-0.75,0.22,0.6)); U.uRimDir.value.copy(mk(0.1,0.6,-0.8)); }
+        U.uKeyDir.value.copy(mk(0.28,0.95,0.12)); U.uFillDir.value.copy(mk(-0.75,0.22,0.6)); U.uRimDir.value.copy(mk(0.1,0.6,-0.8)); }
       U.uEps.value=d.span*2e-5; U.uCenter.value.set(d.center[0],d.center[1],d.center[2]); U.uCoreR.value=d.span*0.11; U.uBounces.value=o.bounces; U.uDisp.value=o.disp?1:0; U.uSmooth.value=(o.smooth==null? d.tris>3000 : o.smooth)?1:0; U.uGain.value=o.gain;
       const a=m.userData.absBase, k=0.9/d.span;                              // absorption scaled to the stone's size
       U.uAbs.value.set(a[0]*k,a[1]*k,a[2]*k);
