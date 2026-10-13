@@ -843,6 +843,10 @@ body.opDock.opOpen.rStack #rSpB{top:calc(var(--tbTop,52px) + var(--rA,26vh) + 6p
 #fabReplay{right:auto!important;left:calc(env(safe-area-inset-left) + var(--tbw,150px) + 6px + (100vw - var(--tbw,150px) - 6px - var(--rw,0px)) / 2)!important;transform:translateX(-50%)!important;bottom:calc(var(--tbBot,44px) + 18px)!important}
 #fabReplay:hover,#fabReplay.handHover{transform:translateX(-50%) scale(1.04)!important}
 body.opDock.opOpen{--rw:calc(var(--opw,280px) + 6px)}
+/* navigation cube: auto-rotate button, opposite the Home button */
+#ncSpin{position:absolute;top:-2px;right:-6px;width:16px;height:16px;border-radius:50%;background:rgba(0,229,255,0.14);border:1px solid rgba(0,229,255,0.4);color:var(--cyan);font-size:10px;line-height:1;cursor:pointer;z-index:31;padding:0}
+#ncSpin:hover{background:var(--cyan);color:#04222a}
+#ncSpin.on{background:var(--cyan);color:#04222a;box-shadow:0 0 10px rgba(0,229,255,.6)}
 /* no Math · Live window */
 #eqPanel{display:none!important}
 [data-act="liveEq"]{display:none!important}
@@ -1166,6 +1170,7 @@ body.opDock.opOpen{--rw:calc(var(--opw,280px) + 6px)}
       <div id="navcube" title="Click a face / edge / corner to snap the view">
         <canvas id="ncCanvas" width="120" height="120"></canvas>
         <button id="ncHome" title="Home view (frame all)">&#8962;</button>
+        <button id="ncSpin" title="Auto-rotate — slowly spins the view while you work">&#10227;</button>
         <select id="viewStyleSel" title="View style"></select>
       </div>
     </div>
@@ -3776,6 +3781,43 @@ function topmodLook(opt){
   return stages;
 }
 
+// Parametric pieces of the TopMod Look, usable as live modifiers:
+//   tmHandles  — pair faces for maximum spread and add `count` curved, twisted handles
+//   tmLoopRind — Doo-Sabin ×1, pick non-touching quad face loops, rind them away (crust with slots)
+function _tmPairs(m){
+  const N=m.faces.map(f=>V3.norm(faceNormal(m,f)));
+  const touch=(i,j)=>m.faces[i].some(v=>m.faces[j].includes(v));
+  const cand=m.faces.map((_,i)=>m.faces.map((__,j)=>j).filter(j=>j!==i&&!touch(i,j)&&(N[i][0]*N[j][0]+N[i][1]*N[j][1]+N[i][2]*N[j][2])>-0.9));
+  const mid=(i,j)=>V3.norm(V3.add(N[i],N[j]));
+  let best=-1, pick=null; const used=new Array(m.faces.length).fill(false), pairs=[]; let budget=200000;
+  (function rec(){ if(--budget<0) return; const i=used.indexOf(false);
+    if(i<0){ const M=pairs.map(([a,b])=>mid(a,b)); let mn=9; for(let x=0;x<M.length;x++) for(let y=x+1;y<M.length;y++) mn=Math.min(mn,Math.acos(Math.max(-1,Math.min(1,M[x][0]*M[y][0]+M[x][1]*M[y][1]+M[x][2]*M[y][2]))));
+      if(mn>best+1e-9){ best=mn; pick=pairs.slice(); } return; }
+    used[i]=true; for(const j of cand[i]){ if(used[j]) continue; used[j]=true; pairs.push([i,j]); rec(); pairs.pop(); used[j]=false; } used[i]=false; })();
+  return pick||[];
+}
+function tmHandles(m0,opt){
+  opt=opt||{}; let m=clone(m0); if(m.faces.length>24||m.faces.length%2) return m;      // pairing is for small even-face polyhedra (dodecahedron, cube…)
+  const pick=_tmPairs(m); const cnt=Math.max(0,Math.min(pick.length,Math.round(opt.count==null?pick.length:opt.count)));
+  const keyF=pick.slice(0,cnt).map(([a,b])=>[m.faces[a].slice(),m.faces[b].slice()]);
+  const find=(mm,arr)=>mm.faces.findIndex(f=>f.length===arr.length&&f.every((v,k)=>v===arr[k]));
+  const seg=Math.max(2,Math.round(opt.segments||5));
+  keyF.forEach(([A,B])=>{ m=addHandle(m, find(m,A), find(m,B), opt.pinch||1, seg, opt.curve||1.25, undefined, undefined, opt.twist==null?1:opt.twist); });
+  return m;
+}
+function tmLoopRind(m,opt){
+  opt=opt||{}; const nF=m.faces.length, ds=dooSabin(m), dd=directedMap(ds);
+  const walk=(f0,k0)=>{ const out=[f0]; let f=f0, k=k0;
+    for(let g=0; g<4000; g++){ const F=ds.faces[f]; if(F.length!==4) return null; const a=F[k], b=F[(k+1)%4], r=dd.get(b+">"+a); if(!r) return null;
+      if(r.f===f0) return out; if(ds.faces[r.f].length!==4) return null; out.push(r.f); f=r.f; k=(r.i+2)%4; } return null; };
+  const seen=new Set(), loops=[];
+  for(let fi=0; fi<nF; fi++){ if(seen.has(fi)||ds.faces[fi].length!==4) continue; const L=walk(fi,0); if(!L) continue; L.forEach(x=>{ if(x<nF) seen.add(x); }); loops.push(L); }
+  const usedV=new Set(), rail=new Set(), every=Math.max(1,Math.round(opt.every||1));
+  loops.forEach((L,li)=>{ if(li%every) return; const vs=new Set(); L.forEach(f=>ds.faces[f].forEach(v=>vs.add(v))); for(const v of vs) if(usedV.has(v)) return; vs.forEach(v=>usedV.add(v)); L.forEach(f=>rail.add(f)); });
+  if(!rail.size) return ds;
+  return rindRemove(ds, rail, opt.scale||0.55);
+}
+
 // ---------- pentagonalization (Akleman-style pentagonal subdivision) ----------
 // Each n-gon -> n corner pentagons + inset inner n-gon. All-pentagon output on dodecahedra.
 function pentagonalize(m, inset=0.45){
@@ -5668,7 +5710,7 @@ return {V3, orientShells, clone, edges, directedMap, validate, eulerInfo, faceCe
   twistMesh, taperMesh, bulgeMesh, bendMesh, spherifyMesh, noiseMesh,
   fanAroundVertex, primitives, insertEdge, deleteEdge, subdivideEdge, subdivideAllEdges,
   triangulateFace, triangulateAll, catmullClark, catmullClarkCrease, dooSabin, dual, loopSubdiv, honeycomb,
-  GEM_CUTS, gemCut, vertexTruncate, quadRemesh, simplifyMesh, extrudeFace, pinchExtrude, stellate, extrudeFace, addHandle, createCrust, punchPair, rindRemove, topmodLook, wireframeModel, toOBJ, fromOBJ, compact,
+  GEM_CUTS, gemCut, vertexTruncate, quadRemesh, simplifyMesh, extrudeFace, pinchExtrude, stellate, extrudeFace, addHandle, createCrust, punchPair, rindRemove, topmodLook, tmHandles, tmLoopRind, wireframeModel, toOBJ, fromOBJ, compact,
   pentagonalize, root3, domeExtrude, doubleStellate, mengerSponge, voxelToMesh, gyroid, gyroidPoly, tpmsSolid, breezeBlock, reorientMesh, thickenSurface, mobiusSolid, planarize, geodesicSphere, torusRef, orientToGround, orientFaceToFace, hybridSurface, sierpinski, scaleMesh, mirrorMesh, mirrorMeshPlane, mergeMeshes, translateMesh, arrayMesh, polarArray, sphereArray, fibonacciArray, rotateMeshAxis, rotateMeshArbitrary, modifiedCornerCutting, wireframeWithCorners, insertEdgeByVerts, flipNormals, fillHoles, deleteFaces, deleteVertexMerge, deleteVertices, offsetMesh, pipes, unfoldMesh, planeCut, connectFaces, sliceLayers, insetLoop, panelizeFaces, laserPanels, selfIntersections, triangulate2D, triangulatePlanar, extrudeProfile, waffleSlices, waffleSlicesPolar, meshBBox, pointInMesh, latticeCells, latticeMorph, shellCells, shellMorph};
 })();
 
@@ -6982,6 +7024,10 @@ const MODS={
   tool:    {label:"Tool", grp:"Topology", params:[],
             apply:(m,p)=>{ const fn=TOOL_FNS.get(p.key); if(fn){ const r=fn({verts:m.verts.map(v=>v.slice()),faces:m.faces.map(f=>f.slice())}); if(r&&r.verts&&r.faces) return r; }
               return p.baked||m; }},
+  tmHandles:{label:"TopMod handles (twisted)", grp:"Topology", params:[{k:"count",l:"Handles",min:0,max:6,step:1,def:6},{k:"twist",l:"Twist",min:0,max:3,step:0.05,def:1},{k:"pinch",l:"Pinch",min:0.3,max:1.6,step:0.05,def:1},{k:"segments",l:"Segments",min:2,max:10,step:1,def:5},{k:"curve",l:"Curve",min:0,max:3,step:0.05,def:1.25}],
+            apply:(m,p)=>TM.tmHandles(m,p)},
+  tmRind:  {label:"Doo-Sabin + face-loop rind", grp:"Topology", params:[{k:"scale",l:"Rind (inner scale)",min:0.2,max:0.9,step:0.01,def:0.55},{k:"every",l:"Every Nth loop",min:1,max:4,step:1,def:1}],
+            apply:(m,p)=>TM.tmLoopRind(m,p)},
   handle:  {label:"Handle", grp:"Topology", params:[{k:"pinch",l:"Pinch",min:0.3,max:1.6,step:0.05,def:0.85},{k:"segments",l:"Segments",min:1,max:10,step:1,def:5},{k:"curve",l:"Curve",min:0,max:3,step:0.1,def:1.5}],
             apply:(m,p)=>{ if(p.fa==null||p.fb==null||p.fa===p.fb||p.fa>=m.faces.length||p.fb>=m.faces.length) return m;
               try{ return TM.addHandle(m,p.fa,p.fb,p.pinch,Math.round(p.segments),p.curve,p.va,p.vb); }catch(e){ return m; } }},
@@ -7716,6 +7762,8 @@ function rebuild(opts){
   // Non-destructive modifier stack: render the base mesh folded through enabled modifiers.
   modStackActive = (typeof activeModsEnabled==="function") && activeModsEnabled();
   const dm = fabActive ? fabMesh() : (modStackActive ? layerEval(layers[activeLayer]) : mesh);
+  // ground grid sits at the bottom of the geometry
+  if(!light){ try{ let mn=Infinity; for(const v of dm.verts) if(v[1]<mn) mn=v[1]; if(isFinite(mn) && typeof grid!=="undefined") grid.position.y=mn-0.002; }catch(e){} }
   // faces -> centroid-fan triangles (render only)
   const pos=[]; triToFace=[];
   const rm=RMODES[renderMode];
@@ -11306,7 +11354,8 @@ makeFloatable($("#layersPanel"), $("#layersHead"), null, {skip:el=>el===$("#laye
 //              (inactive, baked) in the stack when Layers comes back on. A new primitive starts a fresh step list.
 function _modLabel(md){ return (md.type==="tool"&&md.params&&md.params.label)||(MODS[md.type]&&MODS[md.type].label)||md.type; }
 function setLayersOn(on){
-  layersOn=!!on;
+  // full parametric recording: modifiers are always live; the Layers button just shows / hides the right column
+  layersOn=true; if(!on){ document.body.classList.toggle("rightTucked"); return; } document.body.classList.remove("rightTucked");
   const p=$("#layersPanel"), mp=$("#modPanel");
   p&&p.classList.toggle("show",layersOn); mp&&mp.classList.toggle("show",layersOn); $("#layersToggle")&&$("#layersToggle").classList.toggle("on",layersOn);
   const L=layers[activeLayer];
@@ -11315,7 +11364,7 @@ function setLayersOn(on){
     toast&&toast("Layers off — step-by-step: each tool bakes into the mesh (steps are remembered)");
   } else { renderLayerList(); renderModStack(); toast&&toast("Layers on — tools stack as live modifiers; earlier steps are listed (baked)"); }
 }
-$("#layersToggle")&&$("#layersToggle").addEventListener("click",()=>setLayersOn(!layersOn));
+$("#layersToggle")&&$("#layersToggle").addEventListener("click",()=>{ document.body.classList.toggle("rightTucked"); document.body.classList.add("rtForce"); $("#layersToggle").classList.toggle("on",!document.body.classList.contains("rightTucked")); });
 // View-style dropdown under the navigation cube
 (function(){ const vs=document.getElementById("viewStyleSel"); if(!vs) return;
   const groups=[["Shading",["solid","normals","xray","galaxy","matrix","water","moonwater","carbon","carpet","flower","laser","patent","patent3d"]],["Gems (ray-traced)",["diamond","reddiamond","ruby","sapphire","emerald"]]];
@@ -14931,6 +14980,16 @@ window.__ek={applyWhole:applyWhole,ops:ops,snapshot:snapshot,rebuild:rebuild,toa
   new MutationObserver(syncOpen).observe(B,{attributes:true,attributeFilter:["class"]});
   setTab("lay");
 })();
+// ---------- auto-rotate (nav cube ⟳): slow turntable while you work; pauses while you drag the view or a demo runs ----------
+(function(){ const b=document.getElementById("ncSpin"); if(!b) return; let on=false, held=false, last=0;
+  try{ on=localStorage.getItem("tmAutoSpin")==="1"; }catch(e){} b.classList.toggle("on",on);
+  b.addEventListener("click",e=>{ e.stopPropagation(); on=!on; b.classList.toggle("on",on); try{ localStorage.setItem("tmAutoSpin",on?"1":"0"); }catch(_){} });
+  const cv=document.getElementById("view"); if(cv){ cv.addEventListener("pointerdown",()=>held=true); addEventListener("pointerup",()=>held=false); addEventListener("pointercancel",()=>held=false); }
+  function tick(t){ requestAnimationFrame(tick); const dt=last?Math.min(50,t-last):16; last=t;
+    if(!on||held) return; try{ if(window.__demo&&window.__demo.on()) return; }catch(e){}
+    yaw+=dt*0.00025; try{ applyCam(); }catch(e){} }
+  requestAnimationFrame(tick);
+})();
 // ---------- capture hooks (App Store screenshots / previews) ----------
 window.__shot={ load(m){ mesh={verts:m.verts.map(v=>v.slice()),faces:m.faces.map(f=>f.slice())}; if(layers[activeLayer]) layers[activeLayer].mesh=mesh; clearSel&&clearSel(false); rebuild(); },
   mode(rm){ setRenderMode(rm); }, get yaw(){ return yaw; }, set yaw(v){ yaw=v; try{ applyCam(); }catch(e){} }, get pitch(){ return pitch; }, set pitch(v){ pitch=v; try{ applyCam(); }catch(e){} } };
@@ -16471,19 +16530,22 @@ void main(){
       spinHold=true;    // camera holds still while the form is modeled
       try {
         fresh(); say("New scene"); await wait(450);
-        let st; try { st=TM.topmodLook({smooth:2}); } catch(e){ console.warn(e); return; }
         await press('#toolbar [data-p="dodecahedron"]', "The TopMod look · start from a dodecahedron", 400); await apply(); await wait(80);
         const EQ=(k,x)=>{ try{ window.__eq&&window.__eq.op(k,x); }catch(e){} }; EQ("dodeca");
-        // frame once for the FINISHED form, then build it up in place — no camera moves while modeling
-        const STEPS=n=>{ try{ layers[activeLayer].steps=n.slice(); renderModStack&&renderModStack(); }catch(e){} };
-        stageLoad(st[st.length-1].mesh); try { window.__tm.frameAll(1.3); } catch(e){} stageLoad(st[0].mesh); STEPS(["Dodecahedron"]); await wait(300);
-        EQ("handle"); await point('#toolbar [data-op="handle"]', "Handle tool · 6 twisted handles", 300);
-        for (let k=1; k<=6; k++){ const s=st[k]; if(!s) break; say(s.label+" (genus "+k+")"); stageLoad(s.mesh); STEPS(["Dodecahedron","Handle ×"+k+" · 72° twist"]); await wait(k===1?380:220); }
-        const ds=st.find(x=>/^Doo-Sabin/.test(x.label)); await point('#toolbar [data-op="doosabin"]', "Doo-Sabin ×1 — the key to the TopMod look", 260); EQ("doosabin"); stageLoad(ds.mesh); STEPS(["Dodecahedron","Handle ×6 · 72° twist","Doo-Sabin ×1"]); await wait(450);
-        await point('#toolbar [data-op="loopPick"]', "Select face loops — quads that weave from handle to handle", 260); EQ("loops");
-        try { setMode("face"); (ds.remove||[]).forEach(f=>sel.faces.add(f)); rebuildOverlay(); } catch(e){} await wait(550);
-        const rind=st.find(x=>/^Rind/.test(x.label)); await point('#toolbar [data-op="rindSel"]', "Rind modeling · "+rind.label.replace(/^Rind · /,""), 260); EQ("rind"); try{ clearSel(false); }catch(e){} stageLoad(rind.mesh); STEPS(["Dodecahedron","Handle ×6 · 72° twist","Doo-Sabin ×1","Face loops","Rind"]); await wait(450);
-        await point('#toolbar [data-op="catmull"]', "Catmull-Clark ×2 — smooth", 260); EQ("catmull"); { const md=addModifier("subdivide",{returnMod:true}); if(md){ md.params.levels=2; rebuild(); renderModStack&&renderModStack(); } else stageLoad(st[st.length-1].mesh); } await wait(600);
+        // fully parametric: every step is a live modifier on the dodecahedron (editable afterwards in Modifiers / Options)
+        const H=addModifier("tmHandles",{returnMod:true}), R=addModifier("tmRind",{returnMod:true}), S=addModifier("subdivide",{returnMod:true});
+        if(!H||!R||!S){ console.warn("demo: modifiers unavailable"); return; }
+        try{ layers[activeLayer].name="TopMod Look"; renderLayerList&&renderLayerList(); }catch(e){}
+        S.params.levels=2; rebuild(); try { window.__tm.frameAll(1.3); } catch(e){}          // frame the FINISHED form once — camera holds still while it builds
+        H.on=R.on=S.on=false; H.params.count=0; S.params.levels=1; rebuild(); renderModStack&&renderModStack();
+        const show=md=>{ try{ renderModStack&&renderModStack(); openModEdit(md.id); }catch(e){} };
+        EQ("handle"); await point('#toolbar [data-op="handle"]', "TopMod handles · 72° twist", 300); H.on=true;
+        for (let k=1; k<=6 && alive; k++){ H.params.count=k; rebuild(); show(H); say("Handle "+k+" · 72° twist (genus "+k+")"); await wait(k===1?420:260); }
+        await point('#toolbar [data-op="doosabin"]', "Doo-Sabin ×1 + face-loop rind", 260); EQ("rind");
+        R.on=true; R.params.scale=0.85; rebuild(); show(R); await wait(380);
+        for (const sc of [0.75,0.65,0.55]){ if(!alive) break; R.params.scale=sc; rebuild(); show(R); say("Rind · inner scale "+sc.toFixed(2)); await wait(240); }
+        await point('#toolbar [data-op="catmull"]', "Catmull-Clark — smooth", 260); EQ("catmull");
+        S.on=true; S.params.levels=1; rebuild(); show(S); await wait(350); S.params.levels=2; rebuild(); show(S); say("Catmull-Clark ×2"); await wait(600);
         // one full 360° turn of the finished form (view style unchanged)
         say("360° turn"); spinHold=true; { const y0=yaw, T=6000, t0=performance.now();
           while(alive){ const u=Math.min(1,(performance.now()-t0)/T); yaw=y0+Math.PI*2*(u<.5?2*u*u:1-Math.pow(-2*u+2,2)/2); try{ applyCam(); }catch(e){} if(u>=1) break; await new Promise(r=>requestAnimationFrame(r)); }
