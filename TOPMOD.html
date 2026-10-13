@@ -844,6 +844,7 @@ canvas#view{width:100%;height:100%;display:block;touch-action:none;outline:none;
       <div class="mi" data-op="faceLoop">Select Face Loop</div>
       <div class="mi" data-op="loopPick">Face Loops — click faces to select their loops</div>
       <div class="mi" data-op="rindSel">Rind — remove selected faces (crust with slots)</div>
+      <div class="mi" data-act="cloth">Cloth — inflate · drape · hang in the wind (XPBD)</div>
     </div></div>
     <div class="menu"><span class="mtitle">Tools</span><div class="mlist">
       <div class="mi" data-op="insertEdge">Insert Edge</div>
@@ -941,6 +942,7 @@ canvas#view{width:100%;height:100%;display:block;touch-action:none;outline:none;
         <button class="tb" data-op="catmull" title="Catmull-Clark"><img class="ticon" alt="Catmull-Clark"><span class="tlbl">Catmull</span></button>
         <button class="tb" data-op="loopPick" title="Face Loops — click a face to select its whole quad loop (TopMod “Select Face Loop”); the loop runs across the edge nearest your click. Then Rind removes them"><img class="ticon" alt="Loops"><span class="tlbl">Loops</span></button>
         <button class="tb" data-op="rindSel" title="Rind — thicken into a crust and remove the selected faces (slots), like the TopMod look demo"><img class="ticon" alt="Rind"><span class="tlbl">Rind</span></button>
+        <button class="tb" data-act="cloth" title="Cloth — XPBD fabric: Inflate the form like a pillow, Drape a sheet over it, or Hang it from pinned points in the wind. Bake keeps the frame; Record exports an OBJ sequence"><svg width="22" height="22" viewBox="0 0 22 22"><path d="M3 5c3 2 5-1 8 0s5 2 8 0v9c-3 2-5-1-8 0s-5 2-8 0Z" fill="rgba(143,183,255,.35)" stroke="#00E5FF" stroke-width="1.3"/><path d="M7 6v9M11 5v10M15 6v9" stroke="#8fb7ff" stroke-width=".8"/></svg><span class="tlbl">Cloth</span></button>
         <button class="tb" data-op="crease" title="Crease — OpenSubdiv semi-sharp creases: edit the control cage (pick edges, set sharpness 0–10, drag cage points) while seeing the subdivided surface"><img class="ticon" alt="Crease"><span class="tlbl">Crease</span></button>
         <button class="tb" data-op="doosabin" title="Doo-Sabin"><img class="ticon" alt="Doo-Sabin"><span class="tlbl">DooSabin</span></button>
         <button class="tb" data-op="loop" title="Loop subdivision"><img class="ticon" alt="Loop"><span class="tlbl">Loop</span></button>
@@ -13878,6 +13880,7 @@ window.__ek={applyWhole:applyWhole,ops:ops,snapshot:snapshot,rebuild:rebuild,toa
     knot:{t:"Torus knot  T(p, q)", l:["x = (R + cos qu) · cos pu","y = (R + cos qu) · sin pu","z = sin qu ,  u ∈ [0, 2π]","tube: rotation-minimising frame, radius r"]},
     gem:{t:"Ray-traced gem", l:["Snell  n₁ sin θ₁ = n₂ sin θ₂","Fresnel  R = ½ ( r_s² + r_p² )","total internal reflection  θ > θ_c = asin(1/n)","Beer  I = I₀ · e^(−α d)"]},
     lineart:{t:"Line art (plotter)", l:["silhouette: (n̂₀·v)(n̂₁·v) < 0","crease: n̂₀·n̂₁ < cos θ","hatch where ½ + ½ n̂·l̂ < tone","pen-up travel ↓ by linesort"]},
+    cloth:{t:"Cloth · XPBD", l:["x̃ = x + Δt·v + Δt²·w·f","Δλ = (−C − α̃λ) / (Σ w|∇C|² + α̃) ,  α̃ = α/Δt²","stretch C = |x₁ − x₀| − L ,  pressure C = V − p·V₀","∇V at xᵢ = ⅙ Σ (xⱼ × xₖ)"]},
     eqsurf:{t:"Equation surface", l:[]}
   };
   const GEM_N={diamond:2.418, reddiamond:2.418, ruby:1.762, sapphire:1.762, emerald:1.575};
@@ -13898,6 +13901,16 @@ window.__ek={applyWhole:applyWhole,ops:ops,snapshot:snapshot,rebuild:rebuild,toa
 #eqCard .eqCred{font:11px var(--font,system-ui);color:#8fa6b8;margin:-1px 0 3px}
 #eqCard .eqStep{font:12px var(--font,system-ui);color:#ffd27a}
 #eqCard .eqSep{height:1px;background:rgba(255,255,255,.1);margin:6px 0}
+#eqCard .eqE b{display:inline-block;font-variant-numeric:tabular-nums;border-radius:3px;padding:0 1px}
+#eqCard i.mv{font-style:italic}
+#eqFBox{position:relative}
+#eqCard .mBlk.mOut{position:absolute;left:0;right:0;top:0;animation:mOut .3s ease-in forwards;pointer-events:none}
+#eqCard .mWrite{animation:mDraw .6s cubic-bezier(.4,0,.2,1) both,mFill .45s ease-in both;animation-delay:var(--d,0s),calc(var(--d,0s) + .38s)}
+#eqCard .mFlash{animation:mFlash .9s ease-out}
+@keyframes mDraw{from{clip-path:inset(-2px 100% -2px 0)}to{clip-path:inset(-2px 0 -2px 0)}}
+@keyframes mFill{from{-webkit-text-fill-color:transparent;-webkit-text-stroke:.6px currentColor}to{-webkit-text-fill-color:currentColor;-webkit-text-stroke:0 transparent}}
+@keyframes mOut{to{opacity:0;transform:translateY(-10px)}}
+@keyframes mFlash{0%{transform:scale(1.22);box-shadow:0 0 0 1.5px #FFFF00;text-shadow:0 0 8px rgba(255,255,0,.7)}60%{box-shadow:0 0 0 1.5px rgba(255,255,0,.6)}100%{transform:scale(1);box-shadow:0 0 0 1.5px rgba(255,255,0,0);text-shadow:none}}
 #eqTerm{border-top:1px solid rgba(0,229,255,.18);display:flex;flex-direction:column;min-height:0;flex:1 1 auto}
 #eqCard{flex:0 0 auto;overflow:auto;max-height:45%}
 #eqOut{flex:1 1 auto;min-height:50px;height:auto;overflow:auto;padding:6px 10px;font:11.5px/1.5 ui-monospace,"SF Mono",Menlo,Consolas,monospace;color:#7CFFB2;background:#04070b;white-space:pre-wrap;word-break:break-word}
@@ -13933,16 +13946,56 @@ window.__ek={applyWhole:applyWhole,ops:ops,snapshot:snapshot,rebuild:rebuild,toa
     hd.addEventListener("pointerup",()=>dg=null);
     print("TOPMOD math terminal — equations or Python, one per line. type help","dim");
   }
+  // ---- Manim-style rendering (3Blue1Brown look): equations Write on, numbers tween + flash with a surrounding box,
+  //      the old formula FadeOut-shifts up while the new one writes in; V E F g χ keep their colours everywhere ----
+  const MC={V:"#58C4DD",E:"#83C167",F:"#FC6255",g:"#FFFF00",chi:"#F0AC5F"};
+  const RM=(()=>{ try{ return matchMedia("(prefers-reduced-motion: reduce)").matches; }catch(e){ return false; } })();
+  let built=false, demoBox=null, nums={}, fBox=null, shellsEl=null, shown={}, fKey=null, demoKey=null;
+  const tint=t=>String(t).replace(/(^|[^A-Za-z_Ͱ-Ͽ])(V|E|F|g|χ)(?![A-Za-z_Ͱ-Ͽ′])/g,(m,a,b)=>a+'<i class="mv" style="color:'+(b==="χ"?MC.chi:MC[b])+'">'+b+'</i>');
+  function writeOn(el,i){ if(RM) return; el.classList.add("mWrite"); el.style.setProperty("--d",(i*0.16)+"s"); }
+  function fmtN(k,v){ if(k==="g") return Number.isInteger(v)?String(v):(+v).toFixed(1); return v<0?"− "+(-v):String(v); }
+  function setNum(k,v){
+    const el=nums[k]; if(!el) return; const old=shown[k];
+    if(old===undefined||RM||old===v){ shown[k]=v; el.textContent=fmtN(k,v); return; }
+    shown[k]=v; el.classList.remove("mFlash"); void el.offsetWidth; el.classList.add("mFlash");
+    const t0=performance.now(), T=650, a=old, b=v, isInt=Number.isInteger(a)&&Number.isInteger(b);
+    const step=now=>{ if(shown[k]!==b) return; const u=Math.min(1,(now-t0)/T), s=u<.5?4*u*u*u:1-Math.pow(-2*u+2,3)/2;   // manim "smooth"
+      const x=a+(b-a)*s; el.textContent=fmtN(k,isInt?Math.round(x):(u>=1?b:+x.toFixed(1))); if(u<1) requestAnimationFrame(step); };
+    requestAnimationFrame(step);
+  }
+  function buildCard(){
+    card.innerHTML='<div id="eqDemoBox"></div>'
+      +'<div class="eqT">Euler–Poincaré · live</div>'
+      +'<div class="eqE mEq">'+tint("V − E + F = 2 − 2g")+'</div>'
+      +'<div class="eqE mEq"><b data-k="V"></b> − <b data-k="E"></b> + <b data-k="F"></b> = <b data-k="chi"></b>  ⇒  <i class="mv" style="color:'+MC.g+'">g</i> = <b data-k="g"></b><span class="mSh"></span></div>'
+      +'<div id="eqFBox"></div>';
+    demoBox=card.querySelector("#eqDemoBox"); fBox=card.querySelector("#eqFBox"); shellsEl=card.querySelector(".mSh");
+    card.querySelectorAll("b[data-k]").forEach(b=>{ nums[b.dataset.k]=b; b.style.color=MC[b.dataset.k]; });
+    card.querySelectorAll(".mEq").forEach((el,i)=>writeOn(el,i));
+    built=true;
+  }
   function render(){
     if(!panel) build(); panel.classList.toggle("hide",!on); if(!on) return;
-    const e=last, g=Number.isInteger(e.genus)?e.genus:(+e.genus).toFixed(1), m=v=>v<0?"− "+(-v):v;
-    let h='';
-    if(demoInfo) h+='<div class="eqDemo"><div class="eqT">Demo '+(demoInfo.n||"")+' · '+(demoInfo.name||"")+'</div>'+(demoInfo.credit?'<div class="eqCred">'+demoInfo.credit+'</div>':'')+(demoInfo.step?'<div class="eqStep">▸ '+demoInfo.step+'</div>':'')+'</div><div class="eqSep"></div>';
-    h+='<div class="eqT">Euler–Poincaré · live</div><div class="eqE">V − E + F = 2 − 2g</div>'
-      +'<div class="eqE"><b>'+e.V+'</b> − <b>'+e.E+'</b> + <b>'+e.F+'</b> = <b>'+m(e.chi)+'</b>  ⇒  g = <b>'+g+'</b>'+(e.comps>1?'  ('+e.comps+' shells)':'')+'</div>';
-    const f=cur&&F[cur];
-    if(f){ h+='<div class="eqSep"></div><div class="eqT">'+f.t+'</div>'+f.l.map(x=>'<div class="eqL">'+x+'</div>').join("")+(extra?'<div class="eqL">'+extra+'</div>':''); }
-    card.innerHTML=h;
+    if(!built) buildCard();
+    // demo header — the step line writes on each time it changes
+    const dk=demoInfo?JSON.stringify(demoInfo):"";
+    if(dk!==demoKey){ const prevName=demoKey?JSON.parse(demoKey).name:null; demoKey=dk;
+      if(!demoInfo) demoBox.innerHTML="";
+      else { demoBox.innerHTML='<div class="eqDemo"><div class="eqT">Demo '+(demoInfo.n||"")+' · '+(demoInfo.name||"")+'</div>'+(demoInfo.credit?'<div class="eqCred">'+demoInfo.credit+'</div>':'')+(demoInfo.step?'<div class="eqStep">▸ '+demoInfo.step+'</div>':'')+'</div><div class="eqSep"></div>';
+        const st=demoBox.querySelector(".eqStep"); if(st) writeOn(st,0); if(prevName!==demoInfo.name) demoBox.querySelectorAll(".eqT,.eqCred").forEach((el,i)=>writeOn(el,i)); } }
+    // live counts: tween + flash
+    const e=last; ["V","E","F","chi"].forEach(k=>setNum(k,e[k])); setNum("g",Number.isInteger(e.genus)?e.genus:+(+e.genus).toFixed(1));
+    shellsEl.textContent=e.comps>1?"  ("+e.comps+" shells)":"";
+    // operation formulas: old block fades out upward, new block writes on line by line
+    const key=(cur||"")+"|"+extra;
+    if(key!==fKey){ fKey=key;
+      const old=fBox.querySelector(".mBlk:not(.mOut)");
+      if(old){ if(RM) old.remove(); else { old.classList.add("mOut"); setTimeout(()=>old.remove(),320); } }
+      const f=cur&&F[cur];
+      if(f){ const blk=document.createElement("div"); blk.className="mBlk";
+        blk.innerHTML='<div class="eqSep"></div><div class="eqT">'+f.t+'</div>'+f.l.map(x=>'<div class="eqL">'+tint(x)+'</div>').join("")+(extra?'<div class="eqL">'+tint(extra)+'</div>':'');
+        fBox.appendChild(blk); blk.querySelectorAll(".eqT,.eqL").forEach((el,i)=>writeOn(el,i+(old?1.5:0))); }
+    }
   }
   // ---- terminal output ----
   function print(txt,cls){ if(!out) build(); const d=document.createElement("div"); if(cls) d.className=cls; d.textContent=txt; out.appendChild(d); while(out.childNodes.length>400) out.removeChild(out.firstChild); out.scrollTop=out.scrollHeight; return d; }
@@ -14387,6 +14440,282 @@ window.__ek={applyWhole:applyWhole,ops:ops,snapshot:snapshot,rebuild:rebuild,toa
   document.querySelectorAll('[data-act="exportGuide"]').forEach(el=>el.addEventListener("click",e=>{ e.stopPropagation(); document.querySelectorAll("#menubar .menu.open").forEach(m=>m.classList.remove("open")); exportLog(); }));
   document.querySelectorAll('[data-act="lookGuide"]').forEach(el=>el.addEventListener("click",e=>{ e.stopPropagation(); document.querySelectorAll("#menubar .menu.open").forEach(m=>m.classList.remove("open")); topmodLookGuide(); }));
 })();
+// ---------- Cloth: XPBD fabric solver (own implementation; ideas from XRTailor / OpenCloth papers: XPBD, long-range attachments, pressure) ----------
+// Modes:  Inflate — pressure inside the current form (pillow / balloon / tufted)
+//         Drape   — a sheet falls onto the current form and collides with it (+ self-collision)
+//         Hang    — pin the selected vertices (or the top rim) and let gravity + wind act; bake the frame you like
+// Bake writes positions back as a normal undoable step; Record + Export writes an OBJ sequence (.zip).
+(function(){
+  const C={mode:"inflate", detail:1, pressure:1.6, stretch:0.6, bend:0.15, aniso:0, axis:1, gravity:0, wind:0, windDir:30,
+           selfCol:false, tufted:false, sheetRes:56, substeps:10, damping:0.02, friction:0.4, playing:false, record:false};
+  let S=null, obj=null, ctl=null, raf=0, frameN=0, rec=[], lastT=0, fpsE=0;
+  const $=s=>document.querySelector(s);
+
+  // ---------- build simulation ----------
+  function triangulate(faces){ const T=[]; for(const f of faces) for(let k=1;k<f.length-1;k++) T.push(f[0],f[k],f[k+1]); return T; }
+  function build(){
+    stop(); disposeObj3();
+    const base=(typeof dispMesh==="function")?dispMesh():mesh; if(!base||!base.verts.length){ toast&&toast("Cloth: nothing to simulate",true); return null; }
+    let src, obstacle=null, pinned=new Set();
+    if(C.mode==="drape"){
+      obstacle=base;
+      let mn=[1e9,1e9,1e9], mx=[-1e9,-1e9,-1e9]; for(const v of base.verts) for(let k=0;k<3;k++){ mn[k]=Math.min(mn[k],v[k]); mx[k]=Math.max(mx[k],v[k]); }
+      const size=1.8*Math.max(mx[0]-mn[0],mx[2]-mn[2]), N=C.sheetRes, cx=(mn[0]+mx[0])/2, cz=(mn[2]+mx[2])/2, y=mx[1]+0.12*size;
+      src={verts:[],faces:[]};
+      for(let j=0;j<=N;j++) for(let i=0;i<=N;i++) src.verts.push([cx+(i/N-.5)*size, y+0.002*Math.sin(i*1.7+j*2.3)*size, cz+(j/N-.5)*size]);
+      for(let j=0;j<N;j++) for(let i=0;i<N;i++){ const a=j*(N+1)+i; src.faces.push([a,a+1,a+N+2,a+N+1]); }
+    } else {
+      src={verts:base.verts.map(v=>v.slice()),faces:base.faces.map(f=>f.slice())};
+      const nV0=src.verts.length;
+      for(let i=0;i<C.detail && src.faces.length<9000;i++) src=TM.catmullClark(src);
+      if(C.mode==="inflate" && C.tufted) for(let i=0;i<nV0;i++) pinned.add(i);
+      if(C.mode==="hang"){
+        const sv=[...sel.verts].filter(i=>i<nV0);
+        if(sv.length) sv.forEach(i=>pinned.add(i));
+        else { let ymax=-1e9, ymin=1e9; for(const v of src.verts){ ymax=Math.max(ymax,v[1]); ymin=Math.min(ymin,v[1]); }
+          const cut=ymax-(ymax-ymin)*0.04; src.verts.forEach((v,i)=>{ if(v[1]>=cut) pinned.add(i); }); }
+      }
+    }
+    const n=src.verts.length, X=new Float64Array(n*3), P=new Float64Array(n*3), V=new Float64Array(n*3), W=new Float64Array(n), X0=new Float64Array(n*3);
+    src.verts.forEach((v,i)=>{ X[i*3]=v[0]; X[i*3+1]=v[1]; X[i*3+2]=v[2]; W[i]=pinned.has(i)?0:1; }); X0.set(X);
+    const T=triangulate(src.faces);
+    // stretch (incl. quad diagonals = shear) and bend (opposite vertices across each edge)
+    const emap=new Map(), cons=[], bend=[];
+    const addE=(a,b,o)=>{ const k=a<b?a+"_"+b:b+"_"+a; let e=emap.get(k); if(!e){ e={a,b,o:[]}; emap.set(k,e); } e.o.push(o); };
+    for(let t=0;t<T.length;t+=3){ const a=T[t],b=T[t+1],c=T[t+2]; addE(a,b,c); addE(b,c,a); addE(c,a,b); }
+    const L=(i,j)=>Math.hypot(X[i*3]-X[j*3],X[i*3+1]-X[j*3+1],X[i*3+2]-X[j*3+2]);
+    let avg=0; for(const e of emap.values()){ const l=L(e.a,e.b); cons.push(e.a,e.b); avg+=l; if(e.o.length===2&&e.o[0]!==e.o[1]) bend.push(e.o[0],e.o[1]); }
+    avg/=Math.max(1,emap.size);
+    const cRest=new Float64Array(cons.length/2), cDir=new Float64Array(cons.length/2), bRest=new Float64Array(bend.length/2);
+    const ax=[0,0,0]; ax[C.axis]=1;
+    for(let k=0;k<cRest.length;k++){ const a=cons[2*k],b=cons[2*k+1], l=L(a,b); cRest[k]=l; cDir[k]=l>0?Math.abs((X[b*3+C.axis]-X[a*3+C.axis])/l):0; }
+    for(let k=0;k<bRest.length;k++) bRest[k]=L(bend[2*k],bend[2*k+1]);
+    // per-vertex triangle list for the pressure gradient
+    const closed=(()=>{ for(const e of emap.values()) if(e.o.length!==2) return false; return true; })();
+    const vol=()=>{ let s=0; for(let t=0;t<T.length;t+=3){ const a=T[t]*3,b=T[t+1]*3,c=T[t+2]*3;
+      s+=X[a]*(X[b+1]*X[c+2]-X[b+2]*X[c+1])+X[a+1]*(X[b+2]*X[c]-X[b]*X[c+2])+X[a+2]*(X[b]*X[c+1]-X[b+1]*X[c]); } return s/6; };
+    // obstacle spatial hash (triangles), cell ~ 2× cloth spacing
+    let OH=null; if(obstacle){ OH=obstacleHash(obstacle, Math.max(avg*2.2,1e-4)); }
+    let ymin=1e9; for(let i=0;i<n;i++) ymin=Math.min(ymin,X[i*3+1]); if(obstacle) for(const v of obstacle.verts) ymin=Math.min(ymin,v[1]);
+    S={n,X,P,V,W,X0,T,faces:src.faces,cons,cRest,cDir,bend,bRest,closed,V0:closed?vol():0,vol,avg,OH,floor:ymin-0.02*avg,
+       thick:obstacle?avg*0.55:0, rad:avg*0.45, t:0, pinned:pinned.size};
+    if(C.mode==="inflate"&&!closed) toast&&toast("Cloth: form has open edges — pressure works best on closed forms");
+    makeObj(); frameN=0; rec=[]; if(ctl) ui(); else stats();
+    return S;
+  }
+
+  function obstacleHash(m, cell){
+    const tris=triangulate(m.faces), V=m.verts, inv=1/cell, map=new Map(), nrm=[];
+    const key=(i,j,k)=>((i*73856093)^(j*19349663)^(k*83492791))|0;
+    for(let t=0;t<tris.length;t+=3){
+      const a=V[tris[t]],b=V[tris[t+1]],c=V[tris[t+2]];
+      const ux=b[0]-a[0],uy=b[1]-a[1],uz=b[2]-a[2],vx=c[0]-a[0],vy=c[1]-a[1],vz=c[2]-a[2];
+      let nx=uy*vz-uz*vy,ny=uz*vx-ux*vz,nz=ux*vy-uy*vx; const l=Math.hypot(nx,ny,nz)||1; nrm.push(nx/l,ny/l,nz/l);
+      const lo=[0,1,2].map(k=>Math.floor((Math.min(a[k],b[k],c[k])-cell*0.5)*inv)), hi=[0,1,2].map(k=>Math.floor((Math.max(a[k],b[k],c[k])+cell*0.5)*inv));
+      for(let i=lo[0];i<=hi[0];i++) for(let j=lo[1];j<=hi[1];j++) for(let k=lo[2];k<=hi[2];k++){ const h=key(i,j,k); let L=map.get(h); if(!L){ L=[]; map.set(h,L); } L.push(t/3); }
+    }
+    return {tris,V,inv,map,nrm,key};
+  }
+  // closest point on triangle (Ericson)
+  function closestTri(p,a,b,c,out){
+    const abx=b[0]-a[0],aby=b[1]-a[1],abz=b[2]-a[2],acx=c[0]-a[0],acy=c[1]-a[1],acz=c[2]-a[2],apx=p[0]-a[0],apy=p[1]-a[1],apz=p[2]-a[2];
+    const d1=abx*apx+aby*apy+abz*apz,d2=acx*apx+acy*apy+acz*apz; if(d1<=0&&d2<=0){ out[0]=a[0];out[1]=a[1];out[2]=a[2]; return; }
+    const bpx=p[0]-b[0],bpy=p[1]-b[1],bpz=p[2]-b[2],d3=abx*bpx+aby*bpy+abz*bpz,d4=acx*bpx+acy*bpy+acz*bpz; if(d3>=0&&d4<=d3){ out[0]=b[0];out[1]=b[1];out[2]=b[2]; return; }
+    const vc=d1*d4-d3*d2; if(vc<=0&&d1>=0&&d3<=0){ const v=d1/(d1-d3); out[0]=a[0]+v*abx;out[1]=a[1]+v*aby;out[2]=a[2]+v*abz; return; }
+    const cpx=p[0]-c[0],cpy=p[1]-c[1],cpz=p[2]-c[2],d5=abx*cpx+aby*cpy+abz*cpz,d6=acx*cpx+acy*cpy+acz*cpz; if(d6>=0&&d5<=d6){ out[0]=c[0];out[1]=c[1];out[2]=c[2]; return; }
+    const vb=d5*d2-d1*d6; if(vb<=0&&d2>=0&&d6<=0){ const w=d2/(d2-d6); out[0]=a[0]+w*acx;out[1]=a[1]+w*acy;out[2]=a[2]+w*acz; return; }
+    const va=d3*d6-d5*d4; if(va<=0&&(d4-d3)>=0&&(d5-d6)>=0){ const w=(d4-d3)/((d4-d3)+(d5-d6)); out[0]=b[0]+w*(c[0]-b[0]);out[1]=b[1]+w*(c[1]-b[1]);out[2]=b[2]+w*(c[2]-b[2]); return; }
+    const dn=1/(va+vb+vc),v=vb*dn,w=vc*dn; out[0]=a[0]+abx*v+acx*w;out[1]=a[1]+aby*v+acy*w;out[2]=a[2]+abz*v+acz*w;
+  }
+
+  // ---------- one frame of XPBD (small steps: 1 iteration per substep) ----------
+  const cp=[0,0,0], pp=[0,0,0];
+  function step(){
+    const s=S; if(!s) return; const {n,X,P,V,W}=s, sub=C.substeps, dt=1/60/sub, dt2=dt*dt;
+    const g=-9.81*C.gravity*Math.max(0.05,s.avg*6);       // scale gravity to model size so small and large forms behave alike
+    const kS=Math.pow(10,-2-6*C.stretch), kB=Math.pow(10,-2.5-6*C.bend);   // compliances
+    const wa=C.windDir*Math.PI/180, wx=Math.cos(wa), wz=Math.sin(wa);
+    for(let it=0;it<sub;it++){
+      s.t+=dt;
+      const gust=C.wind*s.avg*40*(0.6+0.4*Math.sin(s.t*2.1)+0.25*Math.sin(s.t*5.3));
+      for(let i=0;i<n;i++){ if(!W[i]) continue; const i3=i*3;
+        let ax=0, ay=g, az=0;
+        if(C.wind){ const fl=0.5+0.5*Math.sin(s.t*7+X[i3]*3.1+X[i3+2]*2.3+X[i3+1]*1.7); ax+=wx*gust*fl; az+=wz*gust*fl; }
+        V[i3]+=ax*dt; V[i3+1]+=ay*dt; V[i3+2]+=az*dt;
+        P[i3]=X[i3]; P[i3+1]=X[i3+1]; P[i3+2]=X[i3+2];
+        X[i3]+=V[i3]*dt; X[i3+1]+=V[i3+1]*dt; X[i3+2]+=V[i3+2]*dt; }
+      for(let i=0;i<n;i++) if(!W[i]){ const i3=i*3; P[i3]=X[i3]; P[i3+1]=X[i3+1]; P[i3+2]=X[i3+2]; }
+      // distance constraints
+      const dist=(A,R,k0,aniso)=>{ for(let k=0;k<R.length;k++){ const a=A[2*k],b=A[2*k+1], wa_=W[a],wb=W[b], ws=wa_+wb; if(!ws) continue;
+          const a3=a*3,b3=b*3, dx=X[b3]-X[a3],dy=X[b3+1]-X[a3+1],dz=X[b3+2]-X[a3+2], l=Math.sqrt(dx*dx+dy*dy+dz*dz); if(l<1e-12) continue;
+          const kc=aniso? k0*(1-C.aniso*0.95*s.cDir[k]) : k0, alpha=kc/dt2, C_=l-R[k], dl=-C_/(ws+alpha), fx=dx/l*dl,fy=dy/l*dl,fz=dz/l*dl;
+          X[a3]-=wa_*fx; X[a3+1]-=wa_*fy; X[a3+2]-=wa_*fz; X[b3]+=wb*fx; X[b3+1]+=wb*fy; X[b3+2]+=wb*fz; } };
+      dist(s.cons,s.cRest,kS,true); dist(s.bend,s.bRest,kB,false);
+      // pressure (volume) constraint
+      if(C.mode==="inflate"&&s.closed&&s.V0!==0){
+        const T=s.T, G=s.G||(s.G=new Float64Array(n*3)); G.fill(0);
+        for(let t=0;t<T.length;t+=3){ const a=T[t]*3,b=T[t+1]*3,c=T[t+2]*3;
+          G[a]+=(X[b+1]*X[c+2]-X[b+2]*X[c+1])/6; G[a+1]+=(X[b+2]*X[c]-X[b]*X[c+2])/6; G[a+2]+=(X[b]*X[c+1]-X[b+1]*X[c])/6;
+          G[b]+=(X[c+1]*X[a+2]-X[c+2]*X[a+1])/6; G[b+1]+=(X[c+2]*X[a]-X[c]*X[a+2])/6; G[b+2]+=(X[c]*X[a+1]-X[c+1]*X[a])/6;
+          G[c]+=(X[a+1]*X[b+2]-X[a+2]*X[b+1])/6; G[c+1]+=(X[a+2]*X[b]-X[a]*X[b+2])/6; G[c+2]+=(X[a]*X[b+1]-X[a+1]*X[b])/6; }
+        let den=0; for(let i=0;i<n;i++){ const i3=i*3; den+=W[i]*(G[i3]*G[i3]+G[i3+1]*G[i3+1]+G[i3+2]*G[i3+2]); }
+        const Cv=s.vol()-C.pressure*s.V0; if(den>1e-20){ const dl=-Cv/den*0.5; for(let i=0;i<n;i++){ if(!W[i]) continue; const i3=i*3; X[i3]+=G[i3]*dl; X[i3+1]+=G[i3+1]*dl; X[i3+2]+=G[i3+2]*dl; } }
+      }
+      // obstacle collisions
+      if(s.OH){ const H=s.OH, h=s.thick;
+        for(let i=0;i<n;i++){ if(!W[i]) continue; const i3=i*3; pp[0]=X[i3];pp[1]=X[i3+1];pp[2]=X[i3+2];
+          const L=H.map.get(H.key(Math.floor(pp[0]*H.inv),Math.floor(pp[1]*H.inv),Math.floor(pp[2]*H.inv))); if(!L) continue;
+          let best=1e9, bx=0,by=0,bz=0, bt=-1;
+          for(const t of L){ const a=H.V[H.tris[t*3]],b=H.V[H.tris[t*3+1]],c=H.V[H.tris[t*3+2]]; closestTri(pp,a,b,c,cp);
+            const d=(pp[0]-cp[0])**2+(pp[1]-cp[1])**2+(pp[2]-cp[2])**2; if(d<best){ best=d; bx=cp[0];by=cp[1];bz=cp[2]; bt=t; } }
+          if(bt<0||best>9*h*h) continue; const nx=H.nrm[bt*3],ny=H.nrm[bt*3+1],nz=H.nrm[bt*3+2];
+          const sd=(pp[0]-bx)*nx+(pp[1]-by)*ny+(pp[2]-bz)*nz;
+          if(sd<h && sd>-3*h){ const push=h-sd; X[i3]+=nx*push; X[i3+1]+=ny*push; X[i3+2]+=nz*push;
+            // friction: cancel part of the tangential motion this substep
+            let tx=X[i3]-P[i3],ty=X[i3+1]-P[i3+1],tz=X[i3+2]-P[i3+2]; const dn=tx*nx+ty*ny+tz*nz; tx-=dn*nx; ty-=dn*ny; tz-=dn*nz;
+            X[i3]-=tx*C.friction; X[i3+1]-=ty*C.friction; X[i3+2]-=tz*C.friction; } } }
+      // self-collision (particle–particle, skipping rest-neighbours)
+      if(C.selfCol && (it&1)===0) selfCollide(s);
+      // floor
+      if(C.gravity>0) for(let i=0;i<n;i++){ const i3=i*3; if(X[i3+1]<s.floor){ X[i3+1]=s.floor; X[i3]=P[i3]+(X[i3]-P[i3])*(1-C.friction); X[i3+2]=P[i3+2]+(X[i3+2]-P[i3+2])*(1-C.friction); } }
+      const damp=1-C.damping; for(let i=0;i<n;i++){ const i3=i*3; V[i3]=(X[i3]-P[i3])/dt*damp; V[i3+1]=(X[i3+1]-P[i3+1])/dt*damp; V[i3+2]=(X[i3+2]-P[i3+2])/dt*damp; }
+    }
+  }
+  function selfCollide(s){
+    const {n,X,W,X0}=s, r=s.rad, d2min=4*r*r, inv=1/(2*r), map=new Map();
+    const key=(i,j,k)=>((i*73856093)^(j*19349663)^(k*83492791))|0;
+    for(let i=0;i<n;i++){ const h=key(Math.floor(X[i*3]*inv),Math.floor(X[i*3+1]*inv),Math.floor(X[i*3+2]*inv)); let L=map.get(h); if(!L){ L=[]; map.set(h,L); } L.push(i); }
+    for(let i=0;i<n;i++){ const i3=i*3, ci=Math.floor(X[i3]*inv),cj=Math.floor(X[i3+1]*inv),ck=Math.floor(X[i3+2]*inv);
+      for(let a=-1;a<=1;a++) for(let b=-1;b<=1;b++) for(let c=-1;c<=1;c++){ const L=map.get(key(ci+a,cj+b,ck+c)); if(!L) continue;
+        for(const j of L){ if(j<=i) continue; const j3=j*3; const dx=X[j3]-X[i3],dy=X[j3+1]-X[i3+1],dz=X[j3+2]-X[i3+2], d2=dx*dx+dy*dy+dz*dz; if(d2>=d2min||d2<1e-14) continue;
+          const rx=X0[j3]-X0[i3],ry=X0[j3+1]-X0[i3+1],rz=X0[j3+2]-X0[i3+2]; if(rx*rx+ry*ry+rz*rz<d2min*2.2) continue;   // neighbours at rest
+          const ws=W[i]+W[j]; if(!ws) continue; const d=Math.sqrt(d2), corr=(2*r-d)/d/ws;
+          X[i3]-=dx*corr*W[i]; X[i3+1]-=dy*corr*W[i]; X[i3+2]-=dz*corr*W[i]; X[j3]+=dx*corr*W[j]; X[j3+1]+=dy*corr*W[j]; X[j3+2]+=dz*corr*W[j]; } } } }
+
+  // ---------- preview object ----------
+  function makeObj(){
+    disposeObj3(); const s=S, g=new THREE.BufferGeometry();
+    g.setAttribute("position",new THREE.BufferAttribute(new Float32Array(s.n*3),3)); g.setIndex(s.T.slice());
+    const mat=new THREE.MeshStandardMaterial({color:C.mode==="drape"?0xd9dde6:0x8fb7ff, roughness:0.62, metalness:0.0, side:THREE.DoubleSide});
+    obj=new THREE.Mesh(g,mat); obj.name="clothPreview"; scene.add(obj); sync(); hideBase(C.mode!=="drape");
+  }
+  function sync(){ if(!obj||!S) return; const a=obj.geometry.attributes.position.array; for(let i=0;i<a.length;i++) a[i]=S.X[i]; obj.geometry.attributes.position.needsUpdate=true; obj.geometry.computeVertexNormals(); obj.geometry.computeBoundingSphere(); }
+  function hideBase(h){ for(const o of [meshObj,edgeObj,pointObj]) if(o) o.visible=!h; }
+  function disposeObj3(){ if(obj){ scene.remove(obj); obj.geometry.dispose(); obj.material.dispose(); obj=null; } }
+
+  // ---------- run loop ----------
+  function loop(now){ if(!C.playing||!S){ raf=0; return; } raf=requestAnimationFrame(loop);
+    const t0=performance.now(); step(); sync(); frameN++; const ms=performance.now()-t0; fpsE=fpsE?fpsE*0.9+ms*0.1:ms;
+    if(C.record && frameN%2===0 && rec.length<600) rec.push(Float32Array.from(S.X));
+    if(frameN%10===0) stats(); hideBase(C.mode!=="drape"); }
+  function play(){ if(!S) build(); if(!S) return; C.playing=true; if(!raf) raf=requestAnimationFrame(loop); ui(); }
+  function pause(){ C.playing=false; ui(); }
+  function stop(){ C.playing=false; if(raf) cancelAnimationFrame(raf); raf=0; }
+  function reset(){ build(); ui(); }
+  function close(){ stop(); disposeObj3(); hideBase(false); S=null; try{ rebuild(); }catch(e){} }
+  function bake(){
+    if(!S) return; const s=S, verts=[]; for(let i=0;i<s.n;i++) verts.push([s.X[i*3],s.X[i*3+1],s.X[i*3+2]]);
+    const out={verts,faces:s.faces.map(f=>f.slice())}, label={inflate:"Cloth · inflate",drape:"Cloth · drape",hang:"Cloth · hang"}[C.mode];
+    stop(); disposeObj3(); hideBase(false);
+    if(C.mode==="drape"){ addLayer(out,false); try{ layers[activeLayer].name="Cloth"; renderLayerList&&renderLayerList(); }catch(e){} }
+    else { snapshot(); mesh=out; try{ if(layers[activeLayer]) layers[activeLayer].mesh=mesh; }catch(e){} rebuild(); }
+    try{ window.__guide&&window.__guide.log(label,{key:"cloth"}); }catch(e){}
+    try{ window.__eq&&window.__eq.op("cloth"); window.__eq.topo(TM.eulerInfo(mesh)); }catch(e){}
+    S=null; toast&&toast(label+" — baked"); ui();
+  }
+  // ---------- OBJ sequence (.zip, stored) ----------
+  const CRC=(()=>{ const t=new Uint32Array(256); for(let n=0;n<256;n++){ let c=n; for(let k=0;k<8;k++) c=c&1?0xEDB88320^(c>>>1):c>>>1; t[n]=c>>>0; } return t; })();
+  const crc32=b=>{ let c=0xFFFFFFFF; for(let i=0;i<b.length;i++) c=CRC[(c^b[i])&255]^(c>>>8); return (c^0xFFFFFFFF)>>>0; };
+  function zip(files){ const enc=new TextEncoder(), parts=[], cen=[]; let off=0;
+    const u16=v=>[v&255,(v>>>8)&255], u32=v=>[v&255,(v>>>8)&255,(v>>>16)&255,(v>>>24)&255];
+    for(const f of files){ const name=enc.encode(f.name), data=f.data, crc=crc32(data);
+      const h=new Uint8Array([0x50,0x4b,3,4,...u16(20),...u16(0),...u16(0),...u16(0),...u16(0),...u32(crc),...u32(data.length),...u32(data.length),...u16(name.length),...u16(0)]);
+      parts.push(h,name,data);
+      cen.push(new Uint8Array([0x50,0x4b,1,2,...u16(20),...u16(20),...u16(0),...u16(0),...u16(0),...u16(0),...u32(crc),...u32(data.length),...u32(data.length),...u16(name.length),...u16(0),...u16(0),...u16(0),...u16(0),...u32(0),...u32(off)]),name);
+      off+=h.length+name.length+data.length; }
+    const cs=cen.reduce((a,b)=>a+b.length,0), end=new Uint8Array([0x50,0x4b,5,6,0,0,0,0,...u16(files.length),...u16(files.length),...u32(cs),...u32(off),0,0]);
+    const all=[...parts,...cen,end], tot=all.reduce((a,b)=>a+b.length,0), out=new Uint8Array(tot); let p=0; for(const a of all){ out.set(a,p); p+=a.length; } return out; }
+  function exportSeq(){
+    if(!rec.length){ toast&&toast("Cloth: turn on Record and play the simulation first",true); return; }
+    const faces=(S&&S.faces)||[], enc=new TextEncoder(), fl=faces.map(f=>"f "+f.map(i=>i+1).join(" ")).join("\n"), files=[];
+    rec.forEach((X,k)=>{ let s="# TopMod 3D cloth frame "+k+"\no cloth\n"; for(let i=0;i<X.length;i+=3) s+="v "+X[i].toFixed(5)+" "+X[i+1].toFixed(5)+" "+X[i+2].toFixed(5)+"\n";
+      files.push({name:"cloth_"+String(k).padStart(4,"0")+".obj",data:enc.encode(s+fl+"\n")}); });
+    const bytes=zip(files), fn="TopMod_cloth_"+C.mode+"_"+rec.length+"f.zip", mh=window.webkit&&window.webkit.messageHandlers;
+    if(mh&&mh.saveImage){ let s=""; for(let i=0;i<bytes.length;i+=0x8000) s+=String.fromCharCode.apply(null,bytes.subarray(i,i+0x8000)); mh.saveImage.postMessage({filename:fn,dataURL:"data:application/zip;base64,"+btoa(s)}); }
+    else { const url=URL.createObjectURL(new Blob([bytes],{type:"application/zip"})), a=document.createElement("a"); a.href=url; a.download=fn; document.body.appendChild(a); a.click(); a.remove(); setTimeout(()=>URL.revokeObjectURL(url),4000); }
+    toast&&toast("Saved "+rec.length+" OBJ frames · "+fn); return bytes.length;
+  }
+
+  // ---------- Options-window UI ----------
+  const PRESET={ inflate:{gravity:0,wind:0,selfCol:false,stretch:0.55,bend:0.15,detail:1},
+                 drape:{gravity:1,wind:0,selfCol:true,stretch:0.85,bend:0.2},
+                 hang:{gravity:1,wind:0.6,selfCol:false,stretch:0.85,bend:0.25,detail:1} };
+  function slider(id,label,min,max,stepv,key,fmt){ return '<label class="clR"><span>'+label+'</span><input type="range" id="'+id+'" min="'+min+'" max="'+max+'" step="'+stepv+'" data-k="'+key+'"><em id="'+id+'V"></em></label>'; }
+  function buildUI(){
+    if(ctl) return ctl; ctl=document.createElement("div"); ctl.id="clCtl";
+    ctl.innerHTML='<style>#clCtl{font:12px var(--font,system-ui);color:#dbe8f3;display:flex;flex-direction:column;gap:7px}'
+      +'#clCtl .clModes{display:flex;gap:4px}#clCtl .clModes button{flex:1;padding:6px 0;border-radius:7px;border:1px solid #2a4a5a;background:#0f2430;color:#bff3ff;font:600 11.5px var(--font,system-ui);cursor:pointer}'
+      +'#clCtl .clModes button.on{background:#00E5FF;color:#04121a;border-color:#00E5FF}'
+      +'#clCtl .clR{display:grid;grid-template-columns:86px 1fr 38px;align-items:center;gap:6px}#clCtl .clR em{font-style:normal;color:#8fd8ff;text-align:right;font-variant-numeric:tabular-nums}'
+      +'#clCtl .clR.hide,#clCtl .clC.hide{display:none}#clCtl input[type=range]{width:100%}#clCtl .clC{display:flex;align-items:center;gap:6px}'
+      +'#clCtl .clB{display:flex;gap:5px;flex-wrap:wrap}#clCtl .clB button{flex:1;min-width:64px;padding:7px 4px;border-radius:7px;border:1px solid #2a4a5a;background:#0f2430;color:#bff3ff;font:600 11.5px var(--font,system-ui);cursor:pointer}'
+      +'#clCtl .clB button.pri{background:#FF8C22;border-color:#FF8C22;color:#1a0d00}#clCtl .clB button.rec.on{background:#c0392b;border-color:#e74c3c;color:#fff}#clCtl .clS{color:#8fa6b8;font-size:11px;line-height:1.4}</style>'
+      +'<div class="clModes"><button data-m="inflate">Inflate</button><button data-m="drape">Drape</button><button data-m="hang">Hang · wind</button></div>'
+      +slider("clDetail","Detail ×",0,3,1,"detail")+slider("clSheet","Sheet res",20,90,2,"sheetRes")
+      +slider("clPress","Pressure",0.6,3,0.05,"pressure")+slider("clStretch","Stretch stiff",0,1,0.01,"stretch")+slider("clBend","Bend stiff",0,1,0.01,"bend")
+      +slider("clAniso","Fabric grain",0,1,0.01,"aniso")
+      +'<label class="clR" id="clAxisR"><span>Grain along</span><select id="clAxis" style="background:#0a1118;color:#e6fff1;border:1px solid #1f3340;border-radius:5px"><option value="0">X</option><option value="1">Y</option><option value="2">Z</option></select><em></em></label>'
+      +slider("clGrav","Gravity",0,2,0.05,"gravity")+slider("clWind","Wind",0,3,0.05,"wind")+slider("clWindD","Wind dir °",0,360,5,"windDir")
+      +'<label class="clC" id="clSelfR"><input type="checkbox" id="clSelf"> Self-collision</label><label class="clC" id="clTuftR"><input type="checkbox" id="clTuft"> Tufted (pin the cage points)</label>'
+      +'<div class="clB"><button id="clPlay" class="pri">▶ Play</button><button id="clReset">↺ Reset</button><button id="clBake">Bake</button></div>'
+      +'<div class="clB"><button id="clRec" class="rec">● Record</button><button id="clExp">Export OBJ seq</button></div><div class="clS" id="clStats"></div>';
+    ctl.querySelectorAll(".clModes button").forEach(b=>b.onclick=()=>setMode_(b.dataset.m));
+    ctl.querySelectorAll("input[type=range]").forEach(r=>r.oninput=()=>{ const k=r.dataset.k; C[k]=+r.value; ui();
+      if(["detail","sheetRes"].includes(k)||(k==="aniso"&&S)) { const was=C.playing; build(); if(was) play(); } });
+    ctl.querySelector("#clAxis").onchange=e=>{ C.axis=+e.target.value; const was=C.playing; build(); if(was) play(); };
+    ctl.querySelector("#clSelf").onchange=e=>{ C.selfCol=e.target.checked; };
+    ctl.querySelector("#clTuft").onchange=e=>{ C.tufted=e.target.checked; const was=C.playing; build(); if(was) play(); };
+    ctl.querySelector("#clPlay").onclick=()=>C.playing?pause():play();
+    ctl.querySelector("#clReset").onclick=()=>{ reset(); };
+    ctl.querySelector("#clBake").onclick=()=>bake();
+    ctl.querySelector("#clRec").onclick=()=>{ C.record=!C.record; if(C.record) rec=[]; ui(); };
+    ctl.querySelector("#clExp").onclick=()=>exportSeq();
+    return ctl;
+  }
+  function setMode_(m){ C.mode=m; Object.assign(C,PRESET[m]); build(); ui(); }
+  function ui(){ if(!ctl) return; const q=s=>ctl.querySelector(s);
+    ctl.querySelectorAll(".clModes button").forEach(b=>b.classList.toggle("on",b.dataset.m===C.mode));
+    ctl.querySelectorAll("input[type=range]").forEach(r=>{ r.value=C[r.dataset.k]; const e=q("#"+r.id+"V"); if(e) e.textContent=(+C[r.dataset.k]).toFixed(r.step<1?2:0).replace(/\.00$/,""); });
+    const show=(id,on)=>{ const el=q(id); el&&el.closest(".clR,.clC").classList.toggle("hide",!on); };
+    show("#clDetail",C.mode!=="drape"); show("#clSheet",C.mode==="drape"); show("#clPress",C.mode==="inflate"); show("#clTuft",C.mode==="inflate");
+    show("#clWind",C.mode!=="inflate"); show("#clWindD",C.mode!=="inflate"); show("#clSelf",true);
+    q("#clAxis").value=C.axis; q("#clSelf").checked=C.selfCol; q("#clTuft").checked=C.tufted;
+    q("#clPlay").textContent=C.playing?"❚❚ Pause":"▶ Play"; q("#clRec").classList.toggle("on",C.record); q("#clRec").textContent=C.record?"● Rec "+rec.length:"● Record"; stats(); }
+  function stats(){ const el=ctl&&ctl.querySelector("#clStats"); if(!el) return;
+    if(!S){ el.textContent="Pick a mode and press Play. Bake keeps the current frame."; return; }
+    el.innerHTML=S.n.toLocaleString()+" particles · "+(S.cRest.length+S.bRest.length).toLocaleString()+" constraints"+(S.pinned?" · "+S.pinned+" pinned":"")
+      +"<br>XPBD "+C.substeps+" substeps · "+(fpsE?fpsE.toFixed(1)+" ms/frame":"—")+(C.mode==="inflate"&&S.closed?" · volume "+(S.vol()/S.V0).toFixed(2)+"×":"")
+      +(C.record?" · rec "+rec.length+" frames":""); }
+  function open(mode){
+    buildUI(); const body=$("#tpBody"); if(!body) return;
+    try{ if(window.__lineart) window.__lineart._detach(); }catch(e){}
+    try{ if(tpState && tpState.op!=="cloth") closeToolPop(); }catch(e){}
+    body.innerHTML=""; body.appendChild(ctl);
+    $("#tpTitle").textContent="Cloth — XPBD"; $("#tpApply")&&($("#tpApply").style.display="none");
+    const pop=$("#toolpop"); pop.classList.remove("hiddenPanel","empty"); $("#optionsToggle")&&$("#optionsToggle").classList.add("on");
+    tpState={op:"cloth",btn:null,moved:[]};
+    if(mode) C.mode=mode; Object.assign(C,PRESET[C.mode]); build(); ui();
+    try{ window.__eq&&window.__eq.op("cloth"); }catch(e){}
+  }
+  function closeUI(){ close(); try{ if(tpState&&tpState.op==="cloth"){ $("#tpApply")&&($("#tpApply").style.display=""); tpState=null; const b=$("#tpBody"); if(b) b.innerHTML=""; $("#tpTitle")&&($("#tpTitle").textContent="Options"); $("#toolpop").classList.add("empty"); } }catch(e){} }
+  // close the sim when another tool takes over the Options window
+  new MutationObserver(()=>{ if(ctl && !ctl.isConnected && (S||C.playing)) close(); }).observe(document.body,{childList:true,subtree:true});
+  try{ if(typeof ops==='object'&&ops) ops.cloth=()=>bake(); }catch(e){}
+  window.__cloth={ _load(m){ mesh={verts:m.verts.map(v=>v.slice()),faces:m.faces.map(f=>f.slice())}; if(layers[activeLayer]) layers[activeLayer].mesh=mesh; rebuild(); }, _info(){ return {layers:layers.length, V:mesh.verts.length, ymin:Math.min(...mesh.verts.map(v=>v[1])), ymax:Math.max(...mesh.verts.map(v=>v[1]))}; },
+    sync:()=>sync(), open, close:closeUI, play, pause, reset, bake, build, step, exportSeq, cfg:C, get sim(){ return S; }, get frames(){ return frameN; }, setMode:m=>{ open(m); } };
+  document.querySelectorAll('[data-act="cloth"]').forEach(el=>el.addEventListener("click",e=>{ e.stopPropagation(); document.querySelectorAll("#menubar .menu.open").forEach(m=>m.classList.remove("open")); open(); }));
+})();
+
 window.__tm={
   topo:()=>TM.eulerInfo(mesh),
   faceScreen(fi){
@@ -15761,6 +16090,7 @@ void main(){
     ["The TopMod Look","after Nathan Ho · TopMod: Akleman, Srinivasan, Chen"],
     ["Gem Cuts","eleven classic cuts · ray-traced in their own stones"],
     ["Flame","equation deform · TopMod 3D"],
+    ["Cloth","XPBD fabric: inflate + drape · after XRTailor / OpenCloth"],
     ["Torus → Wireframe","wireframe modeling: Akleman, Srinivasan, Mandal"],
     ["Subdivision Surface","Catmull & Clark (1978)"],
     ["Doo-Sabin + Pentagons","Doo & Sabin (1978) · pentagonalization: Akleman"],
@@ -15953,6 +16283,20 @@ void main(){
         window.__gemOpts.disp=false; window.__gemOpts.bounces=4; setRenderMode("solid");
       } finally { spinHold=false; try{ window.__eq&&window.__eq.op(null); }catch(e){} }
     },
+    // 3 — "Cloth": the TopMod Look inflated like a pillow, then a sheet drapes over it (XPBD)
+    async () => {
+      spinHold=true;
+      try {
+        fresh(); say("New scene"); await wait(400);
+        let st; try { st=TM.topmodLook({smooth:1}); } catch(e){ console.warn(e); return; }
+        stageLoad(st[st.length-1].mesh); try { window.__tm.frameAll(1.5); } catch(e){} await wait(500);
+        const CL=window.__cloth; if(!CL||!alive) return;
+        say("Cloth · Inflate — pressure inside the form (XPBD)"); CL.open("inflate"); Object.assign(CL.cfg,{detail:0,pressure:1.55,stretch:0.5}); CL.build(); CL.play();
+        { const t0=performance.now(); while(alive && CL.frames<190 && performance.now()-t0<9000) await wait(100); } if(!alive) return; CL.pause(); say("Bake the inflated form"); CL.bake(); await wait(700); if(!alive) return;
+        say("Cloth · Drape — a sheet falls and collides with the form"); CL.open("drape"); Object.assign(CL.cfg,{sheetRes:48}); CL.build(); CL.play();
+        { const t0=performance.now(); while(alive && CL.frames<300 && performance.now()-t0<11000) await wait(100); } if(!alive) return; CL.pause(); await wait(700);
+      } finally { spinHold=false; try{ window.__cloth&&window.__cloth.close(); }catch(e){} try{ window.__eq&&window.__eq.op(null); }catch(e){} }
+    },
     // 2 — torus (sliders) -> wireframe (sliders) -> patent halftone -> normals -> solid -> new
     async () => {
       fresh(); say("New scene"); await wait(450);
@@ -16037,7 +16381,7 @@ void main(){
     const myGen = ++runGen;
     for (let k = startK % SEQS.length; alive && myGen===runGen; k = (k + 1) % SEQS.length) {
       if (k !== curK || !pill.querySelector(".dname")) { curK = k; wirePill(false); } curK = k;
-      try { await SEQS[k](); await frame(); } catch(e){ if (e === "stopped") return; }
+      try { await SEQS[k](); await frame(); } catch(e){ if (e === "stopped") return; console.warn("demo "+k+" failed", e); }
     }
   }
   function start(k0){
