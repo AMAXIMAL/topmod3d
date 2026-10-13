@@ -701,6 +701,7 @@ canvas#view{width:100%;height:100%;display:block;touch-action:none;outline:none;
 #status #demoTitle{cursor:pointer;background:rgba(255,140,34,0.14);border:1px solid rgba(255,140,34,0.45);color:#ffd2a6;border-radius:7px;padding:3px 10px;font-weight:600;white-space:nowrap}
 #status #demoTitle.on{background:#FF8C22;color:#1a0d00}
 #lightBtn{cursor:pointer;background:rgba(255,210,122,0.12);border:1px solid rgba(255,210,122,0.4);color:#ffe2a8;border-radius:7px}
+#viewStyleSel{position:absolute;top:100%;right:0;margin-top:6px;width:118px;background:rgba(10,14,20,.88);color:#cfefff;border:1px solid rgba(0,229,255,.35);border-radius:7px;padding:3px 5px;font:11px var(--font,system-ui);cursor:pointer}
 #recBtn,#spinBtn{cursor:pointer;background:rgba(0,229,255,0.1);border:1px solid rgba(0,229,255,0.3);color:#cfefff;border-radius:7px}
 #recBtn{color:#ff6b6b}
 #recBtn.rec{background:#e5384d;color:#fff;border-color:#e5384d;animation:amxBlink 1.2s ease-in-out infinite}
@@ -1064,6 +1065,7 @@ canvas#view{width:100%;height:100%;display:block;touch-action:none;outline:none;
       <div id="navcube" title="Click a face / edge / corner to snap the view">
         <canvas id="ncCanvas" width="120" height="120"></canvas>
         <button id="ncHome" title="Home view (frame all)">&#8962;</button>
+        <select id="viewStyleSel" title="View style"></select>
       </div>
     </div>
 
@@ -3582,7 +3584,7 @@ function topmodLook(opt){
     for(const v of vs) if(usedV.has(v)) return;
     vs.forEach(v=>usedV.add(v)); L.forEach(f=>railFaces.add(f)); picked++; });
   stages[stages.length-1].remove=[...railFaces];
-  const rind=rindRemove(ds, railFaces, opt.scale||0.78);
+  const rind=rindRemove(ds, railFaces, opt.scale||0.55);
   stages.push({label:"Rind · remove "+picked+" face loops ("+railFaces.size+" quads)", mesh:rind});
   let sm=rind; for(let i=0;i<(opt.smooth==null?1:opt.smooth);i++) sm=catmullClark(sm);
   stages.push({label:"Catmull-Clark smooth", mesh:sm});
@@ -7889,6 +7891,7 @@ function openGemOptions(m){
 }
 function setRenderMode(m){
   if(!RMODES[m]) return;
+  { const vs=document.getElementById("viewStyleSel"); if(vs && vs.value!==m) vs.value=m; }
   if(GEM_RM.test(m) && !(window.__demo&&window.__demo.on&&window.__demo.on())) setTimeout(()=>openGemOptions(m),0);
   else if(tpState&&tpState.op==="gemview") try{ closeToolPop(); }catch(e){}
   _gemGuard={t0:performance.now(),last:0,ema:0,slow:0};
@@ -11043,6 +11046,14 @@ function setLayersOn(on){
   } else { renderLayerList(); renderModStack(); toast&&toast("Layers on — tools stack as live modifiers; earlier steps are listed (baked)"); }
 }
 $("#layersToggle")&&$("#layersToggle").addEventListener("click",()=>setLayersOn(!layersOn));
+// View-style dropdown under the navigation cube
+(function(){ const vs=document.getElementById("viewStyleSel"); if(!vs) return;
+  const groups=[["Shading",["solid","normals","xray","galaxy","matrix","water","moonwater","carbon","carpet","flower","laser","patent","patent3d"]],["Gems (ray-traced)",["diamond","reddiamond","ruby","sapphire","emerald"]]];
+  vs.innerHTML=groups.map(([g,ks])=>'<optgroup label="'+g+'">'+ks.filter(k=>RMODES[k]).map(k=>'<option value="'+k+'">'+RMODES[k].label+'</option>').join("")+'</optgroup>').join("")+'<optgroup label="Drawing"><option value="__lineart">Line Art</option></optgroup>';
+  vs.value=renderMode;
+  vs.addEventListener("change",()=>{ const v=vs.value; if(v==="__lineart"){ if(window.__lineart) window.__lineart.open(); } else setRenderMode(v); });
+  ["pointerdown","click","keydown"].forEach(ev=>vs.addEventListener(ev,e=>e.stopPropagation()));
+})();
 // start in step-by-step mode (Layers off): panels hidden, tools bake
 setTimeout(()=>{ if(!layersOn){ const lp=$("#layersPanel"), mp=$("#modPanel"); lp&&lp.classList.remove("show"); mp&&mp.classList.remove("show"); $("#layersToggle")&&$("#layersToggle").classList.remove("on"); } },0);
 $("#layersClose")&&$("#layersClose").addEventListener("click",()=>{ $("#layersPanel").classList.remove("show"); });
@@ -15002,16 +15013,8 @@ uniform float uKey; uniform vec3 uKeyDir; uniform vec3 uFillDir; uniform vec3 uR
 vec4 tfetch(sampler2D t,int w,int i){ return texelFetch(t, ivec2(i-(i/w)*w, i/w), 0); }
 // studio for stones: black void + overhead softbox + a ring of strip lights + warm/cool kickers (contrast = sparkle)
 vec3 env(vec3 d){
-  if(uKey>0.5){                                                    // one point light, overhead and to the right of the viewer
-    vec3 bgk=mix(vec3(0.010,0.012,0.018), vec3(0.78,0.80,0.84), uBg)*(0.5+0.5*clamp(d.y*0.5+0.5,0.0,1.0));
-    float k=max(0.0,dot(d,uKeyDir));
-    vec3 c3=bgk + vec3(1.0,0.97,0.92)*(pow(k,300.0)*30.0 + pow(k,30.0)*2.4 + pow(k,4.0)*0.45) + vec3(0.16,0.17,0.19)*smoothstep(-0.1,0.9,d.y);
-    if(uKey>2.0){                                                  // 3-point: + soft fill (left) + rim/back light
-      float f=max(0.0,dot(d,uFillDir)), r=max(0.0,dot(d,uRimDir));
-      c3+=vec3(0.85,0.92,1.0)*(pow(f,60.0)*6.0 + pow(f,6.0)*0.35) + vec3(1.0,0.95,0.88)*(pow(r,400.0)*22.0 + pow(r,40.0)*1.4);
-    }
-    return c3;
-  }
+  // studio environment (softbox + strip lights + kickers) is always there; the 💡 modes ADD lights on top of it
+  vec3 d0=d;
   float c=cos(uRot), s=sin(uRot); d=vec3(c*d.x-s*d.z, d.y, s*d.x+c*d.z);
   vec3 bg=mix(vec3(0.012,0.015,0.022), vec3(0.78,0.80,0.84), uBg);
   vec3 col=bg*(0.55+0.45*clamp(d.y*0.5+0.5,0.0,1.0));
@@ -15022,6 +15025,14 @@ vec3 env(vec3 d){
   col+=vec3(2.2,1.6,1.0)*pow(max(0.0,dot(d,normalize(vec3(0.8,0.35,0.5)))),180.0)*3.0;   // warm kicker
   col+=vec3(0.9,1.4,2.4)*pow(max(0.0,dot(d,normalize(vec3(-0.7,0.25,-0.6)))),140.0)*3.0; // cool kicker
   col+=vec3(0.25)*smoothstep(-0.2,-0.35,d.y)*(1.0-uBg);                     // floor bounce
+  if(uKey>0.5){                                                    // + one point light, overhead and to the right of the viewer
+    float k=max(0.0,dot(d0,uKeyDir));
+    col+=vec3(1.0,0.97,0.92)*(pow(k,300.0)*30.0 + pow(k,30.0)*2.0);
+    if(uKey>2.0){                                                  // 3-point: + soft fill (left) + rim/back light
+      float f=max(0.0,dot(d0,uFillDir)), r=max(0.0,dot(d0,uRimDir));
+      col+=vec3(0.85,0.92,1.0)*(pow(f,60.0)*5.0 + pow(f,6.0)*0.25) + vec3(1.0,0.95,0.88)*(pow(r,400.0)*20.0 + pow(r,40.0)*1.2);
+    }
+  }
   return col;
 }
 float fres(float ci,float n1,float n2){ ci=clamp(ci,0.0,1.0); float st=n1/n2*sqrt(max(0.0,1.0-ci*ci)); if(st>=1.0) return 1.0;
