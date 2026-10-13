@@ -10719,7 +10719,40 @@ window.__gemLight=1;
 $("#lightBtn")&&$("#lightBtn").addEventListener("click",()=>{ const nx={1:3,3:0,0:1}[window.__gemLight]; window.__gemLight=nx;
   const b=$("#lightBtn"); b.innerHTML="&#128161; "+(nx===1?"1-pt":nx===3?"3-pt":"off"); b.classList.toggle("on",nx!==0);
   toast&&toast(nx===1?"Gem light: one point, overhead right":nx===3?"Gem light: 3-point (key · fill · rim)":"Gem light off — studio environment"); });
-$("#spinBtn")&&$("#spinBtn").addEventListener("click",()=>{ if(window.__tm&&window.__tm.frameAll) window.__tm.frameAll(1.3); exportSpin({dur:7000,fps:30}); });
+// ---- 360 turntable: recorded exactly like Rec Screen (live viewport capture), 15 s, one full turn from the CURRENT angle + zoom; viewer locked while recording ----
+let spin360=null;
+function spin360Rec(){
+  const btn=$("#spinBtn");
+  if(spin360){ spin360.cancel=true; return; }                                 // tap again = stop early (still saves)
+  if(screenRec){ toast("Stop the screen recording first",true); return; }
+  if(!window.MediaRecorder || !canvas.captureStream){ toast("Video recording isn't supported here",true); return; }
+  const cand=["video/mp4;codecs=avc1.42E01E","video/mp4;codecs=avc1","video/mp4","video/webm;codecs=vp9","video/webm"];
+  const mime=cand.find(t=>{try{return MediaRecorder.isTypeSupported(t);}catch(e){return false;}})||"video/webm";
+  let rec; try{ rec=new MediaRecorder(canvas.captureStream(60),{mimeType:mime,videoBitsPerSecond:12e6}); }catch(e){ toast("Couldn't start recorder: "+e,true); return; }
+  const chunks=[]; rec.ondataavailable=e=>{ if(e.data&&e.data.size) chunks.push(e.data); };
+  // lock the viewer: a transparent shield over the canvas swallows orbit / zoom / picks
+  const r=canvas.getBoundingClientRect(), shield=document.createElement("div");
+  shield.id="spinShield"; Object.assign(shield.style,{position:"fixed",left:r.left+"px",top:r.top+"px",width:r.width+"px",height:r.height+"px",zIndex:35,cursor:"progress",touchAction:"none",background:"transparent"});
+  ["pointerdown","pointermove","pointerup","wheel","touchstart","touchmove","gesturestart","gesturechange","dblclick","contextmenu"].forEach(t=>shield.addEventListener(t,e=>{ e.preventDefault(); e.stopPropagation(); },{passive:false}));
+  document.body.appendChild(shield);
+  window.__spin360On=true;               // nav-cube auto-rotate pauses during the take
+  const DUR=15000, yaw0=yaw, st={cancel:false}; spin360=st;
+  const finish=()=>{ shield.remove(); window.__spin360On=false; yaw=yaw0; applyCam(); spin360=null;
+    if(btn){ btn.classList.remove("on","rec"); btn.innerHTML="&#10227; 360 MOV"; } try{ rec.stop(); }catch(_){} };
+  rec.onstop=()=>_saveVideo(new Blob(chunks,{type:mime}), mime, "topmod-360");
+  rec.start(250); if(btn){ btn.classList.add("on","rec"); btn.innerHTML="&#9632; 360 0:15"; }
+  toast("Recording 360° — 15 s from this view · viewer locked");
+  const t0=performance.now();
+  (function step(now){
+    const t=Math.min(1,(now-t0)/DUR);
+    yaw=yaw0+t*Math.PI*2; applyCam(); try{ renderer.render(scene,camera); }catch(e){}
+    if(btn) btn.innerHTML="&#9632; 360 0:"+String(Math.max(0,Math.ceil((1-t)*DUR/1000))).padStart(2,"0");
+    if(t>=1||st.cancel){ requestAnimationFrame(()=>requestAnimationFrame(finish)); return; }   // two extra frames so the last pose lands in the file
+    requestAnimationFrame(step);
+  })(t0);
+}
+$("#spinBtn")&&$("#spinBtn").addEventListener("click",spin360Rec);
+$("#spinBtn")&&($("#spinBtn").title="Record a 15 s 360° turntable from the current angle and zoom (viewer locked while recording) — saved like Rec Screen");
 function clearCorners(){
   cornerSel=[];
   rebuildCornerMarkers();
@@ -15154,7 +15187,7 @@ window.__ek={applyWhole:applyWhole,ops:ops,snapshot:snapshot,rebuild:rebuild,toa
   b.addEventListener("click",e=>{ e.stopPropagation(); on=!on; b.classList.toggle("on",on); try{ localStorage.setItem("tmAutoSpin",on?"1":"0"); }catch(_){} });
   const cv=document.getElementById("view"); if(cv){ cv.addEventListener("pointerdown",()=>held=true); addEventListener("pointerup",()=>held=false); addEventListener("pointercancel",()=>held=false); }
   function tick(t){ requestAnimationFrame(tick); const dt=last?Math.min(50,t-last):16; last=t;
-    if(!on||held) return; try{ if(window.__demo&&window.__demo.on()) return; }catch(e){}
+    if(!on||held||window.__spin360On) return; try{ if(window.__demo&&window.__demo.on()) return; }catch(e){}
     yaw+=dt*0.00025; try{ applyCam(); }catch(e){} }
   requestAnimationFrame(tick);
 })();
@@ -16561,7 +16594,7 @@ void main(){
   // demo names + credits (in SEQS order)
   const DEMO_INFO=[
     ["The TopMod Look","after Nathan Ho · TopMod: Akleman, Srinivasan, Chen"],
-    ["Gem Cuts","eleven classic cuts · ray-traced in their own stones"],
+    ["Gem Cuts","four cuts · diamond, sapphire, emerald, ruby"],
     ["Flame","equation deform · TopMod 3D"],
     ["Cloth","XPBD fabric: inflate + drape · after XRTailor / OpenCloth"],
     ["Torus → Wireframe","wireframe modeling: Akleman, Srinivasan, Mandal"],
@@ -16761,14 +16794,13 @@ void main(){
         if(window.__lineart && alive){ say("Line Art · wireframe, hidden lines removed"); window.__lineart.open(); EQ("lineart"); await wait(3600); window.__lineart.close(); await wait(300); }
       } finally { spinHold=false; try{ window.__eq&&window.__eq.op(null); }catch(e){} }
     },
-    // 1 — "Gem Cuts": the Gem Cut tool cycles every cut, each shown in its matching ray-traced stone view
+    // 1 — "Gem Cuts": the Gem Cut tool shows four cuts, each shown in its matching ray-traced stone view
     async () => {
       spinHold=false;
       try {
         fresh(); say("New scene"); await wait(400);
         await press('#toolbar [data-p="diamond"]', "Gem Cut tool · pick a cut", 450); await apply(); await wait(300);
-        const CUTS=[["round","diamond"],["princess","reddiamond"],["oval","ruby"],["cushion","sapphire"],["pear","ruby"],["marquise","sapphire"],
-                    ["emerald","emerald"],["asscher","diamond"],["radiant","reddiamond"],["trillion","sapphire"],["baguette","diamond"]];
+        const CUTS=[["round","diamond"],["cushion","sapphire"],["emerald","emerald"],["oval","ruby"]];   // four stones, one per material
         const VN={diamond:"Diamond",reddiamond:"Red Diamond",ruby:"Ruby",sapphire:"Sapphire",emerald:"Emerald"};
         window.__gemOpts=Object.assign(window.__gemOpts||{}, {disp:false, bounces:4});
         for(let i=0;i<CUTS.length && alive;i++){ const [cut,rm]=CUTS[i];
