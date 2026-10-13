@@ -852,11 +852,16 @@ body.opDock.opOpen{--rw:calc(var(--opw,280px) + 6px)}
 #modList .modRow.off>.modOn{color:#9fb4c8!important}
 #modList .modRow.off .modName{opacity:.5}
 body.rStack #modList{flex:0 1 auto!important}
+/* ---- ONE UI: docked tools column (left) + stacked Layers · Modifiers · Options column (right), both width-adjustable. No floating / tucked / bottom-dock variants. ---- */
+#dock,#dockToggle,#layersToggle,#optionsToggle{display:none!important}
+.rightTucked #toolpop,.rightTucked #layersPanel,.rightTucked #modPanel{transform:none!important}
 /* no Math · Live window */
 #eqPanel{display:none!important}
 [data-act="liveEq"]{display:none!important}
 </style>
 
+<style id="bootCloak">html{background:#080a12}html.tmBoot body{opacity:0!important}html.tmBooted body{opacity:1;transition:opacity .28s ease}</style>
+<script>document.documentElement.classList.add("tmBoot");setTimeout(function(){var h=document.documentElement;if(h.classList.contains("tmBoot")){h.classList.remove("tmBoot");h.classList.add("tmBooted");}},5000);</script>
 </head>
 <body>
 <style id="inAppCss">
@@ -1016,6 +1021,7 @@ html.inApp [data-act="fullscreen"],html.inApp [data-act="shortcuts"],html.inApp 
     </div></div>
     <div class="menu"><span class="mtitle">Render</span><div class="mlist">
       <div class="mi" data-act="renderPNG">Save High-Res Render (PNG)&hellip;</div>
+      <div class="mi" data-act="lineArt">Line Art (pen-plotter styles)</div>
     </div></div>
     <div class="menu"><span class="mtitle">Help</span><div class="mlist">
       <div class="mi" data-act="controls">Controls &amp; Gestures</div>
@@ -15095,7 +15101,7 @@ window.__ek={applyWhole:applyWhole,ops:ops,snapshot:snapshot,rebuild:rebuild,toa
   const defaultW=()=>phone()?Math.round(Math.min(200,innerWidth*0.32)):280;
   function layout(){ root.setProperty("--opw",Math.max(150,Math.min(w||defaultW(),Math.round(innerWidth*0.45)))+"px"); }
   function sync(){ const hidden=tp.classList.contains("hiddenPanel")||document.body.classList.contains("rightTucked"), empty=tp.classList.contains("empty");
-    const open=document.body.classList.contains("rightTucked")?false:(document.body.classList.contains("rtForce")||(!hidden && !(empty && phone()))); if(document.body.classList.contains("opOpen")!==open) document.body.classList.toggle("opOpen",open); }
+    const open=true; /* single UI: docked right column always present */ if(document.body.classList.contains("opOpen")!==open) document.body.classList.toggle("opOpen",open); }
   let dg=null;
   bar.addEventListener("pointerdown",e=>{ dg={x:e.clientX,w:tp.getBoundingClientRect().width}; bar.setPointerCapture(e.pointerId); bar.classList.add("drag"); e.preventDefault(); e.stopPropagation(); });
   bar.addEventListener("pointermove",e=>{ if(!dg) return; w=Math.round(Math.max(150,Math.min(innerWidth*0.45,dg.w-(e.clientX-dg.x)))); layout(); });
@@ -15130,7 +15136,7 @@ window.__ek={applyWhole:applyWhole,ops:ops,snapshot:snapshot,rebuild:rebuild,toa
     if(user) B.classList.add("rtForce"); try{ renderLayerList&&renderLayerList(); renderModStack&&renderModStack(); }catch(e){}
     B.classList.remove("rightTucked"); syncOpen(); }
   function syncOpen(){ const tpOpen=!tp.classList.contains("hiddenPanel") && !(tp.classList.contains("empty") && B.classList.contains("phone"));
-    const open=!B.classList.contains("rightTucked") && (!B.classList.contains("phone") || tpOpen || B.classList.contains("rtForce"));
+    const open=true;
     if(B.classList.contains("opOpen")!==open) B.classList.toggle("opOpen",open); }
   bar.querySelectorAll("button[data-t]").forEach(b=>b.addEventListener("click",e=>{ e.stopPropagation(); setTab(b.dataset.t,true); }));
   bar.querySelector(".x").addEventListener("click",e=>{ e.stopPropagation(); pinned=false; B.classList.remove("rtForce"); B.classList.add("rightTucked"); syncOpen(); });
@@ -17781,5 +17787,36 @@ void main(){
   });
 })();
 </script>
+<style id="mbScrollCss">
+#mbScroll{position:fixed;height:4px;border-radius:3px;background:rgba(127,216,239,.12);z-index:31;display:none;touch-action:none}
+#mbScroll i{position:absolute;top:0;height:100%;border-radius:3px;background:rgba(0,229,255,.75);box-shadow:0 0 6px rgba(0,229,255,.5)}
+#mbScroll.on{display:block}
+</style>
+<script>/* top menu scroll bar: visible whenever the menus overflow (iPhone) — drag the thumb or swipe the menu */
+(function(){function init(){var mb=document.getElementById("menubar"); if(!mb) return;
+ var bar=document.createElement("div"); bar.id="mbScroll"; var th=document.createElement("i"); bar.appendChild(th); document.body.appendChild(bar);
+ function upd(){var r=mb.getBoundingClientRect(), over=mb.scrollWidth-mb.clientWidth>4, vis=r.height>0&&!document.body.classList.contains("fullscreen");
+  bar.classList.toggle("on",over&&vis); if(!(over&&vis)) return;
+  var L=r.left+8, W=r.width-16; bar.style.left=L+"px"; bar.style.width=W+"px"; bar.style.top=(r.bottom-5)+"px";
+  var tw=Math.max(28,W*mb.clientWidth/mb.scrollWidth); th.style.width=tw+"px"; th.style.left=((W-tw)*mb.scrollLeft/(mb.scrollWidth-mb.clientWidth))+"px";}
+ var drag=null;
+ bar.addEventListener("pointerdown",function(e){e.preventDefault();bar.setPointerCapture(e.pointerId);var r=bar.getBoundingClientRect(),tw=th.offsetWidth;
+   var x=e.clientX-r.left, tl=th.offsetLeft; if(x<tl||x>tl+tw){ mb.scrollLeft=(x-tw/2)/(r.width-tw)*(mb.scrollWidth-mb.clientWidth); }
+   drag={x:e.clientX,s:mb.scrollLeft,k:(mb.scrollWidth-mb.clientWidth)/Math.max(1,r.width-tw)};});
+ bar.addEventListener("pointermove",function(e){if(drag){mb.scrollLeft=drag.s+(e.clientX-drag.x)*drag.k;}});
+ bar.addEventListener("pointerup",function(){drag=null;}); bar.addEventListener("pointercancel",function(){drag=null;});
+ mb.addEventListener("scroll",upd,{passive:true}); addEventListener("resize",upd);
+ try{new ResizeObserver(upd).observe(mb);}catch(e){} new MutationObserver(upd).observe(document.body,{attributes:true,attributeFilter:["class"]});
+ setTimeout(upd,300); setTimeout(upd,1500);}
+ if(document.readyState==="loading") document.addEventListener("DOMContentLoaded",init); else init();})();</script>
+<script>/* ONE UI guard: strip any legacy layout state (tucked / floating / collapsed) the moment it appears */
+(function(){function g(){var B=document.body; if(!B) return; ["rightTucked"].forEach(function(c){ if(B.classList.contains(c)) B.classList.remove(c); });
+  ["tbDock","opDock","rStack","opOpen"].forEach(function(c){ if(!B.classList.contains(c)) B.classList.add(c); });
+  var tb=document.getElementById("toolbar"); if(tb){ tb.classList.remove("tucked","collapsed"); } }
+ function init(){ g(); new MutationObserver(g).observe(document.body,{attributes:true,attributeFilter:["class"]}); var tb=document.getElementById("toolbar"); if(tb) new MutationObserver(g).observe(tb,{attributes:true,attributeFilter:["class"]}); }
+ if(document.readyState==="loading") document.addEventListener("DOMContentLoaded",init); else init();})();</script>
+<script>/* reveal only once every layout pass (docks, stacked panels, phone sizing, restored widths) has run — no flash of the old UI */
+(function(){function reveal(){requestAnimationFrame(function(){requestAnimationFrame(function(){setTimeout(function(){var h=document.documentElement;h.classList.remove("tmBoot");h.classList.add("tmBooted");try{dispatchEvent(new Event("resize"))}catch(e){}},120);});});}
+ if(document.readyState==="complete") reveal(); else addEventListener("load",reveal);})();</script>
 </body>
 </html>
