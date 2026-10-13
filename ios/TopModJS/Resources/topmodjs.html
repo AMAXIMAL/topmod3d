@@ -847,6 +847,11 @@ body.opDock.opOpen{--rw:calc(var(--opw,280px) + 6px)}
 #ncSpin{position:absolute;top:-2px;right:-6px;width:16px;height:16px;border-radius:50%;background:rgba(0,229,255,0.14);border:1px solid rgba(0,229,255,0.4);color:var(--cyan);font-size:10px;line-height:1;cursor:pointer;z-index:31;padding:0}
 #ncSpin:hover{background:var(--cyan);color:#04222a}
 #ncSpin.on{background:var(--cyan);color:#04222a;box-shadow:0 0 10px rgba(0,229,255,.6)}
+/* modifier on/off toggles match the Fabrication toggle */
+#modList .modRow>.modOn{background:transparent!important;border:0!important;width:20px;min-width:20px;font-size:15px!important;line-height:1;color:#00E5FF!important;cursor:pointer;padding:0}
+#modList .modRow.off>.modOn{color:#9fb4c8!important}
+#modList .modRow.off .modName{opacity:.5}
+body.rStack #modList{flex:0 1 auto!important}
 /* no Math · Live window */
 #eqPanel{display:none!important}
 [data-act="liveEq"]{display:none!important}
@@ -7162,7 +7167,7 @@ function renderModStack(){
   mods.forEach((md,i)=>{
     const R=MODS[md.type]||{label:md.type,params:[]};
     const row=document.createElement("div"); row.className="modRow"+(md.on?"":" off")+(md.id===modEditId?" sel":"");
-    const on=mk("modOn",md.on?"&#9679;":"&#9675;",md.on?"Enabled (click to disable)":"Disabled",()=>toggleModifier(md.id));
+    const on=mk("modOn",md.on?"&#9673;":"&#9711;",md.on?"On — click to turn this modifier off":"Off — click to turn it on",()=>toggleModifier(md.id));
     const nmS=document.createElement("span"); nmS.className="modName"; nmS.textContent=(md.type==="tool"&&md.params&&md.params.label)||R.label;
     const up=mk("modBtn","&#9650;","Move up",()=>moveModifier(md.id,-1),i===0);
     const dn=mk("modBtn","&#9660;","Move down",()=>moveModifier(md.id,+1),i===mods.length-1);
@@ -14993,6 +14998,9 @@ window.__ek={applyWhole:applyWhole,ops:ops,snapshot:snapshot,rebuild:rebuild,toa
 // ---------- capture hooks (App Store screenshots / previews) ----------
 window.__shot={ load(m){ mesh={verts:m.verts.map(v=>v.slice()),faces:m.faces.map(f=>f.slice())}; if(layers[activeLayer]) layers[activeLayer].mesh=mesh; clearSel&&clearSel(false); rebuild(); },
   mode(rm){ setRenderMode(rm); }, get yaw(){ return yaw; }, set yaw(v){ yaw=v; try{ applyCam(); }catch(e){} }, get pitch(){ return pitch; }, set pitch(v){ pitch=v; try{ applyCam(); }catch(e){} } };
+// ---------- Fabrication node lives at the bottom of the Modifiers stack (an on/off output, like a modifier) ----------
+(function(){ const fab=document.getElementById("fabNode"), mp=document.getElementById("modPanel"), list=document.getElementById("modList"); if(!fab||!mp||!list) return;
+  list.insertAdjacentElement("afterend",fab); fab.style.margin="4px 8px 4px"; fab.style.padding="6px 6px"; })();
 // ---------- right column stacked: Layers (top) · Modifiers · Options (bottom), heights adjustable ----------
 (function(){
   const B=document.body, R=document.documentElement.style; B.classList.add("rStack");
@@ -15000,7 +15008,12 @@ window.__shot={ load(m){ mesh={verts:m.verts.map(v=>v.slice()),faces:m.faces.map
   const A=mk("rSpA"), Bb=mk("rSpB");
   let ha=null, hb=null; try{ ha=+localStorage.getItem("tmRA")||null; hb=+localStorage.getItem("tmRB")||null; }catch(e){}
   const colH=()=>{ const cs=getComputedStyle(document.documentElement); return innerHeight-(parseFloat(cs.getPropertyValue("--tbTop"))||52)-(parseFloat(cs.getPropertyValue("--tbBot"))||44); };
-  function place(){ const H=colH(), min=56; let a=ha||H*0.27, b=hb||H*0.23; a=Math.max(min,Math.min(a,H-2*min-12)); b=Math.max(min,Math.min(b,H-a-min-12)); R.setProperty("--rA",Math.round(a)+"px"); R.setProperty("--rB",Math.round(b)+"px"); }
+  // auto-size: Layers and Modifiers take the height their content needs (Options gets the rest) until you drag a bar
+  const kids=el=>el?[...el.children].reduce((t,c)=>t+(c.offsetParent!==null?c.offsetHeight+4:0),0):0;
+  const hOf=id=>{ const e=document.getElementById(id); return e&&e.offsetParent!==null?e.offsetHeight:0; };
+  function need(){ const lay=hOf("layersHead")+kids(document.getElementById("layerList"))+hOf("layerAdd")+24;
+    const mod=hOf("modHead")+kids(document.getElementById("modList"))+hOf("fabNode")+hOf("modBar")+22; return [lay,mod]; }
+  function place(){ const H=colH(), min=56; const nd=need(); let a=ha||Math.min(nd[0],H*0.38), b=hb||Math.min(nd[1],H*0.36); a=Math.max(min,Math.min(a,H-2*min-12)); b=Math.max(min,Math.min(b,H-a-min-12)); R.setProperty("--rA",Math.round(a)+"px"); R.setProperty("--rB",Math.round(b)+"px"); }
   function drag(el,which){ let d=null;
     el.addEventListener("pointerdown",e=>{ const cs=getComputedStyle(document.documentElement); d={y:e.clientY,a:parseFloat(cs.getPropertyValue("--rA")),b:parseFloat(cs.getPropertyValue("--rB"))}; el.setPointerCapture(e.pointerId); el.classList.add("drag"); e.preventDefault(); e.stopPropagation(); });
     el.addEventListener("pointermove",e=>{ if(!d) return; const dy=e.clientY-d.y; if(which==="a"){ ha=d.a+dy; hb=d.b-dy; } else { ha=d.a; hb=d.b+dy; } place(); });
@@ -15008,6 +15021,8 @@ window.__shot={ load(m){ mesh={verts:m.verts.map(v=>v.slice()),faces:m.faces.map
     el.addEventListener("pointerup",up); el.addEventListener("pointercancel",up);
     el.addEventListener("dblclick",()=>{ ha=hb=null; try{ localStorage.removeItem("tmRA"); localStorage.removeItem("tmRB"); }catch(e){} place(); }); }
   drag(A,"a"); drag(Bb,"b");
+  let pend=0; const re=()=>{ if(pend) return; pend=requestAnimationFrame(()=>{ pend=0; place(); }); };
+  ["layerList","modList"].forEach(id=>{ const e=document.getElementById(id); if(e) new MutationObserver(re).observe(e,{childList:true,subtree:true}); });
   addEventListener("resize",place); place(); setTimeout(place,400); setTimeout(place,1400);
   try{ renderLayerList&&renderLayerList(); renderModStack&&renderModStack(); }catch(e){}
 })();
