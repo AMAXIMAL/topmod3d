@@ -33,9 +33,9 @@ body:has(#amxDemo) #eqPanel{bottom:112px}
 #amxDemo .step:empty{display:none}
 #amxDemo.paused .dot{background:#FF8C22;box-shadow:0 0 8px #FF8C22;animation:none}
 #amxDemo.paused button.try{background:#FF8C22;color:#1a0d00}
-#amxCursor{position:fixed;left:50%;top:50%;width:22px;height:22px;margin:-11px 0 0 -11px;border-radius:50%;background:#FF8C22;box-shadow:0 0 0 4px rgba(255,140,34,.28),0 0 18px rgba(255,140,34,.85);z-index:100000;pointer-events:none;opacity:0;transition:left .55s cubic-bezier(.2,.8,.2,1),top .55s cubic-bezier(.2,.8,.2,1),transform .12s,opacity .3s}
+#amxCursor{position:fixed;left:50%;top:50%;width:22px;height:22px;margin:-11px 0 0 -11px;border-radius:50%;background:#FF2A2A;box-shadow:0 0 0 4px rgba(255,42,42,.28),0 0 18px rgba(255,42,42,.85);z-index:100000;pointer-events:none;opacity:0;transition:left .55s cubic-bezier(.2,.8,.2,1),top .55s cubic-bezier(.2,.8,.2,1),transform .12s,opacity .3s}
 #amxCursor.show{opacity:1}#amxCursor.click{transform:scale(.62)}
-#amxCursor::after{content:"";position:absolute;inset:-6px;border-radius:50%;border:2px solid rgba(255,140,34,.7);opacity:0}
+#amxCursor::after{content:"";position:absolute;inset:-6px;border-radius:50%;border:2px solid rgba(255,42,42,.75);opacity:0}
 #amxCursor.click::after{animation:amxRipple .45s ease-out}
 @keyframes amxRipple{0%{transform:scale(.6);opacity:.9}100%{transform:scale(2.2);opacity:0}}
 
@@ -755,6 +755,77 @@ canvas#view{width:100%;height:100%;display:block;touch-action:none;outline:none;
 .osdBtns button:hover{background:rgba(255,140,34,.22)}
 .osdNote{opacity:.7;font-size:10.5px}
 </style>
+<style id="tbDockCss">
+/* ---- Tools docked as a left column (not floating): under the TOPMOD wordmark, from the menu bar down to the bottom bar; drag the bar to resize ---- */
+body.tbDock #toolbar{position:fixed!important;left:env(safe-area-inset-left)!important;top:var(--tbTop,52px)!important;bottom:var(--tbBot,44px)!important;right:auto!important;
+  width:var(--tbw,150px)!important;max-width:none!important;height:auto!important;max-height:none!important;transform:none!important;
+  border-radius:0!important;border:0!important;border-right:1px solid rgba(0,229,255,.18)!important;box-shadow:none!important;background:#06080e!important;z-index:40}
+body.tbDock #tbHead,body.tbDock #tbTab,body.tbDock #tbResize{display:none!important}
+body.tbDock #toolbar .trow{display:flex!important;flex-direction:column!important;flex-wrap:nowrap!important;overflow-y:auto!important;overflow-x:hidden!important;gap:6px!important;padding:6px 5px 10px!important}
+body.tbDock #toolbar .trow>:first-child,body.tbDock #toolbar .trow>:last-child{margin:0!important}
+body.tbDock #toolbar .tgrp{display:grid!important;grid-template-columns:repeat(auto-fill,minmax(var(--tbCell,38px),1fr));gap:3px!important;padding:12px 3px 3px!important;border-radius:9px!important;width:100%!important}
+body.tbDock #toolbar .tgrp::before{display:block!important;font-size:6.5px!important;top:3px!important;left:6px!important}
+body.tbDock button.tb{width:auto!important;height:var(--tbCellH,40px)!important;min-width:0!important;border-radius:8px!important;padding:1px!important;flex:none!important}
+body.tbDock button.tb img.ticon{width:var(--tbIcon,20px)!important;height:var(--tbIcon,20px)!important}
+body.tbDock button.tb svg{width:calc(var(--tbIcon,20px) - 3px)!important;height:calc(var(--tbIcon,20px) - 3px)!important}
+body.tbDock button.tb .tlbl{display:block!important;font-size:6.5px!important;letter-spacing:.1px!important;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;max-width:100%}
+body.tbDock #main{padding-left:calc(var(--tbw,150px) + 6px + env(safe-area-inset-left))}
+#tbDockBar{display:none}
+body.tbDock #tbDockBar{display:block;position:fixed;top:var(--tbTop,52px);bottom:var(--tbBot,44px);left:calc(var(--tbw,150px) + env(safe-area-inset-left));width:6px;z-index:41;cursor:ew-resize;touch-action:none;
+  background:#0b0f18;border-right:1px solid rgba(0,229,255,.12)}
+body.tbDock #tbDockBar::after{content:"";position:absolute;left:1px;top:50%;width:3px;height:34px;margin-top:-17px;border-radius:2px;background:rgba(0,229,255,.45)}
+body.tbDock #tbDockBar:hover,body.tbDock #tbDockBar.drag{background:rgba(0,229,255,.18)}
+body.tbDock.fullscreen #toolbar,body.tbDock.fullscreen #tbDockBar{display:none!important}
+body.tbDock.fullscreen #main{padding-left:0}
+/* ---- Options docked as a right column, same as the tools: menu bar down to the bottom bar, drag bar on its left edge ---- */
+body.opDock #toolpop{position:fixed!important;right:env(safe-area-inset-right)!important;left:auto!important;top:var(--tbTop,52px)!important;bottom:var(--tbBot,44px)!important;
+  width:var(--opw,280px)!important;max-width:none!important;height:auto!important;max-height:none!important;transform:none!important;
+  border-radius:0!important;border:0!important;border-left:1px solid rgba(0,229,255,.18)!important;box-shadow:none!important;background:#06080e!important;z-index:40;display:flex!important}
+body.opDock:not(.opOpen) #toolpop{display:none!important}
+body.opDock #tpTab,body.opDock #tpGrip,body.opDock #tpResize{display:none!important}
+body.opDock #tpHead{cursor:default!important}
+body.opDock #tpBody{gap:12px!important;padding:10px!important}
+body.opDock.opOpen #main{padding-right:calc(var(--opw,280px) + 6px + env(safe-area-inset-right))}
+#opDockBar{display:none}
+body.opDock.opOpen #opDockBar{display:block;position:fixed;top:var(--tbTop,52px);bottom:var(--tbBot,44px);right:calc(var(--opw,280px) + env(safe-area-inset-right));width:6px;z-index:41;cursor:ew-resize;touch-action:none;
+  background:#0b0f18;border-left:1px solid rgba(0,229,255,.12)}
+body.opDock #opDockBar::after{content:"";position:absolute;left:1px;top:50%;width:3px;height:34px;margin-top:-17px;border-radius:2px;background:rgba(0,229,255,.45)}
+body.opDock #opDockBar:hover,body.opDock #opDockBar.drag{background:rgba(0,229,255,.18)}
+body.opDock.fullscreen #toolpop,body.opDock.fullscreen #opDockBar{display:none!important}
+body.opDock.fullscreen #main{padding-right:0}
+/* ---- the right column is shared: Options · Layers · Modifiers tabs ---- */
+#rTabs{display:none}
+body.opDock.opOpen #rTabs{display:flex;position:fixed;top:var(--tbTop,52px);right:env(safe-area-inset-right);width:var(--opw,280px);height:28px;z-index:42;background:#06080e;
+  border-left:1px solid rgba(0,229,255,.18);border-bottom:1px solid rgba(0,229,255,.18);align-items:stretch}
+#rTabs button{flex:1;min-width:0;background:transparent;border:0;border-right:1px solid rgba(255,255,255,.06);color:#8fa6b8;font:700 9.5px var(--font,system-ui);letter-spacing:.8px;text-transform:uppercase;cursor:pointer;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;padding:0 4px}
+#rTabs button.on{color:#00E5FF;background:rgba(0,229,255,.10);box-shadow:inset 0 -2px 0 #00E5FF}
+#rTabs button.x{flex:0 0 26px;color:#9fb4c8;font-size:14px;letter-spacing:0}
+body.opDock #toolpop,body.opDock.opOpen #layersPanel,body.opDock.opOpen #modPanel{top:calc(var(--tbTop,52px) + 28px)!important}
+body.opDock.opOpen #layersPanel,body.opDock.opOpen #modPanel{position:fixed!important;right:env(safe-area-inset-right)!important;left:auto!important;bottom:var(--tbBot,44px)!important;
+  width:var(--opw,280px)!important;max-width:none!important;height:auto!important;max-height:none!important;transform:none!important;border-radius:0!important;border:0!important;
+  border-left:1px solid rgba(0,229,255,.18)!important;box-shadow:none!important;background:#06080e!important;z-index:40;flex-direction:column}
+body.opDock.opOpen:not(.rt-opt) #toolpop{display:none!important}
+body.opDock.opOpen.rt-lay #layersPanel{display:flex!important}
+body.opDock.opOpen.rt-lay #modPanel{display:none!important}
+body.opDock.opOpen.rt-mod #modPanel{display:flex!important}
+body.opDock.opOpen:not(.rt-lay) #layersPanel{display:none!important}
+body.opDock.opOpen:not(.rt-mod) #modPanel{display:none!important}
+body.opDock #layersHead,body.opDock #modHead #modClose,body.opDock #layersClose,body.opDock #modGrip,body.opDock #tpClose{display:none!important}
+body.opDock.opOpen #layerList{flex:1 1 auto;min-height:0}
+body.opDock.opOpen #modList{flex:1 1 auto;min-height:0;overflow-y:auto}
+/* ---- bottom bar: no genus, no Demo button; everything fits on iPhone ---- */
+#genusBadge,#demoTitle,#demoMenu{display:none!important}
+#status{flex-wrap:wrap;row-gap:4px}
+#status #keys{display:none!important}
+body.phone #status{gap:3px!important;padding:3px 4px calc(3px + env(safe-area-inset-bottom))!important;font-size:9px!important;flex-wrap:wrap!important;justify-content:center!important;overflow:visible!important}
+body.phone #status .cell,body.phone #status .selBtn{padding:3px 4.5px!important;font-size:8.5px!important;letter-spacing:0!important;border-radius:6px!important;margin:0!important;line-height:1.2!important}
+body.phone #status #hint,body.phone #status #keys,body.phone #status #topo{display:none!important}
+body.phone #status .selModes{gap:2px!important;display:inline-flex!important}
+/* no Math · Live window */
+#eqPanel{display:none!important}
+[data-act="liveEq"]{display:none!important}
+</style>
+
 </head>
 <body>
 <div id="frame">
@@ -7246,7 +7317,7 @@ const canvas=$("#view");
 const renderer=new THREE.WebGLRenderer({canvas, antialias:true, alpha:true, preserveDrawingBuffer:true});
 renderer.setPixelRatio(Math.min(devicePixelRatio||1,2));
 const scene=new THREE.Scene();
-scene.background=new THREE.Color(0xd6d9de);
+scene.background=new THREE.Color(0x080a12);
 const camera=new THREE.PerspectiveCamera(42,1,0.01,200);
 
 const keyLight=new THREE.DirectionalLight(0xfff2e0,1.0); keyLight.position.set(4,6,5);
@@ -7266,7 +7337,7 @@ function updateViewLights(){
 }
 
 const GROUND_Y=-2.6;
-const grid=new THREE.GridHelper(10,10,0x8e959e,0xb4b9c0);   // 10 x 10 ground, 1-inch cells
+const grid=new THREE.GridHelper(10,10,0x7fd8ef,0x4699b3);   // 10 x 10 ground, 1-inch cells
 grid.material.transparent=true; grid.material.opacity=0.33;
 grid.position.y=GROUND_Y; scene.add(grid);
 // 10 x 10 x 10 inch build-volume reference (child of grid -> toggles & moves with it)
@@ -14716,6 +14787,82 @@ window.__ek={applyWhole:applyWhole,ops:ops,snapshot:snapshot,rebuild:rebuild,toa
   document.querySelectorAll('[data-act="cloth"]').forEach(el=>el.addEventListener("click",e=>{ e.stopPropagation(); document.querySelectorAll("#menubar .menu.open").forEach(m=>m.classList.remove("open")); open(); }));
 })();
 
+// ---------- Docked tools column: width = up to the File menu (3 tools wide on iPhone), drag bar to resize ----------
+(function(){
+  const tb=document.getElementById("toolbar"); if(!tb) return;
+  document.body.classList.add("tbDock"); tb.classList.remove("tucked","collapsed");
+  const bar=document.createElement("div"); bar.id="tbDockBar"; bar.title="Drag to resize the tools column"; document.body.appendChild(bar);
+  const root=document.documentElement.style, phone=()=>Math.min(innerWidth,innerHeight)<=500;
+  let w=null; try{ const v=+localStorage.getItem("tmTbW"); if(v) w=v; }catch(e){}
+  function cells(){ const ph=phone(); root.setProperty("--tbCell",ph?"34px":"40px"); root.setProperty("--tbCellH",ph?"36px":"42px"); root.setProperty("--tbIcon",ph?"18px":"21px"); }
+  function defaultW(){ const f=document.querySelector("#menubar .menu .mtitle"); const fx=f?f.getBoundingClientRect().left:0;
+    const ph=phone(), three=3*(ph?34:40)+2*3+8+10+12;          // 3 cells + gaps + group padding/border + column padding + scrollbar slack
+    return Math.round(Math.max(three, Math.min(fx-6, ph?three:240))); }
+  function layout(){
+    const mb=document.getElementById("menubar"), st=document.getElementById("status");
+    const top=mb?Math.round(mb.getBoundingClientRect().bottom):52, bot=st&&st.offsetParent!==null?Math.round(innerHeight-st.getBoundingClientRect().top):0;
+    root.setProperty("--tbTop",top+"px"); root.setProperty("--tbBot",Math.max(0,bot)+"px"); cells();
+    const ww=Math.max(110,Math.min(w||defaultW(),Math.round(innerWidth*0.45))); root.setProperty("--tbw",ww+"px");
+  }
+  let dg=null;
+  bar.addEventListener("pointerdown",e=>{ dg={x:e.clientX,w:tb.getBoundingClientRect().width}; bar.setPointerCapture(e.pointerId); bar.classList.add("drag"); e.preventDefault(); e.stopPropagation(); });
+  bar.addEventListener("pointermove",e=>{ if(!dg) return; w=Math.round(Math.max(110,Math.min(innerWidth*0.45,dg.w+e.clientX-dg.x))); layout(); });
+  const up=()=>{ if(!dg) return; dg=null; bar.classList.remove("drag"); try{ localStorage.setItem("tmTbW",String(w)); }catch(e){} };
+  bar.addEventListener("pointerup",up); bar.addEventListener("pointercancel",up);
+  bar.addEventListener("dblclick",()=>{ w=null; try{ localStorage.removeItem("tmTbW"); }catch(e){} layout(); });
+  addEventListener("resize",layout); addEventListener("orientationchange",()=>setTimeout(layout,250));
+  new MutationObserver(()=>{ if(tb.classList.contains("tucked")) tb.classList.remove("tucked"); }).observe(tb,{attributes:true,attributeFilter:["class"]});
+  try{ const st=document.getElementById('status'), mb=document.getElementById('menubar'); const ro=new ResizeObserver(()=>layout()); st&&ro.observe(st); mb&&ro.observe(mb); }catch(e){}
+  layout(); setTimeout(layout,300); setTimeout(layout,1200);
+  try{ window.__eq&&window.__eq.toggle(false); }catch(e){}
+})();
+// ---------- Docked Options column (right): shown while a tool has options (always on desktop), drag bar to resize ----------
+(function(){
+  const tp=document.getElementById("toolpop"); if(!tp) return;
+  document.body.classList.add("opDock"); document.body.classList.remove("rightTucked");
+  const bar=document.createElement("div"); bar.id="opDockBar"; bar.title="Drag to resize the options column"; document.body.appendChild(bar);
+  const root=document.documentElement.style, phone=()=>Math.min(innerWidth,innerHeight)<=500;
+  let w=null; try{ const v=+localStorage.getItem("tmOpW"); if(v) w=v; }catch(e){}
+  const defaultW=()=>phone()?Math.round(Math.min(200,innerWidth*0.32)):280;
+  function layout(){ root.setProperty("--opw",Math.max(150,Math.min(w||defaultW(),Math.round(innerWidth*0.45)))+"px"); }
+  function sync(){ const hidden=tp.classList.contains("hiddenPanel")||document.body.classList.contains("rightTucked"), empty=tp.classList.contains("empty");
+    const open=document.body.classList.contains("rightTucked")?false:(document.body.classList.contains("rtForce")||(!hidden && !(empty && phone()))); if(document.body.classList.contains("opOpen")!==open) document.body.classList.toggle("opOpen",open); }
+  let dg=null;
+  bar.addEventListener("pointerdown",e=>{ dg={x:e.clientX,w:tp.getBoundingClientRect().width}; bar.setPointerCapture(e.pointerId); bar.classList.add("drag"); e.preventDefault(); e.stopPropagation(); });
+  bar.addEventListener("pointermove",e=>{ if(!dg) return; w=Math.round(Math.max(150,Math.min(innerWidth*0.45,dg.w-(e.clientX-dg.x)))); layout(); });
+  const up=()=>{ if(!dg) return; dg=null; bar.classList.remove("drag"); try{ localStorage.setItem("tmOpW",String(w)); }catch(e){} };
+  bar.addEventListener("pointerup",up); bar.addEventListener("pointercancel",up);
+  bar.addEventListener("dblclick",()=>{ w=null; try{ localStorage.removeItem("tmOpW"); }catch(e){} layout(); });
+  new MutationObserver(sync).observe(tp,{attributes:true,attributeFilter:["class"]});
+  new MutationObserver(sync).observe(document.body,{attributes:true,attributeFilter:["class"]});
+  addEventListener("resize",()=>{ layout(); sync(); });
+  layout(); sync();
+})();
+// ---------- right column tabs: Options · Layers · Modifiers share the docked space ----------
+(function(){
+  const B=document.body, tp=document.getElementById("toolpop"); if(!tp) return;
+  if(Math.min(innerWidth,innerHeight)<=500) B.classList.add("phone");
+  addEventListener("resize",()=>B.classList.toggle("phone",Math.min(innerWidth,innerHeight)<=500));
+  const bar=document.createElement("div"); bar.id="rTabs";
+  bar.innerHTML='<button data-t="opt">Options</button><button data-t="lay">Layers</button><button data-t="mod">Modifiers</button><button class="x" title="Hide the column">&times;</button>';
+  document.body.appendChild(bar);
+  let tab="opt", pinned=false;
+  function setTab(t,user){ tab=t; if(user) pinned=t!=="opt"; ["opt","lay","mod"].forEach(k=>B.classList.toggle("rt-"+k,k===t)); bar.querySelectorAll("button[data-t]").forEach(b=>b.classList.toggle("on",b.dataset.t===t));
+    if(t!=="opt"){ B.classList.add("rtForce"); try{ renderLayerList&&renderLayerList(); renderModStack&&renderModStack(); }catch(e){} } else B.classList.remove("rtForce");
+    B.classList.remove("rightTucked"); syncOpen(); }
+  function syncOpen(){ const tpOpen=!tp.classList.contains("hiddenPanel") && !(tp.classList.contains("empty") && B.classList.contains("phone"));
+    const open=!B.classList.contains("rightTucked") && (tab!=="opt" || tpOpen);
+    if(B.classList.contains("opOpen")!==open) B.classList.toggle("opOpen",open); }
+  bar.querySelectorAll("button[data-t]").forEach(b=>b.addEventListener("click",e=>{ e.stopPropagation(); setTab(b.dataset.t,true); }));
+  bar.querySelector(".x").addEventListener("click",e=>{ e.stopPropagation(); pinned=false; tab="opt"; setTab("opt"); B.classList.add("rightTucked"); syncOpen(); });
+  // a tool opening its options brings the Options tab forward
+  new MutationObserver(()=>{ if(!tp.classList.contains("empty") && !tp.classList.contains("hiddenPanel") && tab!=="opt") setTab("opt"); syncOpen(); }).observe(tp,{attributes:true,attributeFilter:["class"]});
+  // the bottom-bar Layers / Options buttons pick their tab
+  const lt=document.getElementById("layersToggle"); if(lt) lt.addEventListener("click",()=>setTimeout(()=>setTab("lay",true),30));
+  const ot=document.getElementById("optionsToggle"); if(ot) ot.addEventListener("click",()=>setTimeout(()=>{ B.classList.remove("rightTucked"); setTab("opt"); },30));
+  new MutationObserver(syncOpen).observe(B,{attributes:true,attributeFilter:["class"]});
+  setTab("opt");
+})();
 window.__tm={
   topo:()=>TM.eulerInfo(mesh),
   faceScreen(fi){
@@ -16129,7 +16276,16 @@ void main(){
   // ---- orange demo cursor ----
   let cur = null;
   function cursor(){ if (!cur){ cur = document.createElement("div"); cur.id = "amxCursor"; document.body.appendChild(cur); } return cur; }
-  function moveCursor(el){ const c = cursor(); const r = el.getBoundingClientRect(); c.classList.add("show"); c.style.left = (r.left + r.width/2) + "px"; c.style.top = (r.top + r.height/2) + "px"; }
+  // scroll the tools column so the tool is in view (smooth), then the red dot follows it there
+  function revealTool(el){ const row=el.closest&&el.closest("#toolbar .trow"); if(!row) return false;
+    const r=el.getBoundingClientRect(), rr=row.getBoundingClientRect(); if(r.top>=rr.top+8 && r.bottom<=rr.bottom-8) return false;
+    const target=row.scrollTop + (r.top - rr.top) - (rr.height - r.height)/2;
+    try{ row.scrollTo({top:Math.max(0,target),behavior:"smooth"}); }catch(e){ row.scrollTop=Math.max(0,target); } return true; }
+  function placeCursor(el){ const c = cursor(); const r = el.getBoundingClientRect(); c.classList.add("show"); c.style.left = (r.left + r.width/2) + "px"; c.style.top = (r.top + r.height/2) + "px"; }
+  function moveCursor(el){ const scrolled=revealTool(el); placeCursor(el); if(scrolled){ setTimeout(()=>placeCursor(el),220); setTimeout(()=>placeCursor(el),480); } }
+  // point the red dot at a toolbar tool (scrolling to it) without clicking — for steps the demo performs directly
+  async function point(sel, label, hold = 420){ const b = q(sel); if (label) say(label); if (!b) return false; moveCursor(b); await wait(560); if (!alive) return false;
+    b.classList.add("amxPulse"); clickFx(); await wait(hold); b.classList.remove("amxPulse"); return true; }
   function clickFx(){ const c = cursor(); c.classList.remove("click"); void c.offsetWidth; c.classList.add("click"); setTimeout(() => c.classList.remove("click"), 450); }
   async function slide(id, from, to, steps = 12, label){ const el = q("#" + id); if (!el) return; if (label) say(label); moveCursor(el); await wait(600);
     for (let i = 0; i <= steps && alive; i++){ const v = from + (to - from) * i / steps; el.value = v; el.dispatchEvent(new Event("input", { bubbles:true })); const o = q("#" + id + "V"); if (o) o.textContent = (+v).toFixed(2).replace(/\.?0+$/,""); await wait(110); }
@@ -16162,7 +16318,6 @@ void main(){
   async function press(sel, label, hold = 650){
     const b = q(sel); if (!b) return false;
     say(label);
-    try { b.scrollIntoView({ block:"nearest", inline:"nearest" }); } catch(e){}
     moveCursor(b); await wait(600); if (!alive) return false;
     b.classList.add("amxPulse"); await wait(hold); b.classList.remove("amxPulse");
     if (!alive) return false;
@@ -16232,13 +16387,13 @@ void main(){
         const EQ=(k,x)=>{ try{ window.__eq&&window.__eq.op(k,x); }catch(e){} }; EQ("dodeca");
         // frame once for the FINISHED form, then build it up in place — no camera moves while modeling
         stageLoad(st[st.length-1].mesh); try { window.__tm.frameAll(1.3); } catch(e){} stageLoad(st[0].mesh); await wait(300);
-        EQ("handle");
+        EQ("handle"); await point('#toolbar [data-op="handle"]', "Handle tool · 6 twisted handles", 300);
         for (let k=1; k<=6; k++){ const s=st[k]; if(!s) break; say(s.label+" (genus "+k+")"); stageLoad(s.mesh); await wait(k===1?380:220); }
-        const ds=st.find(x=>/^Doo-Sabin/.test(x.label)); say("Doo-Sabin ×1 — the key to the TopMod look"); EQ("doosabin"); stageLoad(ds.mesh); await wait(450);
-        say("Select face loops — quads that weave from handle to handle"); EQ("loops");
+        const ds=st.find(x=>/^Doo-Sabin/.test(x.label)); await point('#toolbar [data-op="doosabin"]', "Doo-Sabin ×1 — the key to the TopMod look", 260); EQ("doosabin"); stageLoad(ds.mesh); await wait(450);
+        await point('#toolbar [data-op="loopPick"]', "Select face loops — quads that weave from handle to handle", 260); EQ("loops");
         try { setMode("face"); (ds.remove||[]).forEach(f=>sel.faces.add(f)); rebuildOverlay(); } catch(e){} await wait(550);
-        const rind=st.find(x=>/^Rind/.test(x.label)); say("Rind modeling · "+rind.label.replace(/^Rind · /,"")); EQ("rind"); try{ clearSel(false); }catch(e){} stageLoad(rind.mesh); await wait(450);
-        say("Catmull-Clark ×2 — smooth"); EQ("catmull"); stageLoad(st[st.length-1].mesh); await wait(600);
+        const rind=st.find(x=>/^Rind/.test(x.label)); await point('#toolbar [data-op="rindSel"]', "Rind modeling · "+rind.label.replace(/^Rind · /,""), 260); EQ("rind"); try{ clearSel(false); }catch(e){} stageLoad(rind.mesh); await wait(450);
+        await point('#toolbar [data-op="catmull"]', "Catmull-Clark ×2 — smooth", 260); EQ("catmull"); stageLoad(st[st.length-1].mesh); await wait(600);
         // one full 360° turn of the finished form (view style unchanged)
         say("360° turn"); spinHold=true; { const y0=yaw, T=6000, t0=performance.now();
           while(alive){ const u=Math.min(1,(performance.now()-t0)/T); yaw=y0+Math.PI*2*(u<.5?2*u*u:1-Math.pow(-2*u+2,2)/2); try{ applyCam(); }catch(e){} if(u>=1) break; await new Promise(r=>requestAnimationFrame(r)); }
@@ -16291,7 +16446,7 @@ void main(){
         let st; try { st=TM.topmodLook({smooth:1}); } catch(e){ console.warn(e); return; }
         stageLoad(st[st.length-1].mesh); try { window.__tm.frameAll(1.5); } catch(e){} await wait(500);
         const CL=window.__cloth; if(!CL||!alive) return;
-        say("Cloth · Inflate — pressure inside the form (XPBD)"); CL.open("inflate"); Object.assign(CL.cfg,{detail:0,pressure:1.55,stretch:0.5}); CL.build(); CL.play();
+        await point('#toolbar [data-act="cloth"]', "Cloth · Inflate — pressure inside the form (XPBD)", 300); CL.open("inflate"); Object.assign(CL.cfg,{detail:0,pressure:1.55,stretch:0.5}); CL.build(); CL.play();
         { const t0=performance.now(); while(alive && CL.frames<190 && performance.now()-t0<9000) await wait(100); } if(!alive) return; CL.pause(); say("Bake the inflated form"); CL.bake(); await wait(700); if(!alive) return;
         say("Cloth · Drape — a sheet falls and collides with the form"); CL.open("drape"); Object.assign(CL.cfg,{sheetRes:48}); CL.build(); CL.play();
         { const t0=performance.now(); while(alive && CL.frames<300 && performance.now()-t0<11000) await wait(100); } if(!alive) return; CL.pause(); await wait(700);
