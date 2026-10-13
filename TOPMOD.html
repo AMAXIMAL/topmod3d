@@ -685,6 +685,11 @@ canvas#view{width:100%;height:100%;display:block;touch-action:none;outline:none;
 <style id="v39css">
 #liveBar{position:fixed;left:50%;bottom:calc(52px + env(safe-area-inset-bottom,0px));transform:translateX(-50%);z-index:9996;display:none;align-items:center;gap:10px;padding:7px 10px 7px 14px;border-radius:999px;background:rgba(8,10,18,0.9);border:1px solid rgba(255,140,34,0.55);box-shadow:0 8px 30px rgba(0,0,0,.5);font:600 11px var(--font,system-ui);color:#f0f0f5;-webkit-backdrop-filter:blur(8px);backdrop-filter:blur(8px)}
 #liveBar.show{display:flex}
+#topo{display:none!important}
+#recBtn,#spinBtn{cursor:pointer;background:rgba(0,229,255,0.1);border:1px solid rgba(0,229,255,0.3);color:#cfefff;border-radius:7px}
+#recBtn{color:#ff6b6b}
+#recBtn.rec{background:#e5384d;color:#fff;border-color:#e5384d;animation:amxBlink 1.2s ease-in-out infinite}
+#cmdWrap{display:none!important}
 #liveBar{flex-wrap:wrap;justify-content:center;max-width:calc(100vw - 24px)}
 #liveBar.gem{border-radius:16px}
 #lbGem{gap:10px;align-items:center;flex-wrap:wrap}
@@ -775,9 +780,13 @@ canvas#view{width:100%;height:100%;display:block;touch-action:none;outline:none;
       <div class="mi" data-rm="solid">Solid</div>
       <div class="mi" data-rm="normals">Normals</div>
       <div class="mi" data-rm="xray">X-Ray<span class="kbd">X</span></div>
-      <div class="mi" data-act="liveRender">Render (live)<span class="kbd">L</span></div>
       <div class="mi" data-rm="diamond">Diamond (ray-traced gem)</div>
+      <div class="mi" data-rm="reddiamond">Red Diamond (ray-traced gem)</div>
+      <div class="mi" data-rm="ruby">Ruby (ray-traced gem)</div>
+      <div class="mi" data-rm="sapphire">Sapphire (ray-traced gem)</div>
+      <div class="mi" data-rm="emerald">Emerald (ray-traced gem)</div>
       <div class="mi" data-act="lineArt">Line Art (pen-plotter styles)</div>
+      <div class="mi" data-act="liveEq">Live Equations (math overlay)</div>
       <div class="msep"></div>
       <div class="mi" data-rm="galaxy">Galaxy</div>
       <div class="mi" data-rm="matrix">Matrix</div>
@@ -861,10 +870,9 @@ canvas#view{width:100%;height:100%;display:block;touch-action:none;outline:none;
       <div class="mi" data-act="showPrinter">Show 3D Printer (object on bed)</div>
       <div class="mi" data-act="sendPrinter">Send to 3D Printer (STL)&hellip;</div>
       <div class="mi" data-act="fab3DPrint">3D Print &mdash; build plate &amp; scale&hellip;</div>
-      <div class="mi" data-act="fabRender">Live Render (on / off)<span class="kbd">L</span></div>
+      <div class="mi" data-act="fabRender">Render Image (PNG)&hellip;</div>
     </div></div>
     <div class="menu"><span class="mtitle">Render</span><div class="mlist">
-      <div class="mi" data-act="liveRender" id="miLiveRender">Live Render &mdash; on screen<span class="kbd">L</span></div>
       <div class="mi" data-act="renderPNG">Save High-Res Render (PNG)&hellip;</div>
     </div></div>
     <div class="menu"><span class="mtitle">Help</span><div class="mlist">
@@ -951,7 +959,7 @@ canvas#view{width:100%;height:100%;display:block;touch-action:none;outline:none;
         <button class="tb" data-op="slab" data-style="laser" title="Laser — lay every face flat for laser cutting, with interlocking finger joints on shared edges (Fabricate → Laser cut)"><svg width="22" height="22" viewBox="0 0 22 22"><rect x="3.5" y="6.5" width="6" height="6" stroke="#00E5FF" stroke-width="1.3" fill="none"/><path d="M9.5 8.2h2v1.6h-2M9.5 10.4h2v1.6h-2" stroke="#FF8C22" stroke-width="1.1" fill="none"/><path d="M14 4.5l4.5 4.5M18.5 4.5L14 9" stroke="#ff3b6b" stroke-width="1.3" stroke-linecap="round"/></svg><span class="tlbl">Laser</span></button>
         <button class="tb" data-op="slab" data-style="waffle" title="Waffle — interlocking slice grid (Fabricate → Plywood waffle): two perpendicular slice sets notch together egg-crate style with dogbone corner relief"><svg width="22" height="22" viewBox="0 0 22 22"><path d="M5 4v14M9 4v14M13 4v14M17 4v14" stroke="#CBA15A" stroke-width="1.2"/><path d="M4 6h14M4 10h14M4 14h14" stroke="#8a6f3e" stroke-width="1.2"/></svg><span class="tlbl">Waffle</span></button>
         <button class="tb" id="tb3dprint" title="3D Print — show the build plate, scale the model, and send the on-screen object to the printer"><svg width="22" height="22" viewBox="0 0 22 22"><rect x="4" y="9" width="14" height="7" rx="1" stroke="#00E5FF" stroke-width="1.4" fill="none"/><path d="M6 9V4.5h10V9" stroke="#CBA15A" stroke-width="1.3" fill="none" stroke-linejoin="round"/><rect x="7.5" y="12.5" width="7" height="5" rx="0.5" stroke="#FF8C22" stroke-width="1.3" fill="none"/><circle cx="15.4" cy="11.4" r="0.85" fill="#00E5FF"/></svg><span class="tlbl">Print</span></button>
-        <button class="tb" id="tbRender" title="Render — live glass / studio-light render on screen (L). Camera button saves a high-res PNG."><svg width="22" height="22" viewBox="0 0 22 22"><circle cx="11" cy="11" r="4.8" stroke="#00E5FF" stroke-width="1.4" fill="none"/><circle cx="9.2" cy="9.2" r="1.3" fill="#FF8C22"/><path d="M11 2.6v2M11 17.4v2M2.6 11h2M17.4 11h2M5.1 5.1l1.4 1.4M15.5 15.5l1.4 1.4M16.9 5.1l-1.4 1.4M6.5 15.5l-1.4 1.4" stroke="#CBA15A" stroke-width="1.2" stroke-linecap="round"/></svg><span class="tlbl">Render</span></button>
+        <button class="tb" id="tbRender" title="Render — save a high-res studio render (PNG): glass, metal, ceramic, wood, gems"><svg width="22" height="22" viewBox="0 0 22 22"><circle cx="11" cy="11" r="4.8" stroke="#00E5FF" stroke-width="1.4" fill="none"/><circle cx="9.2" cy="9.2" r="1.3" fill="#FF8C22"/><path d="M11 2.6v2M11 17.4v2M2.6 11h2M17.4 11h2M5.1 5.1l1.4 1.4M15.5 15.5l1.4 1.4M16.9 5.1l-1.4 1.4M6.5 15.5l-1.4 1.4" stroke="#CBA15A" stroke-width="1.2" stroke-linecap="round"/></svg><span class="tlbl">Render</span></button>
       </span>
       <span class="tgrp" data-label="Generate">
         <button class="tb" data-op="metaballs" title="Metaballs — generate an organic fluid-blob surface (marching/surface-nets isosurface). Options for count, size, threshold, seed."><svg width="22" height="22" viewBox="0 0 22 22"><circle cx="8" cy="10" r="4.5" fill="#00E5FF" fill-opacity="0.5" stroke="#00E5FF" stroke-width="1.1"/><circle cx="13.5" cy="12.5" r="3.6" fill="#00E5FF" fill-opacity="0.5" stroke="#00E5FF" stroke-width="1.1"/><circle cx="13" cy="7.5" r="2.6" fill="#FF8C22" fill-opacity="0.7" stroke="#FF8C22" stroke-width="1"/></svg><span class="tlbl">Blobs</span></button>
@@ -1648,6 +1656,8 @@ canvas#view{width:100%;height:100%;display:block;touch-action:none;outline:none;
         </div>
         <div class="row">
           <button data-rm="diamond" title="Diamond — ray-traced gem view: refraction, total internal reflection, dispersion">&#128142; Diamond</button>
+          <button data-rm="reddiamond" title="Red diamond — ray-traced fancy red stone">&#10084; Red</button>
+          <button data-rm="ruby" title="Ruby — ray-traced">&#9830; Ruby</button>
         </div>
         <label><input type="checkbox" id="tgEdges" checked> Edges</label>
         <label><input type="checkbox" id="tgVerts"> Vertices</label>
@@ -1678,7 +1688,7 @@ canvas#view{width:100%;height:100%;display:block;touch-action:none;outline:none;
       <div class="rdlgBtns">
         <button id="rdlgSave" class="rdlgBtn go">Save PNG</button>
         <button id="rdlgAgain" class="rdlgBtn">Re-render</button>
-        <button id="rdlgLive" class="rdlgBtn">Live on screen</button>
+        
         <button id="rdlgClose" class="rdlgBtn ghost">Close</button>
       </div>
     </div>
@@ -1739,7 +1749,8 @@ canvas#view{width:100%;height:100%;display:block;touch-action:none;outline:none;
     <button class="cell" id="sectionFab" title="Toggle section plane viewer">&#9707; Section</button>
     <button class="cell" id="handFab" title="Hand tracking (camera + pinch gestures)">&#9995; Hands</button>
     <button class="cell" id="layersToggle" title="Toggle layers panel">&#9783; Layers</button>
-    <button class="cell" id="printToggle" title="3D print the model on screen (FlashForge)">&#9113; Print</button>
+    <button class="cell" id="recBtn" title="Record the screen (viewport) to a video — click again to stop and save">&#9679; Rec</button>
+    <button class="cell" id="spinBtn" title="Export a 360° turntable of the form (MP4)">&#10227; 360</button>
     <button class="cell" id="optionsToggle" title="Toggle options panel">&#9881; Options</button>
     <button class="cell" id="snapToggle" title="Snap movement to grid">&#9783; Snap</button>
     <button class="cell" id="dockToggle" title="Toggle bottom tool dock">&#9636; Dock</button>
@@ -6368,6 +6379,7 @@ let layerSeq=1;
 let modSeq=1;
 let groupSeq=1;
 let modStackActive=false;
+let layersOn=true;           // bottom-bar Layers: on = live layers/modifiers, off = step-by-step baking
 let fabActive=false;  // Fabrication footer node on/off (declared early so init-time renderLayerList can read it)
 let rhinoLink=false, rhinoURL="http://127.0.0.1:8181/mesh", _rhinoT=null;  // live geometry link to Rhino (declared early; rebuild() reads rhinoLink)
 let layerObjs=[];     // THREE meshes for INACTIVE visible layers (active uses meshObj)
@@ -6828,6 +6840,13 @@ function addModifier(type, opts){
     else { const fs=[...sel.faces]; if(fs.length!==2){ toast&&toast("Select exactly 2 faces for a handle",true); return; } params.fa=fs[0]; params.fb=fs[1]; }
     if($("#pPinch")){ params.pinch=P("#pPinch"); params.segments=Math.round(P("#pHSeg")); params.curve=P("#pHCurve"); }
   }
+  if(!layersOn && !(opts&&opts.returnMod)){                 // step-by-step mode: bake the operation into the mesh now
+    try{ snapshot(); const r=MODS[type].apply(mesh, params); const err=r&&TM.validate(r); if(!r||!r.faces||!r.faces.length) throw "no result"; if(err&&!/^duplicate directed edge/.test(err)) throw err;
+      mesh={verts:r.verts.map(v=>v.slice()),faces:r.faces.map(f=>f.slice())}; L.mesh=mesh; L.steps=(L.steps||[]).concat(MODS[type].label);
+      clearSel(false); rebuild(); renderModStack(); toast&&toast(MODS[type].label+" ✓ (baked — Layers is off)"); }
+    catch(e){ undoStack.pop(); updateUndoUI&&updateUndoUI(); toast&&toast(String(e),true); }
+    return;
+  }
   snapshot();                                              // make the add undoable (same architecture as every other op)
   const m={id:modSeq++, type, on:true, params};
   L.modifiers.push(m);
@@ -6872,6 +6891,9 @@ function renderModStack(){
   if(isPrim){ baseRow.title="Edit "+primLabel(L.gen.prim)+" parameters"; baseRow.onclick=()=>editGenLayer(activeLayer); }
   else { baseRow.title="Base geometry — edit it directly, or add modifiers above"; baseRow.onclick=()=>toast&&toast("Base geometry — edit it directly, or add modifiers above it"); }
   list.appendChild(baseRow);
+  // remembered steps from step-by-step modeling (Layers off): baked, listed but not active
+  ((L&&L.steps)||[]).forEach((lab,i)=>{ const r=document.createElement("div"); r.className="modRow off modStep"; r.title="Baked step "+(i+1)+" (modeled with Layers off)";
+    r.innerHTML='<span class="modOn">&#10003;</span><span class="modName"></span><span class="modBaseTag">baked</span>'; r.querySelector(".modName").textContent=(i+1)+". "+lab; list.appendChild(r); });
   // modifiers (array order = application order, shown under the base)
   mods.forEach((md,i)=>{
     const R=MODS[md.type]||{label:md.type,params:[]};
@@ -6885,7 +6907,7 @@ function renderModStack(){
     row.onclick=()=>openModEdit(md.id);
     list.appendChild(row);
   });
-  if(!mods.length){ const e=document.createElement("div"); e.className="modEmpty"; e.textContent="Pick a tool, or add a modifier — it stacks above the base and stays editable."; list.appendChild(e); }
+  if(!mods.length && !((L&&L.steps)||[]).length){ const e=document.createElement("div"); e.className="modEmpty"; e.textContent="Pick a tool, or add a modifier — it stacks above the base and stays editable."; list.appendChild(e); }
   const fl=$("#modFlatten"); if(fl) fl.disabled=!mods.some(x=>x.on);
 }
 // ================= Selection groups — saved face sets, per layer =================
@@ -7034,7 +7056,8 @@ function paramLabelFor(inp){
 function fmtV(x){ const n=parseFloat(x); return isNaN(n)?String(x):String(+n.toFixed(3)); }
 function syncFloat(){
   const el=document.getElementById("floatSlider"); if(!el) return;
-  const inputs=visibleRanges(document.getElementById("toolpop"));
+  const hb=document.getElementById("handFab"), handsOn=!!(hb&&hb.classList.contains("on"));
+  const inputs=handsOn? visibleRanges(document.getElementById("toolpop")) : [];     // on-screen sliders only while Hands is on
   if(!inputs.length){ if(el.style.display!=="none"){ el.style.display="none"; el.innerHTML=""; floatBoundList=[]; } return; }
   const same = inputs.length===floatBoundList.length && inputs.every((x,i)=>x===floatBoundList[i]);
   if(!same){
@@ -7294,7 +7317,11 @@ const RMODES={
   laser:{mat:matLaser, edge:[0x003540,0.7], label:"Laser"},
   patent:{mat:matPatent, edge:[0x000000,0.0], label:"Patent / Halftone"},   // outlines come from the post-process, not the wireframe
   patent3d:{mat:matPatent, edge:[0x000000,0.0], label:"3D Glasses · Halftone"},   // anaglyph (red/cyan) halftone — wear red/cyan glasses
-  diamond:{mat:matXray, edge:[0xffffff,0.12], label:"Diamond"}   // ray-traced gem view — real material installed by the render module (WebGL2)
+  diamond:{mat:matXray, edge:[0xffffff,0.12], label:"Diamond"},   // ray-traced gem view — real material installed by the render module (WebGL2)
+  reddiamond:{mat:matXray, edge:[0xff6b6b,0.10], label:"Red Diamond"},
+  ruby:{mat:matXray, edge:[0xff3355,0.10], label:"Ruby"},
+  sapphire:{mat:matXray, edge:[0x4d7dff,0.10], label:"Sapphire"},
+  emerald:{mat:matXray, edge:[0x3dff8f,0.10], label:"Emerald"}
 };
 const NEON=[0x00E5FF,0xFF2FA6,0x00E676,0xFFE14D,0xFF8C22,0xB26BFF];
 const matVert=new THREE.PointsMaterial({color:0x9fb3c8,size:0.055});
@@ -7588,7 +7615,7 @@ function sceneScale(){
 let lastGenus=0;
 function updateTopo(){
   let e; try{ e=TM.eulerInfo((typeof dispMesh==="function")?dispMesh():mesh); }catch(_){ e=TM.eulerInfo(mesh); }   // what's on screen (base + live modifiers)
-  $("#tV").textContent=e.V; $("#tE").textContent=e.E; $("#tF").textContent=e.F;
+  $("#tV").textContent=e.V; $("#tE").textContent=e.E; $("#tF").textContent=e.F; if(window.__eq) window.__eq.topo(e);
   $("#tChi").textContent=e.chi;
   const g=Number.isInteger(e.genus)?e.genus:e.genus.toFixed(1);
   let label=e.comps>1? g+" ("+e.comps+" shells)" : ""+g;
@@ -7680,7 +7707,7 @@ function applyWhole(fn,label,keepCrust){
   if(cageEdit){ toast&&toast("Finish cage editing first (untick “Edit cage” in Subdivide)",true); return; }
   // Every tool that transforms the current mesh lands in the modifier stack (live, reorderable, undoable).
   // Generators / moves (no input mesh) and rind ops still edit the base directly.
-  if(fn.length>=1 && !keepCrust && layers[activeLayer] && !fabActive){
+  if(fn.length>=1 && !keepCrust && layers[activeLayer] && !fabActive && layersOn){
     const L=layers[activeLayer];
     const fz={verts:new Set(sel.verts),edges:new Set(sel.edges),faces:new Set(sel.faces)};
     const fzC=JSON.parse(JSON.stringify(cornerSel||[])), fzO=(orientSel||[]).slice(), fzI=ieFace;
@@ -7708,6 +7735,7 @@ function applyWhole(fn,label,keepCrust){
     const err=TM.validate(mesh);
     if(err) throw err;
     if(!keepCrust){ crustPairs=null; updateCrustUI(); }
+    if(!layersOn && layers[activeLayer] && fn.length>=1){ const L=layers[activeLayer]; L.mesh=mesh; L.steps=(L.steps||[]).concat(String(label||"Tool").replace(/\s*✓$/,"")); }
     clearSel(false); rebuild();
     toast(label+" ✓");
   }catch(e){ undoStack.pop(); updateUndoUI(); toast(String(e),true); }
@@ -7800,6 +7828,7 @@ function updateBBoxLabels(){
 }
 function setRenderMode(m){
   if(!RMODES[m]) return;
+  if(window.__lineart && !window.__lineartKeep) try{ window.__lineart.close(); }catch(e){}   // picking another view leaves Line Art
   renderMode=m;
   $$("[data-rm]").forEach(b=>b.classList.toggle("on",b.dataset.rm===m));
   rebuild();
@@ -8345,7 +8374,7 @@ function updateCrustUI(){
 
 // ---------- primitives & file ----------
 function loadPrim(p){
-  snapshot(); mesh=TM.primitives[p](); crustPairs=null; clearSel(false); rebuild(); updateCrustUI();
+  snapshot(); mesh=TM.primitives[p](); crustPairs=null; if(layers[activeLayer]){ layers[activeLayer].steps=[]; layers[activeLayer].mesh=mesh; } clearSel(false); rebuild(); updateCrustUI(); renderModStack&&renderModStack();
 }
 // parametric primitives: build from current slider values
 // ---- Text → 2D contours (system font via canvas raster + marching squares) ----
@@ -8509,7 +8538,7 @@ function refreshPrimPreview(){
     // and undo/redo always see the current form — no Apply needed, and no stale-cache flashback.
     const L=layers[activeLayer];
     if(L){ const fresh=!(L.gen&&L.gen.prim===name);
-           L.gen={prim:name, params:readPrimParams("prim:"+name)};
+           L.gen={prim:name, params:readPrimParams("prim:"+name)}; if(fresh) L.steps=[];
            L.mesh=mesh; L._ev=null; L._evKey=null;
            if(fresh){ L.name=primLabel(name); if(typeof renderLayerList==="function") renderLayerList(); } }
   });
@@ -10150,7 +10179,7 @@ function exportSpin(opts){
   if(spinning) return;
   if(!window.MediaRecorder || !canvas.captureStream){ toast("Video recording isn't supported in this browser",true); return; }
   const fps=opts.fps||60, dur=opts.dur||4200, rots=Math.max(1,opts.rot||1), dir=opts.ccw?-1:1;
-  const cand=["video/mp4;codecs=avc1","video/webm;codecs=vp9","video/webm;codecs=vp8","video/webm"];
+  const cand=["video/mp4;codecs=avc1.42E01E","video/mp4;codecs=avc1","video/mp4","video/webm;codecs=vp9","video/webm;codecs=vp8","video/webm"];
   const mime=cand.find(t=>{try{return MediaRecorder.isTypeSupported(t);}catch(e){return false;}})||"video/webm";
   let rec; try{ rec=new MediaRecorder(canvas.captureStream(fps),{mimeType:mime,videoBitsPerSecond:12e6}); }
   catch(e){ toast("Couldn't start recorder: "+e,true); return; }
@@ -10181,6 +10210,29 @@ function exportSpin(opts){
     requestAnimationFrame(spin);
   })();
 }
+// ---- free screen recording of the viewport (bottom bar ● Rec): start / stop, saved like the spin video ----
+let screenRec=null;
+function _saveVideo(blob, mime, base){
+  const ext=mime.indexOf("mp4")>=0?"mp4":"webm", fn=base+"."+ext, mh=window.webkit&&window.webkit.messageHandlers;
+  if(mh&&mh.photoVideo){ const fr=new FileReader(); fr.onload=()=>{ mh.photoVideo.postMessage({filename:fn, dataURL:fr.result, ext}); toast("Saving video to Photos…"); }; fr.readAsDataURL(blob); return; }
+  const url=URL.createObjectURL(blob), a=document.createElement("a"); a.href=url; a.download=fn; document.body.appendChild(a); a.click(); a.remove(); setTimeout(()=>URL.revokeObjectURL(url),3000); toast("Saved "+fn);
+}
+function toggleScreenRec(){
+  const btn=$("#recBtn");
+  if(screenRec){ try{ screenRec.rec.stop(); }catch(e){} return; }
+  if(!window.MediaRecorder || !canvas.captureStream){ toast("Video recording isn't supported here",true); return; }
+  const cand=["video/mp4;codecs=avc1.42E01E","video/mp4;codecs=avc1","video/mp4","video/webm;codecs=vp9","video/webm"];
+  const mime=cand.find(t=>{try{return MediaRecorder.isTypeSupported(t);}catch(e){return false;}})||"video/webm";
+  let rec; try{ rec=new MediaRecorder(canvas.captureStream(60),{mimeType:mime,videoBitsPerSecond:12e6}); }catch(e){ toast("Couldn't start recorder: "+e,true); return; }
+  const chunks=[], t0=performance.now(); rec.ondataavailable=e=>{ if(e.data&&e.data.size) chunks.push(e.data); };
+  rec.onstop=()=>{ clearInterval(screenRec&&screenRec.tick); screenRec=null; if(btn){ btn.classList.remove("on","rec"); btn.innerHTML="&#9679; Rec"; }
+    _saveVideo(new Blob(chunks,{type:mime}), mime, "topmod-recording"); };
+  rec.start(250); screenRec={rec, tick:setInterval(()=>{ if(btn){ const s=Math.floor((performance.now()-t0)/1000); btn.innerHTML="&#9632; "+Math.floor(s/60)+":"+String(s%60).padStart(2,"0"); } },500)};
+  if(btn){ btn.classList.add("on","rec"); btn.innerHTML="&#9632; 0:00"; }
+  toast("Recording the viewport — tap ■ to stop and save");
+}
+$("#recBtn")&&$("#recBtn").addEventListener("click",toggleScreenRec);
+$("#spinBtn")&&$("#spinBtn").addEventListener("click",()=>{ if(window.__tm&&window.__tm.frameAll) window.__tm.frameAll(1.3); exportSpin({dur:6000,fps:60}); });
 function clearCorners(){
   cornerSel=[];
   rebuildCornerMarkers();
@@ -10909,10 +10961,23 @@ makeFloatable($("#layersPanel"), $("#layersHead"), null, {skip:el=>el===$("#laye
 (function(){ const mp=$("#modPanel"); if(!mp) return; const fr=$("#frame")||document.body; fr.appendChild(mp); mp.classList.add("show");
   makeFloatable(mp, $("#modHead"), $("#modGrip"), {minW:170,minH:110, skip:el=>el===$("#modClose")});
   $("#modClose")&&$("#modClose").addEventListener("click",e=>{ e.stopPropagation(); mp.classList.remove("show"); });
-  $("#layersToggle")&&$("#layersToggle").addEventListener("click",()=>{ const on=$("#layersPanel").classList.contains("show"); mp.classList.toggle("show",on); });
 })();
-$("#layersToggle")&&$("#layersToggle").addEventListener("click",()=>{ const p=$("#layersPanel"); const on=!p.classList.contains("show"); p.classList.toggle("show",on); $("#layersToggle").classList.toggle("on",on); if(on) renderLayerList(); });
-$("#layersClose")&&$("#layersClose").addEventListener("click",()=>{ $("#layersPanel").classList.remove("show"); $("#layersToggle").classList.remove("on"); });
+// Layers ON  = layers + live modifier stack (every tool stacks, stays editable).
+// Layers OFF = step-by-step modeling: tools bake straight into the mesh; the steps are still remembered and show up
+//              (inactive, baked) in the stack when Layers comes back on. A new primitive starts a fresh step list.
+function _modLabel(md){ return (md.type==="tool"&&md.params&&md.params.label)||(MODS[md.type]&&MODS[md.type].label)||md.type; }
+function setLayersOn(on){
+  layersOn=!!on;
+  const p=$("#layersPanel"), mp=$("#modPanel");
+  p&&p.classList.toggle("show",layersOn); mp&&mp.classList.toggle("show",layersOn); $("#layersToggle")&&$("#layersToggle").classList.toggle("on",layersOn);
+  const L=layers[activeLayer];
+  if(!layersOn){
+    if(L&&L.modifiers&&L.modifiers.some(m=>m.on)){ const labels=L.modifiers.filter(m=>m.on).map(_modLabel); flattenStack(); L.steps=(L.steps||[]).concat(labels); }
+    toast&&toast("Layers off — step-by-step: each tool bakes into the mesh (steps are remembered)");
+  } else { renderLayerList(); renderModStack(); toast&&toast("Layers on — tools stack as live modifiers; earlier steps are listed (baked)"); }
+}
+$("#layersToggle")&&$("#layersToggle").addEventListener("click",()=>setLayersOn(!layersOn));
+$("#layersClose")&&$("#layersClose").addEventListener("click",()=>{ $("#layersPanel").classList.remove("show"); });
 $("#optionsToggle")&&$("#optionsToggle").addEventListener("click",()=>{ const tp=$("#toolpop"); const hidden=tp.classList.toggle("hiddenPanel"); $("#optionsToggle").classList.toggle("on",!hidden); });
 // ---------- Voice control ----------
 (function(){
@@ -13242,7 +13307,7 @@ window.__ek={applyWhole:applyWhole,ops:ops,snapshot:snapshot,rebuild:rebuild,toa
   const C={ style:"technical", on:{outline:1,crease:1,hidden:1}, colors:{}, widths:{}, crease:32, hatch:{levels:2,spacing:1.1,angle:45,tone:1},
     contours:24, page:"a4", land:false, margin:15, merge:0.1, simplify:0.05, minLen:0.3, sort:true, sketch:false, xray:false, paper:"#ffffff", ink:null, res:1600 };
   LAYERS.forEach(l=>{ C.colors[l[0]]=l[2]; C.widths[l[0]]=l[3]; });
-  let open=false, panel=null, view=null, svgEl=null, lastKey="", dirty=true, idleT=0, result=null, busy=false;
+  let open=false, panel=null, view=null, svgEl=null, lastKey="", dirty=true, idleT=0, result=null, busy=false, lastGen=0;
 
   // ---- GPU passes: packed depth + lambert shade of exactly what's on screen ----
   const depthMat=new THREE.ShaderMaterial({ side:THREE.DoubleSide, vertexShader:"void main(){gl_Position=projectionMatrix*modelViewMatrix*vec4(position,1.0);}",
@@ -13407,18 +13472,24 @@ window.__ek={applyWhole:applyWhole,ops:ops,snapshot:snapshot,rebuild:rebuild,toa
     else downloadText(toGcode(R), base()+".gcode","text/plain"); }
   // ---- UI ----
   function css(){ if(document.getElementById("laCss")) return; const st=document.createElement("style"); st.id="laCss"; st.textContent=`
-#laView{position:fixed;z-index:9990;pointer-events:none;display:none;background:rgba(9,11,17,.84)}
-#laView svg.page{position:absolute;filter:drop-shadow(0 6px 22px rgba(0,0,0,.55));transition:opacity .15s}
-#laPanel{position:fixed;right:14px;top:70px;width:290px;max-height:calc(100vh - 150px);overflow:auto;z-index:9997;display:none;background:rgba(10,13,20,.96);border:1px solid rgba(0,229,255,.35);border-radius:12px;padding:10px 12px;color:#dfe8f2;font:12px var(--font,system-ui);box-shadow:0 10px 30px rgba(0,0,0,.5)}
+#laPrev{position:relative;flex:0 0 auto;height:52%;min-height:140px;background:#0b0f16;border-radius:8px;margin:2px 0 6px;overflow:hidden}
+#laPrev svg.page{position:absolute;filter:drop-shadow(0 4px 14px rgba(0,0,0,.55));transition:opacity .15s}
+#laCtl{flex:1 1 auto;overflow:auto;min-height:0;padding-right:2px}
+#laPanel.collapsed #laCtl{display:none}
+#laPanel.collapsed{height:auto!important}
+#laPanel.collapsed #laPrev{height:260px}
+#laPanel h4{cursor:move;user-select:none;touch-action:none}
+#laPanel h4 .laHb{display:flex;gap:2px}
+#laPanel{position:fixed;right:14px;top:70px;width:340px;height:min(640px,calc(100vh - 130px));min-width:240px;min-height:220px;resize:both;overflow:hidden;flex-direction:column;z-index:9997;display:none;background:rgba(10,13,20,.96);border:1px solid rgba(0,229,255,.35);border-radius:12px;padding:10px 12px;color:#dfe8f2;font:12px var(--font,system-ui);box-shadow:0 10px 30px rgba(0,0,0,.5)}
 #laPanel h4{margin:0 0 8px;color:#00e5ff;font-size:11px;letter-spacing:.14em;display:flex;justify-content:space-between;align-items:center}
 #laPanel .laSec{margin:9px 0 4px;color:#8fb3c9;font-size:10px;letter-spacing:.12em;text-transform:uppercase;border-top:1px solid #1e2a36;padding-top:7px}
 #laPanel .laRow{display:flex;align-items:center;gap:6px;margin:4px 0}
 #laPanel .laRow>span{flex:0 0 92px;color:#aac}
 #laPanel input[type=range]{flex:1;min-width:0}
 #laPanel select,#laPanel input[type=number]{background:#141c27;color:#e6f2ff;border:1px solid #2b3a4a;border-radius:6px;padding:3px 5px;font-size:11px}
-#laPanel .laLay{display:grid;grid-template-columns:18px 1fr 26px 46px;gap:5px;align-items:center;margin:3px 0}
+#laPanel .laLay{display:grid;grid-template-columns:18px 1fr 26px 54px;gap:5px;align-items:center;margin:3px 0}
 #laPanel .laLay input[type=color]{width:24px;height:20px;border:0;background:none;padding:0}
-#laPanel .laLay input[type=number]{width:44px}
+#laPanel .laLay input[type=number]{width:52px}
 #laPanel .laBtns{display:flex;gap:5px;margin-top:8px;flex-wrap:wrap}
 #laPanel button{flex:1;background:#13202c;color:#cfefff;border:1px solid #2c4456;border-radius:7px;padding:6px 6px;font-size:11px;cursor:pointer}
 #laPanel button:hover{background:#1b3040}
@@ -13426,11 +13497,12 @@ window.__ek={applyWhole:applyWhole,ops:ops,snapshot:snapshot,rebuild:rebuild,toa
 #laStats{margin-top:8px;color:#8fce9b;font-size:10.5px;line-height:1.45}
 #laCmd{margin-top:6px;font:10px ui-monospace,Menlo,monospace;color:#9ab;background:#0b1118;border:1px solid #1e2a36;border-radius:6px;padding:5px;word-break:break-all;user-select:all}`; document.head.appendChild(st); }
   function build(){
-    css(); view=document.createElement("div"); view.id="laView"; document.body.appendChild(view);
+    css();
     panel=document.createElement("div"); panel.id="laPanel";
     const sel=(id,opts,v)=>'<select id="'+id+'">'+opts.map(([k,l])=>'<option value="'+k+'"'+(k===v?" selected":"")+'>'+l+'</option>').join("")+'</select>';
     const rng=(id,lab,mn,mx,st,v)=>'<div class="laRow"><span>'+lab+'</span><input type="range" id="'+id+'" min="'+mn+'" max="'+mx+'" step="'+st+'" value="'+v+'"><input type="number" id="'+id+'N" min="'+mn+'" max="'+mx+'" step="'+st+'" value="'+v+'" style="width:52px"></div>';
-    panel.innerHTML='<h4>LINE ART · PLOTTER <button class="laX" id="laClose" title="Close">×</button></h4>'
+    panel.innerHTML='<h4><span>LINE ART · PLOTTER</span><span class="laHb"><button class="laX" id="laFold" title="Show / hide settings">▾</button><button class="laX" id="laClose" title="Close">×</button></span></h4>'
+      +'<div id="laPrev"></div><div id="laCtl">'
       +'<div class="laRow"><span>Style</span>'+sel("laStyle",Object.entries(STYLES).map(([k,s])=>[k,s.label]),C.style)+'</div>'
       +'<div class="laSec">Layers · pens (mm)</div>'
       +LAYERS.map(([id,label])=>'<div class="laLay"><input type="checkbox" id="laOn_'+id+'"><label for="laOn_'+id+'">'+label+'</label><input type="color" id="laCol_'+id+'" value="'+C.colors[id]+'"><input type="number" id="laW_'+id+'" min="0.05" max="2" step="0.05" value="'+C.widths[id]+'"></div>').join("")
@@ -13447,8 +13519,17 @@ window.__ek={applyWhole:applyWhole,ops:ops,snapshot:snapshot,rebuild:rebuild,toa
       +rng("laMargin","Margin mm",0,60,1,C.margin)
       +rng("laRes","Detail (px)",800,3000,100,C.res)
       +'<div class="laBtns"><button id="laSvg" title="Layered SVG — one Inkscape layer per pen; opens in vpype, Inkscape, AxiDraw, Illustrator">SVG (vpype)</button><button id="laHpgl" title="HPGL for vintage pen plotters (SP = layer pen)">HPGL</button><button id="laGc" title="Pen-plotter G-code (Z up/down, M0 pause per pen)">G-code</button></div>'
-      +'<div id="laStats"></div><div id="laCmd"></div>';
+      +'<div id="laStats"></div><div id="laCmd"></div></div>';
     document.body.appendChild(panel);
+    view=panel.querySelector("#laPrev");
+    // floating window: drag by the title bar (mouse + touch), resize from the corner, fold the settings away
+    const hd=panel.querySelector("h4"); let dg=null;
+    hd.addEventListener("pointerdown",e=>{ if(e.target.closest("button")) return; const r=panel.getBoundingClientRect(); dg={dx:e.clientX-r.left, dy:e.clientY-r.top}; hd.setPointerCapture(e.pointerId); });
+    hd.addEventListener("pointermove",e=>{ if(!dg) return; const x=Math.max(0,Math.min(innerWidth-80,e.clientX-dg.dx)), y=Math.max(0,Math.min(innerHeight-40,e.clientY-dg.dy));
+      Object.assign(panel.style,{left:x+"px",top:y+"px",right:"auto"}); });
+    hd.addEventListener("pointerup",()=>{ dg=null; });
+    panel.querySelector("#laFold").addEventListener("click",()=>{ panel.classList.toggle("collapsed"); panel.querySelector("#laFold").textContent=panel.classList.contains("collapsed")?"▸":"▾"; setTimeout(repaint,0); });
+    if(window.ResizeObserver) new ResizeObserver(()=>repaint()).observe(view);
     const q=id=>panel.querySelector("#"+id);
     const bindR=(id,set)=>{ const r=q(id), n=q(id+"N"); const go=v=>{ r.value=v; n.value=v; set(+v); bump(); }; r.addEventListener("input",()=>go(r.value)); n.addEventListener("change",()=>go(n.value)); n.addEventListener("keydown",e=>e.stopPropagation()); };
     bindR("laCrease",v=>C.crease=v); bindR("laHLevels",v=>C.hatch.levels=v); bindR("laHSpace",v=>C.hatch.spacing=v); bindR("laHAngle",v=>C.hatch.angle=v); bindR("laHTone",v=>C.hatch.tone=v);
@@ -13473,8 +13554,8 @@ window.__ek={applyWhole:applyWhole,ops:ops,snapshot:snapshot,rebuild:rebuild,toa
   function applyStyle(k){ const S=STYLES[k]; if(!S) return; C.style=k; C.on={}; for(const id in S.on) C.on[id]=S.on[id];
     if(S.hatch) Object.assign(C.hatch,S.hatch); C.sketch=!!S.sketch; C.xray=!!S.xray; C.paper=S.paper||"#ffffff"; C.ink=S.ink||null; syncUI(); bump(); }
   function bump(){ dirty=true; idleT=performance.now(); }
-  function place(){ const r=canvas.getBoundingClientRect(); Object.assign(view.style,{left:r.left+"px",top:r.top+"px",width:r.width+"px",height:r.height+"px"}); return r; }
-  function repaint(){ if(!result||!view) return; const r=place(); const pad=28, k=Math.min((r.width-2*pad)/result.pw,(r.height-2*pad)/result.ph);
+  function place(){ return view.getBoundingClientRect(); }
+  function repaint(){ if(!result||!view) return; const r=place(); const pad=10, k=Math.min((r.width-2*pad)/result.pw,(r.height-2*pad)/result.ph);
     view.innerHTML=toSVG(result,true); svgEl=view.querySelector("svg"); svgEl.classList.add("page");
     Object.assign(svgEl.style,{width:(result.pw*k)+"px",height:(result.ph*k)+"px",left:((r.width-result.pw*k)/2)+"px",top:((r.height-result.ph*k)/2)+"px"});
     const st=result.stats, el=panel&&panel.querySelector("#laStats");
@@ -13486,12 +13567,67 @@ window.__ek={applyWhole:applyWhole,ops:ops,snapshot:snapshot,rebuild:rebuild,toa
   function tick(){ if(!open) return; requestAnimationFrame(tick);
     const key=camera.matrixWorld.elements.map(x=>x.toFixed(4)).join(",")+"|"+(meshObj&&meshObj.geometry?meshObj.geometry.uuid:"")+"|"+canvas.clientWidth+"x"+canvas.clientHeight;
     if(key!==lastKey){ lastKey=key; bump(); if(svgEl) svgEl.style.opacity="0.35"; }
-    if(dirty && performance.now()-idleT>140){ regen(); if(svgEl) svgEl.style.opacity="1"; } }
-  function setOpen(on){ if(!panel) build(); open=!!on; panel.style.display=open?"block":"none"; view.style.display=open?"block":"none";
+    const now=performance.now();
+    if(dirty && (now-idleT>140 || (C.live && now-lastGen>300))){ lastGen=now; regen(); if(svgEl) svgEl.style.opacity="1"; } }
+  function setOpen(on){ if(!panel) build(); open=!!on; panel.style.display=open?"flex":"none";
     if(open){ lastKey=""; bump(); tick(); toast&&toast("Line Art — orbit to frame the drawing; it re-plots when you stop"); }
     document.querySelectorAll('[data-act="lineArt"]').forEach(el=>el.classList.toggle("on",open)); }
   window.__lineart={ open:()=>setOpen(true), close:()=>setOpen(false), toggle:()=>setOpen(!open), style:applyStyle, generate, process, toSVG, toHPGL, toGcode, cfg:C, get result(){ return result; } };
   document.querySelectorAll('[data-act="lineArt"]').forEach(el=>el.addEventListener("click",e=>{ e.stopPropagation(); document.querySelectorAll("#menubar .menu.open").forEach(m=>m.classList.remove("open")); setOpen(!open); }));
+})();
+// ---------- Live equations: the math behind what's on screen (Euler–Poincaré live + the last operation's formulas) ----------
+(function(){
+  const F={
+    euler:null,
+    dodeca:{t:"Platonic solid · dodecahedron", l:["12 pentagons · 30 edges · 20 vertices","{p,q} = {5,3} · dihedral angle = 2·atan(φ) ≈ 116.57°"]},
+    handle:{t:"Handle (curved, twisted)", l:["each handle: χ → χ − 2 · g → g + 1","twist θ = k · 360°/n  (n = 5 → 72°)","path P(t) = Hermite(c_A, h·n̂_A, c_B, −h·n̂_B)"]},
+    doosabin:{t:"Doo-Sabin subdivision", l:["v′ = ¼ ( v + c_f + m₋ + m₊ )","c_f = face centroid · m± = midpoints of the corner's two edges","faces: F′ = F + E + V  (face-, edge-, vertex-faces)"]},
+    loops:{t:"Face loop (TopMod “Select Face Loop”)", l:["walk quad → opposite edge → next quad …","stop at a non-quad or back at the start"]},
+    rind:{t:"Rind modeling", l:["inner shell  v_in = v − t · n̂_v","remove face set S from both shells","walls on ∂S :  [a, b, b_in, a_in]"]},
+    catmull:{t:"Catmull-Clark subdivision", l:["face  f = (1/n) Σ vᵢ","edge  e = (v₀ + v₁ + f₀ + f₁) / 4","vertex  v′ = ( F + 2R + (n − 3)·v ) / n"]},
+    crease:{t:"OpenSubdiv semi-sharp crease", l:["sharp edge  e = (v₀ + v₁) / 2","crease vertex  v′ = (6v + a + b) / 8","s ∈ (0,1): lerp(smooth, sharp, s) · child s′ = s − 1"]},
+    gem:{t:"Ray-traced gem", l:["Snell  n₁ sin θ₁ = n₂ sin θ₂","Fresnel  R = ½ ( r_s² + r_p² )","total internal reflection  θ > θ_c = asin(1/n)","Beer  I = I₀ · e^(−α d)"]},
+    lineart:{t:"Line art (plotter)", l:["silhouette: (n̂₀·v)(n̂₁·v) < 0","crease: n̂₀·n̂₁ < cos θ","hatch where  ½ + ½ n̂·l̂ < tone level","pen-up travel ↓ by nearest-neighbour linesort"]}
+  };
+  const GEM_N={diamond:2.418, reddiamond:2.418, ruby:1.762, sapphire:1.762, emerald:1.575};
+  let on=true, card=null, cur=null, extra="";
+  function css(){ const st=document.createElement("style"); st.textContent=`
+#eqCard{position:fixed;left:250px;bottom:58px;z-index:9985;max-width:340px;padding:9px 12px 10px;border-radius:12px;background:rgba(8,11,18,.86);border:1px solid rgba(0,229,255,.28);
+  color:#dbe8f3;font:12px/1.45 "Cambria Math","STIX Two Math","Times New Roman",serif;pointer-events:none;box-shadow:0 8px 24px rgba(0,0,0,.45);backdrop-filter:blur(6px)}
+#eqCard .eqT{font:600 10px var(--font,system-ui);letter-spacing:.14em;text-transform:uppercase;color:#00E5FF;margin-bottom:4px}
+#eqCard .eqE{font-size:14.5px;color:#fff;white-space:nowrap}
+#eqCard .eqE b{color:#FF8C22;font-weight:600}
+#eqCard .eqL{color:#cfe0ee;font-size:13px}
+#eqCard .eqSep{height:1px;background:rgba(255,255,255,.1);margin:6px 0}
+#eqCard.hide{display:none}
+@media (max-width:760px){ #eqCard{left:10px;bottom:64px;max-width:calc(100vw - 20px);font-size:11px} }`; document.head.appendChild(st); }
+  function build(){ css(); card=document.createElement("div"); card.id="eqCard"; document.body.appendChild(card); }
+  let last={V:0,E:0,F:0,chi:0,genus:0};
+  function render(){
+    if(!card) build(); card.classList.toggle("hide",!on); if(!on) return;
+    const e=last, g=Number.isInteger(e.genus)?e.genus:(+e.genus).toFixed(1), m=v=>v<0?"− "+(-v):v;
+    let h='<div class="eqT">Euler–Poincaré · live</div><div class="eqE">V − E + F = 2 − 2g</div>'
+      +'<div class="eqE"><b>'+e.V+'</b> − <b>'+e.E+'</b> + <b>'+e.F+'</b> = <b>'+m(e.chi)+'</b>  ⇒  g = <b>'+g+'</b>'+(e.comps>1?'  ('+e.comps+' shells)':'')+'</div>';
+    const f=cur&&F[cur];
+    if(f){ h+='<div class="eqSep"></div><div class="eqT">'+f.t+'</div>'+f.l.map(x=>'<div class="eqL">'+x+'</div>').join("")+(extra?'<div class="eqL">'+extra+'</div>':''); }
+    card.innerHTML=h;
+  }
+  window.__eq={
+    topo(e){ last=e||last; render(); },
+    op(k,x){ cur=k; extra=x||""; render(); },
+    toggle(v){ on=(v==null)?!on:!!v; try{ localStorage.setItem("tmEq",on?"1":"0"); }catch(_){}
+      document.querySelectorAll('[data-act="liveEq"]').forEach(el=>el.classList.toggle("on",on)); render(); },
+    gem(name){ const n=GEM_N[name]; if(n) this.op("gem","n = "+n+"  ·  θ_c = "+(Math.asin(1/n)*180/Math.PI).toFixed(1)+"°"); }
+  };
+  try{ if(localStorage.getItem("tmEq")==="0") on=false; }catch(_){}
+  // hooks: tools → formulas
+  const OPK={catmull:"catmull",doosabin:"doosabin",handle:"handle",crust:"rind",crease:"crease",faceLoop:"loops"};
+  document.addEventListener("click",e=>{ const b=e.target.closest&&e.target.closest("[data-op],[data-p],[data-rm]"); if(!b) return;
+    if(b.dataset.op&&OPK[b.dataset.op]) window.__eq.op(OPK[b.dataset.op]);
+    else if(b.dataset.p==="dodecahedron") window.__eq.op("dodeca");
+    else if(b.dataset.rm&&GEM_N[b.dataset.rm]) window.__eq.gem(b.dataset.rm); },true);
+  document.querySelectorAll('[data-act="liveEq"]').forEach(el=>{ el.classList.toggle("on",on); el.addEventListener("click",ev=>{ ev.stopPropagation(); document.querySelectorAll("#menubar .menu.open").forEach(m=>m.classList.remove("open")); window.__eq.toggle(); }); });
+  setTimeout(()=>{ try{ window.__eq.topo(TM.eulerInfo((typeof dispMesh==="function")?dispMesh():mesh)); }catch(e){ render(); } },500);
 })();
 window.__tm={
   topo:()=>TM.eulerInfo(mesh),
@@ -14425,13 +14561,14 @@ applyOriginalIcons(); }catch(e){ console.warn("icon render skipped:",e); }
     ["Ceramic & stone",[["c:white","White ceramic"],["c:black","Black ceramic"],["c:celadon","Celadon glaze"],["c:clay","Terracotta"],["t:marble","Marble"],["t:concrete","Concrete"]]],
     ["Wood",[["t:oak","Oak"],["t:walnut","Walnut"],["t:bamboo","Bamboo ply"]]],
     ["Other",[["p:orange","Orange plastic"],["p:white","White plastic"],["p:rubber","Black rubber"],["t:carbon","Carbon fibre"]]],
-    ["Gem (ray-traced)",[["d:diamond","Diamond"],["d:cz","Cubic zirconia"],["d:sapphire","Sapphire"],["d:ruby","Ruby"],["d:emerald","Emerald"],["d:amethyst","Amethyst"],["d:topaz","Blue topaz"],["d:citrine","Citrine"],["d:crystal","Lead crystal"]]]
+    ["Gem (ray-traced)",[["d:diamond","Diamond"],["d:reddiamond","Red diamond"],["d:cz","Cubic zirconia"],["d:sapphire","Sapphire"],["d:ruby","Ruby"],["d:emerald","Emerald"],["d:amethyst","Amethyst"],["d:topaz","Blue topaz"],["d:citrine","Citrine"],["d:crystal","Lead crystal"]]]
   ];
   // ---- Gem render (ray-traced in the fragment shader): own implementation of the gemstone technique shown by
   //      piellardj/diamond-webgl — rasterize the entry facet, then trace the ray INSIDE the stone: Fresnel split,
   //      Snell refraction, total internal reflection, Beer–Lambert absorption, per-channel IOR (dispersion / "fire").
   //      Unlike that demo (convex gems only) this traces a BVH of the actual mesh, so any TopMod shape can be a gem.
   const GEMS={ diamond:{ior:[2.408,2.418,2.432],tint:[1,1,1],abs:[0.02,0.02,0.02],label:"Diamond"},
+    reddiamond:{ior:[2.408,2.418,2.432],tint:[1,1,1],abs:[0.02,1.35,1.05],label:"Red diamond"},
     cz:{ior:[2.15,2.17,2.2],tint:[1,1,1],abs:[0.03,0.03,0.03],label:"Cubic zirconia"},
     sapphire:{ior:[1.757,1.762,1.770],tint:[1,1,1],abs:[2.6,1.5,0.12],label:"Sapphire"},
     ruby:{ior:[1.757,1.762,1.770],tint:[1,1,1],abs:[0.08,2.8,1.6],label:"Ruby"},
@@ -14568,7 +14705,7 @@ void main(){
     if(g){ g.tri.dispose(); g.nrm.dispose(); g.bvh.dispose(); }
     g=_gemBuild(geo); g.ver=ver; _gemCache.set(geo,g); return g;
   }
-  function gemSettings(){ const s=window.__gemOpts||{}; return { bounces:s.bounces||7, disp:s.disp!==false, smooth:!!s.smooth, spin:s.spin!==false, gain:s.gain||1 }; }
+  function gemSettings(){ const s=window.__gemOpts||{}; return { bounces:s.bounces||7, disp:s.disp!==false, smooth:s.smooth, spin:s.spin!==false, gain:s.gain||1 }; }
   function makeGemMaterial(id, bg){
     const G=GEMS[id]||GEMS.diamond;
     const U={ uTri:{value:null}, uNrm:{value:null}, uBvh:{value:null}, uTriW:{value:2048}, uBvhW:{value:2048}, uCam:{value:new THREE.Vector3()},
@@ -14583,7 +14720,7 @@ void main(){
       const d=_gemData(geo), o=gemSettings();
       U.uTri.value=d.tri; U.uNrm.value=d.nrm; U.uBvh.value=d.bvh; U.uTriW.value=d.W; U.uBvhW.value=d.W;
       inv.copy(obj.matrixWorld).invert(); cam.getWorldPosition(cp); U.uCam.value.copy(cp.applyMatrix4(inv));
-      U.uEps.value=d.span*2e-5; U.uBounces.value=o.bounces; U.uDisp.value=o.disp?1:0; U.uSmooth.value=o.smooth?1:0; U.uGain.value=o.gain;
+      U.uEps.value=d.span*2e-5; U.uBounces.value=o.bounces; U.uDisp.value=o.disp?1:0; U.uSmooth.value=(o.smooth==null? d.tris>3000 : o.smooth)?1:0; U.uGain.value=o.gain;
       const a=m.userData.absBase, k=0.9/d.span;                              // absorption scaled to the stone's size
       U.uAbs.value.set(a[0]*k,a[1]*k,a[2]*k);
       U.uBg.value=(($("#rdBg")&&$("#rdBg").value)==="white")?1:0;
@@ -14595,7 +14732,8 @@ void main(){
     THREE.Object3D.prototype.onBeforeRender=function(r,s,c,g,mt){ if(mt&&mt.userData&&mt.userData.gemPrep) mt.userData.gemPrep(this,c,g,r); }; }
   window.__gem={ GEMS, makeGemMaterial, data:_gemData };
   // View → Diamond: the viewport itself renders the model as a ray-traced diamond (no bloom pass; Live Render adds sparkle)
-  if(renderer.capabilities.isWebGL2){ RMODES.diamond.mat=makeGemMaterial("diamond","dark"); if(renderMode==="diamond") rebuild(); }
+  if(renderer.capabilities.isWebGL2){ RMODES.diamond.mat=makeGemMaterial("diamond","dark"); RMODES.reddiamond.mat=makeGemMaterial("reddiamond","dark");
+    ["ruby","sapphire","emerald"].forEach(g=>RMODES[g].mat=makeGemMaterial(g,"dark")); if(/diamond$|^ruby$|^sapphire$|^emerald$/.test(renderMode)) rebuild(); }
 
   const _rdTex={};
   function _vn(){ const P=new Uint8Array(512); for(let i=0;i<256;i++) P[i]=i; for(let i=255;i>0;i--){ const j=(Math.sin(i*12.9898)*43758.5453%1+1)%1*(i+1)|0; const t=P[i];P[i]=P[j];P[j]=t; } for(let i=0;i<256;i++) P[i+256]=P[i];
@@ -14803,40 +14941,13 @@ void main(){
     if(!LR.on){ try{ rebuild(); }catch(e){} }                               // back to the normal viewport material
     toast&&toast(LR.on?"Live render on — orbit, edit, sculpt; press L to turn off":"Live render off");
   }
-  window.__liveRender={ on:false, frame:liveFrame, set:setLive, toggle:()=>setLive(!LR.on) };
-  { const bar=document.createElement("div"); bar.id="liveBar";
-    bar.innerHTML='<span class="lbDot"></span><b>LIVE RENDER</b>'
-      +'<select id="lbColor" title="Material"></select>'
-      +'<label title="Show polygon outline edges in the render"><input id="lbEdges" type="checkbox" checked> Edges</label>'
-      +'<label>Glow <input id="lbGlow" type="range" min="0" max="2" step="0.05"></label>'
-      +'<select id="lbBg" title="Background"></select>'
-      +'<span id="lbGem" style="display:none"><label title="Dispersion — trace R, G, B with their own refractive index (rainbow fire). Off = 3× faster"><input id="lbDisp" type="checkbox" checked> Fire</label>'
-      +'<label title="Internal bounces traced per ray">Bounces <input id="lbBnc" type="range" min="2" max="12" step="1" value="7"></label>'
-      +'<label title="Smooth normals (for subdivided / organic shapes). Off = crisp facets"><input id="lbSmooth" type="checkbox"> Smooth</label>'
-      +'<label title="Slowly turn the studio lights so the stone twinkles"><input id="lbSpin" type="checkbox" checked> Twinkle</label></span>'
-      +'<button id="lbShot" title="Save a high-res render (PNG)">&#128247;</button><button id="lbOff" title="Turn live render off (L)">&times;</button>';
-    (document.getElementById("frame")||document.body).appendChild(bar);
-    const sync=(src,dst)=>{ const a=$("#"+src), b=$("#"+dst); if(!a||!b) return; if(a.tagName==="SELECT"&&!b.options.length) b.innerHTML=a.innerHTML; b.value=a.value; };
-    sync("rdColor","lbColor"); sync("rdGlow","lbGlow"); sync("rdBg","lbBg");
-    [["lbColor","rdColor"],["lbGlow","rdGlow"],["lbBg","rdBg"]].forEach(([a,b])=>{ const el=$("#"+a); el&&el.addEventListener("input",()=>{ const t=$("#"+b); if(t) t.value=el.value; }); el&&el.addEventListener("change",()=>{ const t=$("#"+b); if(t) t.value=el.value; }); });
-    $("#lbOff").addEventListener("click",()=>setLive(false));
-    $("#lbEdges").addEventListener("change",e=>{ LR.edges=e.target.checked; });
-    window.__gemOpts=window.__gemOpts||{};
-    const gsync=()=>{ const o=window.__gemOpts; o.disp=$("#lbDisp").checked; o.bounces=+$("#lbBnc").value; o.smooth=$("#lbSmooth").checked; o.spin=$("#lbSpin").checked; };
-    ["lbDisp","lbBnc","lbSmooth","lbSpin"].forEach(id=>{ $("#"+id).addEventListener("input",gsync); $("#"+id).addEventListener("change",gsync); }); gsync();
-    const gshow=()=>{ const g=/^d:/.test(($("#rdColor")&&$("#rdColor").value)||""); $("#lbGem").style.display=g?"inline-flex":"none"; $("#liveBar").classList.toggle("gem",g); if(g&&LR.edges){ LR.edges=false; $("#lbEdges").checked=false; } };
-    $("#lbColor").addEventListener("change",gshow); gshow();
-    $("#lbShot").addEventListener("click",()=>renderOpen());
-    bar.addEventListener("keydown",e=>e.stopPropagation());
-  }
-  $("#rdlgLive")&&$("#rdlgLive").addEventListener("click",()=>{ setLive(!LR.on); if(LR.on){ const d=$("#renderDlg"); if(d) d.style.display="none"; } });
-  document.querySelectorAll('[data-act="liveRender"]').forEach(el=>el.addEventListener("click",()=>{ document.querySelectorAll("#menubar .menu.open").forEach(m=>m.classList.remove("open")); setLive(!LR.on); }));
-  addEventListener("keydown",e=>{ const t=e.target; if(t&&(t.tagName==="INPUT"||t.tagName==="TEXTAREA"||t.tagName==="SELECT"||t.isContentEditable)) return;
-    if((e.key==="l"||e.key==="L")&&!e.metaKey&&!e.ctrlKey&&!e.altKey){ e.preventDefault(); setLive(!LR.on); } });
+  // Live Render removed (v3.9): materials are View settings now (View → Diamond / Red Diamond / Ruby / …); the PNG render stays.
+  window.__liveRender={ on:false, frame:liveFrame, set:()=>{}, toggle:()=>{} };
+  window.__gemOpts=window.__gemOpts||{};
   function renderOpen(){ const d=$("#renderDlg"); if(d) d.style.display="flex"; renderImage(); }
-  // Render tool = Live Render (toggle). The high-res PNG dialog is one click away (camera button / Save Render menu item).
-  $("#tbRender")&&$("#tbRender").addEventListener("click",()=>window.__liveRender.toggle());
-  document.querySelectorAll('[data-act="fabRender"]').forEach(el=>el.addEventListener("click",()=>{ document.querySelectorAll("#menubar .menu.open").forEach(m=>m.classList.remove("open")); window.__liveRender.toggle(); }));
+  // Render tool = high-res PNG render dialog
+  $("#tbRender")&&$("#tbRender").addEventListener("click",()=>renderOpen());
+  document.querySelectorAll('[data-act="fabRender"]').forEach(el=>el.addEventListener("click",()=>{ document.querySelectorAll("#menubar .menu.open").forEach(m=>m.classList.remove("open")); renderOpen(); }));
   document.querySelectorAll('[data-act="renderPNG"]').forEach(el=>el.addEventListener("click",()=>{ document.querySelectorAll("#menubar .menu.open").forEach(m=>m.classList.remove("open")); renderOpen(); }));
   $("#rdlgAgain")&&$("#rdlgAgain").addEventListener("click",renderImage);
   ["rdColor","rdGlow","rdBg","rdSize"].forEach(id=>{ const el=$("#"+id); if(el) el.addEventListener("change",renderImage); });
@@ -14881,7 +14992,8 @@ void main(){
   }, { capture:true, passive:true }));
 
   // slow turntable while the demo runs
-  function turn(){ if (!alive) return; try { yaw += 0.0025; applyCam(); } catch(e){} spin = requestAnimationFrame(turn); }
+  let spinHold=false;   // a sequence can hold the camera still (e.g. while a form is being modeled)
+  function turn(){ if (!alive) return; try { if(!spinHold){ yaw += 0.0025; applyCam(); } } catch(e){} spin = requestAnimationFrame(turn); }
 
   async function press(sel, label, hold = 650){
     const b = q(sel); if (!b) return false;
@@ -14946,20 +15058,32 @@ void main(){
   function stageLoad(m){ try { mesh={verts:m.verts.map(v=>v.slice()),faces:m.faces.map(f=>f.slice())}; const L=layers[activeLayer]; L.mesh=mesh; L.name="TopMod Look"; L.gen=null; L.modifiers=[]; L._ev=null; L._evKey=null; clearSel(false); rebuild(); renderModStack&&renderModStack(); renderLayerList&&renderLayerList(); } catch(e){ console.warn(e); } }
   const SEQS = [
     // 0 — "The TopMod look" (Nathan Ho): dodecahedron -> 6 twisted handles -> Doo-Sabin -> rind (remove face loops) -> Catmull-Clark
+    //     camera holds still while the form is modeled, then: Ruby view -> Line Art (sketch) -> one 360° turn
     async () => {
-      fresh(); say("New scene"); await wait(450);
-      await press('#toolbar [data-p="dodecahedron"]', "The TopMod look · start from a dodecahedron"); await apply(); await wait(1000);
-      let st; try { st=TM.topmodLook({smooth:2}); } catch(e){ console.warn(e); return; }
-      for (let k=1; k<=6; k++){ const s=st[k]; if(!s) break; say(s.label+" (genus "+k+")"); stageLoad(s.mesh); if(k===1) frame(); await wait(k===1?1300:850); }
-      frame(); await wait(600);
-      const ds=st.find(x=>/^Doo-Sabin/.test(x.label)); say("Doo-Sabin ×1 — the key to the TopMod look"); stageLoad(ds.mesh); await wait(1500);
-      say("Select face loops — quads that weave from handle to handle");
-      try { setMode("face"); (ds.remove||[]).forEach(f=>sel.faces.add(f)); rebuildOverlay(); } catch(e){} await wait(1900);
-      const rind=st.find(x=>/^Rind/.test(x.label)); say("Rind modeling · "+rind.label.replace(/^Rind · /,"")); stageLoad(rind.mesh); await wait(1700);
-      say("Catmull-Clark ×2 — smooth"); stageLoad(st[st.length-1].mesh); await wait(1400);
-      try { const s=q("#rdColor"); if(s){ s.value="c:white"; } if(window.__liveRender){ window.__liveRender.set(true); say("Live render · white ceramic"); const lb=q("#lbColor"); if(lb){ lb.value="c:white"; lb.dispatchEvent(new Event("change")); } } } catch(e){}
-      await wait(3200);
-      try { window.__liveRender && window.__liveRender.set(false); } catch(e){}
+      spinHold=true;
+      try {
+        fresh(); say("New scene"); await wait(450);
+        let st; try { st=TM.topmodLook({smooth:2}); } catch(e){ console.warn(e); return; }
+        await press('#toolbar [data-p="dodecahedron"]', "The TopMod look · start from a dodecahedron"); await apply(); await wait(300);
+        const EQ=(k,x)=>{ try{ window.__eq&&window.__eq.op(k,x); }catch(e){} }; EQ("dodeca");
+        // frame once for the FINISHED form, then build it up in place — no camera moves while modeling
+        stageLoad(st[st.length-1].mesh); try { window.__tm.frameAll(1.3); } catch(e){} stageLoad(st[0].mesh); await wait(900);
+        EQ("handle");
+        for (let k=1; k<=6; k++){ const s=st[k]; if(!s) break; say(s.label+" (genus "+k+")"); stageLoad(s.mesh); await wait(k===1?1300:850); }
+        const ds=st.find(x=>/^Doo-Sabin/.test(x.label)); say("Doo-Sabin ×1 — the key to the TopMod look"); EQ("doosabin"); stageLoad(ds.mesh); await wait(1500);
+        say("Select face loops — quads that weave from handle to handle"); EQ("loops");
+        try { setMode("face"); (ds.remove||[]).forEach(f=>sel.faces.add(f)); rebuildOverlay(); } catch(e){} await wait(1900);
+        const rind=st.find(x=>/^Rind/.test(x.label)); say("Rind modeling · "+rind.label.replace(/^Rind · /,"")); EQ("rind"); stageLoad(rind.mesh); await wait(1700);
+        say("Catmull-Clark ×2 — smooth"); EQ("catmull"); stageLoad(st[st.length-1].mesh); await wait(1600);
+        // Ruby (a View setting — ray-traced gem shading in the viewport)
+        say("View · Ruby (ray-traced gem)"); window.__gemOpts=Object.assign(window.__gemOpts||{}, {disp:false, bounces:5}); setRenderMode("ruby"); try{ window.__eq&&window.__eq.gem("ruby"); }catch(e){} await wait(3600);
+        // Line Art · Sketch, then one full turn with the drawing following the camera
+        if(window.__lineart){ say("Line Art · Sketch style"); window.__lineart.open(); window.__lineart.style("sketch"); EQ("lineart"); window.__lineart.cfg.live=true; await wait(2200);
+          say("Rotate 360°"); const y0=yaw, T=9000, t0=performance.now();
+          await new Promise(res=>{ const step=()=>{ if(!alive) return res(); const t=Math.min(1,(performance.now()-t0)/T); yaw=y0+t*Math.PI*2; applyCam(); if(t<1) requestAnimationFrame(step); else res(); }; step(); });
+          await wait(900); window.__lineart.cfg.live=false; window.__lineart.close(); }
+        window.__gemOpts.disp=true; window.__gemOpts.bounces=7; setRenderMode("solid");
+      } finally { spinHold=false; try{ window.__eq&&window.__eq.op(null); }catch(e){} }
     },
     // 1 — torus (sliders) -> wireframe (sliders) -> patent halftone -> normals -> solid -> new
     async () => {
