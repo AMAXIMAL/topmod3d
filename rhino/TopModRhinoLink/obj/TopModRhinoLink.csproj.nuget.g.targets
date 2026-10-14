@@ -1,0 +1,6 @@
+﻿<?xml version="1.0" encoding="utf-8" standalone="no"?>
+<Project ToolsVersion="14.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+  <ImportGroup Condition=" '$(ExcludeRestorePackageImports)' != 'true' ">
+    <Import Project="$(NuGetPackageRoot)rhinocommon/8.35.26251.13001/buildTransitive/net7.0/RhinoCommon.targets" Condition="Exists('$(NuGetPackageRoot)rhinocommon/8.35.26251.13001/buildTransitive/net7.0/RhinoCommon.targets')" />
+  </ImportGroup>
+</Project>

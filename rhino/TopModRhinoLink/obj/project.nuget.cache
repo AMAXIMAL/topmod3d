@@ -1,0 +1,14 @@
+{
+  "version": 2,
+  "dgSpecHash": "vyuAwFuYxs0=",
+  "success": true,
+  "projectFilePath": "/Users/ions/AMAXiMAL/projects/topmod/rhino/TopModRhinoLink/TopModRhinoLink.csproj",
+  "expectedPackageFiles": [
+    "/Users/ions/.nuget/packages/microsoft.win32.systemevents/7.0.0/microsoft.win32.systemevents.7.0.0.nupkg.sha512",
+    "/Users/ions/.nuget/packages/rhinocommon/8.35.26251.13001/rhinocommon.8.35.26251.13001.nupkg.sha512",
+    "/Users/ions/.nuget/packages/system.drawing.common/7.0.0/system.drawing.common.7.0.0.nupkg.sha512",
+    "/Users/ions/.nuget/packages/microsoft.netcore.app.ref/7.0.20/microsoft.netcore.app.ref.7.0.20.nupkg.sha512",
+    "/Users/ions/.nuget/packages/microsoft.aspnetcore.app.ref/7.0.20/microsoft.aspnetcore.app.ref.7.0.20.nupkg.sha512"
+  ],
+  "logs": []
+}

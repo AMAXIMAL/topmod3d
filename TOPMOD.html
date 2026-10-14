@@ -1260,6 +1260,7 @@ html.inApp [data-act="fullscreen"],html.inApp [data-act="shortcuts"],html.inApp 
     <div class="menu"><span class="mtitle">Help</span><div class="mlist">
       <div class="mi" id="miDemo">&#9654; Demo &mdash; watch TopMod build models</div>
       <div class="mi" id="miExplain">&#10067; Explain the interface &mdash; guided tour</div>
+      <div class="mi" id="miWhatsNew">&#10024; What&rsquo;s New in 3.9</div>
       <div class="mi" id="miHandGuide">&#9995; Hand controls &mdash; visual guide</div>
       <div class="mi" id="creditsBtn">&#9733; Credits &mdash; the TopMod team</div>
       <div class="mi" data-act="controls">Controls &amp; Gestures</div>
@@ -19698,6 +19699,54 @@ window.__floatCard=function(card,handleSel,key){ if(!card||card._fc) return; car
  addEventListener("orientationchange",function(){ setTimeout(upd,150); setTimeout(upd,600); }); addEventListener("resize",function(){ setTimeout(upd,60); });
  if(screen.orientation&&screen.orientation.addEventListener) screen.orientation.addEventListener("change",function(){ setTimeout(upd,150); });
  if(document.readyState==="loading") document.addEventListener("DOMContentLoaded",upd); else upd(); })();
+</script>
+<script>
+/* What's New — Help ▸ What's New; NEW dot on Help until seen (per version) */
+(function(){
+ var VER="3.9b90", KEY="tm_whatsnew_seen";
+ var ITEMS=[
+  ["Bejewel","Gems","Set gems on every face or vertex of a shape. Same cuts and adjust sliders as Gem Cut, optional prongs (thickness, length, shape, dome cap, bend), bake prongs to their own layer, an <b>Absolute size</b> toggle for same-size stones, and it works as a live modifier."],
+  ["Cage","Generate","Morph a module (primitives, layers or diamond cuts) into every cell of a host. Now the first Generate tool; the base hides while a module is in use."],
+  ["Infill","Generate","The old Generate ▸ Lattice, renamed."],
+  ["Physics","Simulate","Grab, move and throw objects with collisions, plus Magnet packing."],
+  ["Melt","Simulate","Presets: ice, jelly, plastic, wax, chocolate."],
+  ["Aero","Simulate","Wind tunnel: streamlines coloured by speed plus surface pressure."],
+  ["FEA","Simulate","Stress analysis on a voxel grid: pick supports and loads, see the heat map."],
+  ["TopOpt","Simulate","Topology optimization with large worked examples (cantilever, bridge, bracket, table), a step-by-step tutorial in a movable window, and a <b>Size ×</b> slider to scale the part."],
+  ["Wrap &amp; Pour","Simulate","Shrink-wrap a skin over your model, or pour granular material onto it. Now 3–5× faster."],
+  ["AR","Bottom bar","View your model in your room (AR Quick Look on iPhone). Replaces the Credits button; Credits moved to Help."],
+  ["Loop","Bottom bar","Face/edge loop selection toggle, bottom left."],
+  ["Hand controls guide","Help","Animated walkthrough of every hand gesture."],
+  ["Interface","","Grey/orange and white/lime themes, collapsed layers with small single-tap arrows, panels reach the screen edge, landscape safe-area fix, and roomier sliders in the Options window."]
+ ];
+ var card=null;
+ function css(){ if(document.getElementById("wnCss")) return; var s=document.createElement("style"); s.id="wnCss"; s.textContent=
+  "#wnCard{position:fixed;left:50%;top:50%;transform:translate(-50%,-50%);z-index:100030;width:min(560px,calc(100vw - 24px));max-height:calc(100vh - 40px);display:flex;flex-direction:column;background:#0b0f18;border:1px solid rgba(0,229,255,.35);border-radius:14px;box-shadow:0 20px 60px rgba(0,0,0,.6);color:#c5d6e4;font:13px/1.45 var(--font,system-ui)}"+
+  "#wnCard .wnTop{display:flex;align-items:center;gap:8px;padding:12px 16px 8px;cursor:move}#wnCard .wnTop b{flex:1;font:700 11px var(--font,system-ui);letter-spacing:1.4px;color:#00E5FF}"+
+  "#wnCard .wnX{background:transparent;border:0;color:#9fb3c8;font-size:20px;line-height:1;cursor:pointer;padding:2px 4px}"+
+  "#wnCard .wnList{overflow:auto;padding:4px 16px 8px}#wnCard .wnI{padding:9px 0;border-top:1px solid rgba(255,255,255,.06)}"+
+  "#wnCard .wnI h4{margin:0 0 2px;font:700 14px var(--font,system-ui);color:#fff}#wnCard .wnI h4 span{font:600 10px var(--font,system-ui);letter-spacing:1px;color:#7f93a6;margin-left:8px;text-transform:uppercase}"+
+  "#wnCard .wnI p{margin:0}#wnCard .wnFoot{padding:10px 16px 14px;text-align:right}#wnCard .wnB{background:#00E5FF;color:#001018;border:0;border-radius:8px;padding:8px 16px;font:700 12px var(--font,system-ui);cursor:pointer}"+
+  "#wnShade{position:fixed;inset:0;background:rgba(2,4,8,.55);z-index:100029}"+
+  ".wnDot{display:inline-block;width:7px;height:7px;border-radius:50%;background:#ff7a1a;margin-left:5px;vertical-align:middle;box-shadow:0 0 6px #ff7a1a}";
+  document.head.appendChild(s); }
+ function seen(){ try{ return localStorage.getItem(KEY)===VER; }catch(e){ return true; } }
+ function mark(){ try{ localStorage.setItem(KEY,VER); }catch(e){} var d=document.querySelectorAll(".wnDot"); for(var k=0;k<d.length;k++) d[k].remove(); }
+ function open(){ if(card) return; css(); var sh=document.createElement("div"); sh.id="wnShade"; sh.onclick=close; document.body.appendChild(sh);
+  card=document.createElement("div"); card.id="wnCard"; card.setAttribute("role","dialog");
+  card.innerHTML='<div class="wnTop"><b>WHAT&rsquo;S NEW IN TOPMOD 3D 3.9</b><button class="wnX" aria-label="Close">×</button></div><div class="wnList">'+
+   ITEMS.map(function(it){ return '<div class="wnI"><h4>'+it[0]+(it[1]?'<span>'+it[1]+'</span>':'')+'</h4><p>'+it[2]+'</p></div>'; }).join("")+
+   '</div><div class="wnFoot"><button class="wnB">Got it</button></div>';
+  document.body.appendChild(card); card.querySelector(".wnX").onclick=close; card.querySelector(".wnB").onclick=close;
+  window.__floatCard&&window.__floatCard(card,".wnTop","whatsNew"); addEventListener("keydown",key,true); mark(); }
+ function key(e){ if(e.key==="Escape"&&card){ close(); e.preventDefault(); } }
+ function close(){ if(card){ card.remove(); card=null; } var s=document.getElementById("wnShade"); if(s) s.remove(); removeEventListener("keydown",key,true); }
+ function init(){ css(); var m=document.getElementById("miWhatsNew");
+  if(m) m.addEventListener("click",function(e){ e.stopPropagation(); document.querySelectorAll("#menubar .menu.open").forEach(function(x){x.classList.remove("open");}); open(); });
+  if(!seen()){ if(m) m.insertAdjacentHTML("beforeend",'<i class="wnDot"></i>'); var t=m&&m.closest(".menu"); t=t&&t.querySelector(".mtitle"); if(t) t.insertAdjacentHTML("beforeend",'<i class="wnDot"></i>'); } }
+ window.__whatsNew={open:open,close:close,items:ITEMS};
+ if(document.readyState==="loading") document.addEventListener("DOMContentLoaded",init); else init();
+})();
 </script>
 </body>
 </html>

@@ -1,0 +1,15 @@
+/Users/ions/AMAXiMAL/projects/topmod/rhino/TopModRhinoLink/bin/Release/net7.0/TopModRhinoLink.deps.json
+/Users/ions/AMAXiMAL/projects/topmod/rhino/TopModRhinoLink/bin/Release/net7.0/TopModRhinoLink.runtimeconfig.json
+/Users/ions/AMAXiMAL/projects/topmod/rhino/TopModRhinoLink/bin/Release/net7.0/TopModRhinoLink.rhp
+/Users/ions/AMAXiMAL/projects/topmod/rhino/TopModRhinoLink/bin/Release/net7.0/TopModRhinoLink.pdb
+/Users/ions/AMAXiMAL/projects/topmod/rhino/TopModRhinoLink/obj/Release/net7.0/TopModRhinoLink.csproj.AssemblyReference.cache
+/Users/ions/AMAXiMAL/projects/topmod/rhino/TopModRhinoLink/obj/Release/net7.0/TopModRhinoLink.GeneratedMSBuildEditorConfig.editorconfig
+/Users/ions/AMAXiMAL/projects/topmod/rhino/TopModRhinoLink/obj/Release/net7.0/TopModRhinoLink.AssemblyInfoInputs.cache
+/Users/ions/AMAXiMAL/projects/topmod/rhino/TopModRhinoLink/obj/Release/net7.0/TopModRhinoLink.AssemblyInfo.cs
+/Users/ions/AMAXiMAL/projects/topmod/rhino/TopModRhinoLink/obj/Release/net7.0/TopModRhinoLink.csproj.CoreCompileInputs.cache
+/Users/ions/AMAXiMAL/projects/topmod/rhino/TopModRhinoLink/obj/Release/net7.0/TopModRhinoLink.sourcelink.json
+/Users/ions/AMAXiMAL/projects/topmod/rhino/TopModRhinoLink/obj/Release/net7.0/TopModRhinoLink.rhp
+/Users/ions/AMAXiMAL/projects/topmod/rhino/TopModRhinoLink/obj/Release/net7.0/refint/TopModRhinoLink.rhp
+/Users/ions/AMAXiMAL/projects/topmod/rhino/TopModRhinoLink/obj/Release/net7.0/TopModRhinoLink.pdb
+/Users/ions/AMAXiMAL/projects/topmod/rhino/TopModRhinoLink/obj/Release/net7.0/TopModRhinoLink.genruntimeconfig.cache
+/Users/ions/AMAXiMAL/projects/topmod/rhino/TopModRhinoLink/obj/Release/net7.0/ref/TopModRhinoLink.rhp

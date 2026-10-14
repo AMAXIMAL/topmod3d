@@ -1,0 +1,269 @@
+{
+  "version": 3,
+  "targets": {
+    "net7.0": {
+      "Microsoft.Win32.SystemEvents/7.0.0": {
+        "type": "package",
+        "compile": {
+          "lib/net7.0/Microsoft.Win32.SystemEvents.dll": {
+            "related": ".xml"
+          }
+        },
+        "runtime": {
+          "lib/net7.0/_._": {
+            "related": ".xml"
+          }
+        },
+        "build": {
+          "buildTransitive/net6.0/_._": {}
+        },
+        "runtimeTargets": {
+          "runtimes/win/lib/net7.0/_._": {
+            "assetType": "runtime",
+            "rid": "win"
+          }
+        }
+      },
+      "RhinoCommon/8.35.26251.13001": {
+        "type": "package",
+        "dependencies": {
+          "System.Drawing.Common": "7.0.0"
+        },
+        "compile": {
+          "lib/net7.0/Ed.Eto.dll": {
+            "related": ".xml"
+          },
+          "lib/net7.0/Eto.dll": {
+            "related": ".xml"
+          },
+          "lib/net7.0/Rhino.UI.dll": {},
+          "lib/net7.0/RhinoCommon.dll": {
+            "related": ".xml"
+          }
+        },
+        "runtime": {
+          "lib/net7.0/_._": {
+            "related": ".xml"
+          }
+        },
+        "build": {
+          "buildTransitive/net7.0/RhinoCommon.props": {},
+          "buildTransitive/net7.0/RhinoCommon.targets": {}
+        }
+      },
+      "System.Drawing.Common/7.0.0": {
+        "type": "package",
+        "dependencies": {
+          "Microsoft.Win32.SystemEvents": "7.0.0"
+        },
+        "compile": {
+          "lib/net7.0/System.Drawing.Common.dll": {
+            "related": ".xml"
+          }
+        },
+        "runtime": {
+          "lib/net7.0/_._": {
+            "related": ".xml"
+          }
+        },
+        "build": {
+          "buildTransitive/net6.0/_._": {}
+        },
+        "runtimeTargets": {
+          "runtimes/win/lib/net7.0/_._": {
+            "assetType": "runtime",
+            "rid": "win"
+          }
+        }
+      }
+    }
+  },
+  "libraries": {
+    "Microsoft.Win32.SystemEvents/7.0.0": {
+      "sha512": "2nXPrhdAyAzir0gLl8Yy8S5Mnm/uBSQQA7jEsILOS1MTyS7DbmV1NgViMtvV1sfCD1ebITpNwb1NIinKeJgUVQ==",
+      "type": "package",
+      "path": "microsoft.win32.systemevents/7.0.0",
+      "files": [
+        ".nupkg.metadata",
+        ".signature.p7s",
+        "Icon.png",
+        "LICENSE.TXT",
+        "THIRD-PARTY-NOTICES.TXT",
+        "buildTransitive/net461/Microsoft.Win32.SystemEvents.targets",
+        "buildTransitive/net462/_._",
+        "buildTransitive/net6.0/_._",
+        "buildTransitive/netcoreapp2.0/Microsoft.Win32.SystemEvents.targets",
+        "lib/net462/Microsoft.Win32.SystemEvents.dll",
+        "lib/net462/Microsoft.Win32.SystemEvents.xml",
+        "lib/net6.0/Microsoft.Win32.SystemEvents.dll",
+        "lib/net6.0/Microsoft.Win32.SystemEvents.xml",
+        "lib/net7.0/Microsoft.Win32.SystemEvents.dll",
+        "lib/net7.0/Microsoft.Win32.SystemEvents.xml",
+        "lib/netstandard2.0/Microsoft.Win32.SystemEvents.dll",
+        "lib/netstandard2.0/Microsoft.Win32.SystemEvents.xml",
+        "microsoft.win32.systemevents.7.0.0.nupkg.sha512",
+        "microsoft.win32.systemevents.nuspec",
+        "runtimes/win/lib/net6.0/Microsoft.Win32.SystemEvents.dll",
+        "runtimes/win/lib/net6.0/Microsoft.Win32.SystemEvents.xml",
+        "runtimes/win/lib/net7.0/Microsoft.Win32.SystemEvents.dll",
+        "runtimes/win/lib/net7.0/Microsoft.Win32.SystemEvents.xml",
+        "useSharedDesignerContext.txt"
+      ]
+    },
+    "RhinoCommon/8.35.26251.13001": {
+      "sha512": "SCqpxL+sBrO3QN6p1JqvSndnC5N96adBigzE4nxwsvC4anLH2PZFcbHCfN2pjLgFSb8QEMLS9R0GFPxkjhOtxg==",
+      "type": "package",
+      "path": "rhinocommon/8.35.26251.13001",
+      "files": [
+        ".nupkg.metadata",
+        ".signature.p7s",
+        "Eto-LICENSE.txt",
+        "build/net48/RhinoCommon.targets",
+        "build/net7.0/RhinoCommon.targets",
+        "buildTransitive/net7.0/RhinoCommon.props",
+        "buildTransitive/net7.0/RhinoCommon.targets",
+        "lib/net48/Ed.Eto.dll",
+        "lib/net48/Ed.Eto.xml",
+        "lib/net48/Eto.dll",
+        "lib/net48/Eto.xml",
+        "lib/net48/Rhino.UI.dll",
+        "lib/net48/RhinoCommon.dll",
+        "lib/net48/RhinoCommon.xml",
+        "lib/net7.0/Ed.Eto.dll",
+        "lib/net7.0/Ed.Eto.xml",
+        "lib/net7.0/Eto.dll",
+        "lib/net7.0/Eto.xml",
+        "lib/net7.0/Rhino.UI.dll",
+        "lib/net7.0/RhinoCommon.dll",
+        "lib/net7.0/RhinoCommon.xml",
+        "rhinocommon.8.35.26251.13001.nupkg.sha512",
+        "rhinocommon.nuspec",
+        "rhinocommon.png"
+      ]
+    },
+    "System.Drawing.Common/7.0.0": {
+      "sha512": "KIX+oBU38pxkKPxvLcLfIkOV5Ien8ReN78wro7OF5/erwcmortzeFx+iBswlh2Vz6gVne0khocQudGwaO1Ey6A==",
+      "type": "package",
+      "path": "system.drawing.common/7.0.0",
+      "files": [
+        ".nupkg.metadata",
+        ".signature.p7s",
+        "Icon.png",
+        "LICENSE.TXT",
+        "THIRD-PARTY-NOTICES.TXT",
+        "buildTransitive/net461/System.Drawing.Common.targets",
+        "buildTransitive/net462/_._",
+        "buildTransitive/net6.0/_._",
+        "buildTransitive/netcoreapp2.0/System.Drawing.Common.targets",
+        "lib/MonoAndroid10/_._",
+        "lib/MonoTouch10/_._",
+        "lib/net462/System.Drawing.Common.dll",
+        "lib/net462/System.Drawing.Common.xml",
+        "lib/net6.0/System.Drawing.Common.dll",
+        "lib/net6.0/System.Drawing.Common.xml",
+        "lib/net7.0/System.Drawing.Common.dll",
+        "lib/net7.0/System.Drawing.Common.xml",
+        "lib/netstandard2.0/System.Drawing.Common.dll",
+        "lib/netstandard2.0/System.Drawing.Common.xml",
+        "lib/xamarinios10/_._",
+        "lib/xamarinmac20/_._",
+        "lib/xamarintvos10/_._",
+        "lib/xamarinwatchos10/_._",
+        "runtimes/win/lib/net6.0/System.Drawing.Common.dll",
+        "runtimes/win/lib/net6.0/System.Drawing.Common.xml",
+        "runtimes/win/lib/net7.0/System.Drawing.Common.dll",
+        "runtimes/win/lib/net7.0/System.Drawing.Common.xml",
+        "system.drawing.common.7.0.0.nupkg.sha512",
+        "system.drawing.common.nuspec",
+        "useSharedDesignerContext.txt"
+      ]
+    }
+  },
+  "projectFileDependencyGroups": {
+    "net7.0": [
+      "RhinoCommon >= 8.35.26251.13001"
+    ]
+  },
+  "packageFolders": {
+    "/Users/ions/.nuget/packages/": {}
+  },
+  "project": {
+    "version": "2.0.0",
+    "restore": {
+      "projectUniqueName": "/Users/ions/AMAXiMAL/projects/topmod/rhino/TopModRhinoLink/TopModRhinoLink.csproj",
+      "projectName": "TopModRhinoLink",
+      "projectPath": "/Users/ions/AMAXiMAL/projects/topmod/rhino/TopModRhinoLink/TopModRhinoLink.csproj",
+      "packagesPath": "/Users/ions/.nuget/packages/",
+      "outputPath": "/Users/ions/AMAXiMAL/projects/topmod/rhino/TopModRhinoLink/obj/",
+      "projectStyle": "PackageReference",
+      "configFilePaths": [
+        "/Users/ions/.nuget/NuGet/NuGet.Config"
+      ],
+      "originalTargetFrameworks": [
+        "net7.0"
+      ],
+      "sources": {
+        "https://api.nuget.org/v3/index.json": {}
+      },
+      "frameworks": {
+        "net7.0": {
+          "targetAlias": "net7.0",
+          "projectReferences": {}
+        }
+      },
+      "warningProperties": {
+        "noWarn": [
+          "NU1701"
+        ],
+        "warnAsError": [
+          "NU1605"
+        ]
+      },
+      "restoreAuditProperties": {
+        "enableAudit": "true",
+        "auditLevel": "low",
+        "auditMode": "direct"
+      },
+      "SdkAnalysisLevel": "10.0.100"
+    },
+    "frameworks": {
+      "net7.0": {
+        "targetAlias": "net7.0",
+        "dependencies": {
+          "RhinoCommon": {
+            "include": "Compile, Build, Native, ContentFiles, Analyzers, BuildTransitive",
+            "target": "Package",
+            "version": "[8.35.26251.13001, )"
+          }
+        },
+        "imports": [
+          "net461",
+          "net462",
+          "net47",
+          "net471",
+          "net472",
+          "net48",
+          "net481"
+        ],
+        "assetTargetFallback": true,
+        "warn": true,
+        "downloadDependencies": [
+          {
+            "name": "Microsoft.AspNetCore.App.Ref",
+            "version": "[7.0.20, 7.0.20]"
+          },
+          {
+            "name": "Microsoft.NETCore.App.Ref",
+            "version": "[7.0.20, 7.0.20]"
+          }
+        ],
+        "frameworkReferences": {
+          "Microsoft.NETCore.App": {
+            "privateAssets": "all"
+          }
+        },
+        "runtimeIdentifierGraphPath": "/usr/local/share/dotnet/sdk/10.0.102/RuntimeIdentifierGraph.json"
+      }
+    }
+  }
+}
