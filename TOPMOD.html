@@ -1079,6 +1079,10 @@ body.opDock.opOpen #rTabs,body.opDock.opOpen #rSplit,body.opDock.opOpen.rStack .
 #toTut .ttX{background:transparent;border:0;color:#9fb3c8;font-size:18px;cursor:pointer;line-height:1}#toTut h4{margin:6px 0 3px;font:700 14.5px var(--font,system-ui);color:#fff}#toTut p{margin:0 0 8px;color:#c5d6e4}
 #toTut .ttN{display:flex;justify-content:space-between;gap:8px}#toTut .ttB{background:rgba(0,229,255,.12);border:1px solid rgba(0,229,255,.4);color:#bff3ff;border-radius:8px;padding:6px 14px;font:600 12px var(--font,system-ui);cursor:pointer}#toTut .ttB.pri{background:#00E5FF;color:#04121a}#toTut .ttB:disabled{opacity:.3}
 .toPulse{outline:2px solid #ff4f96!important;outline-offset:2px;animation:toPulse 1s ease-in-out infinite}@keyframes toPulse{50%{outline-color:rgba(255,79,150,.25)}}
+
+.fcGrip{position:absolute;right:2px;bottom:2px;width:16px;height:16px;cursor:nwse-resize;touch-action:none;z-index:2;background:linear-gradient(135deg,transparent 50%,rgba(0,229,255,.55) 50%,rgba(0,229,255,.55) 60%,transparent 60%,transparent 72%,rgba(0,229,255,.55) 72%,rgba(0,229,255,.55) 82%,transparent 82%);border-bottom-right-radius:10px}
+#toTut,#hcCard{overflow:auto}
+#toTut .ttH{cursor:move;user-select:none}
 </style>
 <script>document.documentElement.classList.add("tmBoot");setTimeout(function(){var h=document.documentElement;if(h.classList.contains("tmBoot")){h.classList.remove("tmBoot");h.classList.add("tmBooted");}},5000);</script>
 </head>
@@ -16180,6 +16184,7 @@ window.__ek={applyWhole:applyWhole,ops:ops,snapshot:snapshot,rebuild:rebuild,toa
     close(); const c=document.createElement("div"); c.id="toTut"; TT.card=c; document.body.appendChild(c);
     const show=k=>{ TT.i=Math.max(0,Math.min(STEPS.length-1,k)); const S=STEPS[TT.i];
       c.innerHTML='<div class="ttH"><b>TOPOLOGY OPTIMISATION · TUTORIAL</b><span>'+(TT.i+1)+' / '+STEPS.length+'</span><button class="ttX" aria-label="Close">×</button></div><h4>'+S.t+'</h4><p>'+S.d+'</p><div class="ttN"><button class="ttB" id="ttP">‹ Back</button><button class="ttB pri" id="ttNx">'+(TT.i===STEPS.length-1?"Finish":"Next ›")+'</button></div>';
+      c._fc=0; window.__floatCard&&window.__floatCard(c,".ttH","toTut");
       c.querySelector(".ttX").onclick=close; c.querySelector("#ttP").disabled=TT.i===0; c.querySelector("#ttP").onclick=()=>show(TT.i-1); c.querySelector("#ttNx").onclick=()=>{ if(TT.i===STEPS.length-1) close(); else show(TT.i+1); };
       try{ S.go(); }catch(e){ console.warn(e); } };
     show(0); }
@@ -19591,7 +19596,7 @@ void main(){
   card.innerHTML='<div class="hcTop"><b>HAND CONTROLS — VISUAL GUIDE</b><span id="hcN" style="color:#7f93a6;font-size:11px"></span><button class="hcX" aria-label="Close">×</button></div>'
    +'<svg id="hcSvg" viewBox="0 0 600 270"></svg><div class="hcBody"><h3 id="hcT"></h3><p id="hcD"></p></div>'
    +'<div class="hcNav"><button class="hcB" id="hcPrev">‹ Back</button><div class="hcDots" id="hcDots"></div><button class="hcB pri" id="hcNext">Next ›</button></div>';
-  document.body.appendChild(card); card.querySelector(".hcX").onclick=close;
+  document.body.appendChild(card); card.querySelector(".hcX").onclick=close; window.__floatCard&&window.__floatCard(card,".hcTop","handGuide");
   card.querySelector("#hcPrev").onclick=function(){ go(i-1); }; card.querySelector("#hcNext").onclick=function(){ if(i<STEPS.length-1) go(i+1); else { close(); var b=document.getElementById("handFab"); if(b&&!document.body.classList.contains("handsOn")) b.click(); } };
   var dots=card.querySelector("#hcDots"); STEPS.forEach(function(_,k){ var d=document.createElement("i"); d.onclick=function(){ go(k); }; dots.appendChild(d); });
   sv=card.querySelector("#hcSvg");
@@ -19649,5 +19654,20 @@ void main(){
  if(document.readyState==="loading") document.addEventListener("DOMContentLoaded",init); else init();
 })();</script>
 
+<script>/* Floating cards (tutorial, hand guide): drag by the header, resize from the corner; position + size remembered */
+window.__floatCard=function(card,handleSel,key){ if(!card||card._fc) return; card._fc=1; const h=card.querySelector(handleSel)||card;
+  try{ const st=JSON.parse(localStorage.getItem("fc_"+key)||"null"); if(st){ card.style.left=Math.max(0,Math.min(innerWidth-120,st.x))+"px"; card.style.top=Math.max(0,Math.min(innerHeight-60,st.y))+"px"; card.style.bottom="auto"; card.style.right="auto"; card.style.transform="none"; if(st.w) card.style.width=st.w+"px"; if(st.h) card.style.height=st.h+"px"; } }catch(e){}
+  const save=()=>{ try{ const r=card.getBoundingClientRect(); localStorage.setItem("fc_"+key,JSON.stringify({x:r.left,y:r.top,w:r.width,h:card.style.height?r.height:0})); }catch(e){} };
+  let d=null; h.style.cursor="move"; h.style.touchAction="none";
+  h.addEventListener("pointerdown",e=>{ if(e.target.closest("button,input,select,a")) return; const r=card.getBoundingClientRect(); d={x:e.clientX-r.left,y:e.clientY-r.top}; card.style.left=r.left+"px"; card.style.top=r.top+"px"; card.style.bottom="auto"; card.style.right="auto"; card.style.transform="none"; h.setPointerCapture(e.pointerId); e.preventDefault(); });
+  h.addEventListener("pointermove",e=>{ if(!d) return; card.style.left=Math.max(0,Math.min(innerWidth-80,e.clientX-d.x))+"px"; card.style.top=Math.max(0,Math.min(innerHeight-40,e.clientY-d.y))+"px"; });
+  const up=()=>{ if(d){ d=null; save(); } }; h.addEventListener("pointerup",up); h.addEventListener("pointercancel",up);
+  // resize grip (bottom-right) — works with touch, unlike CSS resize
+  const g=document.createElement("div"); g.className="fcGrip"; g.title="Drag to resize"; card.appendChild(g); let rz=null;
+  g.addEventListener("pointerdown",e=>{ const r=card.getBoundingClientRect(); rz={x:e.clientX,y:e.clientY,w:r.width,h:r.height}; g.setPointerCapture(e.pointerId); e.preventDefault(); e.stopPropagation(); });
+  g.addEventListener("pointermove",e=>{ if(!rz) return; card.style.width=Math.max(240,Math.min(innerWidth-10,rz.w+e.clientX-rz.x))+"px"; card.style.height=Math.max(140,Math.min(innerHeight-10,rz.h+e.clientY-rz.y))+"px"; card.style.maxHeight="none"; });
+  const up2=()=>{ if(rz){ rz=null; save(); } }; g.addEventListener("pointerup",up2); g.addEventListener("pointercancel",up2);
+};
+</script>
 </body>
 </html>
