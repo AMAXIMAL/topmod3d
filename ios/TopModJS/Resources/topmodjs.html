@@ -1163,6 +1163,9 @@ html.inApp [data-act="fullscreen"],html.inApp [data-act="shortcuts"],html.inApp 
       <div class="mi" data-act="melt">Melt — slump · drip · pool</div>
       <div class="mi" data-act="aero">Aero — wind tunnel streamlines &amp; pressure</div>
       <div class="mi" data-act="fea">FEA — stress &amp; deflection</div>
+      <div class="mi" data-act="topopt">Topology optimisation — carve to the load paths</div>
+      <div class="mi" data-act="wrap">Shrink-wrap / Vacuum form</div>
+      <div class="mi" data-act="granular">Granular pour — beads pile up</div>
     </div></div>
     <div class="menu"><span class="mtitle">Tools</span><div class="mlist">
       <div class="mi" data-op="insertEdge">Insert Edge</div>
@@ -1289,6 +1292,9 @@ html.inApp [data-act="fullscreen"],html.inApp [data-act="shortcuts"],html.inApp 
         <button class="tb" data-act="melt" title="Melt — the form softens, slumps under gravity, drips and pools out on the ground; Bake keeps the frame"><svg width="22" height="22" viewBox="0 0 22 22"><path d="M5 4h12v6c0 2-1 3-1 5s1 3 0 3-1-2-2-2-1 3-3 3-1-3-2-3-1 2-2 2 0-2 0-4-2-2-2-4Z" fill="rgba(255,167,51,.35)" stroke="#00E5FF" stroke-width="1.2"/><path d="M2 20h18" stroke="#8fb7ff" stroke-width="1.2"/></svg><span class="tlbl">Melt</span></button>
         <button class="tb" data-act="aero" title="Aero — wind tunnel: streamlines coloured by speed and surface pressure (potential flow on a voxel grid with a wake model)"><svg width="22" height="22" viewBox="0 0 22 22"><path d="M2 6c5 0 7 3 11 3s5-2 7-2M2 11c6 0 8 2 12 2s4-1 6-1M2 16c5 0 7-2 11-2s5 2 7 2" stroke="#00E5FF" stroke-width="1.2" fill="none"/><path d="M9 9.5c1.5-2 4-2 5.5 0s-1 3.5-2.8 3.5S7.5 11.5 9 9.5Z" fill="rgba(255,167,51,.45)" stroke="#8fb7ff" stroke-width=".9"/></svg><span class="tlbl">Aero</span></button>
         <button class="tb" data-act="fea" title="FEA — finite-element stress analysis: von Mises stress colours and exaggerated deflection, with material, load and safety factor"><svg width="22" height="22" viewBox="0 0 22 22"><path d="M3 18h16M5 18V8l6-4 6 4v10" stroke="#00E5FF" stroke-width="1.2" fill="rgba(143,183,255,.18)"/><path d="M5 12l6-3 6 3M5 15l6-3 6 3" stroke="#ff6b6b" stroke-width=".9" fill="none"/><path d="M11 1v3M9.6 2.6 11 4l1.4-1.4" stroke="#ffd166" stroke-width="1" fill="none"/></svg><span class="tlbl">FEA</span></button>
+        <button class="tb" data-act="topopt" title="Topology optimisation — select faces as supports and loads; SIMP carves away low-stress material, then bake the organic result"><svg width="22" height="22" viewBox="0 0 22 22"><path d="M3 18h16M5 18c1-6 3-9 6-11 3 2 5 5 6 11" stroke="#00E5FF" stroke-width="1.3" fill="none"/><path d="M8 18c.6-3 1.6-5 3-6.5 1.4 1.5 2.4 3.5 3 6.5M11 7V3" stroke="#ffa733" stroke-width="1.1" fill="none"/><circle cx="11" cy="3" r="1.4" fill="#ff4f6d"/></svg><span class="tlbl">TopOpt</span></button>
+        <button class="tb" data-act="wrap" title="Shrink-wrap / Vacuum form — a skin shrinks onto the model, or a hot sheet drops and sucks down over it; tension bridges gaps; bake with thickness"><svg width="22" height="22" viewBox="0 0 22 22"><path d="M3 17c0-6 3-10 8-10s8 4 8 10" stroke="#00E5FF" stroke-width="1.3" fill="rgba(143,183,255,.25)"/><rect x="7" y="10" width="8" height="7" fill="rgba(255,167,51,.5)" stroke="#ffa733" stroke-width="1"/><path d="M2 17h18" stroke="#8fb7ff" stroke-width="1.1"/></svg><span class="tlbl">Wrap</span></button>
+        <button class="tb" data-act="granular" title="Granular pour — thousands of beads pour from above, pile on the model and the ground; bake to geometry"><svg width="22" height="22" viewBox="0 0 22 22"><path d="M2 19h18" stroke="#8fb7ff" stroke-width="1.1"/><g fill="#ffa733"><circle cx="6" cy="17" r="1.6"/><circle cx="9.2" cy="17" r="1.6"/><circle cx="12.4" cy="17" r="1.6"/><circle cx="15.6" cy="17" r="1.6"/><circle cx="7.6" cy="14.2" r="1.6"/><circle cx="10.8" cy="14.2" r="1.6"/><circle cx="14" cy="14.2" r="1.6"/><circle cx="9.2" cy="11.4" r="1.6"/><circle cx="12.4" cy="11.4" r="1.6"/></g><g fill="#00E5FF"><circle cx="11" cy="3" r="1.3"/><circle cx="10" cy="6.5" r="1.3"/><circle cx="12" cy="8.6" r="1.1"/></g></svg><span class="tlbl">Pour</span></button>
         <button class="tb" data-op="crease" title="Crease — OpenSubdiv semi-sharp creases: edit the control cage (pick edges, set sharpness 0–10, drag cage points) while seeing the subdivided surface"><img class="ticon" alt="Crease"><span class="tlbl">Crease</span></button>
         <button class="tb" data-op="doosabin" title="Doo-Sabin"><img class="ticon" alt="Doo-Sabin"><span class="tlbl">DooSabin</span></button>
         <button class="tb" data-op="loop" title="Loop subdivision"><img class="ticon" alt="Loop"><span class="tlbl">Loop</span></button>
@@ -16021,9 +16027,105 @@ window.__ek={applyWhole:applyWhole,ops:ops,snapshot:snapshot,rebuild:rebuild,toa
     $("#hint")&&($("#hint").textContent="FEA: colours show von Mises stress, shape shows exaggerated deflection. The base touching the ground is fixed.");
     feaRun();
   }
+  // =====================================================================  TOPOLOGY OPTIMIZATION (SIMP, compliance minimisation)
+  const O={ctl:null,grp:null,run:false,res:null,sup:[],load:[]};
+  function toClear(){ if(O.grp){ scene.remove(O.grp); O.grp.traverse(o=>{ o.geometry&&o.geometry.dispose(); o.material&&o.material.dispose&&o.material.dispose(); }); O.grp=null; } }
+  function selFacePts(){ const M=(typeof selMesh==="function")?selMesh():mesh, out=[]; for(const fi of sel.faces){ const f=M.faces[fi]; if(!f) continue; const c=[0,0,0]; f.forEach(v=>{ c[0]+=M.verts[v][0]; c[1]+=M.verts[v][1]; c[2]+=M.verts[v][2]; }); c[0]/=f.length; c[1]/=f.length; c[2]/=f.length;
+      let n=[0,0,0]; for(let i=0;i<f.length;i++){ const a=M.verts[f[i]], b=M.verts[f[(i+1)%f.length]]; n[0]+=(a[1]-b[1])*(a[2]+b[2]); n[1]+=(a[2]-b[2])*(a[0]+b[0]); n[2]+=(a[0]-b[0])*(a[1]+b[1]); } const l=Math.hypot(...n)||1;
+      out.push({c,n:n.map(x=>x/l)}); f.forEach(v=>out.push({c:[(M.verts[v][0]+c[0])/2,(M.verts[v][1]+c[1])/2,(M.verts[v][2]+c[2])/2],n:n.map(x=>x/l)})); } return out; }
+  function voxSurface(R,thr){ // exposed faces of voxels whose density ≥ thr → quad mesh (shared corners), then Taubin-smoothed
+    const {nx,ny,nz,o,cs,xd,eIdx}=R, on=(i,j,k)=>i>=0&&j>=0&&k>=0&&i<nx&&j<ny&&k<nz&&eIdx[i+nx*(j+ny*k)]>=0&&xd[eIdx[i+nx*(j+ny*k)]]>=thr;
+    const V=[], F=[], map=new Map(), vid=(i,j,k)=>{ const key=i+","+j+","+k; let v=map.get(key); if(v==null){ v=V.length; map.set(key,v); V.push([o[0]+i*cs,o[1]+j*cs,o[2]+k*cs]); } return v; };
+    const D=[[1,0,0],[-1,0,0],[0,1,0],[0,-1,0],[0,0,1],[0,0,-1]];
+    for(let k=0;k<nz;k++) for(let j=0;j<ny;j++) for(let i=0;i<nx;i++){ if(!on(i,j,k)) continue;
+      for(const d of D){ if(on(i+d[0],j+d[1],k+d[2])) continue; const ax=d[0]?0:d[1]?1:2, s=(d[ax]>0)?1:0, u=(ax+1)%3, w=(ax+2)%3, base=[i,j,k]; base[ax]+=s;
+        const c=(a,b)=>{ const p=base.slice(); p[u]+=a; p[w]+=b; return vid(p[0],p[1],p[2]); };
+        let q=[c(0,0),c(1,0),c(1,1),c(0,1)]; const P=q.map(x=>V[x]); const e1=[P[1][0]-P[0][0],P[1][1]-P[0][1],P[1][2]-P[0][2]], e2=[P[2][0]-P[0][0],P[2][1]-P[0][1],P[2][2]-P[0][2]];
+        const nn=[e1[1]*e2[2]-e1[2]*e2[1],e1[2]*e2[0]-e1[0]*e2[2],e1[0]*e2[1]-e1[1]*e2[0]]; if(nn[0]*d[0]+nn[1]*d[1]+nn[2]*d[2]<0) q.reverse(); F.push(q); } }
+    const nb=V.map(()=>new Set()); F.forEach(f=>{ for(let a=0;a<4;a++){ nb[f[a]].add(f[(a+1)%4]); nb[f[(a+1)%4]].add(f[a]); } });
+    const it=+O.ctl.querySelector("#toSm").value; const N=nb.map(s=>[...s]);
+    const lap=w=>{ const Q=V.map(v=>v.slice()); for(let i=0;i<V.length;i++){ const L=N[i]; if(!L.length) continue; let a=[0,0,0]; L.forEach(j=>{ a[0]+=Q[j][0]; a[1]+=Q[j][1]; a[2]+=Q[j][2]; }); for(let d=0;d<3;d++) V[i][d]+=(a[d]/L.length-Q[i][d])*w; } };
+    for(let r=0;r<it;r++){ lap(0.5); lap(-0.53); }
+    return {verts:V,faces:F}; }
+  function toDraw(){ const R=O.res; if(!R) return; toClear(); const thr=+O.ctl.querySelector("#toThr").value, m=voxSurface(R,thr);
+    const g=new THREE.BufferGeometry(), pos=[]; for(const f of m.faces) for(const t of [[0,1,2],[0,2,3]]) for(const a of t){ const v=m.verts[f[a]]; pos.push(v[0],v[1],v[2]); }
+    g.setAttribute("position",new THREE.Float32BufferAttribute(pos,3)); g.computeVertexNormals();
+    O.grp=new THREE.Group(); O.grp.add(new THREE.Mesh(g,new THREE.MeshStandardMaterial({color:0xffa733,metalness:0.1,roughness:0.45,side:THREE.DoubleSide})));
+    const mk=(pts,col)=>{ const gg=new THREE.BufferGeometry(); gg.setAttribute("position",new THREE.Float32BufferAttribute(pts.flatMap(p=>p.c),3)); return new THREE.Points(gg,new THREE.PointsMaterial({color:col,size:R.cs*0.9})); };
+    if(O.sup.length) O.grp.add(mk(O.sup,0x35c0ff)); if(O.load.length) O.grp.add(mk(O.load,0xff4f6d));
+    scene.add(O.grp); hideModel(true); }
+  function toRun(){
+    if(O.run){ O.run=false; return; }
+    const M=(typeof dispMesh==="function")?dispMesh():mesh; if(!M||!M.faces.length){ toast&&toast("Topology optimisation: no model",true); return; }
+    const ctl=O.ctl, res=+ctl.querySelector("#toRes").value, vf=+ctl.querySelector("#toVf").value, iters=+ctl.querySelector("#toIt").value, supMode=ctl.querySelector("#toSup").value, ldMode=ctl.querySelector("#toLd").value, st=ctl.querySelector("#toStats");
+    const b=bbox(M), size=[b.mx[0]-b.mn[0],b.mx[1]-b.mn[1],b.mx[2]-b.mn[2]], cs=Math.max(...size,1e-3)/res;
+    const nx=Math.max(2,Math.ceil(size[0]/cs)), ny=Math.max(2,Math.ceil(size[1]/cs)), nz=Math.max(2,Math.ceil(size[2]/cs)), o=[b.mn[0]-(nx*cs-size[0])/2,b.mn[1]-(ny*cs-size[1])/2,b.mn[2]-(nz*cs-size[2])/2];
+    const S=voxelize(M,o,cs,nx,ny,nz), E=[], eIdx=new Int32Array(nx*ny*nz).fill(-1);
+    for(let k=0;k<nz;k++) for(let j=0;j<ny;j++) for(let i=0;i<nx;i++) if(S[i+nx*(j+ny*k)]){ eIdx[i+nx*(j+ny*k)]=E.length; E.push([i,j,k]); }
+    if(E.length<8){ st.textContent="Model is too thin to voxelize — raise Resolution."; return; }
+    const NX=nx+1, NY=ny+1, nid=(i,j,k)=>i+NX*(j+NY*k), nN=NX*NY*(nz+1), {K,sg}=hexKE(0.3), nd=nN*3;
+    const conn=E.map(([i,j,k])=>sg.map(([sx,sy,sz])=>nid(i+(sx>0),j+(sy>0),k+(sz>0)))), used=new Uint8Array(nN); conn.forEach(c=>c.forEach(n=>used[n]=1));
+    const nearE=p=>{ const i=Math.floor((p[0]-o[0])/cs), j=Math.floor((p[1]-o[1])/cs), k=Math.floor((p[2]-o[2])/cs); let best=-1, bd=1e30;
+      for(let r=0;r<4&&best<0;r++) for(let dk=-r;dk<=r;dk++) for(let dj=-r;dj<=r;dj++) for(let di=-r;di<=r;di++){ const ii=i+di,jj=j+dj,kk=k+dk; if(ii<0||jj<0||kk<0||ii>=nx||jj>=ny||kk>=nz) continue; const e=eIdx[ii+nx*(jj+ny*kk)]; if(e<0) continue; const d=di*di+dj*dj+dk*dk; if(d<bd){ bd=d; best=e; } } return best; };
+    const fixed=new Uint8Array(nd), Fv=new Float64Array(nd), passive=new Uint8Array(E.length);
+    if(supMode==="sel"&&O.sup.length){ O.sup.forEach(p=>{ const e=nearE(p.c); if(e<0) return; passive[e]=1; conn[e].forEach(n=>{ fixed[n*3]=fixed[n*3+1]=fixed[n*3+2]=1; }); }); }
+    else { let jm=1e9; E.forEach(e=>jm=Math.min(jm,e[1])); E.forEach((e,ei)=>{ if(e[1]===jm){ passive[ei]=1; conn[ei].forEach(n=>{ fixed[n*3]=fixed[n*3+1]=fixed[n*3+2]=1; }); } }); }
+    let lp=[]; if(ldMode!=="top"&&O.load.length) lp=O.load; else { const top=new Map(); E.forEach((e,ei)=>{ const key=e[0]+","+e[2]; if(!top.has(key)||E[top.get(key)][1]<e[1]) top.set(key,ei); }); top.forEach(ei=>{ const e=E[ei]; lp.push({c:[o[0]+(e[0]+.5)*cs,o[1]+(e[1]+.5)*cs,o[2]+(e[2]+.5)*cs],n:[0,1,0]}); }); }
+    const ldE=[]; lp.forEach(p=>{ const e=nearE(p.c); if(e>=0){ passive[e]=1; ldE.push({e,n:p.n}); } }); if(!ldE.length){ st.textContent="No load points — select faces and press 'Loads from selection'."; return; }
+    ldE.forEach(({e,n})=>{ const dir=ldMode==="push"?[-n[0],-n[1],-n[2]]:ldMode==="side"?[1,0,0]:[0,-1,0]; conn[e].forEach(nn=>{ for(let d=0;d<3;d++) Fv[nn*3+d]+=dir[d]/(8*ldE.length); }); });
+    // density filter neighbourhood (radius 1.5 cells)
+    const rmin=1.5, NB=E.map(([i,j,k])=>{ const L=[]; for(let dk=-1;dk<=1;dk++) for(let dj=-1;dj<=1;dj++) for(let di=-1;di<=1;di++){ const ii=i+di,jj=j+dj,kk=k+dk; if(ii<0||jj<0||kk<0||ii>=nx||jj>=ny||kk>=nz) continue; const e=eIdx[ii+nx*(jj+ny*kk)]; if(e<0) continue; const w=rmin-Math.hypot(di,dj,dk); if(w>0) L.push(e,w); } return L; });
+    const ne=E.length, x=new Float64Array(ne).fill(vf), pen=3, Emin=1e-9;
+    for(let e=0;e<ne;e++) if(passive[e]) x[e]=1;
+    const U=new Float64Array(nd), Rr=new Float64Array(nd), Z=new Float64Array(nd), Pp=new Float64Array(nd), Ap=new Float64Array(nd), Dg=new Float64Array(nd), ue=new Float64Array(24), Ee=new Float64Array(ne);
+    const mul=(xv,y)=>{ y.fill(0); for(let ei=0;ei<ne;ei++){ const c=conn[ei], s=Ee[ei]; for(let a=0;a<8;a++){ ue[a*3]=xv[c[a]*3]; ue[a*3+1]=xv[c[a]*3+1]; ue[a*3+2]=xv[c[a]*3+2]; }
+        for(let r=0;r<24;r++){ const Kr=K[r]; let t=0; for(let q=0;q<24;q++) t+=Kr[q]*ue[q]; y[c[r/3|0]*3+r%3]+=t*s; } } for(let i=0;i<nd;i++) if(fixed[i]||!used[i/3|0]) y[i]=0; };
+    const solve=(maxIt)=>{ Dg.fill(0); for(let ei=0;ei<ne;ei++){ const c=conn[ei]; for(let a=0;a<8;a++) for(let d=0;d<3;d++) Dg[c[a]*3+d]+=K[a*3+d][a*3+d]*Ee[ei]; }
+      mul(U,Ap); for(let i=0;i<nd;i++){ Rr[i]=(fixed[i]||!used[i/3|0])?0:Fv[i]-Ap[i]; Z[i]=Dg[i]>0?Rr[i]/Dg[i]:0; Pp[i]=Z[i]; }
+      let rz=0, f0=0; for(let i=0;i<nd;i++){ rz+=Rr[i]*Z[i]; f0+=Fv[i]*Fv[i]; } f0=Math.sqrt(f0)||1;
+      for(let it=0;it<maxIt;it++){ mul(Pp,Ap); let pAp=0; for(let i=0;i<nd;i++) pAp+=Pp[i]*Ap[i]; const al=rz/(pAp||1e-30); let rn=0; for(let i=0;i<nd;i++){ U[i]+=al*Pp[i]; Rr[i]-=al*Ap[i]; rn+=Rr[i]*Rr[i]; }
+        if(Math.sqrt(rn)/f0<1e-4) break; let rz2=0; for(let i=0;i<nd;i++){ Z[i]=Dg[i]>0?Rr[i]/Dg[i]:0; rz2+=Rr[i]*Z[i]; } const be=rz2/(rz||1e-30); rz=rz2; for(let i=0;i<nd;i++) Pp[i]=Z[i]+be*Pp[i]; } };
+    O.run=true; ctl.querySelector("#toRun").textContent="■ Stop"; let loop=0, comp=0;
+    O.res={nx,ny,nz,o,cs,xd:x,eIdx};
+    const step=()=>{ if(!O.run||!O.ctl){ O.run=false; if(O.ctl) O.ctl.querySelector("#toRun").textContent="▶ Optimise"; return; }
+      for(let e=0;e<ne;e++) Ee[e]=Emin+Math.pow(x[e],pen)*(1-Emin);
+      solve(loop===0?400:120);
+      const dc=new Float64Array(ne); comp=0;
+      for(let ei=0;ei<ne;ei++){ const c=conn[ei]; for(let a=0;a<8;a++) for(let d=0;d<3;d++) ue[a*3+d]=U[c[a]*3+d]; let ce=0; for(let r=0;r<24;r++){ let t=0; for(let q=0;q<24;q++) t+=K[r][q]*ue[q]; ce+=ue[r]*t; } comp+=Ee[ei]*ce; dc[ei]=-pen*Math.pow(x[ei],pen-1)*ce; }
+      const dcf=new Float64Array(ne); for(let e=0;e<ne;e++){ const L=NB[e]; let s=0, w=0; for(let q=0;q<L.length;q+=2){ s+=L[q+1]*x[L[q]]*dc[L[q]]; w+=L[q+1]; } dcf[e]=s/(Math.max(1e-3,x[e])*w); }
+      let l1=0, l2=1e9; const xn=new Float64Array(ne), mv=0.2;
+      while(l2-l1>1e-4*(l1+l2)&&l2>1e-40){ const lm=0.5*(l1+l2); let sum=0; for(let e=0;e<ne;e++){ if(passive[e]){ xn[e]=1; sum+=1; continue; } const B=x[e]*Math.sqrt(Math.max(0,-dcf[e])/lm); xn[e]=Math.max(0.001,Math.max(x[e]-mv,Math.min(1,Math.min(x[e]+mv,B)))); sum+=xn[e]; } if(sum>vf*ne) l1=lm; else l2=lm; }
+      let ch=0; for(let e=0;e<ne;e++){ ch=Math.max(ch,Math.abs(xn[e]-x[e])); x[e]=xn[e]; }
+      loop++; toDraw();
+      st.innerHTML="Iteration "+loop+" / "+iters+" · "+ne+" voxels · volume "+Math.round(vf*100)+"% · change "+ch.toFixed(3)+"<br>Compliance "+comp.toExponential(2)+(loop===1?"":" — lower is stiffer");
+      if(loop>=iters||ch<0.01){ O.run=false; ctl.querySelector("#toRun").textContent="▶ Optimise"; st.innerHTML+="<br><b>Done.</b> Adjust Threshold / Smooth, then Bake."; return; }
+      setTimeout(step,0); };
+    st.textContent="Voxelized "+ne+" cells — solving…"; setTimeout(step,30);
+  }
+  function toBake(){ if(!O.res){ toast&&toast("Run the optimisation first",true); return; } const m=voxSurface(O.res,+O.ctl.querySelector("#toThr").value); if(!m.faces.length){ toast&&toast("Nothing above the threshold",true); return; }
+    toClear(); hideModel(false); addLayer(m,false); if(layers[activeLayer]) layers[activeLayer].name="TopOpt "+layers[activeLayer].id; renderLayerList&&renderLayerList(); toast&&toast("Optimised shape baked to a new layer"); toDraw(); }
+  function toOpen(){
+    O.ctl=openPanel("topopt","Topology optimisation",
+      '<div class="clS">Carves away material that carries little load (SIMP, minimum compliance). Select faces on the model, then use them as supports or loads.</div>'
+      +sl("toVf","Keep volume",0.08,0.8,0.01,0.3)+sl("toRes","Resolution",10,34,1,18)+sl("toIt","Iterations",5,80,1,30)
+      +'<label class="clR"><span>Supports</span><select id="toSup"><option value="base">Base (on the ground)</option><option value="sel">Selected faces</option></select><em></em></label>'
+      +'<label class="clR"><span>Load</span><select id="toLd"><option value="down">Selected faces · push down</option><option value="push">Selected faces · press in</option><option value="side">Selected faces · push sideways</option><option value="top">Top surface · down</option></select><em></em></label>'
+      +'<div class="clB"><button id="toSupB">Supports from selection</button><button id="toLdB">Loads from selection</button></div><div class="clS" id="toSel">No faces assigned — select faces (press 3) and assign them.</div>'
+      +sl("toThr","Threshold",0.1,0.9,0.01,0.5)+sl("toSm","Smooth",0,12,1,4)
+      +'<div class="clB"><button id="toRun" class="pri">▶ Optimise</button><button id="toBake">Bake</button><button id="toClr">Clear</button></div><div class="clS" id="toStats"></div>', ()=>{ O.run=false; toClear(); hideModel(false); O.ctl=null; });
+    if(!O.ctl) return;
+    const upd=()=>{ O.ctl.querySelector("#toSel").textContent="Supports: "+(O.sup.length?Math.round(O.sup.length/5)+" face(s)":"base")+" · Loads: "+(O.load.length?Math.round(O.load.length/5)+" face(s)":"top surface"); if(O.res) toDraw(); };
+    O.ctl.querySelector("#toSupB").onclick=()=>{ O.sup=selFacePts(); if(O.sup.length) O.ctl.querySelector("#toSup").value="sel"; else toast&&toast("Select faces first (press 3)",true); upd(); };
+    O.ctl.querySelector("#toLdB").onclick=()=>{ O.load=selFacePts(); if(!O.load.length) toast&&toast("Select faces first (press 3)",true); else if(O.ctl.querySelector("#toLd").value==="top") O.ctl.querySelector("#toLd").value="down"; upd(); };
+    O.ctl.querySelector("#toRun").onclick=toRun; O.ctl.querySelector("#toBake").onclick=toBake; O.ctl.querySelector("#toClr").onclick=()=>{ O.run=false; O.res=null; toClear(); hideModel(false); };
+    ["toThr","toSm"].forEach(id=>O.ctl.querySelector("#"+id).addEventListener("input",()=>{ if(O.res&&!O.run) toDraw(); }));
+    if(O.sup.length||O.load.length) upd();
+    $("#hint")&&($("#hint").textContent="Topology optimisation: select faces → Supports / Loads from selection → Optimise → Bake.");
+  }
+  window.__topopt={open:toOpen,run:toRun};
   window.__aero={open:aeroOpen,run:aeroRun,clear:aeroClear}; window.__fea={open:feaOpen,run:feaRun,clear:feaClear,get result(){ return F.res; }};
   const wire=(act,fn)=>document.querySelectorAll('[data-act="'+act+'"]').forEach(el=>el.addEventListener("click",e=>{ e.stopPropagation(); document.querySelectorAll("#menubar .menu.open").forEach(m=>m.classList.remove("open")); fn(); }));
-  wire("aero",aeroOpen); wire("fea",feaOpen);
+  wire("aero",aeroOpen); wire("fea",feaOpen); wire("topopt",toOpen);
 })();
 
 // ---------- AR: export the visible model as USDZ and open it in AR Quick Look (iPhone / iPad) ----------
@@ -16066,6 +16168,108 @@ window.__ek={applyWhole:applyWhole,ops:ops,snapshot:snapshot,rebuild:rebuild,toa
   }
   window.__ar={open:openAR, usdz:makeUSDZ, usda:()=>{ const m=sceneMesh(); return m?usda(m):""; }};
   const b=document.getElementById("arBtn"); if(b) b.addEventListener("click",e=>{ e.stopPropagation(); openAR(); });
+})();
+
+// ---------- Shrink-wrap / Vacuum form + Granular pour (Simulate) ----------
+(function(){
+  const $=s=>document.querySelector(s), V3=THREE.Vector3;
+  function visMesh(skip){ const vis=layers.filter((L,i)=>L&&L.visible!==false&&i!==skip).map(L=>(typeof layerEval==="function")?layerEval(L):L.mesh).filter(m=>m&&m.faces&&m.faces.length); return vis.length===1?vis[0]:(vis.length?TM.mergeMeshes(vis):null); }
+  function sampler(m){ // face samples + normals in a hash grid → nearest surface point
+    const P=[], N=[]; for(const f of m.faces){ if(f.length<3) continue; let c=[0,0,0], n=[0,0,0]; for(let i=0;i<f.length;i++){ const a=m.verts[f[i]], q=m.verts[f[(i+1)%f.length]]; c[0]+=a[0]; c[1]+=a[1]; c[2]+=a[2]; n[0]+=(a[1]-q[1])*(a[2]+q[2]); n[1]+=(a[2]-q[2])*(a[0]+q[0]); n[2]+=(a[0]-q[0])*(a[1]+q[1]); }
+      const l=Math.hypot(...n); if(l<1e-12) continue; n=n.map(x=>x/l); c=c.map(x=>x/f.length); P.push(c); N.push(n);
+      for(let i=0;i<f.length;i++){ const a=m.verts[f[i]], q=m.verts[f[(i+1)%f.length]]; P.push([(a[0]+q[0]+2*c[0])/4,(a[1]+q[1]+2*c[1])/4,(a[2]+q[2]+2*c[2])/4]); N.push(n); P.push([(a[0]*2+c[0])/3,(a[1]*2+c[1])/3,(a[2]*2+c[2])/3]); N.push(n); } }
+    let mn=[1e30,1e30,1e30], mx=[-1e30,-1e30,-1e30]; for(const v of m.verts) for(let i=0;i<3;i++){ mn[i]=Math.min(mn[i],v[i]); mx[i]=Math.max(mx[i],v[i]); }
+    const L=Math.hypot(mx[0]-mn[0],mx[1]-mn[1],mx[2]-mn[2])||1, cell=L/30, H=new Map(), key=(i,j,k)=>i+","+j+","+k;
+    P.forEach((p,i)=>{ const k=key(Math.floor(p[0]/cell),Math.floor(p[1]/cell),Math.floor(p[2]/cell)); if(!H.has(k)) H.set(k,[]); H.get(k).push(i); });
+    const near=(x,y,z)=>{ const ci=Math.floor(x/cell), cj=Math.floor(y/cell), ck=Math.floor(z/cell); let best=-1, bd=1e30;
+      for(let r=0;r<40&&(best<0||r<2);r++){ for(let di=-r;di<=r;di++)for(let dj=-r;dj<=r;dj++)for(let dk=-r;dk<=r;dk++){ if(Math.max(Math.abs(di),Math.abs(dj),Math.abs(dk))!==r) continue; const Lq=H.get(key(ci+di,cj+dj,ck+dk)); if(!Lq) continue;
+          for(const i of Lq){ const p=P[i], d=(p[0]-x)**2+(p[1]-y)**2+(p[2]-z)**2; if(d<bd){ bd=d; best=i; } } } if(best>=0&&r>=1) break; } return best; };
+    return {P,N,near,mn,mx,L}; }
+  const css='<style>.smCtl2{font:12px var(--font,system-ui);color:#dbe8f3;display:flex;flex-direction:column;gap:7px}.smCtl2 .clR{display:grid;grid-template-columns:84px 1fr 40px;align-items:center;gap:6px}.smCtl2 .clR em{font-style:normal;color:#8fd8ff;text-align:right}.smCtl2 input[type=range]{width:100%}.smCtl2 select{background:#0a1118;color:#e6fff1;border:1px solid #1f3340;border-radius:5px;padding:3px}.smCtl2 .clB{display:flex;gap:5px}.smCtl2 .clB button{flex:1;padding:7px 4px;border-radius:7px;border:1px solid #2a4a5a;background:#0f2430;color:#bff3ff;font:600 11.5px var(--font,system-ui);cursor:pointer}.smCtl2 .clB button.pri{background:#00E5FF;border-color:#00E5FF;color:#04121a}.smCtl2 .clS{color:#8fa6b8;font-size:11px;line-height:1.45}</style>';
+  const sl=(id,label,min,max,st,v)=>'<label class="clR"><span>'+label+'</span><input type="range" id="'+id+'" min="'+min+'" max="'+max+'" step="'+st+'" value="'+v+'"><em id="'+id+'V">'+v+'</em></label>';
+  function panel(op,title,html,onClose){ const body=$("#tpBody"); if(!body) return null; try{ if(tpState&&tpState.op!==op) closeToolPop(); }catch(e){}
+    const ctl=document.createElement("div"); ctl.className="smCtl2"; ctl.innerHTML=css+html; body.innerHTML=""; body.appendChild(ctl);
+    $("#tpTitle").textContent=title; $("#tpApply")&&($("#tpApply").style.display="none"); const pop=$("#toolpop"); pop.classList.remove("hiddenPanel","empty"); $("#optionsToggle")&&$("#optionsToggle").classList.add("on");
+    tpState={op,btn:null,moved:[]}; ctl.querySelectorAll("input[type=range]").forEach(r=>r.addEventListener("input",()=>{ const e=ctl.querySelector("#"+r.id+"V"); if(e) e.textContent=r.value; }));
+    const mo=new MutationObserver(()=>{ if(!ctl.isConnected){ mo.disconnect(); try{ $("#tpApply")&&($("#tpApply").style.display=""); }catch(e){} onClose(); } }); mo.observe(document.body,{childList:true,subtree:true}); return ctl; }
+  const dispose=g=>{ if(!g) return; scene.remove(g); g.traverse(o=>{ o.geometry&&o.geometry.dispose(); o.material&&o.material.dispose&&o.material.dispose(); }); };
+
+  // ================= SHRINK-WRAP / VACUUM FORM =================
+  const W={ctl:null,obj:null,raf:0,S:null,run:false};
+  function wBuild(){ wStop(); const m=visMesh(); if(!m){ toast&&toast("Shrink-wrap: nothing visible",true); return; }
+    const ctl=W.ctl, mode=ctl.querySelector("#wMode").value, res=+ctl.querySelector("#wRes").value, smp=sampler(m), c=[(smp.mn[0]+smp.mx[0])/2,(smp.mn[1]+smp.mx[1])/2,(smp.mn[2]+smp.mx[2])/2];
+    let verts=[], faces=[];
+    if(mode==="wrap"){ let ico=TM.primitives.icosahedron(); for(let i=0;i<6&&ico.verts.length<res*res*0.7;i++){ try{ ico=TM.loopSubdiv?TM.loopSubdiv(ico):TM.catmullClark(ico); }catch(e){ break; } }
+      const R=smp.L*0.62; verts=ico.verts.map(v=>{ const l=Math.hypot(...v)||1; return [c[0]+v[0]/l*R,c[1]+v[1]/l*R,c[2]+v[2]/l*R]; }); faces=ico.faces.map(f=>f.slice()); }
+    else { const n=Math.max(8,Math.round(res)), sx=(smp.mx[0]-smp.mn[0])*1.5+smp.L*0.1, sz=(smp.mx[2]-smp.mn[2])*1.5+smp.L*0.1, y=smp.mx[1]+smp.L*0.15;
+      for(let j=0;j<=n;j++) for(let i=0;i<=n;i++) verts.push([c[0]-sx/2+sx*i/n, y, c[2]-sz/2+sz*j/n]);
+      for(let j=0;j<n;j++) for(let i=0;i<n;i++){ const a=j*(n+1)+i; faces.push([a,a+n+1,a+n+2,a+1]); } }
+    const nb=verts.map(()=>new Set()); faces.forEach(f=>{ for(let k=0;k<f.length;k++){ nb[f[k]].add(f[(k+1)%f.length]); nb[f[(k+1)%f.length]].add(f[k]); } });
+    const floor=(typeof grid!=="undefined"&&grid)?Math.min(grid.position.y,smp.mn[1]):smp.mn[1];
+    // vacuum form: height field of the model seen from above
+    W.S={verts,faces,nb:nb.map(s=>[...s]),smp,mode,floor,stuck:new Uint8Array(verts.length),c,t:0};
+    const g=new THREE.BufferGeometry(); const P=new Float32Array(verts.length*3); verts.forEach((v,i)=>P.set(v,i*3)); g.setAttribute("position",new THREE.BufferAttribute(P,3));
+    const idx=[]; faces.forEach(f=>{ for(let k=1;k<f.length-1;k++) idx.push(f[0],f[k],f[k+1]); }); g.setIndex(idx); g.computeVertexNormals();
+    W.obj=new THREE.Mesh(g,new THREE.MeshStandardMaterial({color:0xbfe9ff,metalness:0.05,roughness:0.25,transparent:true,opacity:0.82,side:THREE.DoubleSide})); scene.add(W.obj); W.run=true; if(!W.raf) W.raf=requestAnimationFrame(wLoop); }
+  function wStep(){ const S=W.S, ctl=W.ctl, off=+ctl.querySelector("#wOff").value*S.smp.L*0.02, ten=+ctl.querySelector("#wTen").value, spd=S.smp.L*0.012, V=S.verts; S.t++;
+    for(let i=0;i<V.length;i++){ if(S.stuck[i]&&S.mode==="vac") continue; const v=V[i], k=S.smp.near(v[0],v[1],v[2]); if(k<0) continue; const p=S.smp.P[k], n=S.smp.N[k];
+      const dx=v[0]-p[0], dy=v[1]-p[1], dz=v[2]-p[2], d=dx*n[0]+dy*n[1]+dz*n[2], dist=Math.hypot(dx,dy,dz);
+      if(S.mode==="wrap"){ if(dist>off*1.05){ const s=Math.min(spd,dist-off)/(dist||1); v[0]-=dx*s; v[1]-=dy*s; v[2]-=dz*s; } else if(d<off){ v[0]+=n[0]*(off-d); v[1]+=n[1]*(off-d); v[2]+=n[2]*(off-d); } }
+      else { const ny=v[1]-spd; if(ny<=S.floor+off*0.2){ v[1]=S.floor+off*0.2; S.stuck[i]=1; }
+        else if(dist<off*1.2&&d<off&&n[1]>-0.2){ v[0]+=n[0]*(off-d)*0.5; v[1]=Math.max(v[1],p[1]+n[1]*off); S.stuck[i]=1; } else v[1]=ny; } }
+    // tension: Laplacian (keeps the skin taut — bridges gaps, resists deep narrow pockets)
+    const Q=V.map(v=>v.slice()); for(let i=0;i<V.length;i++){ const L=S.nb[i]; if(!L.length) continue; let a=[0,0,0]; L.forEach(j=>{ a[0]+=Q[j][0]; a[1]+=Q[j][1]; a[2]+=Q[j][2]; }); const w=ten*0.5*(S.mode==="vac"&&S.stuck[i]?0.15:1);
+      for(let d=0;d<3;d++) V[i][d]+=(a[d]/L.length-Q[i][d])*w; if(S.mode==="vac"&&V[i][1]<S.floor) V[i][1]=S.floor; } }
+  function wLoop(){ W.raf=requestAnimationFrame(wLoop); if(!W.run||!W.S||!W.obj) return; for(let r=0;r<3;r++) wStep(); const P=W.obj.geometry.attributes.position; W.S.verts.forEach((v,i)=>P.setXYZ(i,v[0],v[1],v[2])); P.needsUpdate=true; W.obj.geometry.computeVertexNormals();
+    const st=W.ctl&&W.ctl.querySelector("#wStats"); if(st) st.textContent=W.S.verts.length.toLocaleString()+" points · step "+W.S.t+(W.S.t>260?" · settled — Bake when ready":""); if(W.S.t>400) W.run=false; }
+  function wStop(){ W.run=false; dispose(W.obj); W.obj=null; W.S=null; }
+  function wBake(){ if(!W.S){ toast&&toast("Run the wrap first",true); return; } let m={verts:W.S.verts.map(v=>v.slice()),faces:W.S.faces.map(f=>f.slice())};
+    const th=+W.ctl.querySelector("#wThick").value*W.S.smp.L*0.01; if(th>0&&TM.thickenSurface){ try{ m=TM.thickenSurface(m,th); }catch(e){} }
+    W.run=false; dispose(W.obj); W.obj=null; addLayer(m,false); if(layers[activeLayer]) layers[activeLayer].name=(W.S.mode==="wrap"?"Shrink-wrap ":"Vacuum form ")+layers[activeLayer].id; renderLayerList&&renderLayerList(); W.S=null; toast&&toast("Baked to a new layer"); }
+  function wOpen(){ W.ctl=panel("wrap","Shrink-wrap / Vacuum form",'<div class="clS">A skin shrinks onto your model (wrap) or a hot sheet drops and sucks down over it (vacuum form). Tension keeps it taut across gaps.</div>'
+      +'<label class="clR"><span>Mode</span><select id="wMode"><option value="wrap">Shrink-wrap (all around)</option><option value="vac">Vacuum form (sheet from above)</option></select><em></em></label>'
+      +sl("wRes","Detail",20,90,1,48)+sl("wTen","Tension",0,1,0.01,0.45)+sl("wOff","Gap",0.1,3,0.05,0.6)+sl("wThick","Bake thickness",0,3,0.05,0.4)
+      +'<div class="clB"><button id="wRun" class="pri">▶ Run</button><button id="wBake">Bake</button><button id="wClr">Clear</button></div><div class="clS" id="wStats"></div>', ()=>{ cancelAnimationFrame(W.raf); W.raf=0; wStop(); W.ctl=null; });
+    if(!W.ctl) return; W.ctl.querySelector("#wRun").onclick=wBuild; W.ctl.querySelector("#wBake").onclick=wBake; W.ctl.querySelector("#wClr").onclick=wStop;
+    ["#wMode","#wRes"].forEach(s=>W.ctl.querySelector(s).addEventListener("change",wBuild)); wBuild(); }
+
+  // ================= GRANULAR POUR =================
+  const G={ctl:null,inst:null,raf:0,S:null,run:false};
+  function gBuild(){ gStop(); const m=visMesh(); const ctl=G.ctl, n=+ctl.querySelector("#gN").value, smp=m?sampler(m):null;
+    const L=smp?smp.L:3, r=L*0.012*(+ctl.querySelector("#gSz").value), c=smp?[(smp.mn[0]+smp.mx[0])/2,(smp.mn[1]+smp.mx[1])/2,(smp.mn[2]+smp.mx[2])/2]:[0,0,0];
+    const floor=(typeof grid!=="undefined"&&grid)?(smp?Math.min(grid.position.y,smp.mn[1]):grid.position.y):0, top=(smp?smp.mx[1]:1)+L*0.4;
+    const geo=new THREE.IcosahedronGeometry(1,1), mat=new THREE.MeshStandardMaterial({color:0xffffff,metalness:0.1,roughness:0.5}); const inst=new THREE.InstancedMesh(geo,mat,n);
+    const col=new THREE.Color(), pal=[0xffa733,0xffcf5a,0xff7a3d,0x35c0ff,0xfff1c4]; for(let i=0;i<n;i++){ col.set(pal[i%pal.length]); inst.setColorAt(i,col); }
+    const X=new Float32Array(n*3), Vv=new Float32Array(n*3); for(let i=0;i<n;i++){ X[i*3]=1e9; }
+    G.S={n,X,V:Vv,r,smp,floor,top,c,born:0,spread:+ctl.querySelector("#gSpread").value*L*0.25,fr:+ctl.querySelector("#gFr").value}; G.inst=inst; scene.add(inst); G.run=true; if(!G.raf) G.raf=requestAnimationFrame(gLoop); }
+  function gStep(dt){ const S=G.S, {X,V,r,n}=S, g=-9.8*0.6, D=2*r;
+    const rate=Math.max(1,Math.round(n/240)); for(let k=0;k<rate&&S.born<n;k++){ const i=S.born++; const a=Math.random()*Math.PI*2, rr=Math.sqrt(Math.random())*S.spread; X[i*3]=S.c[0]+Math.cos(a)*rr; X[i*3+1]=S.top+Math.random()*r*4; X[i*3+2]=S.c[2]+Math.sin(a)*rr; V[i*3]=V[i*3+2]=0; V[i*3+1]=-1; }
+    const m=S.born; for(let i=0;i<m;i++){ V[i*3+1]+=g*dt; X[i*3]+=V[i*3]*dt; X[i*3+1]+=V[i*3+1]*dt; X[i*3+2]+=V[i*3+2]*dt; }
+    for(let it=0;it<2;it++){ const H=new Map(), key=(a,b,c)=>a+","+b+","+c;
+      for(let i=0;i<m;i++){ const k=key(Math.floor(X[i*3]/D),Math.floor(X[i*3+1]/D),Math.floor(X[i*3+2]/D)); let L=H.get(k); if(!L){ L=[]; H.set(k,L); } L.push(i); }
+      for(let i=0;i<m;i++){ const ci=Math.floor(X[i*3]/D), cj=Math.floor(X[i*3+1]/D), ck=Math.floor(X[i*3+2]/D);
+        for(let a=-1;a<=1;a++)for(let b=-1;b<=1;b++)for(let c=-1;c<=1;c++){ const L=H.get(key(ci+a,cj+b,ck+c)); if(!L) continue;
+          for(const j of L){ if(j<=i) continue; const dx=X[j*3]-X[i*3], dy=X[j*3+1]-X[i*3+1], dz=X[j*3+2]-X[i*3+2], d2=dx*dx+dy*dy+dz*dz; if(d2>=D*D||d2<1e-14) continue; const d=Math.sqrt(d2), p=(D-d)/d*0.5;
+            X[i*3]-=dx*p; X[i*3+1]-=dy*p; X[i*3+2]-=dz*p; X[j*3]+=dx*p; X[j*3+1]+=dy*p; X[j*3+2]+=dz*p;
+            const rv=((V[j*3]-V[i*3])*dx+(V[j*3+1]-V[i*3+1])*dy+(V[j*3+2]-V[i*3+2])*dz)/d; if(rv<0){ const q=rv*0.5/d; V[i*3]+=dx*q; V[i*3+1]+=dy*q; V[i*3+2]+=dz*q; V[j*3]-=dx*q; V[j*3+1]-=dy*q; V[j*3+2]-=dz*q; } } } }
+      for(let i=0;i<m;i++){ if(X[i*3+1]<S.floor+r){ X[i*3+1]=S.floor+r; if(V[i*3+1]<0) V[i*3+1]=0; V[i*3]*=1-S.fr*0.3; V[i*3+2]*=1-S.fr*0.3; }
+        if(S.smp){ const k=S.smp.near(X[i*3],X[i*3+1],X[i*3+2]); if(k>=0){ const p=S.smp.P[k], nn=S.smp.N[k], d=(X[i*3]-p[0])*nn[0]+(X[i*3+1]-p[1])*nn[1]+(X[i*3+2]-p[2])*nn[2];
+            const dist=Math.hypot(X[i*3]-p[0],X[i*3+1]-p[1],X[i*3+2]-p[2]); if(d<r&&dist<r*3){ X[i*3]+=nn[0]*(r-d); X[i*3+1]+=nn[1]*(r-d); X[i*3+2]+=nn[2]*(r-d); const vn=V[i*3]*nn[0]+V[i*3+1]*nn[1]+V[i*3+2]*nn[2]; if(vn<0){ V[i*3]-=nn[0]*vn; V[i*3+1]-=nn[1]*vn; V[i*3+2]-=nn[2]*vn; } V[i*3]*=1-S.fr*0.25; V[i*3+1]*=1-S.fr*0.1; V[i*3+2]*=1-S.fr*0.25; } } } } }
+    for(let i=0;i<m;i++){ V[i*3]*=0.995; V[i*3+2]*=0.995; } }
+  const _M=new THREE.Matrix4();
+  function gLoop(){ G.raf=requestAnimationFrame(gLoop); if(!G.run||!G.S||!G.inst) return; for(let k=0;k<3;k++) gStep(0.012); const S=G.S; for(let i=0;i<S.n;i++){ _M.makeScale(S.r,S.r,S.r); _M.setPosition(S.X[i*3],S.X[i*3+1],S.X[i*3+2]); G.inst.setMatrixAt(i,_M); } G.inst.instanceMatrix.needsUpdate=true; G.inst.count=S.born;
+    const st=G.ctl&&G.ctl.querySelector("#gStats"); if(st) st.textContent=S.born.toLocaleString()+" / "+S.n.toLocaleString()+" beads poured"; }
+  function gStop(){ G.run=false; if(G.inst){ scene.remove(G.inst); G.inst.geometry.dispose(); G.inst.material.dispose(); G.inst=null; } G.S=null; }
+  function gBake(){ const S=G.S; if(!S||!S.born){ toast&&toast("Pour first",true); return; } const ico=TM.primitives.icosahedron(), verts=[], faces=[]; let bl=1e-9; ico.verts.forEach(v=>bl=Math.max(bl,Math.hypot(...v)));
+    const cap=Math.min(S.born,6000); for(let i=0;i<cap;i++){ const o=verts.length; ico.verts.forEach(v=>verts.push([S.X[i*3]+v[0]/bl*S.r,S.X[i*3+1]+v[1]/bl*S.r,S.X[i*3+2]+v[2]/bl*S.r])); ico.faces.forEach(f=>faces.push(f.map(k=>k+o))); }
+    G.run=false; addLayer({verts,faces},false); if(layers[activeLayer]) layers[activeLayer].name="Beads · "+cap; renderLayerList&&renderLayerList(); toast&&toast("Baked "+cap+" beads to a new layer"+(S.born>cap?" (capped 6000)":"")); gStop(); }
+  function gOpen(){ G.ctl=panel("granular","Granular pour",'<div class="clS">Beads pour from above, pile up on your model and the ground, and settle. Bake keeps them as geometry.</div>'
+      +sl("gN","Beads",200,6000,100,1500)+sl("gSz","Bead size",0.4,3,0.05,1)+sl("gSpread","Pour spread",0,1.5,0.01,0.25)+sl("gFr","Friction",0,1,0.01,0.55)
+      +'<div class="clB"><button id="gRun" class="pri">▶ Pour</button><button id="gPause">❚❚ Pause</button><button id="gBake">Bake</button></div><div class="clS" id="gStats"></div>', ()=>{ cancelAnimationFrame(G.raf); G.raf=0; gStop(); G.ctl=null; });
+    if(!G.ctl) return; G.ctl.querySelector("#gRun").onclick=gBuild; G.ctl.querySelector("#gPause").onclick=e=>{ G.run=!G.run; e.target.textContent=G.run?"❚❚ Pause":"▶ Resume"; }; G.ctl.querySelector("#gBake").onclick=gBake; gBuild(); }
+  window.__wrap={open:wOpen}; window.__granular={open:gOpen};
+  const wire=(act,fn)=>document.querySelectorAll('[data-act="'+act+'"]').forEach(el=>el.addEventListener("click",e=>{ e.stopPropagation(); document.querySelectorAll("#menubar .menu.open").forEach(m=>m.classList.remove("open")); fn(); }));
+  wire("wrap",wOpen); wire("granular",gOpen);
 })();
 
 // ---------- Docked tools column: width = up to the File menu (3 tools wide on iPhone), drag bar to resize ----------
@@ -19030,7 +19234,7 @@ void main(){
   ["Extrude",["Extrude","Dome","Pinch","Stellate","DblStell","Greeble"]],
   ["Deform",["Twist","Bend","Taper","Bulge","Spherify","Noise"]],
   ["Generate",["Parametric/Lattice","Blobs","Growth","Sponge","Gyroid","TPMS","Generate/Lattice","Sierp","Hybrid","Rössler","Wave","Cymatics","K=−1","Weave","Chain","Voronoi","Tree","Maze","Maze 3D","Breeze","Text"]],
-  ["Simulate",["Cloth","Physics","Melt","Aero","FEA"]],
+  ["Simulate",["Cloth","Physics","Melt","Aero","FEA","TopOpt","Wrap","Pour"]],
   ["Boolean",["Union","Diff","Intersect","Split","Drill","Hull","Cut"]],
   ["Clean-up",["Edit/Heal","Fill Holes","Flip","Crease","Triangle","Quad","Simplify","Planarize","Orient","Voxel"]],
   ["Gems",["Gem Cut","GEM","Bejewel"]],
