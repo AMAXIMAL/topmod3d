@@ -17423,6 +17423,7 @@ void main(){
     ["Gem Cuts","four cuts · diamond, sapphire, emerald, ruby"],
     ["Flame","equation deform · TopMod 3D"],
     ["Cloth","XPBD fabric: inflate + drape · after XRTailor / OpenCloth"],
+    ["Bejeweled","Bejewel: a gem on every face · then thrown with Physics"],
     ["Torus → Wireframe","wireframe modeling: Akleman, Srinivasan, Mandal"],
     ["Subdivision Surface","Catmull & Clark (1978)"],
     ["Doo-Sabin + Pentagons","Doo & Sabin (1978) · pentagonalization: Akleman"],
@@ -17783,6 +17784,25 @@ void main(){
         { const t0=performance.now(); while(alive && CL.frames<300 && performance.now()-t0<11000) await wait(100); } if(!alive) return; CL.pause(); await wait(500);
         say("Bake the drape — the sheet becomes its own Cloth layer"); CL.bake(); await wait(1600);
       } finally { spinHold=false; try{ window.__cloth&&window.__cloth.close(); }catch(e){} try{ window.__eq&&window.__eq.op(null); }catch(e){} }
+    },
+    // 4 — "Bejeweled": Bejewel sets a gem on every face of a buckyball, changes the cut and size, bakes, then Physics throws them
+    async () => {
+      spinHold=false;
+      try {
+        fresh(); say("New scene"); await wait(400);
+        stageLoad(TM.primitives.buckyball()); try{ const L=layers[activeLayer]; L.name="Buckyball"; renderLayerList&&renderLayerList(); window.__tm.frameAll(1.6); }catch(e){} await wait(700);
+        await press('#toolbar [data-op="bejewel"]', "Gems · Bejewel — a gem on every face, table facing out", 500); await wait(1400); if(!alive) return;
+        await slide("bejSize", 0.4, 0.9, 10, "Bejewel · gem size");
+        const pick=async(cut,label)=>{ const el=q("#bejGem"); if(!el||!alive) return; moveCursor(el); el.value="d:"+cut; el.dispatchEvent(new Event("change",{bubbles:true})); say(label); await wait(1700); };
+        await pick("princess","Gem · Princess cut"); await pick("oval","Gem · Oval cut"); await pick("round","Gem · Round brilliant");
+        await slide("bejSym", 8, 12, 4, "Gem adjust · more facets");
+        await slide("bejCrown", 34.5, 40, 8, "Gem adjust · taller crown");
+        const bk=q("#bejBake"); if(bk&&alive){ moveCursor(bk); await wait(500); say("Bake the gems to their own layer"); bk.click(); } await wait(900); if(!alive) return;
+        window.__gemOpts=Object.assign(window.__gemOpts||{}, {disp:false, bounces:4}); say("View · Diamond"); setRenderMode("diamond"); try{ window.__eq&&window.__eq.gem("diamond"); }catch(e){} await wait(3200);
+        setRenderMode("solid"); if(!alive) return;
+        const PH=window.__physics; if(PH){ await point('#toolbar [data-act="physics"]', "Simulate · Physics — every gem is a rigid body", 300); PH.open(); await wait(1600); if(!alive) return;
+          say("Physics · toss — grab any piece to throw it"); PH.toss(); await wait(4200); }
+      } finally { spinHold=false; try{ window.__physics&&window.__physics.close(); }catch(e){} try{ setRenderMode("solid"); }catch(e){} try{ window.__eq&&window.__eq.op(null); }catch(e){} }
     },
     // 2 — torus (sliders) -> wireframe (sliders) -> patent halftone -> normals -> solid -> new
     async () => {
