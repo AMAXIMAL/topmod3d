@@ -1073,6 +1073,12 @@ body.opDock.opOpen #rTabs,body.opDock.opOpen #rSplit,body.opDock.opOpen.rStack .
 #clCtl .clR input[type=range],#phCtl .clR input[type=range],#mtCtl .clR input[type=range],.smCtl .clR input[type=range],.smCtl2 .clR input[type=range]{min-width:0;width:100%}
 #tpBody button,#tpBody .mkbtn{max-width:100%;box-sizing:border-box}
 #tpBody .clB,#tpBody .clModes{flex-wrap:wrap}
+
+#toTut{position:fixed;left:calc(var(--tbw,90px) + 18px);bottom:56px;z-index:100025;width:min(380px,calc(100vw - 30px));background:#0b0f18;border:1px solid rgba(0,229,255,.5);border-radius:12px;box-shadow:0 14px 44px rgba(0,0,0,.55);color:#dff6ff;font:12.5px/1.5 var(--font,system-ui);padding:10px 14px 10px}
+#toTut .ttH{display:flex;align-items:center;gap:8px}#toTut .ttH b{flex:1;font:700 9.5px var(--font,system-ui);letter-spacing:1.3px;color:#00E5FF}#toTut .ttH span{color:#7f93a6;font-size:11px}
+#toTut .ttX{background:transparent;border:0;color:#9fb3c8;font-size:18px;cursor:pointer;line-height:1}#toTut h4{margin:6px 0 3px;font:700 14.5px var(--font,system-ui);color:#fff}#toTut p{margin:0 0 8px;color:#c5d6e4}
+#toTut .ttN{display:flex;justify-content:space-between;gap:8px}#toTut .ttB{background:rgba(0,229,255,.12);border:1px solid rgba(0,229,255,.4);color:#bff3ff;border-radius:8px;padding:6px 14px;font:600 12px var(--font,system-ui);cursor:pointer}#toTut .ttB.pri{background:#00E5FF;color:#04121a}#toTut .ttB:disabled{opacity:.3}
+.toPulse{outline:2px solid #ff4f96!important;outline-offset:2px;animation:toPulse 1s ease-in-out infinite}@keyframes toPulse{50%{outline-color:rgba(255,79,150,.25)}}
 </style>
 <script>document.documentElement.classList.add("tmBoot");setTimeout(function(){var h=document.documentElement;if(h.classList.contains("tmBoot")){h.classList.remove("tmBoot");h.classList.add("tmBooted");}},5000);</script>
 </head>
@@ -16047,7 +16053,7 @@ window.__ek={applyWhole:applyWhole,ops:ops,snapshot:snapshot,rebuild:rebuild,toa
     feaRun();
   }
   // =====================================================================  TOPOLOGY OPTIMIZATION (SIMP, compliance minimisation)
-  const O={ctl:null,grp:null,run:false,res:null,sup:[],load:[]};
+  const O={ctl:null,grp:null,mk:null,run:false,res:null,sup:[],load:[]};
   function toClear(){ if(O.grp){ scene.remove(O.grp); O.grp.traverse(o=>{ o.geometry&&o.geometry.dispose(); o.material&&o.material.dispose&&o.material.dispose(); }); O.grp=null; } }
   function selFacePts(){ const M=(typeof selMesh==="function")?selMesh():mesh, out=[]; for(const fi of sel.faces){ const f=M.faces[fi]; if(!f) continue; const c=[0,0,0]; f.forEach(v=>{ c[0]+=M.verts[v][0]; c[1]+=M.verts[v][1]; c[2]+=M.verts[v][2]; }); c[0]/=f.length; c[1]/=f.length; c[2]/=f.length;
       let n=[0,0,0]; for(let i=0;i<f.length;i++){ const a=M.verts[f[i]], b=M.verts[f[(i+1)%f.length]]; n[0]+=(a[1]-b[1])*(a[2]+b[2]); n[1]+=(a[2]-b[2])*(a[0]+b[0]); n[2]+=(a[0]-b[0])*(a[1]+b[1]); } const l=Math.hypot(...n)||1;
@@ -16071,7 +16077,7 @@ window.__ek={applyWhole:applyWhole,ops:ops,snapshot:snapshot,rebuild:rebuild,toa
     g.setAttribute("position",new THREE.Float32BufferAttribute(pos,3)); g.computeVertexNormals();
     O.grp=new THREE.Group(); O.grp.add(new THREE.Mesh(g,new THREE.MeshStandardMaterial({color:0xffa733,metalness:0.1,roughness:0.45,side:THREE.DoubleSide})));
     const mk=(pts,col)=>{ const gg=new THREE.BufferGeometry(); gg.setAttribute("position",new THREE.Float32BufferAttribute(pts.flatMap(p=>p.c),3)); return new THREE.Points(gg,new THREE.PointsMaterial({color:col,size:R.cs*0.9})); };
-    if(O.sup.length) O.grp.add(mk(O.sup,0x35c0ff)); if(O.load.length) O.grp.add(mk(O.load,0xff4f6d));
+
     scene.add(O.grp); hideModel(true); }
   function toRun(){
     if(O.run){ O.run=false; return; }
@@ -16124,47 +16130,89 @@ window.__ek={applyWhole:applyWhole,ops:ops,snapshot:snapshot,rebuild:rebuild,toa
   function toBake(){ if(!O.res){ toast&&toast("Run the optimisation first",true); return; } const m=voxSurface(O.res,+O.ctl.querySelector("#toThr").value); if(!m.faces.length){ toast&&toast("Nothing above the threshold",true); return; }
     toClear(); hideModel(false); addLayer(m,false); if(layers[activeLayer]) layers[activeLayer].name="TopOpt "+layers[activeLayer].id; renderLayerList&&renderLayerList(); toast&&toast("Optimised shape baked to a new layer"); toDraw(); }
   const TO_EX={
-    cantilever:{lab:"Cantilever beam",box:[4,1.25,0.8],sup:b=>grid2(b,"x0",4,4),load:b=>line(b,[b[0]/2,-b[1]/2+0.08,0],2),res:30,vf:0.3,it:40,note:"Wall on the left, weight hanging off the right tip."},
-    bridge:{lab:"Bridge",box:[6,1.6,1],sup:b=>[...pts(b,[-b[0]/2+0.1,-b[1]/2+0.05],3),...pts(b,[b[0]/2-0.1,-b[1]/2+0.05],3)],load:b=>strip(b,b[1]/2-0.05,24),res:36,vf:0.3,it:50,note:"Two piers at the ends, traffic across the top."},
-    bracket:{lab:"Wall bracket",box:[3,2.4,0.7],sup:b=>[...pts2(b,[-b[0]/2+0.05,b[1]/2-0.3]),...pts2(b,[-b[0]/2+0.05,-b[1]/2+0.3])],load:b=>line(b,[b[0]/2-0.05,b[1]/2-0.08,0],2),res:28,vf:0.25,it:40,note:"Two bolts in the wall, shelf load at the outer top corner."},
-    table:{lab:"Table",box:[3,1.8,3],sup:b=>[[-1,-1],[1,-1],[-1,1],[1,1]].flatMap(([sx,sz])=>[{c:[sx*(b[0]/2-0.15),-b[1]/2+0.04,sz*(b[2]/2-0.15)],n:[0,-1,0]}]),load:b=>{ const o=[]; for(let i=0;i<5;i++) for(let k=0;k<5;k++) o.push({c:[(i/4-0.5)*b[0]*0.9,b[1]/2-0.04,(k/4-0.5)*b[2]*0.9],n:[0,1,0]}); return o; },res:24,vf:0.2,it:35,note:"Four feet on the ground, load spread across the top."}
+    cantilever:{lab:"Cantilever beam",box:[12,3.75,2.4],sup:b=>grid2(b,"x0",4,4),load:b=>line(b,[b[0]/2,-b[1]/2+0.08,0],2),res:30,vf:0.3,it:40,note:"Wall on the left, weight hanging off the right tip."},
+    bridge:{lab:"Bridge",box:[18,4.8,3],sup:b=>[...pts(b,[-b[0]/2+0.1,-b[1]/2+0.05],3),...pts(b,[b[0]/2-0.1,-b[1]/2+0.05],3)],load:b=>strip(b,b[1]/2-0.05,24),res:36,vf:0.3,it:50,note:"Two piers at the ends, traffic across the top."},
+    bracket:{lab:"Wall bracket",box:[9,7.2,2.1],sup:b=>[...pts2(b,[-b[0]/2+0.05,b[1]/2-0.3]),...pts2(b,[-b[0]/2+0.05,-b[1]/2+0.3])],load:b=>line(b,[b[0]/2-0.05,b[1]/2-0.08,0],2),res:28,vf:0.25,it:40,note:"Two bolts in the wall, shelf load at the outer top corner."},
+    table:{lab:"Table",box:[9,5.4,9],sup:b=>[[-1,-1],[1,-1],[-1,1],[1,1]].flatMap(([sx,sz])=>[{c:[sx*(b[0]/2-0.15),-b[1]/2+0.04,sz*(b[2]/2-0.15)],n:[0,-1,0]}]),load:b=>{ const o=[]; for(let i=0;i<5;i++) for(let k=0;k<5;k++) o.push({c:[(i/4-0.5)*b[0]*0.9,b[1]/2-0.04,(k/4-0.5)*b[2]*0.9],n:[0,1,0]}); return o; },res:24,vf:0.2,it:35,note:"Four feet on the ground, load spread across the top."}
   };
   function pts(b,xy,n){ const o=[]; for(let k=0;k<n;k++) o.push({c:[xy[0],xy[1],(k/(Math.max(1,n-1))-0.5)*b[2]*0.8],n:[0,-1,0]}); return o; }
   function pts2(b,xy){ return [-0.25,0,0.25].map(z=>({c:[xy[0],xy[1],z*b[2]],n:[-1,0,0]})); }
   function grid2(b,face,nu,nv){ const o=[]; for(let i=0;i<nu;i++) for(let j=0;j<nv;j++) o.push({c:[-b[0]/2+0.05,(i/(nu-1)-0.5)*b[1]*0.9,(j/(nv-1)-0.5)*b[2]*0.9],n:[-1,0,0]}); return o; }
   function line(b,c,n){ const o=[]; for(let k=0;k<n+1;k++) o.push({c:[c[0],c[1],(k/n-0.5)*b[2]*0.7],n:[0,1,0]}); return o; }
   function strip(b,y,n){ const o=[]; for(let i=0;i<n;i++) for(let k=0;k<5;k++) o.push({c:[(i/(n-1)-0.5)*b[0]*0.97,y,(k/4-0.5)*b[2]*0.9],n:[0,1,0]}); return o; }
-  function toExample(key){ const E=TO_EX[key]; if(!E||!O.ctl) return; O.run=false; const [X,Y,Z]=E.box, y0=0;
-    const v=[[-X/2,y0,-Z/2],[X/2,y0,-Z/2],[X/2,y0+Y,-Z/2],[-X/2,y0+Y,-Z/2],[-X/2,y0,Z/2],[X/2,y0,Z/2],[X/2,y0+Y,Z/2],[-X/2,y0+Y,Z/2]];
-    const m={verts:v,faces:[[0,3,2,1],[4,5,6,7],[0,1,5,4],[1,2,6,5],[2,3,7,6],[3,0,4,7]]};
-    try{ snapshot&&snapshot(); }catch(e){} mesh={verts:m.verts.map(a=>a.slice()),faces:m.faces.map(f=>f.slice())}; const L=layers[activeLayer]; if(L){ L.mesh=mesh; L.name=E.lab+" (design space)"; L.modifiers=[]; L._ev=null; L._evKey=null; L.steps=[]; } clearSel&&clearSel(false); rebuild(); renderLayerList&&renderLayerList(); renderModStack&&renderModStack();
-    try{ window.__tm&&window.__tm.frameAll&&window.__tm.frameAll(1.4); }catch(e){}
+  // ---- markers: blue anchor blocks = supports, red arrows = loads (shown before and during the run)
+  function toMarkers(){ if(O.mk){ scene.remove(O.mk); O.mk.traverse(o=>{ o.geometry&&o.geometry.dispose(); o.material&&o.material.dispose&&o.material.dispose(); }); O.mk=null; }
+    if(!O.ctl||(!O.sup.length&&!O.load.length)) return; const M=(typeof dispMesh==="function")?dispMesh():mesh; const b=bbox(M), L=Math.max(b.mx[0]-b.mn[0],b.mx[1]-b.mn[1],b.mx[2]-b.mn[2],1e-3);
+    O.mk=new THREE.Group(); const sz=L*0.035, sub=(a,n)=>{ const st=Math.max(1,Math.floor(a.length/n)); return a.filter((_,i)=>i%st===0); };
+    const bm=new THREE.MeshStandardMaterial({color:0x35c0ff,emissive:0x0a3a55,roughness:0.4}), bg=new THREE.BoxGeometry(sz,sz,sz);
+    sub(O.sup,48).forEach(p=>{ const m=new THREE.Mesh(bg,bm); m.position.set(p.c[0]-p.n[0]*sz*0.5,p.c[1]-p.n[1]*sz*0.5,p.c[2]-p.n[2]*sz*0.5); O.mk.add(m); });
+    const ld=O.ctl.querySelector("#toLd").value; sub(O.load,30).forEach(p=>{ const d=ld==="push"?new THREE.Vector3(-p.n[0],-p.n[1],-p.n[2]):ld==="side"?new THREE.Vector3(1,0,0):new THREE.Vector3(0,-1,0); const len=L*0.16;
+      const o=new THREE.Vector3(p.c[0],p.c[1],p.c[2]).addScaledVector(d,-len); O.mk.add(new THREE.ArrowHelper(d,o,len,0xff4f6d,len*0.32,len*0.2)); });
+    scene.add(O.mk); }
+  function boxGrid(X,Y,Z,step){ const V=[], F=[], map=new Map(), vid=(x,y,z)=>{ const k=x.toFixed(4)+","+y.toFixed(4)+","+z.toFixed(4); let i=map.get(k); if(i==null){ i=V.length; map.set(k,i); V.push([x,y,z]); } return i; };
+    const n=[Math.max(1,Math.round(X/step)),Math.max(1,Math.round(Y/step)),Math.max(1,Math.round(Z/step))], S=[X,Y,Z];
+    for(let ax=0;ax<3;ax++) for(const sgn of [-1,1]){ const u=(ax+1)%3, w=(ax+2)%3;
+      for(let a=0;a<n[u];a++) for(let c=0;c<n[w];c++){ const pt=(aa,cc)=>{ const p=[0,0,0]; p[ax]=sgn*S[ax]/2; p[u]=-S[u]/2+S[u]*aa/n[u]; p[w]=-S[w]/2+S[w]*cc/n[w]; return vid(p[0],p[1]+Y/2,p[2]); };
+        const q=[pt(a,c),pt(a+1,c),pt(a+1,c+1),pt(a,c+1)]; F.push(sgn>0?q:q.slice().reverse()); } }
+    return {verts:V,faces:F}; }
+  function loadDesign(lab,X,Y,Z){ const m=boxGrid(X,Y,Z,Math.max(X,Y,Z)/12); try{ snapshot&&snapshot(); }catch(e){}
+    mesh={verts:m.verts,faces:m.faces}; const L=layers[activeLayer]; if(L){ L.mesh=mesh; L.name=lab+" (design space)"; L.modifiers=[]; L._ev=null; L._evKey=null; L.steps=[]; }
+    clearSel&&clearSel(false); rebuild(); renderLayerList&&renderLayerList(); renderModStack&&renderModStack(); try{ window.__tm&&window.__tm.frameAll&&window.__tm.frameAll(1.35); }catch(e){} }
+  function selectFacesWhere(fn){ const M=(typeof selMesh==="function")?selMesh():mesh; try{ if(selMode!=="face") setMode("face"); }catch(e){} sel.faces.clear();
+    M.faces.forEach((f,fi)=>{ const c=[0,0,0]; f.forEach(v=>{ c[0]+=M.verts[v][0]/f.length; c[1]+=M.verts[v][1]/f.length; c[2]+=M.verts[v][2]/f.length; }); if(fn(c)) sel.faces.add(fi); }); rebuildOverlay(); updateHint&&updateHint(); return sel.faces.size; }
+  // ---- step-by-step tutorial: builds a cantilever and walks through supports → loads → volume → optimise → bake
+  const TT={card:null,i:0};
+  function ttPulse(el){ document.querySelectorAll(".toPulse").forEach(e=>e.classList.remove("toPulse")); if(el){ el.classList.add("toPulse"); try{ el.scrollIntoView({block:"nearest",behavior:"smooth"}); }catch(e){} } }
+  function ttSlide(id,to){ const el=O.ctl&&O.ctl.querySelector("#"+id); if(!el) return; const from=+el.value, t0=performance.now(); const f=()=>{ const k=Math.min(1,(performance.now()-t0)/700); el.value=from+(to-from)*k; el.dispatchEvent(new Event("input",{bubbles:true})); if(k<1) requestAnimationFrame(f); }; f(); }
+  function tutorial(){ if(!O.ctl) toOpen(); const X=12, Y=3.6, Z=2.4, q=s=>O.ctl&&O.ctl.querySelector(s);
+    const STEPS=[
+      {t:"1 · The design space",d:"Topology optimisation starts from a block of material — the most you could ever use. Here: a 12 × 3.6 × 2.4 in beam. The solver will decide which parts of it to keep.",go:()=>{ O.run=false; O.res=null; toClear(); hideModel(false); O.sup=[]; O.load=[]; toMarkers(); loadDesign("Cantilever",X,Y,Z); q("#toEx").value=""; q("#toSel").textContent="No faces assigned yet."; ttPulse(null); }},
+      {t:"2 · Pick the supports",d:"Supports are where the part is held — bolted to a wall here. Select the faces of the left end (press 3 for Faces and tap them). They highlight in blue.",go:()=>{ selectFacesWhere(c=>c[0]<-X/2+0.01); ttPulse(document.querySelector('.selBtn[data-m="face"]')); }},
+      {t:"3 · Supports from selection",d:"Press <b>Supports from selection</b>. The blue blocks show the fixed faces — they will never move and the solver keeps material there.",go:()=>{ ttPulse(q("#toSupB")); setTimeout(()=>{ q("#toSupB").click(); toMarkers(); },600); }},
+      {t:"4 · Pick the load",d:"The load is where force pushes on the part. Select the faces at the free right end, along the bottom — a weight hanging off the tip.",go:()=>{ selectFacesWhere(c=>c[0]>X/2-0.01&&c[1]<Y*0.34); ttPulse(document.querySelector('.selBtn[data-m="face"]')); }},
+      {t:"5 · Loads from selection + direction",d:"Press <b>Loads from selection</b>, then choose the direction in <b>Load</b> — push down (gravity), press in (normal to the face) or sideways. The red arrows show the force.",go:()=>{ ttPulse(q("#toLdB")); setTimeout(()=>{ q("#toLdB").click(); q("#toLd").value="down"; ttPulse(q("#toLd")); toMarkers(); try{ clearSel(false); rebuildOverlay(); }catch(e){} },600); }},
+      {t:"6 · How much to keep",d:"<b>Keep volume</b> is the material budget: 0.3 keeps 30% of the block. Lower = lighter, more skeletal; higher = chunkier and stiffer. <b>Resolution</b> sets the voxel detail.",go:()=>{ ttPulse(q("#toVf")); ttSlide("toVf",0.3); setTimeout(()=>{ q("#toRes").value=34; q("#toResV").textContent="34"; q("#toIt").value=45; q("#toItV").textContent="45"; },500); }},
+      {t:"7 · Optimise",d:"Press <b>Optimise</b>. Each iteration runs a finite-element stress solve, then removes material that carries little load and strengthens the load paths. Watch the truss appear.",go:()=>{ ttPulse(q("#toRun")); setTimeout(()=>{ if(!O.run) toRun(); },500); }},
+      {t:"8 · Threshold & smooth",d:"When it settles, <b>Threshold</b> decides which voxels count as solid and <b>Smooth</b> rounds the blocky surface.",go:()=>{ ttPulse(q("#toThr")); ttSlide("toThr",0.45); setTimeout(()=>ttSlide("toSm",6),800); }},
+      {t:"9 · Bake",d:"Press <b>Bake</b> to keep the optimised shape as a new layer — then subdivide it, 3D-print it, or run FEA on it to check the stress. Try your own model: select faces, assign supports and loads, optimise.",go:()=>{ ttPulse(q("#toBake")); }}
+    ];
+    const close=()=>{ if(TT.card){ TT.card.remove(); TT.card=null; } ttPulse(null); };
+    close(); const c=document.createElement("div"); c.id="toTut"; TT.card=c; document.body.appendChild(c);
+    const show=k=>{ TT.i=Math.max(0,Math.min(STEPS.length-1,k)); const S=STEPS[TT.i];
+      c.innerHTML='<div class="ttH"><b>TOPOLOGY OPTIMISATION · TUTORIAL</b><span>'+(TT.i+1)+' / '+STEPS.length+'</span><button class="ttX" aria-label="Close">×</button></div><h4>'+S.t+'</h4><p>'+S.d+'</p><div class="ttN"><button class="ttB" id="ttP">‹ Back</button><button class="ttB pri" id="ttNx">'+(TT.i===STEPS.length-1?"Finish":"Next ›")+'</button></div>';
+      c.querySelector(".ttX").onclick=close; c.querySelector("#ttP").disabled=TT.i===0; c.querySelector("#ttP").onclick=()=>show(TT.i-1); c.querySelector("#ttNx").onclick=()=>{ if(TT.i===STEPS.length-1) close(); else show(TT.i+1); };
+      try{ S.go(); }catch(e){ console.warn(e); } };
+    show(0); }
+  function toExample(key){ const E=TO_EX[key]; if(!E||!O.ctl) return; O.run=false; const [X,Y,Z]=E.box;
+    loadDesign(E.lab,X,Y,Z);
     const sh=p=>({c:[p.c[0],p.c[1]+Y/2,p.c[2]],n:p.n}); O.sup=E.sup(E.box).map(sh); O.load=E.load(E.box).map(sh);
     const q=s=>O.ctl.querySelector(s); q("#toSup").value="sel"; q("#toLd").value="down"; q("#toRes").value=E.res; q("#toVf").value=E.vf; q("#toIt").value=E.it;
     ["toRes","toVf","toIt"].forEach(id=>{ const e=q("#"+id+"V"); if(e) e.textContent=q("#"+id).value; });
-    q("#toSel").textContent=E.note+" · blue = supports, red = loads"; O.res=null; toClear(); hideModel(false); setTimeout(toRun,120); }
+    q("#toSel").textContent=E.note+" · blue blocks = supports, red arrows = loads"; O.res=null; toClear(); hideModel(false); toMarkers(); setTimeout(toRun,900); }
   function toOpen(){
     O.ctl=openPanel("topopt","Topology optimisation",
       '<div class="clS">Carves away material that carries little load (SIMP, minimum compliance). Select faces on the model, then use them as supports or loads.</div>'
+      +'<div class="clB"><button id="toTutB" class="pri">▶ Step-by-step tutorial</button></div>'
       +'<label class="clR"><span>Example</span><select id="toEx"><option value="">— pick a worked example —</option>'+Object.keys(TO_EX).map(k=>'<option value="'+k+'">'+TO_EX[k].lab+'</option>').join("")+'</select><em></em></label>'
       +sl("toVf","Keep volume",0.08,0.8,0.01,0.3)+sl("toRes","Resolution",10,34,1,18)+sl("toIt","Iterations",5,80,1,30)
       +'<label class="clR"><span>Supports</span><select id="toSup"><option value="base">Base (on the ground)</option><option value="sel">Selected faces</option></select><em></em></label>'
       +'<label class="clR"><span>Load</span><select id="toLd"><option value="down">Selected faces · push down</option><option value="push">Selected faces · press in</option><option value="side">Selected faces · push sideways</option><option value="top">Top surface · down</option></select><em></em></label>'
       +'<div class="clB"><button id="toSupB">Supports from selection</button><button id="toLdB">Loads from selection</button></div><div class="clS" id="toSel">No faces assigned — select faces (press 3) and assign them.</div>'
       +sl("toThr","Threshold",0.1,0.9,0.01,0.5)+sl("toSm","Smooth",0,12,1,4)
-      +'<div class="clB"><button id="toRun" class="pri">▶ Optimise</button><button id="toBake">Bake</button><button id="toClr">Clear</button></div><div class="clS" id="toStats"></div>', ()=>{ O.run=false; toClear(); hideModel(false); O.ctl=null; });
+      +'<div class="clB"><button id="toRun" class="pri">▶ Optimise</button><button id="toBake">Bake</button><button id="toClr">Clear</button></div><div class="clS" id="toStats"></div>', ()=>{ O.run=false; toClear(); hideModel(false); if(O.mk){ scene.remove(O.mk); O.mk=null; } if(TT.card){ TT.card.remove(); TT.card=null; } document.querySelectorAll(".toPulse").forEach(e=>e.classList.remove("toPulse")); O.ctl=null; });
     if(!O.ctl) return;
-    const upd=()=>{ O.ctl.querySelector("#toSel").textContent="Supports: "+(O.sup.length?Math.round(O.sup.length/5)+" face(s)":"base")+" · Loads: "+(O.load.length?Math.round(O.load.length/5)+" face(s)":"top surface"); if(O.res) toDraw(); };
+    const upd=()=>{ toMarkers(); O.ctl.querySelector("#toSel").textContent="Supports: "+(O.sup.length?Math.round(O.sup.length/5)+" face(s)":"base")+" · Loads: "+(O.load.length?Math.round(O.load.length/5)+" face(s)":"top surface"); if(O.res) toDraw(); };
     O.ctl.querySelector("#toSupB").onclick=()=>{ O.sup=selFacePts(); if(O.sup.length) O.ctl.querySelector("#toSup").value="sel"; else toast&&toast("Select faces first (press 3)",true); upd(); };
     O.ctl.querySelector("#toLdB").onclick=()=>{ O.load=selFacePts(); if(!O.load.length) toast&&toast("Select faces first (press 3)",true); else if(O.ctl.querySelector("#toLd").value==="top") O.ctl.querySelector("#toLd").value="down"; upd(); };
     O.ctl.querySelector("#toEx").onchange=e=>{ if(e.target.value) toExample(e.target.value); };
-    O.ctl.querySelector("#toRun").onclick=toRun; O.ctl.querySelector("#toBake").onclick=toBake; O.ctl.querySelector("#toClr").onclick=()=>{ O.run=false; O.res=null; toClear(); hideModel(false); };
+    O.ctl.querySelector("#toLd").addEventListener("change",toMarkers); O.ctl.querySelector("#toTutB").onclick=tutorial;
+    O.ctl.querySelector("#toRun").onclick=toRun; O.ctl.querySelector("#toBake").onclick=toBake; O.ctl.querySelector("#toClr").onclick=()=>{ O.run=false; O.res=null; toClear(); hideModel(false); O.sup=[]; O.load=[]; toMarkers(); O.ctl.querySelector("#toSel").textContent="No faces assigned — select faces (press 3) and assign them."; };
     ["toThr","toSm"].forEach(id=>O.ctl.querySelector("#"+id).addEventListener("input",()=>{ if(O.res&&!O.run) toDraw(); }));
     if(O.sup.length||O.load.length) upd();
     { const M=(typeof dispMesh==="function")?dispMesh():mesh; if(M&&M.faces.length<=6&&!O.sup.length&&!O.load.length){ O.ctl.querySelector("#toEx").value="cantilever"; toExample("cantilever"); } }
     $("#hint")&&($("#hint").textContent="Topology optimisation: select faces → Supports / Loads from selection → Optimise → Bake.");
   }
-  window.__topopt={open:toOpen,run:toRun};
+  window.__topopt={open:toOpen,run:toRun,tutorial};
   window.__aero={open:aeroOpen,run:aeroRun,clear:aeroClear}; window.__fea={open:feaOpen,run:feaRun,clear:feaClear,get result(){ return F.res; }};
   const wire=(act,fn)=>document.querySelectorAll('[data-act="'+act+'"]').forEach(el=>el.addEventListener("click",e=>{ e.stopPropagation(); document.querySelectorAll("#menubar .menu.open").forEach(m=>m.classList.remove("open")); fn(); }));
   wire("aero",aeroOpen); wire("fea",feaOpen); wire("topopt",toOpen);
