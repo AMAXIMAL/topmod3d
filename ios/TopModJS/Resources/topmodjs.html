@@ -948,6 +948,7 @@ html body.phone #wordmark .ver{font-size:6px!important}
 /* Splash on open: logo card for ~2.4 s, fades into the app */
 #tmSplash{position:fixed;inset:0;z-index:200000;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:10px;background:radial-gradient(ellipse at 50% 45%,#0f1a2a 0%,#05070c 70%);transition:opacity .6s ease}
 #tmSplash.out{opacity:0;pointer-events:none}
+#tmSplashCv{position:absolute;inset:0;width:100%;height:100%;display:block}
 #tmSplash .lg{font:800 clamp(28px,7vw,54px)/1 var(--font,system-ui);letter-spacing:.18em;color:#fff}
 #tmSplash .lg b{color:#00E5FF}
 #tmSplash .tg{font:600 clamp(10px,2.2vw,13px) var(--mono,monospace);letter-spacing:.32em;text-transform:uppercase;color:#7fb6c8}
@@ -955,6 +956,18 @@ html body.phone #wordmark .ver{font-size:6px!important}
 #tmSplash .ring{width:64px;height:64px;border-radius:50%;border:2px solid rgba(0,229,255,.18);border-top-color:#00E5FF;animation:tmSpin 1s linear infinite;margin-bottom:8px}
 @keyframes tmSpin{to{transform:rotate(360deg)}}
 html.tmBoot body #tmSplash{opacity:1!important}
+/* section headers: LAYERS · MODIFIERS formatted exactly like the OPTIONS header */
+html body #layersHead,html body #modHead{background:rgba(0,229,255,0.1)!important;min-height:0!important;padding:4px 10px!important;line-height:16px!important}
+html body #layersHead,html body #layersHead span,html body #modHead,html body #modHead #modLayerName,html body #modHead .modSep{font-family:var(--font,system-ui)!important;font-size:10px!important;font-weight:700!important;letter-spacing:1.4px!important;text-transform:uppercase!important;color:var(--cyan)!important}
+html body #modHead #modLayerName,html body #modHead .modSep{opacity:.7;letter-spacing:.6px!important;text-transform:none!important}
+html body #tpHead{padding:4px 10px!important;line-height:16px!important}
+/* ★ Credits matches the other bottom-bar buttons */
+#creditsBtn{cursor:pointer;background:rgba(0,229,255,0.1)!important;border:1px solid rgba(0,229,255,0.3)!important;color:var(--cyan)!important;font:11px var(--mono)!important;padding:3px 9px;border-radius:7px}
+body.phone #creditsBtn{font-size:8.5px!important;padding:3px 4.5px!important;border-radius:6px!important}
+#creditCard{width:min(560px,calc(100vw - 28px))!important;padding:14px 20px 14px!important}
+#creditCard .cx{position:absolute;top:8px;right:8px;width:22px;height:22px;border-radius:50%;border:1px solid rgba(0,229,255,.4);background:rgba(0,229,255,.1);color:#bff3ff;font:700 13px/18px var(--font,system-ui);cursor:pointer;padding:0;text-align:center}
+#creditCard .cols{display:grid;grid-template-columns:1fr 1fr;gap:0 18px}
+@media(max-width:520px){#creditCard .cols{grid-template-columns:1fr}}
 /* Layers + Modifiers rows: one compact style — small, bold, white, no decorative icons */
 #layerList .layerRow,#modList .modRow,#fabNode.added{min-height:0!important;padding:3px 6px!important;font:700 11px/1.25 var(--font,system-ui)!important;color:#fff!important;border-radius:6px!important}
 #layerList .layerRow .layerName,#modList .modRow .modName,#fabNode .modName{font:700 11px/1.25 var(--font,system-ui)!important;color:#fff!important;font-style:normal!important}
@@ -1045,7 +1058,7 @@ body.layCol #layersPanel,body.modCol #modPanel{overflow:hidden!important}
 <script>document.documentElement.classList.add("tmBoot");setTimeout(function(){var h=document.documentElement;if(h.classList.contains("tmBoot")){h.classList.remove("tmBoot");h.classList.add("tmBooted");}},5000);</script>
 </head>
 <body>
-<div id="tmSplash"><div class="ring"></div><div class="lg">TOP<b>MOD</b> 3D</div><div class="tg">Topological mesh modeler · 3D print</div><div class="by">AMAXIMAL · after TopMod (Akleman · Srinivasan · Chen)</div></div>
+<div id="tmSplash"><canvas id="tmSplashCv"></canvas></div>
 <style id="inAppCss">
 /* Web + iOS app: hide web-browser-only UI and browser behaviours */
 html.inApp,html.inApp body{-webkit-user-select:none;user-select:none;-webkit-touch-callout:none;overscroll-behavior:none;-webkit-tap-highlight-color:transparent}
@@ -18388,20 +18401,56 @@ void main(){
 <script>/* ★ Credits (last button in the bottom bar) */
 (function(){ function open(){ close();
   var sh=document.createElement("div"); sh.id="creditShade"; var c=document.createElement("div"); c.id="creditCard";
-  c.innerHTML='<h3>TOP<b>MOD</b> 3D</h3><div class="sub">Topological mesh modeling — free on the App Store and the web</div>'
+  c.innerHTML='<button class="cx" title="Close">&times;</button><h3>TOP<b>MOD</b> 3D</h3><div class="sub">Topological mesh modeling</div><div class="cols"><div>'
    +'<h5>TopMod — the original project</h5><p>Ergun Akleman · Vinod Srinivasan · Jianer Chen<br>Visual Computing &amp; Computational Media, Texas A&amp;M University</p>'
    +'<p>Doubly linked face list (DLFL) topology, handles, rind and wireframe modeling — with Esan Mandal, Zhangyang Chen and the TopMod team.</p>'
-   +'<h5>TopMod developers group</h5><p>Ergun Akleman, Tolga Yildiz, Xiaoming Wang, Vinod Srinivasan and everyone in the TopMod developers meetings.</p>'
-   +'<h5>TopMod 3D — web &amp; iOS</h5><p>John Briscella · <b>AMAXIMAL</b></p>'
-   +'<div class="row"><a class="go" href="https://amaximal.com/topmod3d/" target="_blank" rel="noopener">amaximal.com/topmod3d</a><button class="x">Close</button></div>';
+   +'</div><div><h5>TopMod developers group</h5><p>Ergun Akleman, Tolga Yildiz, Xiaoming Wang, Vinod Srinivasan and everyone in the TopMod developers meetings.</p>'
+   +'<h5>TopMod 3D — web &amp; iOS</h5><p>John Briscella · <b>AMAXIMAL</b></p></div></div>'
+   +'<div class="row"><a class="go" href="https://amaximal.com/topmod3d/" target="_blank" rel="noopener">amaximal.com/topmod3d</a></div>';
   document.body.appendChild(sh); document.body.appendChild(c);
-  sh.onclick=close; c.querySelector(".x").onclick=close; }
+  sh.onclick=close; c.querySelector(".cx").onclick=close; }
  function close(){ var a=document.getElementById("creditCard"), b=document.getElementById("creditShade"); if(a) a.remove(); if(b) b.remove(); }
  window.__credits={open:open,close:close};
  function init(){ var b=document.getElementById("creditsBtn"); if(b) b.addEventListener("click",function(e){ e.stopPropagation(); open(); }); addEventListener("keydown",function(e){ if(e.key==="Escape") close(); }); }
  if(document.readyState==="loading") document.addEventListener("DOMContentLoaded",init); else init(); })();</script>
+<script>/* Splash motion graphic: "TOPMOD 3D" as faceted 3D polygon text — triangular prisms fly in and lock into the letters, the word turns, then fades into the app */
+(function(){ var sp=document.getElementById("tmSplash"), cv=document.getElementById("tmSplashCv"); if(!sp||!cv||!window.THREE) return;
+ try{
+ var W=innerWidth,H=innerHeight, R=new THREE.WebGLRenderer({canvas:cv,antialias:true,alpha:true}); R.setPixelRatio(Math.min(2,devicePixelRatio||1)); R.setSize(W,H,false);
+ var S=new THREE.Scene(), C=new THREE.PerspectiveCamera(35,W/H,0.1,100); C.position.set(0,0,14);
+ S.add(new THREE.AmbientLight(0x6688aa,0.55)); var k=new THREE.DirectionalLight(0xffffff,1.1); k.position.set(4,6,8); S.add(k); var r2=new THREE.DirectionalLight(0x00e5ff,0.7); r2.position.set(-6,-2,4); S.add(r2);
+ // rasterise the word, then turn every filled cell into two triangular prisms (alternating diagonals = faceted look)
+ var tc=document.createElement("canvas"), tw=460, th=120; tc.width=tw; tc.height=th; var g=tc.getContext("2d"); g.fillStyle="#fff"; g.textBaseline="middle"; g.font="900 70px -apple-system,Helvetica,Arial,sans-serif";
+ var parts=[["TOP",0],["MOD",1],[" 3D",0]], x=0, ws=parts.map(function(p){ return g.measureText(p[0]).width; }), tot=ws.reduce(function(a,b){return a+b;},0), x0=(tw-tot)/2, spans=[];
+ parts.forEach(function(p,i){ spans.push([x0+x, x0+x+ws[i], p[1]]); g.fillText(p[0], x0+x, th/2+3); x+=ws[i]; });
+ var D=g.getImageData(0,0,tw,th).data, step=4, cells=[];
+ for(var yy=0;yy<th;yy+=step) for(var xx=0;xx<tw;xx+=step){ if(D[((yy+step/2|0)*tw+(xx+step/2|0))*4+3]>128){ var cyan=spans.some(function(sp){ return sp[2]&&xx>=sp[0]&&xx<sp[1]; }); cells.push([xx,yy,cyan]); } }
+ var u=10/tw*step*1.0, sc=Math.min(1, (W/H)*0.95);
+ function prism(flip){ var sh=new THREE.Shape(); if(!flip){ sh.moveTo(0,0); sh.lineTo(u,0); sh.lineTo(0,u); } else { sh.moveTo(u,u); sh.lineTo(0,u); sh.lineTo(u,0); } sh.closePath();
+   var ge=new THREE.ExtrudeGeometry(sh,{depth:u*1.6,bevelEnabled:false}); ge.translate(-u/2,-u/2,-u*0.8); return ge.toNonIndexed(); }
+ var mats=[new THREE.MeshStandardMaterial({color:0xf2f6fa,metalness:0.25,roughness:0.35,flatShading:true}), new THREE.MeshStandardMaterial({color:0x00e5ff,metalness:0.2,roughness:0.3,flatShading:true,emissive:0x003a44})];
+ var groups=[[],[],[],[]]; cells.forEach(function(c,i){ var f=((c[0]/step+c[1]/step)%2)|0; groups[(c[2]?2:0)+0].push([c,0]); groups[(c[2]?2:0)+1].push([c,1]); });
+ var root=new THREE.Group(); S.add(root); root.scale.setScalar(sc);
+ var IM=[], items=[];
+ groups.forEach(function(arr,gi){ if(!arr.length) return; var im=new THREE.InstancedMesh(prism(gi%2===1), mats[gi>=2?1:0], arr.length); im.instanceMatrix.setUsage(THREE.DynamicDrawUsage); root.add(im); IM.push(im);
+   arr.forEach(function(a,j){ var c=a[0], tx=(c[0]-tw/2)/tw*10+u/2, ty=-(c[1]-th/2)/tw*10-u/2, tz=(Math.random()-0.5)*u*0.5;
+     var ang=Math.random()*Math.PI*2, rad=6+Math.random()*7; items.push({im:im,j:j,tx:tx,ty:ty,tz:tz, sx:Math.cos(ang)*rad, sy:Math.sin(ang)*rad*0.6, sz:-8+Math.random()*16, rx:(Math.random()-0.5)*8, ry:(Math.random()-0.5)*8, d:(c[0]/tw)*0.55+Math.random()*0.18}); }); });
+ // glowing edge outline of the finished word
+ var M4=new THREE.Matrix4(), Q=new THREE.Quaternion(), E=new THREE.Euler(), P=new THREE.Vector3(), Sv=new THREE.Vector3(1,1,1);
+ var T0=performance.now(), FLY=1500, HOLD=1500, done=false;
+ function ease(t){ return 1-Math.pow(1-t,3); }
+ (function frame(){ if(done) return; var t=(performance.now()-T0)/1000;
+   for(var i=0;i<items.length;i++){ var it=items[i], q=Math.min(1,Math.max(0,(t*1000/FLY - it.d)/(1-0.55))), e=ease(q);
+     P.set(it.sx+(it.tx-it.sx)*e, it.sy+(it.ty-it.sy)*e, it.sz+(it.tz-it.sz)*e); E.set(it.rx*(1-e), it.ry*(1-e), 0); Q.setFromEuler(E); Sv.setScalar(0.2+0.8*e); M4.compose(P,Q,Sv); it.im.setMatrixAt(it.j,M4); }
+   IM.forEach(function(im){ im.instanceMatrix.needsUpdate=true; });
+   root.rotation.y=0.55*Math.sin(t*0.9)*(1-Math.min(1,t/3.2))+ (t>1.4? 0.18*Math.sin((t-1.4)*1.6):0); root.rotation.x=0.12*Math.sin(t*0.7);
+   k.position.x=4+6*Math.sin(t*1.2);
+   R.render(S,C); requestAnimationFrame(frame); })();
+ window.__splashEnd=function(){ done=true; try{ R.dispose(); IM.forEach(function(im){ im.geometry.dispose(); }); mats.forEach(function(m){m.dispose();}); }catch(e){} };
+ }catch(e){ sp.innerHTML='<div class="lg">TOP<b>MOD</b> 3D</div>'; }
+})();</script>
 <script>/* reveal only once every layout pass (docks, stacked panels, phone sizing, restored widths) has run — no flash of the old UI */
-(function(){function reveal(){requestAnimationFrame(function(){requestAnimationFrame(function(){setTimeout(function(){var h=document.documentElement;h.classList.remove("tmBoot");h.classList.add("tmBooted");try{dispatchEvent(new Event("resize"))}catch(e){} var sp=document.getElementById("tmSplash"); if(sp){ setTimeout(function(){ sp.classList.add("out"); setTimeout(function(){ sp.remove(); },700); },2200); } },120);});});}
+(function(){function reveal(){requestAnimationFrame(function(){requestAnimationFrame(function(){setTimeout(function(){var h=document.documentElement;h.classList.remove("tmBoot");h.classList.add("tmBooted");try{dispatchEvent(new Event("resize"))}catch(e){} var sp=document.getElementById("tmSplash"); if(sp){ setTimeout(function(){ sp.classList.add("out"); setTimeout(function(){ try{ window.__splashEnd&&window.__splashEnd(); }catch(e){} sp.remove(); },700); },3300); } },120);});});}
  if(document.readyState==="complete") reveal(); else addEventListener("load",reveal);})();</script>
 </body>
 </html>
