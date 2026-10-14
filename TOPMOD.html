@@ -866,6 +866,25 @@ body.opCol.opDock.opOpen #ocBar{display:block;position:fixed;top:var(--tbTop,52p
 body.opCol #ocBar::after{content:"";position:absolute;left:1px;top:50%;width:3px;height:34px;margin-top:-17px;border-radius:2px;background:rgba(0,229,255,.45)}
 body.opCol #ocBar:hover,body.opCol #ocBar.drag{background:rgba(0,229,255,.18)}
 body.opCol.fullscreen #ocBar{display:none!important}
+/* iPhone: smaller nav cube — Home and Auto-rotate buttons keep their size */
+body.phone #navcube{width:54px!important;height:54px!important;top:8px!important;right:10px!important}
+body.phone #ncCanvas{width:54px!important;height:54px!important}
+body.phone #ncHome{left:-20px!important;top:0!important}
+body.phone #ncSpin{right:auto!important;left:-20px!important;top:22px!important}
+/* View style lives in the bottom bar (not on the nav cube) */
+#status #viewStyleSel{position:static!important;margin:0!important;width:auto!important;max-width:120px;height:auto;padding:3px 6px;font:600 11px var(--font,system-ui);background:rgba(0,229,255,.08);color:#cfefff;border:1px solid rgba(0,229,255,.35);border-radius:7px;cursor:pointer}
+body.phone #status #viewStyleSel{font-size:8.5px!important;padding:2px 3px!important;max-width:92px}
+/* Options sliders fit the adjustable Options column: label on top, slider stretches, value box fixed on the right */
+body.opDock #tpBody{display:flex!important;flex-direction:column!important;flex-wrap:nowrap!important;overflow-x:hidden!important;min-width:0}
+body.opDock #tpBody>*{max-width:100%;min-width:0!important;box-sizing:border-box}
+body.opDock #tpBody .param{display:grid!important;grid-template-columns:minmax(0,1fr) auto;column-gap:6px;align-items:center;width:100%!important;min-width:0!important;flex:0 0 auto!important}
+body.opDock #tpBody .param>*{grid-column:1 / -1;min-width:0;max-width:100%}
+body.opDock #tpBody .param>label{white-space:normal;overflow-wrap:anywhere}
+body.opDock #tpBody .param>input[type=range]{grid-column:1;width:100%!important;margin:0}
+body.opDock #tpBody .param>input[type=range]+output,body.opDock #tpBody .param>input[type=range]+.numbox,body.opDock #tpBody .param>.numbox,body.opDock #tpBody .param>output{grid-column:2;width:44px!important;margin:0}
+body.opDock #tpBody select,body.opDock #tpBody input[type=text],body.opDock #tpBody input[type=number]:not(.numbox),body.opDock #tpBody textarea{width:100%!important;max-width:100%;box-sizing:border-box}
+body.opDock #tpBody button{max-width:100%;white-space:normal}
+body.opDock #tpApply{width:auto!important;max-width:calc(100% - 20px)}
 /* collapsible Layers / Modifiers sections */
 .secChev{background:transparent;border:0;color:#00E5FF;font-size:11px;width:16px;padding:0;margin-right:4px;cursor:pointer;line-height:1;flex:0 0 auto}
 body.layCol #layerList,body.layCol #layerAdd,body.modCol #modList,body.modCol #fabNode,body.modCol #modBar,body.modCol #modPanel>*:not(#modHead){display:none!important}
@@ -1216,7 +1235,6 @@ html.inApp [data-act="fullscreen"],html.inApp [data-act="shortcuts"],html.inApp 
         <canvas id="ncCanvas" width="120" height="120"></canvas>
         <button id="ncHome" title="Home view (frame all)">&#8962;</button>
         <button id="ncSpin" title="Auto-rotate — slowly spins the view while you work">&#10227;</button>
-        <select id="viewStyleSel" title="View style"></select>
       </div>
     </div>
 
@@ -1918,6 +1936,7 @@ html.inApp [data-act="fullscreen"],html.inApp [data-act="shortcuts"],html.inApp 
       <button class="selBtn" data-m="edge" title="Select edges (2)">&#9585; Edges</button>
       <button class="selBtn" data-m="face" title="Select faces (3)">&#9670; Faces</button>
     </span>
+    <select id="viewStyleSel" class="cell" title="View style"></select>
     <button class="cell" id="sectionFab" title="Toggle section plane viewer">&#9707; Section</button>
     <button class="cell" id="handFab" title="Hand tracking (camera + pinch gestures)">&#9995; Hands</button>
     <button class="cell" id="layersToggle" title="Toggle layers panel">&#9783; Layers</button>
