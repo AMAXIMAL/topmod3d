@@ -63,7 +63,7 @@ namespace TopModRhinoLink
 
             Content = new TableLayout { Rows = { new TableRow(bar), new TableRow(_web) { ScaleHeight = true } } };
 
-            _timer = new UITimer { Interval = 0.25 };
+            _timer = new UITimer { Interval = 0.08 };   // fast enough to follow a streaming simulation
             _timer.Elapsed += (s, e) => Tick();
 
             Load += (s, e) => { if (!_loaded) LoadPage(); else _timer.Start(); };
@@ -114,7 +114,8 @@ namespace TopModRhinoLink
                         if (v > _lastWebVersion)
                         {
                             _lastWebVersion = v;
-                            try { sync.ApplyFromWeb(doc, o.GetProperty("obj").GetString()); }
+                            string mode = o.TryGetProperty("mode", out var md) ? md.GetString() : "nurbs";
+                            try { sync.ApplyFromWeb(doc, o.GetProperty("obj").GetString(), mode); }
                             catch (Exception ex) { RhinoApp.WriteLine("TopMod: push failed — " + ex.Message); }
                         }
                     }
@@ -126,6 +127,10 @@ namespace TopModRhinoLink
                                 case "bakeMesh": Bake(true); break;
                                 case "import": Import(); break;
                             }
+                    if (root.TryGetProperty("fab", out var fab) && fab.ValueKind == JsonValueKind.Object && doc != null)
+                    {
+                        try { ApplyFab(doc, sync, fab); } catch (Exception ex) { RhinoApp.WriteLine("TopMod: fab curves — " + ex.Message); }
+                    }
                     if (root.TryGetProperty("cam", out var cam) && cam.ValueKind == JsonValueKind.Object && doc != null)
                     {
                         try { SyncCamera(doc, cam); } catch { }
@@ -147,6 +152,28 @@ namespace TopModRhinoLink
                 }
             }
             finally { _busy = false; }
+        }
+
+        static void ApplyFab(RhinoDoc doc, LiveSync sync, JsonElement fab)
+        {
+            bool on = fab.TryGetProperty("on", out var o) && o.GetBoolean();
+            string mode = fab.TryGetProperty("mode", out var m) && m.ValueKind == JsonValueKind.String ? m.GetString() : null;
+            var loops = new System.Collections.Generic.List<(System.Collections.Generic.List<Rhino.Geometry.Point3d>, System.Collections.Generic.List<Rhino.Geometry.Point3d>)>();
+            if (fab.TryGetProperty("loops", out var ls) && ls.ValueKind == JsonValueKind.Array)
+                foreach (var pair in ls.EnumerateArray())
+                    loops.Add((Pts(pair, "src"), Pts(pair, "dst")));
+            string net = fab.TryGetProperty("net", out var n) && n.ValueKind == JsonValueKind.String ? n.GetString() : null;
+            sync.ApplyFab(doc, on, mode, loops, net);
+        }
+
+        static System.Collections.Generic.List<Rhino.Geometry.Point3d> Pts(JsonElement pair, string key)
+        {
+            var list = new System.Collections.Generic.List<Rhino.Geometry.Point3d>();
+            if (!pair.TryGetProperty(key, out var arr) || arr.ValueKind != JsonValueKind.Array) return list;
+            foreach (var p in arr.EnumerateArray())
+                if (p.ValueKind == JsonValueKind.Array && p.GetArrayLength() >= 3)
+                    list.Add(new Rhino.Geometry.Point3d(p[0].GetDouble(), p[1].GetDouble(), p[2].GetDouble()));
+            return list;
         }
 
         /// <summary>TopMod orbit → Rhino Perspective view. TopMod camera is Y-up in inches; Rhino is Z-up in doc units.</summary>
@@ -178,7 +205,7 @@ namespace TopModRhinoLink
         {
             if (!ready) return "starting… " + (string.IsNullOrEmpty(why) ? "" : "— " + why);
             bool live = doc != null && sync.FindLive(doc) != null;
-            return (live ? "● live" : "○ idle") + "  ↑" + sync.WebPushes + " ↓" + sync.RhinoEdits + "  " + (doc?.ModelUnitSystem.ToString() ?? "");
+            return (live ? (sync.LiveIsMesh ? "● live (mesh)" : "● live") : "○ idle") + "  ↑" + sync.WebPushes + " ↓" + sync.RhinoEdits + "  " + (doc?.ModelUnitSystem.ToString() ?? "");
         }
 
         void Bake(bool asMesh)

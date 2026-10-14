@@ -6,6 +6,16 @@
 (function(){
   var outV = 0, out = null, cmds = [], applying = false, ready = false, why = "waiting for app";
   var B = null;
+  /* streaming: when pushes arrive quickly (a simulation / animation) the model goes to Rhino as a MESH
+     instead of NURBS, at a higher rate; once it goes quiet (or Bake is pressed) it settles back to NURBS. */
+  var pushTimes = [], streaming = false, settleT = null, lastMode = "nurbs";
+  function fabOn(){ try{ return !!B.fabActive || !!B.fabLive; }catch(e){ return false; } }
+  function wantMesh(){ return streaming || fabOn(); }
+  function pushNow(mode){
+    var obj; try{ obj = B.TM.toOBJ(B.fabMesh()); }catch(e){ return; }
+    lastMode = mode;
+    out = { v: ++outV, obj: obj, mode: mode };
+  }
 
   function init(){
     if(ready) return;
@@ -18,8 +28,16 @@
     B.setRhinoPush(function(){
       if(applying) return;
       if(!B.rhinoLink) return;
-      var obj; try{ obj = B.TM.toOBJ(B.fabMesh()); }catch(e){ return; }
-      out = { v: ++outV, obj: obj };
+      var now = performance.now();
+      pushTimes.push(now); while(pushTimes.length > 4) pushTimes.shift();
+      /* 3 pushes inside 1.2 s = something is animating */
+      if(!streaming && pushTimes.length >= 3 && (now - pushTimes[0]) < 1200){ streaming = true; window.__tmPushDelay = 70; }
+      pushNow(wantMesh() ? "mesh" : "nurbs");
+      clearTimeout(settleT);
+      settleT = setTimeout(function(){
+        streaming = false; window.__tmPushDelay = 250; pushTimes = [];
+        if(lastMode === "mesh" && !wantMesh()) pushNow("nurbs");   /* settle: final frame as NURBS */
+      }, 1200);
       var b = document.getElementById("rhinoLink"); if(b) b.style.borderColor = "";
     });
     try{ B.setRhinoLink(true); }catch(e){}
@@ -28,6 +46,23 @@
     window.__tmReady = true;
   }
 
+  var lastFab = "";
+  function hashStr(t){ var h = 0; for(var i = 0; i < t.length; i++){ h = (h * 31 + t.charCodeAt(i)) | 0; } return h; }
+  function fabPayload(){
+    /* fabrication → curves: closed loops (assembled 3D + flat nested) and the papercraft net */
+    var on = fabOn();
+    var pay = { on: on, mode: null, loops: [], net: null };
+    if(on){
+      try{ pay.mode = B.fabMode(); }catch(e){}
+      try{ pay.loops = B.slabPairs() || []; }catch(e){}
+      try{ pay.net = B.netMesh(); }catch(e){}
+    }
+    var json = JSON.stringify(pay);
+    var key = json.length + ":" + hashStr(json);
+    if(key === lastFab) return null;
+    lastFab = key;
+    return pay;
+  }
   var lastCam = "";
   window.__tmPoll = function(){
     var cam = null;
@@ -37,7 +72,8 @@
         if(key !== lastCam){ lastCam = key; cam = c; }
       }catch(e){}
     }
-    var r = JSON.stringify({ out: out, cmds: cmds, ready: ready, why: why, cam: cam });
+    var fab = null; if(ready){ try{ fab = fabPayload(); }catch(e){} }
+    var r = JSON.stringify({ out: out, cmds: cmds, ready: ready, why: why, cam: cam, fab: fab });
     out = null; cmds = [];
     return r;
   };
@@ -108,7 +144,7 @@
       "background:rgba(10,14,20,0.82);border:1px solid rgba(0,229,255,0.35);border-radius:10px;font:12px system-ui,sans-serif;color:#cfe;backdrop-filter:blur(6px)";
     var lbl = document.createElement("span"); lbl.textContent = "Rhino"; lbl.style.opacity = ".8";
     bar.appendChild(lbl);
-    bar.appendChild(btn("Bake ▸", "Bake the live model into Rhino as NURBS ('TopMod Baked' layer)", function(){ cmds.push("bake"); B.toast("Baking into Rhino"); }));
+    bar.appendChild(btn("Bake ▸", "Bake the live model into Rhino as NURBS ('TopMod Baked' layer)", function(){ if(lastMode === "mesh") pushNow("nurbs"); cmds.push("bake"); B.toast("Baking into Rhino"); }));
     bar.appendChild(btn("Mesh ▸", "Bake into Rhino as a mesh", function(){ cmds.push("bakeMesh"); B.toast("Baking mesh into Rhino"); }));
     bar.appendChild(btn("◂ Import", "Pick objects in Rhino → new layer here", function(){ cmds.push("import"); B.toast("Select objects in Rhino…"); }));
     document.body.appendChild(bar);

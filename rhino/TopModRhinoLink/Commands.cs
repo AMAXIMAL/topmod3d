@@ -99,7 +99,7 @@ namespace TopModRhinoLink
             if (id == Guid.Empty) { RhinoApp.WriteLine("Nothing to bake — push a model from TopMod first."); return Result.Nothing; }
             doc.Objects.UnselectAll();
             doc.Objects.Select(id);
-            RhinoApp.WriteLine("Baked to layer '{0}'.", LiveSync.BakeLayer);
+            RhinoApp.WriteLine("Baked under layer '{0}'.", LiveSync.BakeLayer.Replace("::", " / "));
             return Result.Success;
         }
     }
