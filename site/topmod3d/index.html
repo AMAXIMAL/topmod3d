@@ -1,0 +1,382 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<title>TopMod 3D v3.0 · Topological mesh modeling | AMAXiMAL</title>
+<meta name="description" content="TopMod 3D v3.0: Ergun Akleman's TopMod (Texas A&amp;M) in the browser and on iPhone and iPad, reformatted by John Briscella with 80+ new tools. Free, no install.">
+<link rel="canonical" href="https://amaximal.com/topmod3d/">
+<meta property="og:type" content="website"><meta property="og:site_name" content="AMAXiMAL">
+<meta property="og:title" content="TopMod 3D v3.0"><meta property="og:description" content="Ergun Akleman's TopMod in the browser and on iPhone and iPad, with 80+ new tools.">
+<meta property="og:url" content="https://amaximal.com/topmod3d/"><meta property="og:image" content="https://amaximal.com/topmod3d/img/open.jpg?v=20261013a">
+<meta name="twitter:card" content="summary_large_image"><meta name="twitter:image" content="https://amaximal.com/topmod3d/img/open.jpg?v=20261013a">
+<link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Big+Shoulders+Display:wght@500;800;900&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 40 40'%3E%3Crect width='40' height='40' rx='6' fill='%230b0c0a'/%3E%3Cpath d='M20 6 35 34H5Z M20 14 29 30H11Z M20 22 23.5 28h-7Z' fill='none' stroke='%23c6ff1a' stroke-width='2.4' stroke-linejoin='round'/%3E%3C/svg%3E">
+<style>
+@font-face{font-family:Ridge;src:url(ridge.ttf) format("truetype");font-display:swap}
+:root{--ink:#0b0c0a;--ink2:#121410;--line:#262a21;--fg:#e9ece3;--dim:#8b927f;--neon:#c6ff1a;--pad:clamp(16px,4vw,48px);--ease:cubic-bezier(.2,.75,.15,1);--col:1000px;color-scheme:dark}
+*{box-sizing:border-box}html,body{margin:0;background:var(--ink);color:var(--fg)}
+body{font-family:"JetBrains Mono",ui-monospace,Menlo,monospace;font-size:13px;line-height:1.55;-webkit-font-smoothing:antialiased}
+a{color:var(--neon)}
+.top{display:flex;justify-content:space-between;align-items:center;gap:16px;padding:calc(16px + env(safe-area-inset-top,0px)) var(--pad) 16px;flex-wrap:wrap}
+.logo{display:flex;align-items:center;gap:10px;color:var(--neon);text-decoration:none}.logo svg{width:28px;height:28px}
+.logo b{font-family:"Big Shoulders Display",sans-serif;font-weight:900;font-size:28px;letter-spacing:.03em}.logo b i{font-style:normal;font-weight:800;text-transform:lowercase}
+.top nav{display:flex;flex-wrap:wrap;gap:14px}.top nav a{color:var(--fg);text-decoration:none;font-size:11px;letter-spacing:.14em;text-transform:uppercase}.top nav a:hover{color:var(--neon)}
+.intro{padding:clamp(24px,6vh,72px) var(--pad) clamp(20px,4vh,40px);display:grid;gap:18px}
+.intro h1{font-family:Ridge,"Big Shoulders Display",sans-serif;font-weight:400;text-transform:uppercase;font-size:clamp(48px,9vw,120px);line-height:.9;margin:0;letter-spacing:.02em;color:var(--neon)}
+.intro h1 small{font-size:.42em;color:var(--fg);letter-spacing:.06em;margin-left:.2em;vertical-align:.9em}
+.intro p{max-width:62ch;color:var(--dim);margin:0;font-size:14px}.intro p strong{color:var(--fg);font-weight:500}
+.cta{display:flex;flex-wrap:wrap;gap:10px;align-items:center}
+.go{display:inline-flex;align-items:center;height:40px;text-decoration:none;color:var(--ink);background:var(--neon);font-weight:500;letter-spacing:.1em;text-transform:uppercase;font-size:11px;padding:0 16px;border-radius:4px;box-shadow:0 0 22px rgba(198,255,26,.35);border:0;cursor:pointer;font-family:inherit}
+.pdl{display:inline-flex;align-items:center;height:40px;color:var(--neon);text-decoration:none;border:1px solid var(--neon);border-radius:999px;padding:0 16px;font-size:11px;letter-spacing:.14em;text-transform:uppercase}.pdl:hover{background:var(--neon);color:var(--ink)}
+.asb{display:inline-flex;align-items:center;gap:9px;height:40px;padding:0 14px 0 11px;border:1px solid var(--fg);border-radius:9px;color:var(--fg);text-decoration:none;background:#000}
+.asb svg{width:20px;height:20px;flex:none}.asb span{display:flex;flex-direction:column;line-height:1.05}.asb small{font-size:8.5px;letter-spacing:.05em}.asb b{font-family:-apple-system,system-ui,sans-serif;font-size:16px;font-weight:600}
+.asb.soon{opacity:.6}
+.listhead{display:flex;justify-content:space-between;margin:0 var(--pad);padding-bottom:10px;border-bottom:1px solid var(--line);color:var(--dim);font-size:11px;letter-spacing:.14em;text-transform:uppercase}.listhead b{color:var(--neon);font-weight:400}
+.list{list-style:none;margin:0;padding:16px var(--pad) 40px;display:grid;gap:14px}
+.proj{border-radius:8px;overflow:hidden;background:var(--ink2);outline:1px solid transparent;transition:outline-color .3s,box-shadow .3s}
+.proj:hover,.proj.open{outline-color:rgba(198,255,26,.55);box-shadow:0 0 34px rgba(198,255,26,.12)}
+.bw{position:relative}
+.ban{all:unset;display:block;position:relative;width:100%;height:clamp(200px,30vw,360px);cursor:pointer;overflow:hidden}
+.ban:focus-visible{outline:2px solid var(--neon);outline-offset:-2px}
+.ban img,.ban video{position:absolute;inset:0;width:100%;height:100%;object-fit:cover;object-position:62% 50%;filter:saturate(.85) brightness(.75);transition:transform 1.4s var(--ease),filter .5s}
+.proj:hover .ban img,.proj.open .ban img,.proj:hover .ban video,.proj.open .ban video{transform:scale(1.035);filter:saturate(1) brightness(.95)}
+.ban::after{content:"";position:absolute;inset:0;background:linear-gradient(90deg,rgba(8,9,7,.85),rgba(8,9,7,0) 62%)}
+.ttl{position:absolute;z-index:2;left:clamp(16px,3vw,36px);bottom:clamp(14px,2.4vw,30px);pointer-events:none}
+.bigc{font-family:Ridge,"Big Shoulders Display",sans-serif;text-transform:uppercase;color:var(--neon);font-size:clamp(40px,7vw,96px);line-height:.9;letter-spacing:.02em;margin-bottom:.12em;white-space:nowrap}
+.ttl small{display:block;color:var(--neon);font-size:11px;letter-spacing:.14em;text-transform:uppercase;margin-bottom:8px}
+.ttl h2{font-family:Ridge,"Big Shoulders Display",sans-serif;font-weight:400;text-transform:uppercase;margin:0;font-size:clamp(26px,4vw,52px);line-height:.9;letter-spacing:.02em;color:#fff}
+.more{position:absolute;z-index:2;right:clamp(14px,2.4vw,28px);bottom:clamp(14px,2.4vw,28px);font-size:10.5px;letter-spacing:.12em;text-transform:uppercase;border:1px solid rgba(233,236,227,.4);border-radius:99px;padding:5px 12px;background:rgba(8,9,7,.55);pointer-events:none}
+.proj.open .more{border-color:var(--neon);color:var(--neon)}
+.proj:not(.open) .bw:hover .more{border-color:var(--neon);background:var(--neon);color:var(--ink);font-weight:500;box-shadow:0 0 22px rgba(198,255,26,.55)}
+.body{display:grid;grid-template-rows:0fr;transition:grid-template-rows .6s var(--ease)}.proj.open .body{grid-template-rows:1fr}
+.body>div{overflow:hidden;min-height:0}
+.in{padding:clamp(18px,3vw,36px);display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1.6fr);gap:clamp(18px,3vw,44px)}
+.in.one{grid-template-columns:1fr}
+@media(max-width:860px){.in{grid-template-columns:1fr}}
+.lead{font-size:15px;line-height:1.5;color:var(--fg);margin:0 0 16px}
+.in p{margin:0 0 12px;max-width:66ch}
+.lab{color:var(--neon);font-size:11px;letter-spacing:.14em;text-transform:uppercase;margin-bottom:10px}
+.pt{border-top:1px solid var(--line);padding:10px 0}.pt b{display:block;font-weight:500;color:var(--fg)}.pt span{color:var(--dim)}
+.pts{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:0 24px;align-content:start}@media(max-width:560px){.pts{grid-template-columns:1fr}}
+.live{position:relative;width:100%;aspect-ratio:16/9;max-width:100%;background:#05060a;overflow:hidden}
+.live .scaler{position:absolute;left:0;top:0;width:1440px;height:810px;transform-origin:0 0}
+.live iframe{width:1440px;height:810px;border:0;display:block;pointer-events:none}
+.live .shield{position:absolute;inset:0;z-index:1}
+.livebar{display:flex;flex-wrap:wrap;gap:10px;align-items:center;justify-content:space-between;padding:14px clamp(18px,3vw,36px)}
+.livebar span{color:var(--dim);font-size:12px}
+.gal{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:8px}
+@media(max-width:560px){.gal{grid-template-columns:repeat(2,minmax(0,1fr))}}
+.gal figure{margin:0;position:relative;border-radius:4px;overflow:hidden;background:#0b0e18;cursor:zoom-in}
+.gal img{display:block;width:100%;aspect-ratio:380/312;object-fit:cover}
+.gal figcaption{position:absolute;left:0;bottom:0;right:0;padding:14px 8px 5px;font-size:9.5px;letter-spacing:.1em;text-transform:uppercase;color:#fff;background:linear-gradient(rgba(0,0,0,0),rgba(0,0,0,.7))}
+.cards{display:grid;grid-template-columns:repeat(auto-fit,minmax(220px,1fr));gap:10px}
+.cards a{display:block;border:1px solid var(--line);border-radius:6px;padding:16px 18px;text-decoration:none;color:var(--fg)}
+.cards a:hover{border-color:var(--neon)}.cards a b{display:block;color:var(--neon);font-weight:500}.cards a span{color:var(--dim);font-size:12px}
+.cm{display:grid;gap:12px;max-width:720px}
+.cm label{display:grid;gap:6px;font-size:11px;letter-spacing:.12em;text-transform:uppercase;color:var(--dim)}
+.cm input,.cm textarea{font:inherit;font-size:14px;color:var(--fg);background:var(--ink);border:1px solid var(--line);padding:12px 14px;border-radius:4px;text-transform:none;letter-spacing:0}
+.cm input:focus,.cm textarea:focus{outline:none;border-color:var(--neon)}
+.cm textarea{min-height:130px;resize:vertical}
+.cm .row{display:grid;grid-template-columns:1fr 1fr;gap:12px}@media(max-width:560px){.cm .row{grid-template-columns:1fr}}
+.cm .hp{position:absolute;left:-9999px}.cm .msg{font-size:13px;margin:0}
+.clhead{display:flex;justify-content:space-between;align-items:baseline;border-bottom:1px solid var(--line);padding:22px 0 10px;color:var(--dim);font-size:11px;letter-spacing:.14em;text-transform:uppercase}
+.clist,.replies{list-style:none;margin:0;padding:0}
+.clist>li{border-bottom:1px solid var(--line);padding:16px 0}
+.cempty{color:var(--dim);padding:16px 0}
+.c .who{display:flex;gap:10px;align-items:baseline;flex-wrap:wrap}.c .who b{color:var(--fg);font-weight:500}.c .who time{color:var(--dim);font-size:11px}
+.c .who .tag{font-size:9.5px;letter-spacing:.12em;text-transform:uppercase;color:var(--ink);background:var(--neon);padding:1px 6px;border-radius:3px}
+.c p{margin:6px 0 0;white-space:pre-wrap;overflow-wrap:anywhere;max-width:72ch}
+.rb{all:unset;cursor:pointer;margin-top:8px;font-size:10.5px;letter-spacing:.12em;text-transform:uppercase;color:var(--neon)}
+.rb:focus-visible{outline:2px solid var(--neon);outline-offset:2px}
+.replies{margin:12px 0 0 clamp(14px,3vw,28px);padding-left:clamp(12px,2vw,20px);border-left:2px solid var(--line);display:grid;gap:14px}
+.cm.rf{margin-top:12px;max-width:620px}.cm.rf textarea{min-height:90px}
+.pin{border:1px solid var(--neon);border-radius:6px;padding:14px 16px;margin:0 0 18px;background:rgba(198,255,26,.05)}
+.pin .who{display:flex;gap:10px;align-items:baseline}.pin .who b{color:var(--neon);font-weight:500}
+.pin .tag{font-size:9.5px;letter-spacing:.12em;text-transform:uppercase;color:var(--ink);background:var(--neon);padding:1px 6px;border-radius:3px}
+.pin p{margin:6px 0 0;max-width:72ch}
+.rate{display:flex;flex-wrap:wrap;gap:14px 36px;align-items:center;justify-content:space-between;border-top:1px solid var(--line);border-bottom:1px solid var(--line);padding:14px 0;margin:0 0 22px}
+.rsum{display:flex;align-items:center;gap:12px}
+.ravg{font-family:Ridge,"Big Shoulders Display",sans-serif;font-size:44px;line-height:1;color:var(--neon);font-variant-numeric:tabular-nums}
+.rstars{position:relative;display:inline-block;font-size:20px;letter-spacing:3px;color:var(--line)}
+.rstars::before{content:"★★★★★"}
+.rfill{position:absolute;left:0;top:0;overflow:hidden;white-space:nowrap;color:var(--neon);width:0}
+.rfill::before{content:"★★★★★"}
+.rcnt{color:var(--dim);font-size:11px;letter-spacing:.1em;text-transform:uppercase}
+.rpick{display:flex;align-items:center;gap:12px;flex-wrap:wrap}
+.rlab{color:var(--dim);font-size:11px;letter-spacing:.12em;text-transform:uppercase}
+.rbtns{display:flex}
+.rbtns button{all:unset;cursor:pointer;font-size:28px;line-height:1;padding:2px 3px;color:var(--line);transition:color .12s,transform .12s}
+.rbtns button.on{color:var(--neon)}
+.rbtns button:hover{transform:scale(1.12)}
+.rbtns button:focus-visible{outline:2px solid var(--neon);outline-offset:2px;border-radius:3px}
+.rmsg{color:var(--dim);font-size:12px}
+.ibadge{display:inline-flex;align-items:center;gap:8px;color:var(--fg);text-decoration:none;font-size:12px}
+.ibadge .rstars{font-size:15px;letter-spacing:2px}
+.ibadge[hidden]{display:none}
+.hands{grid-template-columns:minmax(0,1fr) minmax(0,1.6fr)}
+.handmock{margin:0;min-width:0}
+.handmock canvas{display:block;width:100%;max-width:100%;aspect-ratio:16/9;height:auto;background:#05060a;border:1px solid var(--line);border-radius:6px}
+.handmock figcaption{display:flex;justify-content:space-between;gap:10px;flex-wrap:wrap;margin-top:8px;font-size:11px;letter-spacing:.1em;text-transform:uppercase;color:var(--dim)}
+.handmock #handLbl{color:var(--neon)}
+@media(max-width:860px){.hands{grid-template-columns:1fr}}
+.tclips{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:12px}
+.tclip{margin:0;border:1px solid var(--line);border-radius:6px;overflow:hidden;background:#05060a;min-width:0}
+.tclip video{display:block;width:100%;aspect-ratio:4/3;max-width:100%;object-fit:cover;background:#05060a}
+.tclip figcaption{padding:12px 14px 14px;display:grid;gap:4px}
+.tclip b{font-family:Ridge,"Big Shoulders Display",sans-serif;font-weight:400;font-size:26px;line-height:1;color:#fff;text-transform:uppercase;letter-spacing:.02em}
+.tclip small{color:var(--neon);font-size:10.5px;letter-spacing:.14em;text-transform:uppercase}
+.tclip span{color:var(--dim);font-size:12.5px}
+@media(max-width:860px){.tclips{grid-template-columns:1fr}}
+footer{padding:0 var(--pad) 60px;color:var(--dim);font-size:11px}
+#lb{position:fixed;inset:0;z-index:20;background:rgba(0,0,0,.93);display:none;align-items:center;justify-content:center;padding:16px;cursor:zoom-out}#lb.on{display:flex}#lb img{max-width:100%;max-height:100%;border-radius:4px}
+@media(min-width:1061px){.top,.intro,.listhead,footer{width:var(--col);margin-left:auto;margin-right:auto;padding-left:0;padding-right:0}.list{justify-items:center}.proj{width:var(--col);max-width:100%}}
+@media(prefers-reduced-motion:reduce){*{transition:none!important}}
+</style>
+</head>
+<body>
+<header class="top">
+  <a class="logo" href="../" aria-label="AMAXiMAL home"><svg viewBox="0 0 40 40" aria-hidden="true"><path d="M20 4 36.5 35H3.5Z M20 13.5 30 32H10Z M20 23 24 30h-8Z" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linejoin="round"/></svg><b>AMAX<i>i</i>MAL</b></a>
+  <nav aria-label="Site"><a href="../">Home</a><a href="../software/">Software</a><a href="../#about">About</a><a href="../contact/">Contact</a><a href="../instagram/">Instagram</a></nav>
+</header>
+
+<section class="intro">
+<h1>TopMod 3D<small>v3.0</small></h1>
+<p><strong>TopMod, the topological mesh modeler, now in the browser and on iPhone and iPad.</strong> Version 3.0 is reformatted for the web and touch, with more than 80 new tools for generating, deforming, analysing and fabricating meshes.</p>
+<div class="cta">
+<a class="go" href="../software/topmod/">Open TopMod in browser</a>
+<!--APPSTORE--><a class="asb" href="https://apps.apple.com/us/app/topmod-3d-mesh-modeler/id6779650858" target="_blank" rel="noopener" aria-label="Download TopMod 3D on the App Store"><svg viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M16.37 12.6c-.02-2.2 1.8-3.26 1.88-3.31-1.03-1.5-2.62-1.7-3.19-1.73-1.36-.14-2.65.8-3.34.8-.69 0-1.75-.78-2.88-.76-1.48.02-2.85.86-3.61 2.19-1.54 2.67-.39 6.62 1.11 8.79.73 1.06 1.6 2.25 2.75 2.2 1.1-.04 1.52-.71 2.85-.71 1.33 0 1.71.71 2.88.69 1.19-.02 1.94-1.08 2.66-2.14.84-1.23 1.19-2.42 1.21-2.48-.03-.01-2.32-.89-2.34-3.54zM14.18 6.13c.61-.74 1.02-1.76.91-2.78-.88.04-1.94.59-2.57 1.32-.56.65-1.06 1.69-.93 2.69.98.08 1.98-.5 2.59-1.23z"/></svg><span><small>Download on the</small><b>App Store</b></span></a><!--/APPSTORE-->
+<a class="pdl" href="https://github.com/AMAXIMAL/TopMod3D" target="_blank" rel="noopener">GitHub</a>
+<a class="ibadge" href="#comments" id="ibadge" hidden><span class="rstars" aria-hidden="true"><span class="rfill" id="ifill"></span></span><span id="itxt"></span></a>
+</div>
+</section>
+
+<div class="listhead"><span>TopMod 3D v3.0</span><b>00 – 03</b></div>
+<ul class="list" id="list">
+
+<li class="proj" id="open"><div class="bw"><button class="ban" aria-expanded="false"><img src="img/open.jpg?v=20261013a" alt="A mesh built live in TopMod 3D"><span class="more">Open</span></button><div class="ttl"><div class="bigc">00</div><small>Runs in your browser</small><h2>Open TopMod</h2></div></div>
+<div class="body"><div>
+<div class="live" id="stage" aria-label="TopMod 3D running its demo"><div class="scaler"><iframe title="TopMod 3D v3.0 demo" data-src="../software/topmod/#demo" tabindex="-1" scrolling="no"></iframe></div><div class="shield" aria-hidden="true"></div></div>
+<div class="livebar"><span>The demo builds shapes with the real tools. To model yourself, open TopMod.</span><a class="go" href="../software/topmod/">Open TopMod ↗</a></div>
+</div></div></li>
+
+<li class="proj" id="new"><div class="bw"><button class="ban" aria-expanded="false"><video src="media/gem360.mp4?v=20261013a" poster="img/new.jpg?v=20261013a" autoplay muted loop playsinline preload="auto" aria-label="A round brilliant gem from the TopMod 3D Gem Cut tool, ray-traced, turning 360°"></video><span class="more">Open</span></button><div class="ttl"><div class="bigc">01</div><small>Gem Cut · Bejewel · Aero · FEA · hands · iPhone + iPad</small><h2>New in v3.0</h2></div></div>
+<div class="body"><div><div class="in">
+<div><p class="lead">TopMod's core is Ergun Akleman's: the DLFL kernel and its insert and delete edge, extrusion, handle, crust, wireframe and remeshing tools. Version 3.0 keeps all of that and adds the tools below.</p><a class="go" href="../software/topmod/">Try the new tools ↗</a>
+<div class="lab" style="margin-top:26px">iPhone + iPad</div><p >TopMod 3D is on the App Store for iPhone and iPad, free: Ergun Akleman's TopMod and the new v3.0 tools, built for touch.</p>
+<!--APPSTORE2--><a class="asb" href="https://apps.apple.com/us/app/topmod-3d-mesh-modeler/id6779650858" target="_blank" rel="noopener" aria-label="Download TopMod 3D on the App Store"><svg viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M16.37 12.6c-.02-2.2 1.8-3.26 1.88-3.31-1.03-1.5-2.62-1.7-3.19-1.73-1.36-.14-2.65.8-3.34.8-.69 0-1.75-.78-2.88-.76-1.48.02-2.85.86-3.61 2.19-1.54 2.67-.39 6.62 1.11 8.79.73 1.06 1.6 2.25 2.75 2.2 1.1-.04 1.52-.71 2.85-.71 1.33 0 1.71.71 2.88.69 1.19-.02 1.94-1.08 2.66-2.14.84-1.23 1.19-2.42 1.21-2.48-.03-.01-2.32-.89-2.34-3.54zM14.18 6.13c.61-.74 1.02-1.76.91-2.78-.88.04-1.94.59-2.57 1.32-.56.65-1.06 1.69-.93 2.69.98.08 1.98-.5 2.59-1.23z"/></svg><span><small>Download on the</small><b>App Store</b></span></a><!--/APPSTORE2--></div>
+<div class="pts">
+<div class="pt"><b>Runs anywhere</b><span>Browser and iPhone and iPad, no install. Mouse, touch, and webcam hand tracking. Demo mode, a command bar, and a gumball to move, rotate and scale.</span></div>
+<div class="pt"><b>Layers + modifiers</b><span>Layers, and a non-destructive modifier stack you can edit, reorder and bake.</span></div>
+<div class="pt"><b>New primitives</b><span>Cuboctahedron, torus, cylinder, Möbius strip, spiral coil, polygon prism, and 3D text.</span></div>
+<div class="pt"><b>Modeling</b><span>Array (rect, honeycomb, polar, sphere, Fibonacci), mirror, bridge, pinch extrude, greeble, offset shell, cut by plane, orient, heal, fill holes, flip, simplify, quad remesh.</span></div>
+<div class="pt"><b>Generators</b><span>Metaballs, gyroid, TPMS blocks, Schoen hybrid, Rössler attractor, cymatics, pseudospherical surfaces, woven tubes, chain mail, Voronoi, tree, GEM matrix, 2D and 3D mazes, breeze blocks, lattice cage morph.</span></div>
+<div class="pt"><b>Deformers</b><span>Twist, bend, taper, bulge, spherify, and noise displacement, all non-destructive.</span></div>
+<div class="pt"><b>Booleans</b><span>Union, difference and intersect.</span></div>
+<div class="pt"><b>Analysis</b><span>Mesh diagnose, curvature, section plane, interference, wall thickness, measure, overhang, edge lengths, seams, X-ray.</span></div>
+<div class="pt"><b>3D printing</b><span>Printer bed and build volume preview, tree supports, split, drill, voxelize, flatten.</span></div>
+<div class="pt"><b>Fabrication</b><span>Papercraft unfold with glue tabs, plywood layers with dowel registration, flat plywood faces, laser cut with finger joints, waffle egg-crate slicing, nest optimizer.</span></div>
+<div class="pt"><b>Export</b><span>OBJ, STL and STEP for 3D, DXF and PDF for cutting.</span></div>
+<div class="pt"><b>Looks</b><span>Galaxy, Matrix, water, moonwater, carbon fiber, red carpet, flower, laser, patent halftone, 3D glasses, techno and gold display modes.</span></div>
+</div></div>
+<div class="in hands" style="padding-top:0">
+<div><div class="lab">Hands</div>
+<p class="lead">Model with your hands. Switch on ✋ Hands and TopMod reads your webcam with MediaPipe hand tracking, so pinch gestures drive the view. Tracking runs in the browser.</p>
+<div class="pts" style="grid-template-columns:1fr">
+<div class="pt"><b>Orbit</b><span>Pinch with your right hand and drag.</span></div>
+<div class="pt"><b>Zoom</b><span>Pinch with both hands and pull them apart or together.</span></div>
+<div class="pt"><b>Pan</b><span>Pinch with both hands and move them together.</span></div>
+</div></div>
+<figure class="handmock"><canvas id="handCv" width="1280" height="720" aria-label="Mockup: two simulated hands pinch to orbit, zoom and pan a gem in TopMod 3D"></canvas>
+<figcaption><span class="hm-tag">Mockup · simulated hands</span><span id="handLbl">Right pinch + drag · orbit</span></figcaption>
+<video id="handVid" src="media/gem360.mp4?v=20261013a" muted playsinline preload="auto" loop style="position:absolute;width:1px;height:1px;opacity:0;pointer-events:none"></video></figure>
+</div>
+<div class="in one" style="padding-top:0"><div class="lab">New tools in motion</div><div class="tclips"><figure class="tclip"><video src="media/bejewel.mp4?v=20261014a" poster="media/bejewel.jpg?v=20261014a" autoplay muted loop playsinline preload="metadata" aria-label="Bejewel in TopMod 3D"></video><figcaption><b>Bejewel</b><small>Gems on every face</small><span>Sets a cut gem on every face of a host shape, table facing out, then shows it ray-traced in the Diamond view.</span></figcaption></figure><figure class="tclip"><video src="media/aero.mp4?v=20261014a" poster="media/aero.jpg?v=20261014a" autoplay muted loop playsinline preload="metadata" aria-label="Aero in TopMod 3D"></video><figcaption><b>Aero</b><small>Wind tunnel</small><span>Streamlines coloured by speed and surface pressure from a potential-flow solve with a wake model. Quick design feedback, not certified CFD.</span></figcaption></figure><figure class="tclip"><video src="media/fea.mp4?v=20261014a" poster="media/fea.jpg?v=20261014a" autoplay muted loop playsinline preload="metadata" aria-label="FEA in TopMod 3D"></video><figcaption><b>FEA</b><small>Stress analysis</small><span>Finite-element stress on a voxelized solid: von Mises colours and exaggerated deflection, with materials and loads. Approximate, for design feedback.</span></figcaption></figure></div></div>
+</div></div></li>
+
+<li class="proj" id="credits"><div class="bw"><button class="ban" aria-expanded="false"><img src="img/credits.jpg?v=20261013a" alt="A remeshed sphere in TopMod 3D" loading="lazy"><span class="more">Open</span></button><div class="ttl"><div class="bigc">02</div><small>TopMod by Ergun Akleman · source + downloads</small><h2>Credits + files</h2></div></div>
+<div class="body"><div><div class="in">
+<div><p class="lead">TopMod was created by Dr. Ergun Akleman and his students at Texas A&amp;M University: the topological mesh modeling method, the DLFL kernel and the original application.</p>
+<p>TopMod 3D v3.0 is John Briscella's (AMAXiMAL) reformatting of TopMod for the browser and iPhone and iPad, in collaboration with Ergun Akleman, with the new tools listed under New in v3.</p></div>
+<div class="pts">
+<div class="pt"><b>Ergun Akleman, creator of TopMod</b><span><a href="https://people.tamu.edu/~ergun/" target="_blank" rel="noopener">people.tamu.edu/~ergun ↗</a></span></div>
+<div class="pt"><b>TopMod v2 source</b><span><a href="https://github.com/TopModLab/TopMod" target="_blank" rel="noopener">github.com/TopModLab/TopMod ↗</a></span></div>
+<div class="pt"><b>TopMod v2.5 for Windows</b><span><a href="https://people.tamu.edu/~ergun/research/topology/TopMod2.5.zip" rel="noopener">TopMod2.5.zip ↗</a></span></div>
+<div class="pt"><b>TopMod research + downloads</b><span><a href="https://people.tamu.edu/~ergun/research/topology/download.html" target="_blank" rel="noopener">Topological mesh modeling ↗</a></span></div>
+<div class="pt"><b>TopMod 3D v3.0</b><span><a href="https://github.com/AMAXIMAL/TopMod3D" target="_blank" rel="noopener">github.com/AMAXIMAL/TopMod3D ↗</a></span></div>
+</div></div>
+<div class="in one" style="padding-top:0"><div class="lab">Project files</div><div class="cards">
+<a href="https://github.com/AMAXIMAL/TopMod3D" target="_blank" rel="noopener"><b>GitHub repository ↗</b><span>Source, issues and version history</span></a>
+<a href="TopMod3D-v3.9.zip" download><b>Download v3.9 (.zip)</b><span>The whole app as one HTML file. Unzip and open it in any browser; works offline.</span></a>
+<a href="../software/topmod/"><b>Run it now ↗</b><span>amaximal.com/software/topmod</span></a>
+</div></div>
+</div></div></li>
+
+
+
+<li class="proj" id="comments"><div class="bw"><button class="ban" aria-expanded="false"><img src="img/comments.jpg?v=20261013a" alt="A torus in TopMod 3D" loading="lazy"><span class="more">Open</span></button><div class="ttl"><div class="bigc">03</div><small>Questions, bugs, ideas</small><h2>Comments</h2></div></div>
+<div class="body"><div><div class="in one">
+<div class="pin" role="note"><div class="who"><b>AMAXiMAL</b><span class="tag">Pinned</span></div>
+<p>Hi everyone, please leave feedback, report issues and bugs, propose solutions and new tools, and anything else you'd like to see in TopMod 3D. An agent reads every comment and works on them as soon as possible.</p></div>
+<div class="rate" id="rate">
+<div class="rsum"><span class="ravg" id="ravg">–</span><span class="rstars" aria-hidden="true"><span class="rfill" id="rfill"></span></span><span class="rcnt" id="rcnt">No ratings yet</span></div>
+<div class="rpick"><span class="rlab" id="rlab">Rate TopMod 3D</span><div class="rbtns" role="radiogroup" aria-label="Your rating out of 5 stars">
+<button type="button" role="radio" aria-checked="false" data-s="1" aria-label="1 star">★</button><button type="button" role="radio" aria-checked="false" data-s="2" aria-label="2 stars">★</button><button type="button" role="radio" aria-checked="false" data-s="3" aria-label="3 stars">★</button><button type="button" role="radio" aria-checked="false" data-s="4" aria-label="4 stars">★</button><button type="button" role="radio" aria-checked="false" data-s="5" aria-label="5 stars">★</button>
+</div><span class="rmsg" id="rmsg" role="status" aria-live="polite"></span></div>
+</div>
+<form class="cm" id="cm" novalidate>
+<p style="margin:0;color:var(--dim)">Questions, bugs, ideas, or something you made with TopMod. Comments are public.</p>
+<label for="cm-name">Name<input id="cm-name" name="name" autocomplete="name" maxlength="60" required></label>
+<label for="cm-msg">Comment<textarea id="cm-msg" name="msg" maxlength="2000" required></textarea></label>
+<input class="hp" name="website" tabindex="-1" autocomplete="off" aria-hidden="true">
+<div><button class="go" type="submit">Post comment</button></div>
+<p class="msg" role="status" aria-live="polite"></p>
+</form>
+<div class="clhead"><span id="ccount">Comments</span></div>
+<ol class="clist" id="clist"><li class="cempty">Loading comments…</li></ol>
+</div></div></div></li>
+</ul>
+
+<footer>TopMod by Ergun Akleman, Texas A&amp;M · TopMod 3D v3.0 for browser and iPhone and iPad by John Briscella · <a href="../">amaximal.com</a></footer>
+<div id="lb" role="dialog" aria-label="Image"><img alt=""></div>
+<script>
+(function(){
+var S=["buckyball__honeycomb","chainmail__stellate","cube__menger","dodecahedron__wireframe","icosahedron__doubleStellate","cymatics__dome","gem__truncate","maze3d__crust","cylinder__pentagonalize","cuboctahedron__catmull","buckyball__crust","dodecahedron__extrude"];
+var gal=document.getElementById('gal')||document.createElement('div'),lb=document.getElementById('lb');
+S.forEach(function(n){var p=n.split('__'),t=(p[0].replace('3d',' 3D')+' · '+p[1].replace(/([a-z])([A-Z])/g,'$1 $2').toLowerCase());
+ var f=document.createElement('figure'),i=document.createElement('img'),c=document.createElement('figcaption');
+ i.src='../media/topmod/'+n+'.jpg';i.alt='TopMod 3D: '+t;i.loading='lazy';c.textContent=t;f.append(i,c);
+ f.onclick=function(){lb.querySelector('img').src=i.src;lb.classList.add('on')};gal.appendChild(f)});
+lb.onclick=function(){lb.classList.remove('on')};
+document.addEventListener('keydown',function(e){if(e.key==='Escape')lb.classList.remove('on')});
+
+var touch=matchMedia('(hover:none)').matches;
+function setOpen(li,o){li.classList.toggle('open',o);li.querySelector('.ban').setAttribute('aria-expanded',o);li.querySelector('.more').textContent=o?'Close':'Open';
+ var f=li.querySelector('iframe');if(f){if(o&&!f.src){f.src=f.dataset.src;fit()}
+ if(!o&&f.src){f.removeAttribute('src')}}}
+function fit(){var st=document.getElementById('stage');if(!st)return;var k=st.clientWidth/1440;st.querySelector('.scaler').style.transform='scale('+k+')'}
+addEventListener('resize',fit);if(window.ResizeObserver)new ResizeObserver(fit).observe(document.getElementById('stage'));
+document.querySelectorAll('.proj').forEach(function(li){li.querySelector('.ban').onclick=function(){setOpen(li,!li.classList.contains('open'))}});
+function openHash(){var id=(location.hash||'').slice(1),el=id&&document.getElementById(id);if(el&&el.classList.contains('proj')){setOpen(el,true);setTimeout(function(){el.scrollIntoView({behavior:'smooth',block:'start'})},80);return true}return false}
+var opened=openHash();if(!opened)setOpen(document.getElementById('open'),true);setOpen(document.getElementById('comments'),true);
+addEventListener('hashchange',openHash);
+
+var T0=Date.now(),PAGE='topmod3d',API='/api/comments',list=document.getElementById('clist'),count=document.getElementById('ccount'),ALL=[];
+var PREVIEW=window.TM_PREVIEW||null;
+function ago(ts){var s=(Date.now()-ts)/1000;if(s<60)return 'just now';var m=s/60;if(m<60)return Math.floor(m)+' min ago';var h=m/60;if(h<24)return Math.floor(h)+' h ago';var d=h/24;if(d<30)return Math.floor(d)+' d ago';return new Date(ts).toLocaleDateString(undefined,{year:'numeric',month:'short',day:'numeric'})}
+function el(t,c,x){var e=document.createElement(t);if(c)e.className=c;if(x!=null)e.textContent=x;return e}
+function card(c){var d=el('div','c'),w=el('div','who');w.append(el('b',null,c.name));var t=el('time',null,ago(c.ts));t.dateTime=new Date(c.ts).toISOString();t.title=new Date(c.ts).toLocaleString();w.append(t);if(c.example)w.append(el('span','tag','Example'));d.append(w,el('p',null,c.msg));return d}
+function savedName(){try{return localStorage.getItem('amx-cname')||''}catch(e){return ''}}
+function keepName(n){try{localStorage.setItem('amx-cname',n)}catch(e){}}
+function render(){list.textContent='';var top=ALL.filter(function(c){return !c.parent});
+ var n=ALL.length;count.textContent=n?(n+(n===1?' comment':' comments')):'Comments';
+ if(!top.length){list.append(el('li','cempty','No comments yet. Be the first.'));return}
+ top.forEach(function(c){var li=el('li');li.append(card(c));
+  var reps=ALL.filter(function(r){return r.parent===c.id}).sort(function(a,b){return a.ts-b.ts});
+  var rb=el('button','rb','Reply'+(reps.length?' ('+reps.length+')':''));rb.type='button';li.append(rb);
+  if(reps.length){var ul=el('ol','replies');reps.forEach(function(r){var rl=el('li');rl.append(card(r));ul.append(rl)});li.append(ul)}
+  rb.onclick=function(){var f=li.querySelector('form.rf');if(f){f.remove();return}f=makeForm(c.id);li.append(f);f.querySelector('textarea').focus()};
+  list.append(li)})}
+function makeForm(parent){var f=el('form','cm rf');f.noValidate=true;var id='r'+parent;
+ f.innerHTML='<label for="'+id+'n">Name<input id="'+id+'n" name="name" autocomplete="name" maxlength="60" required></label><label for="'+id+'m">Reply<textarea id="'+id+'m" name="msg" maxlength="2000" required></textarea></label><input class="hp" name="website" tabindex="-1" autocomplete="off" aria-hidden="true"><div><button class="go" type="submit">Post reply</button></div><p class="msg" role="status" aria-live="polite"></p>';
+ f.querySelector('input[name=name]').value=savedName();wire(f,parent);return f}
+function post(body){if(PREVIEW){var c={id:Math.random().toString(16).slice(2,10),name:body.name,msg:body.msg,ts:Date.now()};if(body.parent)c.parent=body.parent;return Promise.resolve({ok:true,comment:c})}
+ return fetch(API,{method:'POST',headers:{'content-type':'application/json'},body:JSON.stringify(body)}).then(function(r){return r.json().then(function(j){if(!r.ok)throw new Error(j.error||'Could not post.');return j})})}
+function wire(f,parent){f.addEventListener('submit',function(ev){ev.preventDefault();var d=new FormData(f),out=f.querySelector('.msg');
+ var name=(d.get('name')||'').trim(),msg=(d.get('msg')||'').trim();
+ if(!name||!msg){out.textContent='Please add your name and a comment.';return}
+ var b=f.querySelector('button');b.disabled=true;out.textContent='Posting…';
+ post({page:PAGE,name:name,msg:msg,parent:parent||'',website:d.get('website')||'',t:T0})
+  .then(function(j){keepName(name);ALL.unshift(j.comment);render();if(parent){}else{f.querySelector('textarea').value='';out.textContent='Posted.'}})
+  .catch(function(e){out.textContent=(e&&e.message)||'Could not post. Try again in a moment.'})
+  .finally(function(){b.disabled=false})})}
+
+/* ratings */
+var RAPI='/api/rating',rb=[].slice.call(document.querySelectorAll('.rbtns button')),rmsg=document.getElementById('rmsg'),R={avg:0,count:0,dist:[0,0,0,0,0],mine:0};
+var RPREV=window.TM_RPREVIEW||null;
+function paintR(){var pct=(R.avg/5*100)+'%';document.getElementById('rfill').style.width=pct;document.getElementById('ifill').style.width=pct;
+ document.getElementById('ravg').textContent=R.count?R.avg.toFixed(1):'–';
+ document.getElementById('rcnt').textContent=R.count?(R.count+(R.count===1?' rating':' ratings')):'No ratings yet';
+ var ib=document.getElementById('ibadge');ib.hidden=!R.count;document.getElementById('itxt').textContent=R.count?(R.avg.toFixed(1)+' · '+R.count+(R.count===1?' rating':' ratings')):'';
+ document.getElementById('rlab').textContent=R.mine?'Your rating':'Rate TopMod 3D';
+ rb.forEach(function(b){var n=+b.dataset.s;b.classList.toggle('on',n<=R.mine);b.setAttribute('aria-checked',n===R.mine)})}
+function shapeR(d){var c=d.dist.reduce(function(a,b){return a+b},0),s=d.dist.reduce(function(a,n,i){return a+n*(i+1)},0);return {avg:c?Math.round(s/c*10)/10:0,count:c,dist:d.dist,mine:d.mine||0}}
+function vote(n){rmsg.textContent='Saving…';
+ var p=RPREV?Promise.resolve((function(){var d=R.dist.slice();if(R.mine)d[R.mine-1]--;d[n-1]++;return shapeR({dist:d,mine:n})})())
+  :fetch(RAPI,{method:'POST',headers:{'content-type':'application/json'},body:JSON.stringify({page:PAGE,stars:n})}).then(function(r){return r.json().then(function(j){if(!r.ok)throw new Error(j.error);return j})});
+ p.then(function(j){var had=R.mine;R=j;paintR();rmsg.textContent=had?'Rating updated.':'Thanks for rating.'}).catch(function(e){rmsg.textContent=(e&&e.message)||'Could not save your rating.'})}
+rb.forEach(function(b){var n=+b.dataset.s;b.onclick=function(){vote(n)};
+ b.onmouseenter=function(){rb.forEach(function(x){x.classList.toggle('on',+x.dataset.s<=n)})};
+ b.onmouseleave=paintR});
+if(RPREV){R=shapeR(RPREV);paintR()}
+else fetch(RAPI+'?page='+PAGE,{cache:'no-store'}).then(function(r){return r.json().then(function(j){if(!r.ok)throw 0;return j})}).then(function(j){R=j;paintR()}).catch(function(){paintR()});
+var main=document.getElementById('cm');main.querySelector('input[name=name]').value=savedName();wire(main,'');
+if(PREVIEW){ALL=PREVIEW.slice();render()}
+else fetch(API+'?page='+PAGE,{cache:'no-store'}).then(function(r){return r.json().then(function(j){if(!r.ok)throw new Error(j.error);return j})})
+ .then(function(j){ALL=j.comments||[];render()})
+ .catch(function(){list.textContent='';list.append(el('li','cempty','Comments open soon.'))});
+})();
+/* hands mockup: simulated MediaPipe hands pinch to orbit / zoom / pan the gem */
+(function(){
+ var cv=document.getElementById('handCv');if(!cv)return;var g=cv.getContext('2d'),vid=document.getElementById('handVid'),lbl=document.getElementById('handLbl');
+ var W=1280,H=720,T=16,on=false,last=0,clock=0,rm=matchMedia('(prefers-reduced-motion: reduce)').matches;
+ // right hand, palm to camera, fingers up; wrist at 0,0, unit ~ palm length
+ var BASE=[[0,0],[-.32,-.14],[-.58,-.32],[-.74,-.52],[-.86,-.72],[-.3,-.78],[-.34,-1.12],[-.37,-1.34],[-.4,-1.54],[-.05,-.82],[-.06,-1.2],[-.07,-1.45],[-.08,-1.66],[.18,-.78],[.2,-1.12],[.21,-1.35],[.22,-1.54],[.38,-.68],[.44,-.94],[.48,-1.1],[.51,-1.26]];
+ var BONES=[[0,1],[1,2],[2,3],[3,4],[0,5],[5,6],[6,7],[7,8],[5,9],[9,10],[10,11],[11,12],[9,13],[13,14],[14,15],[15,16],[13,17],[0,17],[17,18],[18,19],[19,20]];
+ function hand(p){ // p: pinch 0..1
+  var P=[-.6,-1.0],h=BASE.map(function(q){return q.slice()});
+  function mv(i,t,x,y){h[i][0]+= (x-h[i][0])*t; h[i][1]+=(y-h[i][1])*t;}
+  mv(4,p,P[0]-.02,P[1]+.02); mv(3,p*.6,-.7,-.72); mv(8,p,P[0]+.02,P[1]-.02); mv(7,p*.8,-.48,-1.16); mv(6,p*.4,-.38,-1.08);
+  [12,16,20].forEach(function(i,k){mv(i,p*.35,h[i-2][0]-.04,h[i-2][1]+.12)});
+  return h;}
+ function ease(t){t=Math.max(0,Math.min(1,t));return t*t*(3-2*t)}
+ function seg(t,a,b){return ease((t-a)/(b-a))}
+ // timeline -> state
+ function state(t){
+  var s={R:{x:.74,y:.6,p:0,a:1},L:{x:.26,y:.6,p:0,a:0},zoom:1,px:0,py:0,spin:0,label:'Right pinch + drag · orbit'};
+  // orbit 0.6-5.2
+  var pin=seg(t,.8,1.2)-seg(t,4.4,4.8), drag=seg(t,1.2,4.4);
+  s.R.p=pin; s.R.x=.74-.32*drag; s.spin=drag;
+  if(t>4.8){ s.R.x=.42+.32*seg(t,4.8,5.6); }
+  // zoom 5.6-10.4
+  if(t>5.6){ s.label='Both pinch, pull apart · zoom'; s.L.a=seg(t,5.6,6.2);
+   var zp=seg(t,6.3,6.7)-seg(t,9.4,9.8), sp=seg(t,6.7,9.2);
+   s.L.p=s.R.p=zp; s.L.x=.35-.13*sp; s.R.x=.65+.13*sp; s.L.y=s.R.y=.56; s.zoom=1+.55*sp;
+   if(t<6.3){ s.L.x=.26+.09*seg(t,5.6,6.3); s.R.x=.74-.09*seg(t,5.6,6.3); }}
+  // pan 10.4-15.2
+  if(t>9.8){ s.label='Both pinch, move together · pan'; s.zoom=1.55;
+   var pp=seg(t,10.2,10.6)-seg(t,13.6,14), mv=seg(t,10.6,13.4);
+   s.L.p=s.R.p=pp; s.L.x=.22+.12*mv; s.R.x=.78+.12*mv; s.L.y=s.R.y=.56-.1*mv; s.px=.14*mv; s.py=-.12*mv;
+   if(t<10.2){ s.L.x=.22+0*0; s.R.x=.78; }}
+  // reset 14-16
+  if(t>14){ var r=seg(t,14.2,15.6); s.zoom=1.55-.55*r; s.px*=1-r; s.py*=1-r; s.L.a=1-r; s.R.x=.9-.16*r; s.R.y=.46+.14*r; s.L.x=.38-.12*r; s.label='Right pinch + drag · orbit'; }
+  return s;}
+ function drawHand(H_,cx,cy,sc,mirror,a,pinch){
+  if(a<=0)return; var pts=H_.map(function(q){return [cx+(mirror?-q[0]:q[0])*sc, cy+q[1]*sc]});
+  g.save();g.globalAlpha=a;g.lineCap='round';g.lineJoin='round';
+  g.strokeStyle='rgba(233,236,227,.10)';g.lineWidth=sc*.2;BONES.forEach(function(b){g.beginPath();g.moveTo(pts[b[0]][0],pts[b[0]][1]);g.lineTo(pts[b[1]][0],pts[b[1]][1]);g.stroke()});
+  g.strokeStyle='#c6ff1a';g.lineWidth=3;BONES.forEach(function(b){g.beginPath();g.moveTo(pts[b[0]][0],pts[b[0]][1]);g.lineTo(pts[b[1]][0],pts[b[1]][1]);g.stroke()});
+  g.fillStyle='#ffffff';pts.forEach(function(q){g.beginPath();g.arc(q[0],q[1],4.5,0,7);g.fill()});
+  if(pinch>.6){var m=[(pts[4][0]+pts[8][0])/2,(pts[4][1]+pts[8][1])/2];g.globalAlpha=a*pinch;g.strokeStyle='#c6ff1a';g.lineWidth=3;g.beginPath();g.arc(m[0],m[1],16+6*Math.sin(clock*8),0,7);g.stroke();g.fillStyle='rgba(198,255,26,.25)';g.fill();}
+  g.restore();}
+ function frame(ts){
+  if(!on)return; var dt=last?Math.min(.05,(ts-last)/1000):0;last=ts;clock+=dt;var t=clock%T,s=state(t);
+  // orbit: play the 360 while dragging
+  if(vid.readyState>=2){ var want=s.R.p>.6&&t<4.6; if(want&&vid.paused)vid.play().catch(function(){}); if(!want&&!vid.paused)vid.pause(); vid.playbackRate=1.4; }
+  g.fillStyle='#05060a';g.fillRect(0,0,W,H);
+  if(vid.readyState>=2){ var vw=vid.videoWidth,vh=vid.videoHeight,k=Math.max(W/vw,H/vh)*s.zoom; g.save(); g.translate(W/2+s.px*W,H/2+s.py*H); g.scale(k,k); g.drawImage(vid,-vw*.57,-vh/2); g.restore(); }
+  g.fillStyle='rgba(5,6,10,.25)';g.fillRect(0,0,W,H);
+  g.font='500 18px "JetBrains Mono",monospace';g.fillStyle='#8b927f';g.fillText('✋ HANDS · webcam',28,42);
+  g.fillStyle=(s.L.p>.6||s.R.p>.6)?'#c6ff1a':'#8b927f';g.fillText((s.L.p>.6||s.R.p>.6)?'● PINCH':'○ open',W-150,42);
+  var sc=185; drawHand(hand(s.L.p),s.L.x*W,s.L.y*H+sc*.9,sc,true,s.L.a,s.L.p); drawHand(hand(s.R.p),s.R.x*W,s.R.y*H+sc*.9,sc,false,s.R.a,s.R.p);
+  if(lbl.textContent!==s.label)lbl.textContent=s.label;
+  requestAnimationFrame(frame);}
+ function start(){ if(on)return; on=true; last=0; requestAnimationFrame(frame); }
+ function stop(){ on=false; try{vid.pause()}catch(e){} }
+ if(rm){ clock=2.5; on=true; vid.addEventListener('loadeddata',function(){frame(0);on=false}); frame(0); on=false; return; }
+ new IntersectionObserver(function(es){es.forEach(function(e){e.isIntersecting?start():stop()})},{threshold:.15}).observe(cv);
+})();
+</script>
+</body>
+</html>
