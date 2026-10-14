@@ -896,16 +896,14 @@ body.opDock #tpBody label.mkrow>select{flex:1 1 100%!important;width:100%!import
 #menubar .mi[data-rm].on,#menubar .mi[data-ui].on,.mlist .mi[data-rm].on,.mlist .mi[data-ui].on{color:#00E5FF}
 .mlist .mi[data-rm].on::before,.mlist .mi[data-ui].on::before{content:"\2713  ";color:#00E5FF;font-weight:700}
 .mlist .mlab{padding:6px 12px 2px;font:800 9px var(--mono,monospace);letter-spacing:1.6px;text-transform:uppercase;color:#6f8ba0}
-/* White UI mode: light chrome, light 3D backdrop */
-body.uiLight #menubar,body.uiLight #toolbar,body.uiLight #toolpop,body.uiLight #layersPanel,body.uiLight #modPanel,body.uiLight #status,body.uiLight .mlist,body.uiLight #fabNode{filter:invert(1) hue-rotate(180deg)}
-body.uiLight #toolbar img.ticon,body.uiLight #toolbar svg,body.uiLight #status #lightBtn{filter:invert(1) hue-rotate(180deg)}
+/* UI modes — White (orange accent) and Grey (lime accent) are colour transforms of the dark UI; tool icons are counter-filtered to keep their colours */
+body.uiLight #menubar,body.uiLight #toolbar,body.uiLight #toolpop,body.uiLight #layersPanel,body.uiLight #modPanel,body.uiLight #status,body.uiLight .mlist,body.uiLight #fabNode,body.uiLight #console,body.uiLight #tourCard,body.uiLight #creditCard,body.uiLight #handPrim,body.uiLight #toast,body.uiLight #amxDemo{filter:invert(1) hue-rotate(25deg)}
+body.uiLight #toolbar img.ticon,body.uiLight #toolbar svg,body.uiLight #status #lightBtn{filter:hue-rotate(-25deg) invert(1)}
 body.uiLight,body.uiLight #frame,body.uiLight #main{background:#eef1f5!important}
-body.uiLight #tbDockBar,body.uiLight #opDockBar,body.uiLight #ocBar{background:#e3e8ee!important}
-/* Layers / Modifiers / Options section labels: short header bars */
-html body #layersHead,html body #modHead,html body.opDock.rStack #layersHead,html body #tpHead{min-height:0!important;height:auto!important;padding:2px 8px!important;font-size:9.5px!important;line-height:16px!important}
-html body #tpHead #tpTitle{font-size:9.5px!important;line-height:16px!important}
-html body #layersHead,html body #layersHead span,html body #modHead{font:800 9.5px/16px var(--mono,monospace)!important;letter-spacing:1.6px!important;color:#00E5FF!important;text-transform:uppercase}
-html body #layersHead .secChev,html body #modHead .secChev{font-size:9px!important}
+body.uiLight #tbDockBar,body.uiLight #opDockBar,body.uiLight #ocBar{background:transparent!important}
+body.uiGrey #menubar,body.uiGrey #toolbar,body.uiGrey #toolpop,body.uiGrey #layersPanel,body.uiGrey #modPanel,body.uiGrey #status,body.uiGrey .mlist,body.uiGrey #fabNode,body.uiGrey #console,body.uiGrey #tourCard,body.uiGrey #creditCard,body.uiGrey #handPrim,body.uiGrey #toast,body.uiGrey #amxDemo{filter:invert(.2) hue-rotate(-100deg) saturate(1.15)}
+body.uiGrey #toolbar img.ticon,body.uiGrey #toolbar svg,body.uiGrey #status #lightBtn{filter:hue-rotate(100deg) contrast(1.15)}
+body.uiGrey,body.uiGrey #frame,body.uiGrey #main{background:#3b3f45!important}
 /* top bar: no Controller / Send model / Generators */
 #menubar>button.tb,#ekMenu{display:none!important}
 /* touch devices: each top menu is a native picker, exactly like the bottom-bar shading select */
@@ -922,6 +920,8 @@ html body #layersHead .secChev,html body #modHead .secChev{font-size:9px!importa
 #creditCard .row a,#creditCard .row button{flex:1;text-align:center;text-decoration:none;background:rgba(0,229,255,.1);border:1px solid rgba(0,229,255,.4);color:#bff3ff;border-radius:8px;padding:7px 8px;font:700 11.5px var(--font,system-ui);cursor:pointer}
 #creditCard .row a.go{background:#00E5FF;color:#04222a;border-color:#00E5FF}
 #creditShade{position:fixed;inset:0;background:rgba(3,6,12,.6);z-index:100019}
+body.uiLight #navcube>button,body.uiLight #tbScroll,body.uiLight #mbScroll{filter:invert(1) hue-rotate(25deg)}
+body.uiGrey #navcube>button,body.uiGrey #tbScroll,body.uiGrey #mbScroll{filter:invert(.2) hue-rotate(-100deg) saturate(1.15)}
 /* Layers + Modifiers rows: one compact style — small, bold, white, no decorative icons */
 #layerList .layerRow,#modList .modRow,#fabNode.added{min-height:0!important;padding:3px 6px!important;font:700 11px/1.25 var(--font,system-ui)!important;color:#fff!important;border-radius:6px!important}
 #layerList .layerRow .layerName,#modList .modRow .modName,#fabNode .modName{font:700 11px/1.25 var(--font,system-ui)!important;color:#fff!important;font-style:normal!important}
@@ -962,19 +962,20 @@ body.phone #ncFocus{left:-26px!important;top:50px!important;width:22px!important
 /* nav cube tucked into the top-right corner: ⌂ ⟳ ⛶ in a column on its left, ◎ focus on its upper-right corner */
 #navcube{top:4px!important;right:4px!important}
 #ncHome,#ncSpin,#ncFull{position:absolute!important;right:auto!important;left:-20px!important;width:16px!important;height:16px!important;border-radius:50%!important;padding:0!important;line-height:1!important;font-size:10px!important}
-#ncHome{top:2px!important}#ncSpin{top:22px!important}#ncFull{top:42px!important}
+#ncHome{top:2px!important}#ncSpin{top:22px!important}#ncFull{top:auto!important;bottom:-2px!important;left:auto!important;right:-2px!important}
 #ncFull{background:rgba(0,229,255,0.14);border:1px solid rgba(0,229,255,0.4);color:var(--cyan);cursor:pointer;z-index:31}
 #ncFull:hover,#ncFull.on{background:var(--cyan);color:#04222a}
 #ncFocus{top:-2px!important;right:-2px!important;left:auto!important}
 body.phone #navcube{top:4px!important;right:4px!important}
 body.phone #ncHome,body.phone #ncSpin,body.phone #ncFull{left:-26px!important;width:22px!important;height:22px!important;font-size:12px!important}
-body.phone #ncHome{top:0!important}body.phone #ncSpin{top:26px!important}body.phone #ncFull{top:52px!important}
+body.phone #ncHome{top:0!important}body.phone #ncSpin{top:26px!important}body.phone #ncFull{top:auto!important;bottom:-4px!important;left:auto!important;right:-4px!important;width:20px!important;height:20px!important}
 body.phone #ncFocus{top:-4px!important;right:-4px!important;left:auto!important;width:20px!important;height:20px!important}
 /* full screen = only the geometry + nav cube: every panel, bar and handle goes */
 body.fullscreen #toolbar,body.fullscreen #tbDockBar,body.fullscreen #toolpop,body.fullscreen #opDockBar,body.fullscreen #ocBar,body.fullscreen #layersPanel,body.fullscreen #modPanel,body.fullscreen .rSp,body.fullscreen #rSplit,body.fullscreen #rTabs,body.fullscreen #tbScroll,body.fullscreen #mbScroll,body.fullscreen #fabNode,body.fullscreen #menubar,body.fullscreen #status,body.fullscreen #amxDemo{display:none!important}
 body.fullscreen #main{padding:0!important}
-html body.fullscreen.fullscreen.fullscreen.fullscreen.fullscreen.fullscreen.fullscreen #toolbar,html body.fullscreen.fullscreen.fullscreen.fullscreen.fullscreen.fullscreen.fullscreen #tbDockBar,html body.fullscreen.fullscreen.fullscreen.fullscreen.fullscreen.fullscreen.fullscreen #toolpop,html body.fullscreen.fullscreen.fullscreen.fullscreen.fullscreen.fullscreen.fullscreen #opDockBar,html body.fullscreen.fullscreen.fullscreen.fullscreen.fullscreen.fullscreen.fullscreen #ocBar,html body.fullscreen.fullscreen.fullscreen.fullscreen.fullscreen.fullscreen.fullscreen #layersPanel,html body.fullscreen.fullscreen.fullscreen.fullscreen.fullscreen.fullscreen.fullscreen #modPanel,html body.fullscreen.fullscreen.fullscreen.fullscreen.fullscreen.fullscreen.fullscreen .rSp,html body.fullscreen.fullscreen.fullscreen.fullscreen.fullscreen.fullscreen.fullscreen #rSplit,html body.fullscreen.fullscreen.fullscreen.fullscreen.fullscreen.fullscreen.fullscreen #rTabs,html body.fullscreen.fullscreen.fullscreen.fullscreen.fullscreen.fullscreen.fullscreen #tbScroll,html body.fullscreen.fullscreen.fullscreen.fullscreen.fullscreen.fullscreen.fullscreen #mbScroll,html body.fullscreen.fullscreen.fullscreen.fullscreen.fullscreen.fullscreen.fullscreen #fabNode,html body.fullscreen.fullscreen.fullscreen.fullscreen.fullscreen.fullscreen.fullscreen #menubar,html body.fullscreen.fullscreen.fullscreen.fullscreen.fullscreen.fullscreen.fullscreen #status,html body.fullscreen.fullscreen.fullscreen.fullscreen.fullscreen.fullscreen.fullscreen #amxDemo,html body.fullscreen.fullscreen.fullscreen.fullscreen.fullscreen.fullscreen.fullscreen #fabReplay{display:none!important}
+html body.fullscreen.fullscreen.fullscreen.fullscreen.fullscreen.fullscreen.fullscreen #toolbar,html body.fullscreen.fullscreen.fullscreen.fullscreen.fullscreen.fullscreen.fullscreen #tbDockBar,html body.fullscreen.fullscreen.fullscreen.fullscreen.fullscreen.fullscreen.fullscreen #toolpop,html body.fullscreen.fullscreen.fullscreen.fullscreen.fullscreen.fullscreen.fullscreen #opDockBar,html body.fullscreen.fullscreen.fullscreen.fullscreen.fullscreen.fullscreen.fullscreen #ocBar,html body.fullscreen.fullscreen.fullscreen.fullscreen.fullscreen.fullscreen.fullscreen #layersPanel,html body.fullscreen.fullscreen.fullscreen.fullscreen.fullscreen.fullscreen.fullscreen #modPanel,html body.fullscreen.fullscreen.fullscreen.fullscreen.fullscreen.fullscreen.fullscreen .rSp,html body.fullscreen.fullscreen.fullscreen.fullscreen.fullscreen.fullscreen.fullscreen #rSplit,html body.fullscreen.fullscreen.fullscreen.fullscreen.fullscreen.fullscreen.fullscreen #rTabs,html body.fullscreen.fullscreen.fullscreen.fullscreen.fullscreen.fullscreen.fullscreen #tbScroll,html body.fullscreen.fullscreen.fullscreen.fullscreen.fullscreen.fullscreen.fullscreen #mbScroll,html body.fullscreen.fullscreen.fullscreen.fullscreen.fullscreen.fullscreen.fullscreen #fabNode,html body.fullscreen.fullscreen.fullscreen.fullscreen.fullscreen.fullscreen.fullscreen #menubar,html body.fullscreen.fullscreen.fullscreen.fullscreen.fullscreen.fullscreen.fullscreen #amxDemo,html body.fullscreen.fullscreen.fullscreen.fullscreen.fullscreen.fullscreen.fullscreen #fabReplay{display:none!important}
 html body.fullscreen.fullscreen.fullscreen.fullscreen.fullscreen.fullscreen.fullscreen #main{padding:0!important}
+html body.fullscreen.fullscreen.fullscreen.fullscreen.fullscreen.fullscreen.fullscreen #status{display:flex!important}
 /* the 3D view runs right up to the columns — the resize bars float over its edges instead of taking space */
 body.tbDock #main{padding-left:calc(var(--tbw,150px) + env(safe-area-inset-left))!important}
 body.opCol.opDock.opOpen #main{padding-right:calc(var(--opw,280px) + var(--ocw,260px) + 6px + env(safe-area-inset-right))!important}
@@ -1068,8 +1069,9 @@ html.inApp [data-act="fullscreen"],html.inApp [data-act="shortcuts"],html.inApp 
       <div class="mi" data-act="tgSeam">Toggle Seam Highlights</div>
       <div class="msep"></div>
       <div class="mlab">Interface</div>
-      <div class="mi" data-ui="dark">Dark mode (default)</div>
-      <div class="mi" data-ui="light">White mode</div>
+      <div class="mi" data-ui="dark">Dark mode (default · cyan)</div>
+      <div class="mi" data-ui="grey">Grey mode (lime)</div>
+      <div class="mi" data-ui="light">White mode (orange)</div>
       <div class="msep"></div>
       <div class="mi" data-act="tgB">Toggle Bounding Box</div>
       <div class="mi" data-act="tgSec">Toggle Section Plane</div>
@@ -7593,7 +7595,8 @@ function updateViewLights(){
 
 const GROUND_Y=-2.6;
 const grid=new THREE.GridHelper(10,10,0x7fd8ef,0x4699b3);   // 10 x 10 ground, 1-inch cells
-window.__setSceneBg=function(light){ try{ scene.background=new THREE.Color(light?0xeef1f5:0x080a12); const ms=Array.isArray(grid.material)?grid.material:[grid.material]; ms.forEach((mt,i)=>{ mt.color&&mt.color.set(light?(i?0x8fa3b6:0x3b6e8a):(i?0x4699b3:0x7fd8ef)); }); }catch(e){} };
+window.__setSceneBg=function(m){ if(m===true) m="light"; if(!m) m="dark"; try{ const C={dark:[0x080a12,0x7fd8ef,0x4699b3],grey:[0x3b3f45,0xb8f04a,0x7d8a6a],light:[0xeef1f5,0xe07a1f,0xb9a48c]}[m]||[0x080a12,0x7fd8ef,0x4699b3];
+  scene.background=new THREE.Color(C[0]); const ms=Array.isArray(grid.material)?grid.material:[grid.material]; ms.forEach((mt,i)=>{ mt.color&&mt.color.set(i?C[2]:C[1]); }); }catch(e){} };
 grid.material.transparent=true; grid.material.opacity=0.33;
 grid.position.y=GROUND_Y; scene.add(grid);
 // 10 x 10 x 10 inch build-volume reference (child of grid -> toggles & moves with it)
@@ -18310,9 +18313,9 @@ void main(){
  setTimeout(upd,300); setTimeout(upd,1500); }
  if(document.readyState==="loading") document.addEventListener("DOMContentLoaded",init); else init();})();</script>
 <script>/* View ▸ Interface: Dark (default) / White mode — remembered per device */
-(function(){ function apply(m){ var L=m==="light"; document.body.classList.toggle("uiLight",L);
-   try{ if(window.__setSceneBg) window.__setSceneBg(L); }catch(e){}
-   document.querySelectorAll("[data-ui]").forEach(function(el){ el.classList.toggle("on",el.dataset.ui===(L?"light":"dark")); }); }
+(function(){ function apply(m){ if(["dark","grey","light"].indexOf(m)<0) m="dark"; document.body.classList.toggle("uiLight",m==="light"); document.body.classList.toggle("uiGrey",m==="grey");
+   try{ if(window.__setSceneBg) window.__setSceneBg(m); }catch(e){}
+   document.querySelectorAll("[data-ui]").forEach(function(el){ el.classList.toggle("on",el.dataset.ui===m); }); }
  function init(){ var m="dark"; try{ m=localStorage.getItem("tmUI")||"dark"; }catch(e){} apply(m);
    var vs=document.getElementById("viewStyleSel"); var cur=(vs&&vs.value)||"solid"; document.querySelectorAll("[data-rm]").forEach(function(el){ el.classList.toggle("on",el.dataset.rm===cur); });
    document.querySelectorAll("[data-ui]").forEach(function(el){ el.addEventListener("click",function(e){ e.stopPropagation(); document.querySelectorAll("#menubar .menu.open").forEach(function(x){x.classList.remove("open");});

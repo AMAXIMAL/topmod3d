@@ -90,7 +90,7 @@ if not a.push:
 bdir = os.path.join(DIST, "build"); os.makedirs(bdir, exist_ok=True)
 arch = os.path.join(bdir, f"TOPMOD3D_v{ver}_b{build}.xcarchive")
 print(f"  archive -> {arch}")
-ASC_AUTH=["-authenticationKeyPath", os.path.expanduser("~/.appstoreconnect/private_keys/AuthKey_PW399VNN7W.p8"), "-authenticationKeyID", "PW399VNN7W", "-authenticationKeyIssuerID", "69d7513b-182f-4cfc-afc2-afc77f297803"]   # App Store Connect API key — uploads no longer depend on Xcode being signed in
+ASC_AUTH=[] if os.environ.get("TM_USE_XCODE_ACCOUNT") else ["-authenticationKeyPath", os.path.expanduser("~/.appstoreconnect/private_keys/AuthKey_PW399VNN7W.p8"), "-authenticationKeyID", "PW399VNN7W", "-authenticationKeyIssuerID", "69d7513b-182f-4cfc-afc2-afc77f297803"]   # App Store Connect API key — uploads no longer depend on Xcode being signed in
 r = subprocess.run(["xcodebuild", "-project", PROJ, "-scheme", "TOPMOD 3D", "-configuration", "Release",
                     "-destination", "generic/platform=iOS", "-archivePath", arch, "-allowProvisioningUpdates"]+ASC_AUTH+["archive"],
                    stdout=open(os.path.join(bdir, "archive.log"), "w"), stderr=subprocess.STDOUT)
