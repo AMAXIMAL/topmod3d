@@ -90,14 +90,15 @@ if not a.push:
 bdir = os.path.join(DIST, "build"); os.makedirs(bdir, exist_ok=True)
 arch = os.path.join(bdir, f"TOPMOD3D_v{ver}_b{build}.xcarchive")
 print(f"  archive -> {arch}")
+ASC_AUTH=["-authenticationKeyPath", os.path.expanduser("~/.appstoreconnect/private_keys/AuthKey_PW399VNN7W.p8"), "-authenticationKeyID", "PW399VNN7W", "-authenticationKeyIssuerID", "69d7513b-182f-4cfc-afc2-afc77f297803"]   # App Store Connect API key — uploads no longer depend on Xcode being signed in
 r = subprocess.run(["xcodebuild", "-project", PROJ, "-scheme", "TOPMOD 3D", "-configuration", "Release",
-                    "-destination", "generic/platform=iOS", "-archivePath", arch, "-allowProvisioningUpdates", "archive"],
+                    "-destination", "generic/platform=iOS", "-archivePath", arch, "-allowProvisioningUpdates"]+ASC_AUTH+["archive"],
                    stdout=open(os.path.join(bdir, "archive.log"), "w"), stderr=subprocess.STDOUT)
 if r.returncode: sys.exit(f"ARCHIVE FAILED — see {bdir}/archive.log")
 print("  upload  -> App Store Connect …")
 log = os.path.join(bdir, "upload.log")
 r = subprocess.run(["xcodebuild", "-exportArchive", "-archivePath", arch, "-exportOptionsPlist", EXPORT_OPTS,
-                    "-exportPath", os.path.join(bdir, "export"), "-allowProvisioningUpdates"],
+                    "-exportPath", os.path.join(bdir, "export"), "-allowProvisioningUpdates"]+ASC_AUTH,
                    stdout=open(log, "w"), stderr=subprocess.STDOUT)
 tail = [l for l in open(log).read().splitlines() if "error" in l.lower() or "succeeded" in l.lower() or "Upload" in l][-6:]
 print("\n".join("    " + l for l in tail))

@@ -855,6 +855,21 @@ body.rStack #modList{flex:0 1 auto!important}
 /* ---- ONE UI: docked tools column (left) + stacked Layers · Modifiers · Options column (right), both width-adjustable. No floating / tucked / bottom-dock variants. ---- */
 #dock,#dockToggle,#layersToggle,#optionsToggle{display:none!important}
 .rightTucked #toolpop,.rightTucked #layersPanel,.rightTucked #modPanel{transform:none!important}
+/* ---- Options = its own column (between the 3D view and the Layers · Modifiers column), own width bar ---- */
+body.opCol{--rw:calc(var(--opw,280px) + var(--ocw,260px) + 12px)}
+body.opCol.opDock #toolpop{right:calc(var(--opw,280px) + 6px + env(safe-area-inset-right))!important;width:var(--ocw,260px)!important;top:var(--tbTop,52px)!important;bottom:var(--tbBot,44px)!important;display:flex!important;border-right:0!important}
+body.opCol.opDock.opOpen #main{padding-right:calc(var(--opw,280px) + var(--ocw,260px) + 12px + env(safe-area-inset-right))}
+body.opCol #rSpB{display:none!important}
+body.opCol.opDock.opOpen.rStack #modPanel{height:auto!important;bottom:var(--tbBot,44px)!important}
+#ocBar{display:none}
+body.opCol.opDock.opOpen #ocBar{display:block;position:fixed;top:var(--tbTop,52px);bottom:var(--tbBot,44px);right:calc(var(--opw,280px) + var(--ocw,260px) + 6px + env(safe-area-inset-right));width:6px;z-index:41;cursor:ew-resize;touch-action:none;background:#0b0f18;border-left:1px solid rgba(0,229,255,.12)}
+body.opCol #ocBar::after{content:"";position:absolute;left:1px;top:50%;width:3px;height:34px;margin-top:-17px;border-radius:2px;background:rgba(0,229,255,.45)}
+body.opCol #ocBar:hover,body.opCol #ocBar.drag{background:rgba(0,229,255,.18)}
+body.opCol.fullscreen #ocBar{display:none!important}
+/* collapsible Layers / Modifiers sections */
+.secChev{background:transparent;border:0;color:#00E5FF;font-size:11px;width:16px;padding:0;margin-right:4px;cursor:pointer;line-height:1;flex:0 0 auto}
+body.layCol #layerList,body.layCol #layerAdd,body.modCol #modList,body.modCol #fabNode,body.modCol #modBar,body.modCol #modPanel>*:not(#modHead){display:none!important}
+body.layCol #layersPanel,body.modCol #modPanel{overflow:hidden!important}
 /* no Math · Live window */
 #eqPanel{display:none!important}
 [data-act="liveEq"]{display:none!important}
@@ -15209,7 +15224,7 @@ window.__shot={ load(m){ mesh={verts:m.verts.map(v=>v.slice()),faces:m.faces.map
   const hOf=id=>{ const e=document.getElementById(id); return e&&e.offsetParent!==null?e.offsetHeight:0; };
   function need(){ const lay=hOf("layersHead")+kids(document.getElementById("layerList"))+hOf("layerAdd")+24;
     const mod=hOf("modHead")+kids(document.getElementById("modList"))+hOf("fabNode")+hOf("modBar")+22; return [lay,mod]; }
-  function place(){ const H=colH(), min=56; const nd=need(); let a=ha||Math.min(nd[0],H*0.38), b=hb||Math.min(nd[1],H*0.36); a=Math.max(min,Math.min(a,H-2*min-12)); b=Math.max(min,Math.min(b,H-a-min-12)); R.setProperty("--rA",Math.round(a)+"px"); R.setProperty("--rB",Math.round(b)+"px"); }
+  function place(){ const H=colH(), min=56; const nd=need(); let a=ha||Math.min(nd[0],H*0.38), b=hb||Math.min(nd[1],H*0.36); a=Math.max(min,Math.min(a,H-2*min-12)); b=Math.max(min,Math.min(b,H-a-min-12)); if(cA) a=(hOf("layersHead")||26)+2; if(B.classList.contains("opCol")) b=H-a-6; if(cB) b=(hOf("modHead")||26)+2; R.setProperty("--rA",Math.round(a)+"px"); R.setProperty("--rB",Math.round(b)+"px"); }
   function drag(el,which){ let d=null;
     el.addEventListener("pointerdown",e=>{ const cs=getComputedStyle(document.documentElement); d={y:e.clientY,a:parseFloat(cs.getPropertyValue("--rA")),b:parseFloat(cs.getPropertyValue("--rB"))}; el.setPointerCapture(e.pointerId); el.classList.add("drag"); e.preventDefault(); e.stopPropagation(); });
     el.addEventListener("pointermove",e=>{ if(!d) return; const dy=e.clientY-d.y; if(which==="a"){ ha=d.a+dy; hb=d.b-dy; } else { ha=d.a; hb=d.b+dy; } place(); });
@@ -15217,6 +15232,14 @@ window.__shot={ load(m){ mesh={verts:m.verts.map(v=>v.slice()),faces:m.faces.map
     el.addEventListener("pointerup",up); el.addEventListener("pointercancel",up);
     el.addEventListener("dblclick",()=>{ ha=hb=null; try{ localStorage.removeItem("tmRA"); localStorage.removeItem("tmRB"); }catch(e){} place(); }); }
   drag(A,"a"); drag(Bb,"b");
+  // collapsible sections: tap the LAYERS / MODIFIERS header (or its chevron) to fold it to a single line — Options takes the space
+  let cA=false, cB=false; try{ cA=localStorage.getItem("tmColA")==="1"; cB=localStorage.getItem("tmColB")==="1"; }catch(e){}
+  function chev(headId,get,set,key,cls){ const h=document.getElementById(headId); if(!h) return;
+    const c=document.createElement("button"); c.className="secChev"; c.type="button"; c.title="Collapse / expand"; h.insertBefore(c,h.firstChild);
+    const paint=()=>{ c.innerHTML=get()?"&#9656;":"&#9662;"; B.classList.toggle(cls,get()); };
+    const flip=e=>{ if(e.target.closest("button")&&e.target!==c) return; e.stopPropagation(); set(!get()); try{ localStorage.setItem(key,get()?"1":"0"); }catch(_){} paint(); place(); };
+    h.addEventListener("click",flip); h.style.cursor="pointer"; paint(); }
+  chev("layersHead",()=>cA,v=>cA=v,"tmColA","layCol"); chev("modHead",()=>cB,v=>cB=v,"tmColB","modCol");
   let pend=0; const re=()=>{ if(pend) return; pend=requestAnimationFrame(()=>{ pend=0; place(); }); };
   ["layerList","modList"].forEach(id=>{ const e=document.getElementById(id); if(e) new MutationObserver(re).observe(e,{childList:true,subtree:true}); });
   addEventListener("resize",place); place(); setTimeout(place,400); setTimeout(place,1400);
@@ -17841,9 +17864,21 @@ void main(){
  try{new ResizeObserver(upd).observe(mb);}catch(e){} new MutationObserver(upd).observe(document.body,{attributes:true,attributeFilter:["class"]});
  setTimeout(upd,300); setTimeout(upd,1500);}
  if(document.readyState==="loading") document.addEventListener("DOMContentLoaded",init); else init();})();</script>
+<script>/* Options column: its own docked column with a width bar (drag · double-click resets) */
+(function(){function init(){ var B=document.body, R=document.documentElement.style; B.classList.add("opCol");
+ var bar=document.createElement("div"); bar.id="ocBar"; bar.title="Drag to resize the Options column"; B.appendChild(bar);
+ var phone=function(){return Math.min(innerWidth,innerHeight)<=500;}, w=null; try{ var v=+localStorage.getItem("tmOcW"); if(v) w=v; }catch(e){}
+ function lay(){ var d=phone()?Math.round(Math.min(200,innerWidth*0.24)):260; R.setProperty("--ocw",Math.max(140,Math.min(w||d,Math.round(innerWidth*0.36)))+"px"); try{ dispatchEvent(new Event("tmLayout")); }catch(e){} }
+ var dg=null; bar.addEventListener("pointerdown",function(e){ dg={x:e.clientX,w:parseFloat(getComputedStyle(document.documentElement).getPropertyValue("--ocw"))||260}; bar.setPointerCapture(e.pointerId); bar.classList.add("drag"); e.preventDefault(); e.stopPropagation(); });
+ bar.addEventListener("pointermove",function(e){ if(!dg) return; w=Math.round(Math.max(140,Math.min(innerWidth*0.36,dg.w-(e.clientX-dg.x)))); lay(); });
+ var up=function(){ if(!dg) return; dg=null; bar.classList.remove("drag"); try{ localStorage.setItem("tmOcW",String(w)); }catch(e){} try{ dispatchEvent(new Event("resize")); }catch(e){} };
+ bar.addEventListener("pointerup",up); bar.addEventListener("pointercancel",up);
+ bar.addEventListener("dblclick",function(){ w=null; try{ localStorage.removeItem("tmOcW"); }catch(e){} lay(); dispatchEvent(new Event("resize")); });
+ addEventListener("resize",lay); lay(); setTimeout(function(){ dispatchEvent(new Event("resize")); },60); }
+ if(document.readyState==="loading") document.addEventListener("DOMContentLoaded",init); else init();})();</script>
 <script>/* ONE UI guard: strip any legacy layout state (tucked / floating / collapsed) the moment it appears */
 (function(){function g(){var B=document.body; if(!B) return; ["rightTucked"].forEach(function(c){ if(B.classList.contains(c)) B.classList.remove(c); });
-  ["tbDock","opDock","rStack","opOpen"].forEach(function(c){ if(!B.classList.contains(c)) B.classList.add(c); });
+  ["tbDock","opDock","rStack","opOpen","opCol"].forEach(function(c){ if(!B.classList.contains(c)) B.classList.add(c); });
   var tb=document.getElementById("toolbar"); if(tb){ tb.classList.remove("tucked","collapsed"); } }
  function init(){ g(); new MutationObserver(g).observe(document.body,{attributes:true,attributeFilter:["class"]}); var tb=document.getElementById("toolbar"); if(tb) new MutationObserver(g).observe(tb,{attributes:true,attributeFilter:["class"]}); }
  if(document.readyState==="loading") document.addEventListener("DOMContentLoaded",init); else init();})();</script>
