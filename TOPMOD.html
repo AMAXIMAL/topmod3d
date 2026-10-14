@@ -19784,7 +19784,16 @@ body.duo #viewWrap::after{content:"TOUCH PAD";position:absolute;left:50%;top:50%
    var sv=saved(); set(sv==="1"||(sv===null&&auto()),false);
    try{ matchMedia("(vertical-viewport-segments: 2)").addEventListener("change",function(){ if(saved()===null) set(auto(),false); }); }catch(e){}
    try{ navigator.devicePosture&&navigator.devicePosture.addEventListener("change",function(){ if(saved()===null) set(auto(),false); }); }catch(e){}
-   window.__duo={set:function(on){ set(on,true); },auto:auto}; }
+   window.__duo={set:function(on){ set(on,true); },auto:auto,pack:pack}; setInterval(pack,400); addEventListener("resize",pack); }
+ /* pack the bottom-half columns: toolbar | options | layers & modifiers, with no empty gap between them */
+ function pack(){ var b=document.body, on=b.classList.contains("duo")||b.classList.contains("duoBottom");
+   var tp=document.getElementById("toolpop"), tb=document.getElementById("toolbar"), lp=document.getElementById("layersPanel");
+   if(!tp||!tb||!lp) return;
+   if(!on){ if(tp.dataset.duoPacked){ tp.style.removeProperty("left"); tp.style.removeProperty("width"); delete tp.dataset.duoPacked; } return; }
+   var r=tb.getBoundingClientRect(), l=lp.getBoundingClientRect(); if(!(r.width>0&&l.width>0)) return;
+   if(getComputedStyle(tp).display==="none") return;
+   var left=Math.round(r.right), w=Math.round(l.left-r.right); if(w<160) return;
+   tp.style.setProperty("left",left+"px","important"); tp.style.setProperty("width",w+"px","important"); tp.dataset.duoPacked="1"; }
  if(document.readyState==="loading") document.addEventListener("DOMContentLoaded",init); else init();
 })();
 </script>
