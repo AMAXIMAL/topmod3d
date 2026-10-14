@@ -1,4 +1,4 @@
-<!doctype html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover"><meta name="description" content="TOPMOD Duo 4D — TopMod 3D on iPhone Duo by AMAXIMAL"><style>:root{padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}body{margin:0;font:14px system-ui}img{max-width:100%}[hidden]{display:none!important}</style></head><body><title>TOPMOD Duo 4D</title>
+<!doctype html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover"><meta name="description" content="TOPMOD Duo 4D — TopMod 3D on iPhone Duo by AMAXIMAL"><style>:root{padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}body{margin:0;font:14px system-ui}img{max-width:100%}[hidden]{display:none!important}</style><style id="noRec">#rec169,#recPort,#recState{display:none!important}</style></head><body><title>TOPMOD Duo 4D</title>
 <meta name="claude:viewport-fit-sides" content="cover">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Unbounded:wght@500;700&family=IBM+Plex+Sans:wght@400;500;600&family=IBM+Plex+Mono:wght@400;500&display=swap">
@@ -57,8 +57,6 @@ body{background:var(--bg);color:var(--fg);font-family:var(--f-body);font-size:14
 .boot2 .skel i,.boot2 .sk2 i{display:block;height:46px;border-radius:10px;background:linear-gradient(90deg,#111a24,#1d2b3a,#111a24);background-size:200% 100%;animation:shim 1.2s linear infinite}
 .boot2 .sk2{display:grid;grid-template-columns:200px 260px 160px;gap:10px}.boot2 .sk2 i{height:22px}
 @keyframes shim{to{background-position:-200% 0}}
-.notes>*{animation:rise .8s cubic-bezier(.2,.8,.2,1) both}
-.notes>*:nth-child(2){animation-delay:.12s}.notes>*:nth-child(3){animation-delay:.22s}.notes>*:nth-child(4){animation-delay:.32s}.notes>*:nth-child(5){animation-delay:.42s}
 @keyframes rise{from{opacity:0;transform:translateY(14px)}}
 @media (prefers-reduced-motion:reduce){.notes>*{animation:none}.boot .ring{animation:none}}
 .loading{position:absolute;inset:0;display:grid;place-items:center;color:#7f93a6;font:500 12px var(--f-mono);letter-spacing:.1em;background:#070a10;z-index:8}
@@ -100,28 +98,22 @@ h2{font:600 12px var(--f-mono);letter-spacing:.12em;text-transform:uppercase;col
 .spec dd{margin:0;font-family:var(--f-mono);font-size:13px}
 .foot{color:var(--muted);font-size:12.5px;margin:0}
 @media (prefers-reduced-motion:reduce){.dev.anim,.dev.anim .half{transition:none}}
+.setPanel{position:absolute;right:16px;top:56px;z-index:9;width:min(460px,calc(100% - 32px));max-height:calc(100% - 110px);overflow:auto;display:grid;gap:12px;padding:10px;border-radius:16px;background:color-mix(in srgb,var(--panel) 80%,transparent);backdrop-filter:blur(14px);-webkit-backdrop-filter:blur(14px);border:1px solid var(--line);box-shadow:0 18px 50px rgba(0,0,0,.18);overscroll-behavior:contain}
+.setPanel[hidden]{display:none}
+.setPanel .ctl{padding:12px;gap:10px;background:var(--panel)}
+.setB[aria-expanded="true"]{background:var(--fg);color:var(--panel);border-color:var(--fg)}
+.notes h2{margin-top:6px}
+.notes p{margin:0 0 10px;line-height:1.6}
+.feat{list-style:none;margin:0;padding:0;display:grid;gap:10px}
+.feat li{display:grid;grid-template-columns:auto 1fr;gap:10px;line-height:1.5}
+.feat li::before{content:"";width:7px;height:7px;border-radius:2px;background:var(--accent);margin-top:8px}
+.cta{display:inline-flex;gap:8px;align-items:center;border-radius:999px;padding:10px 16px;background:var(--fg);color:var(--panel);text-decoration:none;font-weight:600}
 </style>
 
 <div class="wrap">
   <div class="stage" id="stage"><a id="topmod"></a>
-    <div class="stageTop"><div class="stageTag" id="stageTag">iPhone Duo · Duo mode</div><div class="recBar"><button class="recB" id="rec169">● Record 16:9</button><button class="recB" id="recPort">● Record portrait</button><span id="recState"></span></div></div>
-    <div id="cssLayer"></div>
-    <canvas id="glLayer" aria-hidden="true"></canvas>
-    <div class="loading" id="devLoading" style="font-size:12px;background:transparent;color:var(--muted)">LOADING iPHONE DUO MODEL…</div>
-    <div hidden>
-      <div class="scrEl" id="topEl"><canvas id="mirror" aria-label="TopMod 3D viewport"></canvas><div id="topHand"></div><i id="camLight" hidden></i><div class="gloss"></div><div class="boot" id="bootTop"><span id="barTop" hidden></span><span id="bootMsg" hidden></span></div></div>
-      <div class="scrEl" id="lowEl"><iframe id="app" title="TopMod 3D"></iframe><div class="gloss"></div><div class="loading" id="loading" hidden></div><div class="boot boot2" id="bootLow"><div class="skel"><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i></div><div class="sk2"><i></i><i></i><i></i></div><div class="bar"><span id="barLow"></span></div><div class="sub">www.AMAXIMAL.com</div></div></div>
-    </div>
-    <div class="stageHint">Drag the background to spin the phone. Drag the top screen to orbit the model; tools work on the bottom screen.</div>
-  </div>
-
-  <div class="notes">
-    <div>
-      <div class="eyebrow">Concept · TopMod 3D 3.9</div>
-      <h1>TOPMOD Duo 4D</h1><p class="lede" style="margin:-4px 0 10px"><a href="https://www.AMAXIMAL.com" style="color:var(--accent);font-family:var(--f-mono)">www.AMAXIMAL.com</a></p>
-      <p class="lede">The real TopMod 3D app running on an iPhone Duo half-folded and held upright. The top half is the viewport. The bottom half keeps the app's own menus, toolbar categories, Layers and Modifiers exactly as they are today; the space they leave in the middle works as a touch pad for the model.</p>
-    </div>
-
+    <div class="stageTop"><div class="stageTag" id="stageTag">iPhone Duo · Duo mode</div><div class="recBar"><button class="recB" id="rec169">● Record 16:9</button><button class="recB" id="recPort">● Record portrait</button><span id="recState"></span><button class="recB setB" id="setB" aria-expanded="false" aria-controls="setPanel">Settings ▾</button></div></div>
+    <div class="setPanel" id="setPanel" hidden>
     <div class="ctl">
       <h2>Phone</h2>
       <div class="row"><label for="spin">Turn</label><input id="spin" type="range" min="-180" max="180" step="1" value="-18"><output id="spinO">-18°</output></div>
@@ -136,9 +128,8 @@ h2{font:600 12px var(--f-mono);letter-spacing:.12em;text-transform:uppercase;col
       <div class="row"><label>Hinge</label><button class="chip" id="oHalf">Open halfway</button><button class="chip" id="oFull">Open fully</button><button class="chip" id="cHalf">Close halfway</button><button class="chip" id="cFull">Close fully</button></div>
       <div class="row"><label>Demos</label><button class="chip" id="demo2">1 · Table TopOpt</button><button class="chip" id="demo1">2 · Twisted handles</button><button class="chip" id="demo3">3 · Bejewel + Physics</button><button class="chip" id="demo4">4 · Hands-free</button><button class="chip" id="demo5">5 · AR</button></div>
       <div class="row"><label>Motion</label><button class="chip on" id="sway" aria-pressed="true">Sway</button><button class="chip" id="turntable" aria-pressed="false">Turntable</button><button class="chip" id="reset">Reset view</button><button class="chip" id="replay">Replay intro</button></div>
-    </div>
       <div class="row"><label for="swspeed">Sway speed</label><input id="swspeed" type="range" min="0.1" max="3" step="0.05" value="1"><output id="swspeedO">1.00</output></div>
-            <div class="row"><label for="tspeed">Turn speed</label><input id="tspeed" type="range" min="0.05" max="2" step="0.05" value="0.35"><output id="tspeedO">0.35</output></div>
+      <div class="row"><label for="tspeed">Turn speed</label><input id="tspeed" type="range" min="0.05" max="2" step="0.05" value="0.35"><output id="tspeedO">0.35</output></div>
     </div>
 
     <div class="ctl">
@@ -153,26 +144,73 @@ h2{font:600 12px var(--f-mono);letter-spacing:.12em;text-transform:uppercase;col
       <div class="row"><label for="shine">Metal shine</label><input id="shine" type="range" min="0" max="1" step="0.01" value="0.7"><output id="shineO">0.70</output></div>
     </div>
 
+</div>
+
+    <div id="cssLayer"></div>
+    <canvas id="glLayer" aria-hidden="true"></canvas>
+    <div class="loading" id="devLoading" style="font-size:12px;background:transparent;color:var(--muted)">LOADING iPHONE DUO MODEL…</div>
+    <div hidden>
+      <div class="scrEl" id="topEl"><canvas id="mirror" aria-label="TopMod 3D viewport"></canvas><div id="topHand"></div><i id="camLight" hidden></i><div class="gloss"></div><div class="boot" id="bootTop"><span id="barTop" hidden></span><span id="bootMsg" hidden></span></div></div>
+      <div class="scrEl" id="lowEl"><iframe id="app" title="TopMod 3D"></iframe><div class="gloss"></div><div class="loading" id="loading" hidden></div><div class="boot boot2" id="bootLow"><div class="skel"><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i></div><div class="sk2"><i></i><i></i><i></i></div><div class="bar"><span id="barLow"></span></div><div class="sub">www.AMAXIMAL.com</div></div></div>
+    </div>
+    <div class="stageHint">Drag the background to spin the phone. Drag the top screen to orbit the model; tools work on the bottom screen.</div>
+  </div>
+
+  <div class="notes">
+    <div>
+      <div class="eyebrow">TopMod 3D · Duo layout concept</div>
+      <h1>TOPMOD Duo 4D</h1><p class="lede" style="margin:-4px 0 14px"><a href="https://www.AMAXIMAL.com" style="color:var(--accent);font-family:var(--f-mono)">www.AMAXIMAL.com</a></p>
+      <p class="lede">A 3D modeling studio that folds in your hands. TOPMOD Duo 4D shows TopMod 3D running on a foldable iPhone held half-open, like a handheld console: the model lives on the top screen, and every tool sits on the bottom screen under your thumbs.</p>
+    </div>
+
+    <div>
+      <h2>What it is</h2>
+      <p>TopMod 3D is a topological mesh modeler by AMAXIMAL for iPhone, iPad and the web. It grows out of the TopMod research on topological mesh modeling at Texas A&amp;M University (Ergun Akleman and colleagues), where every operation keeps the mesh a clean, connected surface. That lets you punch holes, add handles, twist and subdivide freely and still end up with something you can render, share or 3D print.</p>
+      <p>The Duo layout is TopMod's answer to a folding screen. Bend the phone to a half-fold and the app splits itself in two. Lay it flat again and you get one big canvas with the normal layout.</p>
+    </div>
+
     <div>
       <h2>How the split works</h2>
       <ol class="flow">
-        <li><div><b>Top: look and pick</b><span>The full TopMod viewport. Drag to orbit, tap a face to select it, scroll or pinch to zoom.</span></div></li>
-        <li><div><b>Bottom: the app you know</b><span>Menu bar, toolbar categories, Layers, Modifiers and the bottom bar, unchanged. Tool panels open here too, so they never cover the model.</span></div></li>
-        <li><div><b>Middle of the bottom: touch pad</b><span>The empty area between the toolbar and the panels drives the same camera, so your thumbs never leave the lower half.</span></div></li>
-        <li><div><b>Fold flat for one big canvas</b><span>At 180° it is a single 7.6-inch screen and TopMod goes back to its normal layout.</span></div></li>
+        <li><div><b>Top screen: look and pick</b><span>The full 3D viewport. Drag to orbit, tap a face to select it, pinch or scroll to zoom.</span></div></li>
+        <li><div><b>Bottom screen: the app you know</b><span>Menu bar, toolbar, Layers, Modifiers and options, unchanged. Tool panels open down here too, so they never cover the model.</span></div></li>
+        <li><div><b>Built-in touch pad</b><span>The open space between the toolbar and the panels steers the camera, so your thumbs never have to leave the lower half.</span></div></li>
+        <li><div><b>Fold flat for one big canvas</b><span>Open it all the way and TopMod goes back to its single-screen layout.</span></div></li>
       </ol>
+    </div>
+
+    <div>
+      <h2>What you can do with it</h2>
+      <ul class="feat">
+        <li><span><b>Model with topology, not just polygons.</b> Create holes and handles, extrude, twist and subdivide in the style of the original TopMod.</span></li>
+        <li><span><b>Let the computer design.</b> Topology optimization grows structural forms such as a table from loads and supports.</span></li>
+        <li><span><b>Make jewelry.</b> Bejewel turns any mesh into a set gem piece with cuts you can swap, and physics lets you drop and play with the result.</span></li>
+        <li><span><b>Go hands-free.</b> Camera hand tracking selects, extrudes, zooms and orbits with simple gestures.</span></li>
+        <li><span><b>See it in your room.</b> Place your model in AR with Apple's AR Quick Look.</span></li>
+        <li><span><b>Take it out of the app.</b> Export OBJ for rendering, other 3D tools and 3D printing.</span></li>
+      </ul>
+    </div>
+
+    <div>
+      <h2>The demos on this page</h2>
+      <p>Open <b>Settings</b> on the viewer to run each one on the device: topology-optimized table, twisted handles, Bejewel with physics, hands-free modeling and AR. You can also turn and fold the phone, swap finishes and change the studio.</p>
     </div>
 
     <div>
       <h2>Screen budget</h2>
       <dl class="spec">
-        <dt>Inner display</dt><dd>7.6 in · 1878 × 2670 px · 430 ppi</dd>
+        <dt>Inner display</dt><dd>7.6 in · 1878 × 2670 px</dd>
         <dt>Each half, held portrait</dt><dd>≈ 1878 × 1335 px · 1.41 : 1</dd>
-        <dt>Open (held portrait)</dt><dd>117.8 × 164.6 mm</dd>
-        <dt>Outer display</dt><dd>5.4 in · normal phone layout when closed</dd>
+        <dt>Outer display</dt><dd>Normal phone layout when closed</dd>
       </dl>
     </div>
-    <p class="foot">The bottom screen is the actual TopMod 3D build (v3.9 b90) with its viewport moved to the top half; nothing in its toolbar, Layers or Modifiers has been changed. The phone is drawn in CSS from Apple's published dimensions.</p>
+
+    <div>
+      <h2>Get TopMod 3D</h2>
+      <p>TopMod 3D: Design Software is on the App Store for iPhone and iPad. The Duo layout ships in version 3.9 and switches on by itself on a foldable screen; you can also turn it on any time from View ▸ Duo layout.</p>
+      <p><a class="cta" href="https://www.AMAXIMAL.com">AMAXIMAL ↗</a></p>
+    </div>
+    <p class="foot">The bottom screen in this viewer is the real TopMod 3D app, not a video. The foldable iPhone is a concept model; the device and screen sizes are illustrative.</p>
   </div>
 </div>
 
@@ -201,7 +239,7 @@ lean.oninput=function(){ target=null; pose.lean=+lean.value; };
 fold.oninput=function(){ target=null; pose.fold=+fold.value; if(pose.fold>=178) pose.tilt=0; else if(pose.tilt<5) pose.tilt=30; };
 $("turntable").onclick=function(){ turn=!turn; this.classList.toggle("on",turn); this.setAttribute("aria-pressed",turn); };
 var stage=$("stage"), sd=null;
-stage.addEventListener("pointerdown",function(e){ if(e.target.closest(".scrEl")||e.target.closest("button,input")) return; sd={x:e.clientX,y:e.clientY}; stage.setPointerCapture(e.pointerId); stage.classList.add("grabbing"); target=null; dragging=true; });
+stage.addEventListener("pointerdown",function(e){ if(e.target.closest(".scrEl")||e.target.closest("button,input,.setPanel")) return; sd={x:e.clientX,y:e.clientY}; stage.setPointerCapture(e.pointerId); stage.classList.add("grabbing"); target=null; dragging=true; });
 stage.addEventListener("pointermove",function(e){ if(!sd) return; pose.spin+=(e.clientX-sd.x)*0.4; pose.lean=Math.max(-40,Math.min(70,pose.lean+(e.clientY-sd.y)*0.3));
   if(pose.spin>180) pose.spin-=360; if(pose.spin<-180) pose.spin+=360; sd={x:e.clientX,y:e.clientY}; });
 function sEnd(){ if(sd){ swayT0=performance.now(); } sd=null; dragging=false; stage.classList.remove("grabbing"); }
@@ -472,7 +510,7 @@ var DUO_CSS=[
   "#main>*:not(#viewWrap),#toolbar,#menubar,#status,#rightPanel,#layersPanel,#modsPanel{position:relative;z-index:2}",
   "body{background:#080a12!important}",
   "#main{background:transparent!important}",
-  "#splash{display:none!important}"
+  "#splash{display:none!important}", "#handSimSvg{opacity:0!important}"
 ].join("\n");
 var W=null, appCanvas=null;
 fetch("topmod.html").then(function(r){ if(!r.ok) throw new Error(r.status); return r.text(); }).then(function(html){
@@ -493,11 +531,11 @@ frame.addEventListener("load",function(){
 });
 // copy the app's viewport onto the top screen every frame
 (function copy(){ requestAnimationFrame(copy); if(!appCanvas||!appCanvas.width) return;
-  if(splashOn()){ var sc=frame.contentDocument.getElementById("tmSplashCv"); if(sc&&sc.width){ if(!splashT0) splashT0=performance.now(); outerSplash(sc);
+  if(splashOn()){ var sc=frame.contentDocument.getElementById("tmSplashCv"); if(sc&&sc.width){ if(!splashT0) splashT0=performance.now(); if(performance.now()-splashT0>2300) outerSplash(sc);
       if(!heldCv&&performance.now()-splashT0>2700&&outerCv){ heldCv=document.createElement("canvas"); heldCv.width=outerCv.width; heldCv.height=outerCv.height; heldCv.getContext("2d").drawImage(outerCv,0,0); } } }
   else if(!outerLogo&&outerTex){ if(heldCv){ var og=outerCv.getContext("2d"); og.setTransform(1,0,0,1,0,0); og.drawImage(heldCv,0,0); outerTex.needsUpdate=true; } else logoCanvas(); outerLogo=true; }
   try{ var hb=frame.contentDocument.body, hs=hb&&hb.classList.contains("handDemo")?frame.contentDocument.getElementById("handSimSvg"):null; $("camLight").hidden=!hs;
-    if(false&&hs){ if(!handCss){ handCss=document.createElement("style"); var rules=""; [].forEach.call(frame.contentDocument.styleSheets,function(sh){ try{ [].forEach.call(sh.cssRules,function(r){ if(/handSim|handDemo/.test(r.cssText)) rules+=r.cssText.replace(/body\.handDemo\s*/g,"")+"\n"; }); }catch(e){} }); handCss.textContent=rules; document.head.appendChild(handCss); } if(++handTick%2===0) $("topHand").innerHTML=hs.outerHTML; } else if($("topHand").firstChild) $("topHand").innerHTML=""; }catch(e){}
+    if(hs){ if(!handCss){ handCss=document.createElement("style"); var rules=""; [].forEach.call(frame.contentDocument.styleSheets,function(sh){ try{ [].forEach.call(sh.cssRules,function(r){ if(/handSim|handDemo/.test(r.cssText)&&!/opacity:\s*0\s*!important/.test(r.cssText)) rules+=r.cssText.replace(/body\.handDemo\s*/g,"").replace(/#handSimSvg/g,"svg.handTop")+"\n"; }); }catch(e){} }); handCss.textContent=rules; document.head.appendChild(handCss); } if(++handTick%2===0){ $("topHand").innerHTML=hs.outerHTML; var sv=$("topHand").firstChild; if(sv){ sv.removeAttribute("id"); sv.setAttribute("class","handTop"); sv.setAttribute("viewBox","0 0 "+W.innerWidth+" "+W.innerHeight); sv.setAttribute("preserveAspectRatio","none"); } } } else if($("topHand").firstChild) $("topHand").innerHTML=""; }catch(e){}
   var w=mirror.clientWidth, h=mirror.clientHeight, dpr=Math.min(2,devicePixelRatio||1);
   if(mirror.width!==Math.round(w*dpr)){ mirror.width=Math.round(w*dpr); mirror.height=Math.round(h*dpr); }
   try{ if(!arMode){ mctx.globalCompositeOperation="source-over"; mctx.drawImage(appCanvas,0,0,mirror.width,mirror.height); }
@@ -542,6 +580,7 @@ function appDemo(k){ if(!W) return; ++demoTok; autoDemoed=true; endAR(); preset(
 $("demo1").onclick=function(){ appDemo(1); };   /* the app's TopMod Look: twisted handles */
 $("demo2").onclick=function(){ appDemo(0); };   /* Duo demo 1: Table topology optimisation */
 $("demo3").onclick=function(){ appDemo(2); };   /* the app's "Bejeweled" demo: wireframe, gems, one cut change, physics */
+(function(){ var b=$("setB"),pn=$("setPanel"); b.onclick=function(){ var o=pn.hidden; pn.hidden=!o; b.setAttribute("aria-expanded",String(o)); }; document.addEventListener("keydown",function(e){ if(e.key==="Escape"&&!pn.hidden){ pn.hidden=true; b.setAttribute("aria-expanded","false"); } }); })();
 $("demo4").onclick=function(){ appDemo(3); };   /* the app's simulated hands-free demo */
 var arMode=false;
 $("demo5").onclick=function(){ if(!W) return; ++demoTok; preset("duo"); stopAppDemo(); arMode=!arMode; this.classList.toggle("on",arMode); var b5=this; clearTimeout(window.__arT); if(arMode) window.__arT=setTimeout(function(){ arMode=false; b5.classList.remove("on"); },14000); };

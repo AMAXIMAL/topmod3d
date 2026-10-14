@@ -1,0 +1,134 @@
+<!doctype html>
+<html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Duo Dev Harness</title>
+<style>
+:root{--bg:#0d1016;--panel:#151a22;--fg:#e6ebf1;--muted:#8a96a3;--line:#262d38;--accent:#33d6ec;--warn:#ff9a3d;--err:#ff5d73}
+*{box-sizing:border-box}html,body{margin:0;height:100%;background:var(--bg);color:var(--fg);font:13px/1.4 -apple-system,system-ui,sans-serif}
+.app{display:grid;grid-template-columns:300px 1fr;height:100%}
+@media (max-width:820px){.app{grid-template-columns:1fr;grid-template-rows:auto 1fr}}
+aside{border-right:1px solid var(--line);background:var(--panel);overflow:auto;padding:14px;display:grid;gap:14px;align-content:start}
+h1{font:700 15px ui-monospace,Menlo,monospace;letter-spacing:.06em;margin:0}
+h2{font:600 10px ui-monospace,Menlo,monospace;letter-spacing:.14em;text-transform:uppercase;color:var(--muted);margin:0 0 6px}
+.grp{display:flex;flex-wrap:wrap;gap:6px}
+button,select,input[type=file]{font:inherit;color:var(--fg)}
+button{background:#1d2430;border:1px solid var(--line);border-radius:8px;padding:6px 10px;cursor:pointer}
+button:hover{border-color:var(--accent)}button.on{background:var(--accent);color:#04161a;border-color:var(--accent)}
+select{background:#1d2430;border:1px solid var(--line);border-radius:8px;padding:6px;width:100%}
+label.row{display:grid;grid-template-columns:90px 1fr 44px;gap:8px;align-items:center}
+output{font:12px ui-monospace,Menlo,monospace;color:var(--accent);text-align:right}
+.note{color:var(--muted);font-size:12px}
+main{display:grid;grid-template-rows:auto 1fr 170px;min-width:0;min-height:0}
+.bar{display:flex;gap:12px;align-items:center;padding:8px 14px;border-bottom:1px solid var(--line);font:12px ui-monospace,Menlo,monospace;color:var(--muted);flex-wrap:wrap}
+.bar b{color:var(--fg);font-weight:500}
+.stage{position:relative;overflow:auto;display:grid;place-items:center;padding:24px;background:repeating-conic-gradient(#10141b 0 25%,#0d1016 0 50%) 0 0/24px 24px}
+.dev{position:relative;border-radius:22px;background:#000;box-shadow:0 0 0 10px #1b1f26,0 0 0 11px #333a45,0 30px 80px rgba(0,0,0,.6);transform-origin:center}
+.dev iframe{position:absolute;inset:0;width:100%;height:100%;border:0;border-radius:22px;background:#080a12}
+.hinge{position:absolute;left:-12px;right:-12px;height:2px;top:50%;background:linear-gradient(90deg,transparent,rgba(51,214,236,.9),transparent);pointer-events:none;display:none}
+.dev.folded .hinge{display:block}
+.overlay{position:absolute;inset:0;pointer-events:none;border-radius:22px;overflow:hidden}
+.overlay i{position:absolute;border:1.5px dashed;font:600 10px ui-monospace,Menlo,monospace;padding:2px 4px}
+.log{border-top:1px solid var(--line);overflow:auto;font:11.5px/1.5 ui-monospace,Menlo,monospace;padding:6px 12px;background:#0a0d12}
+.log div{white-space:pre-wrap;border-bottom:1px solid #151a22}.log .error{color:var(--err)}.log .warn{color:var(--warn)}.log .info{color:var(--accent)}
+.logbar{display:flex;justify-content:space-between;align-items:center}
+</style></head><body>
+<div class="app">
+<aside>
+  <div><h1>DUO DEV HARNESS</h1><div class="note">Develop and debug TopMod's Duo layout without Xcode or the product viewer. Loads the real app and drives the same hooks the iOS build uses.</div></div>
+
+  <div><h2>App source</h2>
+    <div class="grp"><button id="loadRel">Load ../TOPMOD.html</button><button id="reload">Reload</button></div>
+    <div style="margin-top:8px"><input type="file" id="pick" accept=".html,text/html"></div>
+    <div class="note" style="margin-top:6px">Pick a TOPMOD.html (Mac master or ios/…/topmodjs.html). Picked files load same-origin, so the hooks and console capture work everywhere.</div>
+  </div>
+
+  <div><h2>Screen</h2>
+    <select id="size">
+      <option value="669x951" selected>Duo inner · portrait 669×951 (2007×2853 @3x)</option>
+      <option value="951x669">Duo inner · landscape 951×669</option>
+      <option value="626x890">Duo inner · native 626×890 (1878×2670 @3x)</option>
+      <option value="466x678">Duo outer · 466×678 (1398×2034 @3x)</option>
+      <option value="402x874">iPhone 17 Pro · 402×874</option>
+      <option value="820x1180">iPad Air · 820×1180</option>
+    </select>
+    <label class="row" style="margin-top:8px">Zoom<input type="range" id="zoom" min="0.3" max="1.5" step="0.05" value="0.8"><output id="zoomO">0.80</output></label>
+  </div>
+
+  <div><h2>Posture</h2>
+    <div class="grp"><button id="pFold" class="on">Half-folded</button><button id="pFlat">Flat</button></div>
+    <div class="note" style="margin-top:6px">Half-folded calls <code>__duo.set(true)</code>, the same switch the iOS build flips from posture or segments.</div>
+  </div>
+
+  <div><h2>Duo layout</h2>
+    <div class="grp"><button id="dOn">Duo on</button><button id="dOff">Duo off</button><button id="dAuto">Auto</button><button id="dPack">Pack columns</button></div>
+    <label class="row" style="margin-top:8px">Top share<input type="range" id="duoH" min="30" max="70" step="1" value="50"><output id="duoHO">50%</output></label>
+  </div>
+
+  <div><h2>Inspect</h2>
+    <div class="grp"><button id="ovl">Outline regions</button><button id="hinge" class="on">Hinge line</button><button id="lsClear">Clear tm_ storage</button></div>
+  </div>
+
+  <div><h2>Demos</h2>
+    <div class="grp"><button data-demo="0">1 Table TopOpt</button><button data-demo="1">2 Twisted handles</button><button data-demo="2">3 Bejewel</button><button data-demo="3">4 Hands-free</button><button id="dStop">Stop</button></div>
+  </div>
+</aside>
+
+<main>
+  <div class="bar"><span>size <b id="sz">–</b></span><span>duo <b id="st">–</b></span><span>build <b id="bv">–</b></span><span>body <b id="bc">–</b></span></div>
+  <div class="stage" id="stage"><div class="dev folded" id="dev"><iframe id="fr" title="TopMod 3D"></iframe><div class="overlay" id="ov"></div><div class="hinge"></div></div></div>
+  <div class="log" id="log"><div class="logbar"><h2 style="margin:4px 0">Console</h2><button id="logClear">Clear</button></div></div>
+</main>
+</div>
+<script>
+var $=function(i){return document.getElementById(i)}, fr=$("fr"), dev=$("dev"), lastHtml=null, lastSrc=null, W=null, folded=true;
+function log(kind,msg){ var d=document.createElement("div"); d.className=kind; d.textContent=new Date().toLocaleTimeString()+"  "+msg; $("log").appendChild(d); $("log").scrollTop=1e9; }
+$("logClear").onclick=function(){ [].slice.call($("log").querySelectorAll("div:not(.logbar)")).forEach(function(n){n.remove()}); };
+
+/* injected first in the app: console + error capture, tolerant pointer capture, readable WebGL buffer */
+var PRE="<script>(function(){var P=parent;['log','warn','error','info'].forEach(function(k){var o=console[k];console[k]=function(){try{P.__duoLog(k,[].map.call(arguments,function(a){try{return typeof a==='object'?JSON.stringify(a):String(a)}catch(e){return String(a)}}).join(' '))}catch(e){}return o.apply(console,arguments)}});"+
+ "addEventListener('error',function(e){try{P.__duoLog('error',e.message+' @'+(e.lineno||'?'))}catch(_){}});addEventListener('unhandledrejection',function(e){try{P.__duoLog('error','promise: '+(e.reason&&e.reason.message||e.reason))}catch(_){}});"+
+ "var o=Element.prototype.setPointerCapture;Element.prototype.setPointerCapture=function(i){try{return o.call(this,i)}catch(e){}};})();<\/script>";
+window.__duoLog=function(k,m){ log(k==="log"?"":k,m); };
+
+function boot(html){ lastHtml=html; lastSrc=null; W=null; fr.removeAttribute("src"); fr.srcdoc=html.replace(/<head([^>]*)>/i,function(m){return m+PRE}); log("info","loading app ("+Math.round(html.length/1024)+" KB)"); }
+function bootSrc(src){ lastSrc=src; lastHtml=null; W=null; fr.removeAttribute("srcdoc"); fr.src=src; log("info","loading "+src); }
+$("pick").onchange=function(){ var f=this.files[0]; if(!f) return; f.text().then(boot); };
+$("loadRel").onclick=function(){ fetch("../TOPMOD.html").then(function(r){ if(!r.ok) throw 0; return r.text(); }).then(boot).catch(function(){ bootSrc("../TOPMOD.html"); log("warn","fetch blocked (file://?) — loaded by src; console capture and hooks may be limited. Use the file picker for full access."); }); };
+$("reload").onclick=function(){ if(lastHtml) boot(lastHtml); else if(lastSrc) bootSrc(lastSrc); };
+
+fr.addEventListener("load",function(){
+  try{ W=fr.contentWindow; void W.document.body; }catch(e){ W=null; log("warn","app is cross-origin; hooks unavailable"); return; }
+  log("info","app loaded"); applyPosture(); tick();
+});
+
+function duo(){ return W&&W.__duo; }
+function applyPosture(){ dev.classList.toggle("folded",folded&&$("hinge").classList.contains("on")); var d=duo(); if(d){ try{ d.set(folded); }catch(e){ log("error","__duo.set: "+e.message); } } else if(W) log("warn","window.__duo not found — is this a b90+ build?"); }
+$("pFold").onclick=function(){ folded=true; this.classList.add("on"); $("pFlat").classList.remove("on"); applyPosture(); };
+$("pFlat").onclick=function(){ folded=false; this.classList.add("on"); $("pFold").classList.remove("on"); applyPosture(); };
+$("dOn").onclick=function(){ duo()&&duo().set(true); };
+$("dOff").onclick=function(){ duo()&&duo().set(false); };
+$("dAuto").onclick=function(){ if(duo()&&duo().auto){ duo().auto(); log("info","__duo.auto()"); } };
+$("dPack").onclick=function(){ if(duo()&&duo().pack){ duo().pack(); log("info","__duo.pack()"); } };
+$("duoH").oninput=function(){ $("duoHO").textContent=this.value+"%"; if(W) W.document.documentElement.style.setProperty("--duoH",this.value+"vh"); try{ W.dispatchEvent(new W.Event("resize")); }catch(e){} $("hingeEl")&&0; document.querySelector(".hinge").style.top=this.value+"%"; };
+$("hinge").onclick=function(){ this.classList.toggle("on"); applyPosture(); };
+$("lsClear").onclick=function(){ if(!W) return; var n=0; try{ Object.keys(W.localStorage).forEach(function(k){ if(/^tm_/.test(k)){ W.localStorage.removeItem(k); n++; } }); }catch(e){} log("info","cleared "+n+" tm_ keys"); };
+[].forEach.call(document.querySelectorAll("[data-demo]"),function(b){ b.onclick=function(){ if(W&&W.__demo){ try{ W.__demo.stop&&W.__demo.stop(true); }catch(e){} W.__demo.start(+b.dataset.demo,true); log("info","demo "+b.dataset.demo); } else log("warn","window.__demo not found"); }; });
+$("dStop").onclick=function(){ W&&W.__demo&&W.__demo.stop&&W.__demo.stop(true); };
+
+function size(){ var v=$("size").value.split("x"), w=+v[0], h=+v[1], z=+$("zoom").value; dev.style.width=w+"px"; dev.style.height=h+"px"; dev.style.transform="scale("+z+")"; dev.style.margin=(h*(z-1)/2)+"px "+(w*(z-1)/2)+"px"; $("sz").textContent=w+"×"+h+" @"+z.toFixed(2); $("zoomO").textContent=z.toFixed(2); }
+$("size").onchange=size; $("zoom").oninput=size; size();
+
+/* region outlines: where the Duo layout actually put things */
+var REG=[["#view","#33d6ec","viewport"],["#frame","#ff9a3d","frame"],["#toolbar","#7cfc8a","toolbar"],["#toolpop","#ff5df0","toolpop"],["#layersPanel","#ffd84d","layers"],["#modsPanel","#9d8cff","modifiers"]];
+$("ovl").onclick=function(){ this.classList.toggle("on"); };
+function tick(){
+  if(W){ try{
+    var b=W.document.body, on=b.classList.contains("duo"); $("st").textContent=on?"ON":"off"; $("bc").textContent=[].join.call(b.classList," ")||"–";
+    var bv=W.document.querySelector("[data-build],#buildTag,.build"); $("bv").textContent=bv?(bv.dataset.build||bv.textContent).trim().slice(0,24):(W.TM_BUILD||"–");
+    var ov=$("ov"); ov.innerHTML="";
+    if($("ovl").classList.contains("on")) REG.forEach(function(r){ var el=W.document.querySelector(r[0]); if(!el) return; var q=el.getBoundingClientRect(); if(!q.width||!q.height) return; var i=document.createElement("i"); i.style.cssText="left:"+q.left+"px;top:"+q.top+"px;width:"+q.width+"px;height:"+q.height+"px;border-color:"+r[1]+";color:"+r[1]; i.textContent=r[2]+" "+Math.round(q.width)+"×"+Math.round(q.height); ov.appendChild(i); });
+  }catch(e){} }
+  setTimeout(tick,400);
+}
+log("info","Pick a TOPMOD.html or press Load ../TOPMOD.html (when this file sits in topmod/tools/ and is served over http).");
+</script>
+</body></html>

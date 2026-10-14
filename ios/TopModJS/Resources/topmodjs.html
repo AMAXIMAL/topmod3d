@@ -18418,6 +18418,11 @@ void main(){
   if (AUTO) { const afterSplash=()=>{ const sp=document.getElementById("tmSplash"); if(sp){ setTimeout(afterSplash,250); return; } start(); };   // never start under the intro
     if (document.readyState === "complete") afterSplash(); else addEventListener("load", afterSplash); }
 })();
+/* Ask Claude bridge: the in-app assistant drives the app through these (read live) */
+window.__tmCore={ get OP_PARAMS(){return OP_PARAMS}, get MODS(){return MODS}, get OP_AS_MOD(){return OP_AS_MOD}, get ops(){return ops},
+  get layers(){return layers}, get activeLayer(){return activeLayer}, get sel(){return sel},
+  addModifier, dispMesh, setMode, clearSel, rebuildOverlay, updateHint:(...a)=>{ try{ updateHint(...a); }catch(e){} }, newProject, primClick, closeToolPop, openToolPop,
+  rebuild, renderModStack, setRenderMode, renderLayerList, snapshot };
 })();
 
 </script>
@@ -19818,5 +19823,235 @@ body.duo #viewWrap::after{content:"TOUCH PAD";position:absolute;left:50%;top:50%
  if(document.readyState==="loading") document.addEventListener("DOMContentLoaded",init); else init();
 })();
 </script>
+<style>
+/* ---------- Ask Claude (in-app assistant) ---------- */
+#claudePanel{position:fixed;right:14px;bottom:64px;width:min(400px,calc(100vw - 28px));max-height:min(560px,calc(100vh - 140px));z-index:100010;display:flex;flex-direction:column;
+  background:rgba(12,16,24,.96);border:1px solid rgba(0,229,255,.35);border-radius:16px;box-shadow:0 20px 60px rgba(0,0,0,.55);color:#e6edf3;font:13px/1.45 var(--ui,system-ui,sans-serif);backdrop-filter:blur(12px);-webkit-backdrop-filter:blur(12px)}
+#claudePanel[hidden]{display:none}
+#claudePanel header{display:flex;align-items:center;gap:8px;padding:10px 12px;border-bottom:1px solid rgba(255,255,255,.08)}
+#claudePanel header b{font:800 11px var(--mono,monospace);letter-spacing:.14em;color:#00E5FF}
+#claudePanel header .sp{flex:1}
+#claudePanel header button{background:none;border:0;color:#8aa0b4;font-size:16px;cursor:pointer;padding:2px 6px}
+#clAcct{font:600 10px var(--mono,monospace);letter-spacing:.06em;color:#8aa0b4}
+#clLog{flex:1;overflow:auto;padding:10px 12px;display:flex;flex-direction:column;gap:8px;min-height:120px}
+#clLog .m{padding:8px 10px;border-radius:12px;max-width:92%;white-space:pre-wrap;word-wrap:break-word}
+#clLog .u{align-self:flex-end;background:#0b3a44;border:1px solid rgba(0,229,255,.25)}
+#clLog .a{align-self:flex-start;background:#161c26;border:1px solid rgba(255,255,255,.08)}
+#clLog .s{align-self:center;color:#8aa0b4;font:11px var(--mono,monospace)}
+#clLog .err{color:#ff7b8f}
+#clSugg{display:flex;flex-wrap:wrap;gap:6px;padding:0 12px 8px}
+#clSugg button{background:#121822;border:1px solid rgba(255,255,255,.12);color:#cfe3ee;border-radius:999px;padding:5px 10px;font-size:11.5px;cursor:pointer}
+#clForm{display:flex;gap:8px;padding:10px 12px;border-top:1px solid rgba(255,255,255,.08)}
+#clIn{flex:1;resize:none;min-height:38px;max-height:110px;background:#0a0e15;color:#e6edf3;border:1px solid rgba(255,255,255,.14);border-radius:10px;padding:9px 10px;font:inherit}
+#clSend{background:#00E5FF;color:#04161a;border:0;border-radius:10px;padding:0 14px;font-weight:800;cursor:pointer}
+#clSend:disabled{opacity:.5}
+#clSignIn{display:grid;gap:10px;padding:16px 14px;text-align:center}
+#clSignIn p{margin:0;color:#aebdcb}
+#clSignIn .btn{display:inline-flex;justify-content:center;align-items:center;gap:8px;background:#fff;color:#000;border:0;border-radius:10px;padding:11px 14px;font-weight:700;cursor:pointer}
+#clSignIn .ghost{background:transparent;color:#8aa0b4;border:1px solid rgba(255,255,255,.15)}
+#claudeFab{white-space:nowrap;cursor:pointer;background:rgba(0,229,255,0.1);border:1px solid rgba(0,229,255,0.3);color:var(--cyan,#00E5FF);font:11px var(--mono,monospace);padding:3px 9px;border-radius:7px}
+#claudeFab.on{background:var(--cyan,#00E5FF);color:#04222a}
+#clSignIn [hidden]{display:none!important}
+body.duo #claudePanel,body.duoBottom #claudePanel{top:calc(var(--duoH,50vh) + 8px);bottom:8px;max-height:none}
+@media (max-width:600px){#claudePanel{left:8px;right:8px;width:auto;bottom:58px}}
+</style>
+<div id="claudePanel" hidden role="dialog" aria-label="Ask Claude">
+  <header><b>&#10022; CLAUDE</b><span id="clAcct"></span><span class="sp"></span><button id="clNew" title="New conversation">&#8635;</button><button id="clClose" title="Close">&times;</button></header>
+  <div id="clSignIn" hidden>
+    <p>Describe what you want and Claude builds it in TopMod: primitives, handles, modifiers, gems, renders.</p>
+    <button class="btn" id="clApple">&#63743; Sign in with Apple</button>
+    <button class="btn ghost" id="clGuest">Try a few free requests</button>
+    <p style="font-size:11px;color:#6f8394">Powered by Claude from Anthropic. Your prompt and a summary of the current scene are sent to AMAXIMAL's server to process the request.</p>
+  </div>
+  <div id="clChat" hidden style="display:contents">
+    <div id="clLog"></div>
+    <div id="clSugg"></div>
+    <form id="clForm"><textarea id="clIn" rows="1" placeholder="Make a ring with three twisted handles, gemmed…"></textarea><button id="clSend" type="submit">Make</button></form>
+  </div>
+</div>
+<script>
+/* Ask Claude — Claude plans a build as TopMod steps; window.__claude.run() plays them with the app's own tools.
+   Server: AMAXIMAL endpoint (holds the Anthropic key, enforces the free allowance / credits).
+   Dev:    localStorage tm_claude_devkey = your own Anthropic key → calls the API directly (developer builds only). */
+(function(){
+  const C=window.__tmCore; if(!C) return;
+  const EP="https://amaximal.com/api/topmod-claude";
+  const MODEL="claude-sonnet-5-5";
+  const $q=s=>document.querySelector(s);
+  const ls={get(k){try{return localStorage.getItem(k)}catch(e){return null}},set(k,v){try{localStorage.setItem(k,v)}catch(e){}},del(k){try{localStorage.removeItem(k)}catch(e){}}};
+  const wait=ms=>new Promise(r=>setTimeout(r,ms));
+  let busy=false, history=[];
+
+  /* ---------- catalog: what Claude may use, read live from this build ---------- */
+  function paramInfo(id){
+    const el=document.getElementById(id); if(!el) return null;
+    const row=el.closest(".param"); let lab=row?(row.querySelector("label")||row).textContent:id; lab=lab.replace(/\s+/g," ").trim().slice(0,40);
+    const o={id,label:lab};
+    if(el.tagName==="SELECT") o.options=[...el.options].map(x=>x.value).slice(0,24);
+    else if(el.type==="checkbox") o.type="bool";
+    else if(el.type==="range"||el.type==="number"){ o.min=+el.min; o.max=+el.max; o.step=+el.step||undefined; o.value=+el.value; }
+    else o.type="text";
+    return o;
+  }
+  let _cat=null;
+  function catalog(){
+    if(_cat) return _cat;
+    const prims={}; [...new Set([...document.querySelectorAll("#toolbar [data-p]")].map(b=>b.dataset.p))].forEach(p=>{
+      prims[p]=((C.OP_PARAMS["prim:"+p])||[]).filter(id=>!/^pPrimS[XYZ]$/.test(id)).map(paramInfo).filter(Boolean); });
+    const mods={}; Object.keys(C.MODS).forEach(k=>{ if(k==="tool") return; const r=C.MODS[k]; mods[k]={label:r.label,params:(r.params||[]).map(d=>{ const o={k:d.k,label:d.l}; if(d.axis) o.options=["x","y","z"]; else if(d.opts) o.options=d.opts.map(x=>Array.isArray(x)?x[0]:x); else { o.min=d.min; o.max=d.max; o.def=d.def; } return o; })}; });
+    const ops={}; [...new Set([...document.querySelectorAll("#toolbar [data-op]")].map(b=>b.dataset.op))].forEach(op=>{
+      if(C.OP_AS_MOD[op]) return; ops[op]=(C.OP_PARAMS[op]||[]).map(paramInfo).filter(Boolean); });
+    const render=[...new Set([...document.querySelectorAll("[data-rm]")].map(b=>b.dataset.rm))];
+    const acts=["topopt","physics","topmodLook","lineArt","frameAll"].filter(a=>document.querySelector('[data-act="'+a+'"]'));
+    _cat={prims,mods,ops,render,acts}; return _cat;
+  }
+
+  /* ---------- scene summary sent with each request ---------- */
+  function scene(){
+    try{
+      const L=C.layers[C.activeLayer]; const M=C.dispMesh(); const e=TM.eulerInfo(M)||{};
+      return { layers:C.layers.map((l,i)=>({name:l.name,active:i===C.activeLayer,visible:l.visible!==false})),
+        active:{ name:L&&L.name, prim:L&&L.gen?L.gen.prim:null, primParams:L&&L.gen?L.gen.params:null,
+          modifiers:(L&&L.modifiers||[]).map(m=>({type:m.type,on:m.on!==false,params:Object.fromEntries(Object.entries(m.params||{}).filter(([k,v])=>typeof v!=="object"))})),
+          verts:M.verts.length, faces:M.faces.length, genus:e.genus, boundaries:e.boundaries },
+        selection:{faces:C.sel.faces.size,edges:C.sel.edges.size,verts:C.sel.verts.size}, duo:document.body.classList.contains("duo") };
+    }catch(err){ return {error:String(err)}; }
+  }
+
+  /* ---------- executor: plays a plan with the app's real tools ---------- */
+  function setInput(id,v){ const el=document.getElementById(id); if(!el) return false;
+    if(el.type==="checkbox") el.checked=!!v; else el.value=v;
+    el.dispatchEvent(new Event("input",{bubbles:true})); el.dispatchEvent(new Event("change",{bubbles:true})); return true; }
+  function faceNormalY(M,f){ try{ return TM.faceNormal(M,f)[1]; }catch(e){ return 0; } }
+  function selectFaces(spec){
+    const M=C.dispMesh(); C.setMode("face"); C.clearSel(false);
+    const N=M.faces.length, idx=[...Array(N).keys()];
+    let pick=[];
+    if(spec.all) pick=idx;
+    else if(spec.every) pick=idx.filter(i=>i%Math.max(1,spec.every|0)===0);
+    else if(spec.faces) pick=spec.faces.filter(i=>i>=0&&i<N);
+    else if(spec.dir){ const d={up:[0,1,0],down:[0,-1,0],left:[-1,0,0],right:[1,0,0],front:[0,0,1],back:[0,0,-1]}[spec.dir]||[0,1,0];
+      const sc=idx.map(i=>{ const n=TM.faceNormal(M,M.faces[i]); return [i,n[0]*d[0]+n[1]*d[1]+n[2]*d[2]]; }).sort((a,b)=>b[1]-a[1]);
+      const k=spec.count?Math.min(N,spec.count|0):Math.max(1,sc.filter(s=>s[1]>0.7).length); pick=sc.slice(0,k).map(s=>s[0]); }
+    else if(spec.random){ const k=Math.min(N,spec.random|0); const a=idx.slice(); for(let i=a.length-1;i>0;i--){ const j=Math.floor(Math.random()*(i+1)); [a[i],a[j]]=[a[j],a[i]]; } pick=a.slice(0,k); }
+    pick.forEach(i=>C.sel.faces.add(i)); C.rebuildOverlay(); C.updateHint&&C.updateHint();
+    return pick.length;
+  }
+  async function step(s,say){
+    if(s.new){ C.newProject(); await wait(120); return "New scene"; }
+    if(s.prim){ const name=s.prim; C.closeToolPop(); C.primClick(name,document.querySelector('#toolbar [data-p="'+name+'"]'));
+      await wait(60); for(const [k,v] of Object.entries(s.params||{})) setInput(k,v); await wait(200);
+      C.closeToolPop(); await wait(60); return "Primitive · "+name; }
+    if(s.select){ const n=selectFaces(s.select); return "Selected "+n+" faces"; }
+    if(s.mod){ if(!C.MODS[s.mod]) throw new Error("unknown modifier "+s.mod);
+      const md=C.addModifier(s.mod,{returnMod:true}); if(!md) throw new Error(s.mod+" could not be added");
+      Object.assign(md.params,s.params||{}); C.rebuild(); C.renderModStack&&C.renderModStack(); return (C.MODS[s.mod].label||s.mod); }
+    if(s.op){ const op=s.op;
+      if(C.OP_AS_MOD[op]){ const md=C.addModifier(C.OP_AS_MOD[op],{returnMod:true}); if(md){ Object.assign(md.params,s.params||{}); C.rebuild(); C.renderModStack&&C.renderModStack(); } return op; }
+      const btn=document.querySelector('#toolbar [data-op="'+op+'"]');
+      if(C.OP_PARAMS[op]&&btn){ C.closeToolPop(); C.openToolPop(op,btn); await wait(80);
+        for(const [k,v] of Object.entries(s.params||{})) setInput(k,v); await wait(150);
+        const ap=document.getElementById("tpApply"); if(ap&&ap.style.display!=="none") ap.click(); await wait(200); C.closeToolPop(); return op; }
+      if(C.ops[op]){ C.ops[op](); return op; }
+      throw new Error("unknown op "+op); }
+    if(s.render){ C.setRenderMode(s.render); return "Render · "+s.render; }
+    if(s.act){ const b=document.querySelector('[data-act="'+s.act+'"]'); if(s.act==="frameAll"){ window.__tm.frameAll(1.3); return "Frame"; } if(b){ b.click(); return s.act; } throw new Error("unknown action "+s.act); }
+    if(s.name){ const L=C.layers[C.activeLayer]; if(L){ L.name=String(s.name).slice(0,40); C.renderLayerList&&C.renderLayerList(); } return "Layer · "+s.name; }
+    if(s.clear){ C.clearSel(); return "Clear selection"; }
+    throw new Error("unknown step "+JSON.stringify(s).slice(0,80));
+  }
+  async function run(plan,onStep){
+    const steps=(plan&&plan.steps)||[]; const done=[];
+    C.snapshot&&C.snapshot();                    // one ⌘Z undoes the whole build
+    for(const s of steps){
+      try{ const r=await step(s); done.push(r); onStep&&onStep(r,true); }
+      catch(e){ done.push("✕ "+e.message); onStep&&onStep(e.message,false); }
+      await wait(140);
+    }
+    try{ C.clearSel(false); window.__tm.frameAll(1.3); }catch(e){}
+    return done;
+  }
+
+  /* ---------- talking to Claude ---------- */
+  const SYS="You are the modeling assistant inside TopMod 3D, a topological mesh modeler by AMAXIMAL (based on TopMod from Texas A&M). "+
+   "The user describes a 3D form; you build it by calling build_model once with a short friendly reply and an ordered list of steps. "+
+   "Step objects (use exactly one key per step, plus params): "+
+   "{new:true} start a fresh scene (only when the user asks for something new, not when editing). "+
+   "{prim:NAME, params:{inputId:value}} create a primitive; NAME and input ids come from CATALOG.prims. "+
+   "{mod:TYPE, params:{k:value}} add a live modifier from CATALOG.mods (parametric, preferred for whole-mesh changes: twist, bend, subdivide, smooth, tmHandles, tmRind, bejewel, thicken, mirror, array…). "+
+   "{select:{all:true}|{every:N}|{dir:'up'|'down'|'left'|'right'|'front'|'back',count:N}|{random:N}|{faces:[i…]}} select faces before a selection tool. "+
+   "{op:NAME, params:{inputId:value}} run a tool from CATALOG.ops on the selection (extrude, handle, pinch, dome, greeble…). "+
+   "{render:MODE} viewport look from CATALOG.render (gold, diamond, sapphire, ruby, emerald, carbon, wire, solid…). "+
+   "{act:'frameAll'|'topopt'|'physics'|'lineArt'} {name:'Layer name'} {clear:true}. "+
+   "Rules: only use names, ids and option values from CATALOG; keep values inside min/max; prefer few, robust steps (usually 2–8); "+
+   "handles in TopMod come from the tmHandles modifier (count, twist) on a closed polyhedron like a dodecahedron or cube; finish organic forms with subdivide; "+
+   "if the request is impossible with these tools, say so in reply and return the closest build. Never discuss anything unrelated to modeling in this app.";
+  const TOOL={name:"build_model",description:"Build or edit the model in TopMod with ordered steps.",
+    input_schema:{type:"object",properties:{reply:{type:"string",description:"One or two sentences to the user about what you built."},steps:{type:"array",items:{type:"object"}}},required:["reply","steps"]}};
+
+  function deviceId(){ let d=ls.get("tm_claude_dev"); if(!d){ d="d_"+Math.random().toString(36).slice(2)+Date.now().toString(36); ls.set("tm_claude_dev",d); } return d; }
+  async function callClaude(prompt){
+    const sc=scene(), cat=catalog();
+    const devKey=ls.get("tm_claude_devkey");
+    if(devKey){
+      const msgs=history.slice(-8).concat([{role:"user",content:"SCENE "+JSON.stringify(sc)+"\n\nREQUEST "+prompt}]);
+      const r=await fetch("https://api.anthropic.com/v1/messages",{method:"POST",headers:{"content-type":"application/json","x-api-key":devKey,"anthropic-version":"2023-06-01","anthropic-dangerous-direct-browser-access":"true"},
+        body:JSON.stringify({model:MODEL,max_tokens:2000,system:[{type:"text",text:SYS},{type:"text",text:"CATALOG "+JSON.stringify(cat),cache_control:{type:"ephemeral"}}],tools:[TOOL],tool_choice:{type:"tool",name:"build_model"},messages:msgs})});
+      const j=await r.json(); if(!r.ok) throw new Error((j.error&&j.error.message)||("HTTP "+r.status));
+      const tu=(j.content||[]).find(c=>c.type==="tool_use"); return tu?tu.input:{reply:"(no plan)",steps:[]};
+    }
+    const r=await fetch(EP,{method:"POST",headers:{"content-type":"application/json"},
+      body:JSON.stringify({prompt,scene:sc,catalog:cat,history:history.slice(-8),device:deviceId(),account:ls.get("tm_claude_acct")||null,build:(window.TM_BUILD||"3.9")})});
+    const j=await r.json().catch(()=>({})); if(!r.ok) throw new Error(j.error||("HTTP "+r.status));
+    if(typeof j.remaining==="number") setAcct(j.remaining);
+    return j.plan||{reply:j.reply||"",steps:[]};
+  }
+
+  /* ---------- UI ---------- */
+  const pnl=$q("#claudePanel"), log=$q("#clLog"), inp=$q("#clIn");
+  function add(cls,txt){ const d=document.createElement("div"); d.className="m "+cls; d.textContent=txt; log.appendChild(d); log.scrollTop=1e9; return d; }
+  function setAcct(rem){ const a=ls.get("tm_claude_acct"); $q("#clAcct").textContent=(a?"SIGNED IN":"GUEST")+(typeof rem==="number"?" · "+rem+" left":""); }
+  function signedIn(){ return !!(ls.get("tm_claude_acct")||ls.get("tm_claude_guest")||ls.get("tm_claude_devkey")); }
+  function show(){
+    pnl.hidden=false; const ok=signedIn(); { const f=document.getElementById("claudeFab"); f&&f.classList.add("on"); }
+    $q("#clSignIn").hidden=ok; $q("#clChat").hidden=!ok; $q("#clChat").style.display=ok?"contents":"none";
+    $q("#clApple").hidden=!(window.webkit&&window.webkit.messageHandlers&&window.webkit.messageHandlers.appleSignIn);
+    setAcct(); if(ok){ if(!log.childElementCount) add("s","Describe a form. Claude builds it with TopMod's own tools — ⌘Z undoes the whole build."); setTimeout(()=>inp.focus(),50); }
+    const S=["Ring with 3 twisted handles, gold","Twisted torus vase","Gem-set dodecahedron pendant","Make it smoother","Add a mirror"];
+    $q("#clSugg").innerHTML=""; S.forEach(t=>{ const b=document.createElement("button"); b.type="button"; b.textContent=t; b.onclick=()=>{ inp.value=t; send(); }; $q("#clSugg").appendChild(b); });
+  }
+  function hide(){ pnl.hidden=true; const f=document.getElementById("claudeFab"); f&&f.classList.remove("on"); }
+  async function send(){
+    const t=inp.value.trim(); if(!t||busy) return; busy=true; $q("#clSend").disabled=true; inp.value="";
+    add("u",t); const th=add("s","Claude is planning…");
+    try{
+      const plan=await callClaude(t);
+      th.remove(); add("a",plan.reply||"Done.");
+      history.push({role:"user",content:t},{role:"assistant",content:(plan.reply||"")+" [steps: "+JSON.stringify(plan.steps||[]).slice(0,600)+"]"});
+      const prog=add("s","Building…");
+      const res=await run(plan,(r,ok)=>{ prog.textContent=(ok?"✓ ":"✕ ")+r; });
+      prog.textContent=res.filter(x=>!String(x).startsWith("✕")).length+" of "+res.length+" steps · ⌘Z undoes";
+    }catch(e){ th.remove(); add("a err","Couldn't reach Claude: "+e.message); }
+    busy=false; $q("#clSend").disabled=false;
+  }
+  $q("#clForm").addEventListener("submit",e=>{ e.preventDefault(); send(); });
+  inp.addEventListener("keydown",e=>{ if(e.key==="Enter"&&!e.shiftKey){ e.preventDefault(); send(); } });
+  $q("#clClose").onclick=hide;
+  $q("#clNew").onclick=()=>{ history=[]; log.innerHTML=""; show(); };
+  $q("#clGuest").onclick=()=>{ ls.set("tm_claude_guest","1"); show(); };
+  $q("#clApple").onclick=()=>{ try{ window.webkit.messageHandlers.appleSignIn.postMessage({}); }catch(e){} };
+  /* native iOS calls this after Sign in with Apple: { user, identityToken } */
+  window.__onAppleSignIn=function(r){ if(r&&r.identityToken){ ls.set("tm_claude_acct",r.identityToken); show(); } };
+  // entry points: Help menu item + bottom-bar button next to Hands
+  (function(){
+    const mi=document.getElementById("miWhatsNew");
+    if(mi&&!document.getElementById("miClaude")){ const c=document.createElement("div"); c.className="mi"; c.id="miClaude"; c.innerHTML="&#10022; Ask Claude&hellip;"; mi.parentNode.insertBefore(c,mi); c.addEventListener("click",()=>{ try{ document.querySelectorAll(".menu.open").forEach(m=>m.classList.remove("open")); }catch(e){} show(); }); }
+    const hf=document.getElementById("handFab");
+    if(hf&&!document.getElementById("claudeFab")){ const b=document.createElement("button"); b.className="cell"; b.id="claudeFab"; b.title="Ask Claude to build or edit the model"; b.innerHTML="&#10022; Claude"; hf.parentNode.insertBefore(b,hf); b.addEventListener("click",()=>pnl.hidden?show():hide()); }
+  })();
+  window.__claude={catalog,scene,run,show,hide,ask:t=>{ show(); inp.value=t; return send(); }};
+})();
+</script>
+
 </body>
 </html>
