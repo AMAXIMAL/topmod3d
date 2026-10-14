@@ -886,19 +886,50 @@ body.opDock #toolpop,body.opDock.opOpen #layersPanel,body.opDock.opOpen #modPane
 #tourCard .tbar{height:2px;background:rgba(0,229,255,.15);border-radius:2px;margin:0 0 8px;overflow:hidden}
 #tourCard .tbar i{display:block;height:100%;width:0;background:#00E5FF}
 body.phone #tourCard{font-size:11px;padding:9px 11px 8px;width:min(240px,calc(100vw - 24px))}
+/* slider audit: EVERY slider in Options (tool params, modifier params, fabrication .mkrow rows, print panel) fits the column width */
+body.opDock #tpBody input[type=range]{min-width:0!important;max-width:100%!important;box-sizing:border-box}
+body.opDock #tpBody label.mkrow,body.opDock #tpBody .mkrow,body.opDock #tpBody .modParam,body.opDock #tpBody .osdRow{display:flex!important;flex-wrap:wrap!important;align-items:center;gap:3px 6px;width:100%!important;min-width:0!important;box-sizing:border-box}
+body.opDock #tpBody label.mkrow>input[type=range],body.opDock #tpBody .mkrow>input[type=range],body.opDock #tpBody .modParam input[type=range],body.opDock #tpBody .osdRow input[type=range]{flex:1 1 80px!important;width:auto!important}
+body.opDock #tpBody label.mkrow>output,body.opDock #tpBody label.mkrow>.numbox,body.opDock #tpBody label.mkrow>input[type=text],body.opDock #tpBody label.mkrow>input[type=number],body.opDock #tpBody .modParam .numbox,body.opDock #tpBody .osdRow .numbox{flex:0 0 46px!important;width:46px!important;min-width:0!important}
+body.opDock #tpBody label.mkrow>select{flex:1 1 100%!important;width:100%!important}
+/* Layers + Modifiers rows: one compact style — small, bold, white, no decorative icons */
+#layerList .layerRow,#modList .modRow,#fabNode.added{min-height:0!important;padding:3px 6px!important;font:700 11px/1.25 var(--font,system-ui)!important;color:#fff!important;border-radius:6px!important}
+#layerList .layerRow .layerName,#modList .modRow .modName,#fabNode .modName{font:700 11px/1.25 var(--font,system-ui)!important;color:#fff!important;font-style:normal!important}
+#layerList .layerRow.locked .layerName{color:#c9d3dc!important}
+#modList .modBaseIcon{display:none!important}
+#modList .modBaseTag{font-size:9px!important}
+#layerList .layerRow button,#modList .modRow button{font-size:11px!important;min-width:16px;padding:0 1px!important}
+#layerList{gap:2px!important}
+#layerAdd{padding:4px 8px!important;font-size:11px!important}
+/* Fabrication = a normal row in the Modifiers stack, named by technique (Papercraft, Plywood · stacked layers …) */
+#fabNode{display:none!important}
+#modHint,#modList .modEmpty{display:none!important}
+#fabNode.added{display:flex!important;margin:2px 8px 4px!important;padding:5px 6px!important;border:1px solid rgba(0,229,255,.18)!important;border-top:1px solid rgba(0,229,255,.18)!important;border-radius:7px!important;background:rgba(0,229,255,.06)!important}
+#fabNode.added.off #fabName{opacity:.5}
+#fabNode .modName{font-weight:600;font-size:12px;flex:1;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+#fabNode .fabX{background:transparent;border:0;color:#9fb4c8;font-size:14px;cursor:pointer;padding:0 2px;line-height:1}
+#fabNode .fabX:hover{color:#ff5a7a}
 /* no floating Apply / Cancel over the 3D view — Apply lives in the Options column */
 #floatApply{display:none!important}
 /* Hands demo: simulated tracking overlay */
 body.handDemo #amxCursor{opacity:0!important}
-#handSimSvg .bones line{stroke:#00E5FF;stroke-width:3;stroke-linecap:round;opacity:.9;filter:drop-shadow(0 0 4px rgba(0,229,255,.8))}
-#handSimSvg .jts circle{fill:#FF8C22;stroke:#fff;stroke-width:1}
-#handSimSvg .pg{fill:none;stroke:#FF8C22;stroke-width:3;opacity:.9;filter:drop-shadow(0 0 8px #FF8C22)}
+#handSimSvg .bones line{stroke:hsla(189,85%,58%,.85);stroke-width:3.2;stroke-linecap:round}
+#handSimSvg .j{fill:hsla(189,90%,65%,.8)}
+#handSimSvg .tp{fill:hsla(189,100%,74%,.95)}
+#handSimSvg .tg{fill:hsla(189,100%,70%,.18)}
+#handSimSvg .pr{fill:none;stroke-width:3.5;filter:drop-shadow(0 0 6px currentColor)}
+#handFab.handGlow{box-shadow:0 0 0 2px #00E5FF,0 0 18px 6px rgba(0,229,255,.75)!important;background:rgba(0,229,255,.25)!important;animation:hgl 1s ease-in-out infinite alternate}
+@keyframes hgl{from{box-shadow:0 0 0 2px #00E5FF,0 0 8px 2px rgba(0,229,255,.5)}to{box-shadow:0 0 0 3px #00E5FF,0 0 24px 9px rgba(0,229,255,.9)}}
 #handSimBadge{position:fixed;left:50%;top:calc(var(--tbTop,52px) + 8px);transform:translateX(-50%);z-index:99991;font:700 10px var(--mono,monospace);letter-spacing:2px;color:#FF8C22;background:rgba(11,15,22,.85);border:1px solid rgba(255,140,34,.5);border-radius:8px;padding:4px 10px;pointer-events:none}
+#ncFocus{position:absolute;top:22px;left:-22px;width:16px;height:16px;border-radius:50%;background:rgba(0,229,255,0.14);border:1px solid rgba(0,229,255,0.4);color:var(--cyan);font-size:10px;line-height:1;cursor:pointer;z-index:31;padding:0}
+#ncFocus:hover,#ncFocus.on{background:var(--cyan);color:#04222a;box-shadow:0 0 10px rgba(0,229,255,.6)}
+body.focusPick #view{cursor:crosshair!important}
+body.phone #ncFocus{left:-26px!important;top:50px!important;width:22px!important;height:22px!important;font-size:12px!important}
 /* iPhone: smaller nav cube — Home and Auto-rotate buttons keep their size */
 body.phone #navcube{width:54px!important;height:54px!important;top:8px!important;right:10px!important}
 body.phone #ncCanvas{width:54px!important;height:54px!important}
-body.phone #ncHome{left:-20px!important;top:0!important}
-body.phone #ncSpin{right:auto!important;left:-20px!important;top:22px!important}
+body.phone #ncHome{left:-26px!important;top:-2px!important;width:22px!important;height:22px!important;font-size:12px!important}
+body.phone #ncSpin{right:auto!important;left:-26px!important;top:24px!important;width:22px!important;height:22px!important;font-size:12px!important}
 /* View style lives in the bottom bar (not on the nav cube) */
 #status #viewStyleSel{position:static!important;margin:0!important;width:auto!important;max-width:120px;height:auto;padding:3px 6px;font:600 11px var(--font,system-ui);background:rgba(0,229,255,.08);color:#cfefff;border:1px solid rgba(0,229,255,.35);border-radius:7px;cursor:pointer}
 body.phone #status #viewStyleSel{font-size:8.5px!important;padding:2px 3px!important;max-width:92px}
@@ -910,7 +941,7 @@ body.opDock #tpBody .param>*{grid-column:1 / -1;min-width:0;max-width:100%}
 body.opDock #tpBody .param>label{white-space:normal;overflow-wrap:anywhere}
 body.opDock #tpBody .param>input[type=range]{grid-column:1;width:100%!important;margin:0}
 body.opDock #tpBody .param>input[type=range]+output,body.opDock #tpBody .param>input[type=range]+.numbox,body.opDock #tpBody .param>.numbox,body.opDock #tpBody .param>output{grid-column:2;width:44px!important;margin:0}
-body.opDock #tpBody select,body.opDock #tpBody input[type=text],body.opDock #tpBody input[type=number]:not(.numbox),body.opDock #tpBody textarea{width:100%!important;max-width:100%;box-sizing:border-box}
+body.opDock #tpBody select,body.opDock #tpBody input[type=text]:not(.numbox):not(.fsV):not([inputmode=decimal]),body.opDock #tpBody input[type=number]:not(.numbox),body.opDock #tpBody textarea{width:100%!important;max-width:100%;box-sizing:border-box}
 body.opDock #tpBody button{max-width:100%;white-space:normal}
 body.opDock #tpApply{width:auto!important;max-width:calc(100% - 20px)}
 /* collapsible Layers / Modifiers sections */
@@ -1243,10 +1274,10 @@ html.inApp [data-act="fullscreen"],html.inApp [data-act="shortcuts"],html.inApp 
       <div class="bblabel" id="bbLZ"></div>
       <div id="crustState">Rind active &mdash; <b id="crustLeft">0</b> punchable pairs<br>Click a face to punch through.</div>
       <div id="layersPanel">
-        <div id="layersHead"><span>&#9783; LAYERS</span><span id="layersGrip">⠿</span><button id="layersClose">&times;</button></div>
+        <div id="layersHead"><span>LAYERS</span><span id="layersGrip">⠿</span><button id="layersClose">&times;</button></div>
         <div id="layerList"></div>
         <div id="modPanel">
-          <div id="modHead">&#9881; MODIFIERS <span class="modSep">·</span> <span id="modLayerName">—</span><button id="modClose" title="Hide (Layers button brings it back)">&times;</button></div>
+          <div id="modHead">MODIFIERS <span class="modSep">·</span> <span id="modLayerName">—</span><button id="modClose" title="Hide (Layers button brings it back)">&times;</button></div>
           <div id="modList"></div>
           <div id="modBar">
             <span id="modHint">Add from the <b>Modifiers</b> tools above</span>
@@ -1257,14 +1288,16 @@ html.inApp [data-act="fullscreen"],html.inApp [data-act="shortcuts"],html.inApp 
         <button id="layerAdd">+ Add layer</button>
         <div id="fabNode" title="Fabricate the whole visible model — flattens every layer + its modifiers into the fab parts when on" style="display:flex;align-items:center;gap:6px;margin-top:8px;padding:8px 6px 2px;border-top:1px solid var(--cyan-dim);cursor:pointer;font-size:11px">
           <button id="fabToggle" title="Turn fabrication on/off" style="background:transparent;border:0;cursor:pointer;color:#9fb4c8;font-size:13px;padding:0;line-height:1">&#9711;</button>
-          <span id="fabName" style="font-weight:600">&#9881; Fabrication</span>
-          <span id="fabStatus" style="margin-left:auto;color:#8aa;font-size:10px">off</span>
+          <span id="fabName" class="modName">Papercraft</span>
+          <span id="fabStatus" style="display:none"></span>
+          <button id="fabRemove" class="fabX" title="Remove fabrication from the stack">&times;</button>
         </div>
       </div>
       <div id="navcube" title="Click a face / edge / corner to snap the view">
         <canvas id="ncCanvas" width="120" height="120"></canvas>
         <button id="ncHome" title="Home view (frame all)">&#8962;</button>
         <button id="ncSpin" title="Auto-rotate — slowly spins the view while you work">&#10227;</button>
+        <button id="ncFocus" title="Focus — tap this, then tap the model to orbit around that point (⌂ recenters)">&#9678;</button>
       </div>
     </div>
 
@@ -6832,7 +6865,7 @@ function deleteLayer(i){
 function renderLayerList(){
   const list=$("#layerList"); if(!list) return;
   list.innerHTML="";
-  if(fabActive){                                                 // Fabrication flattens the whole tree — show that in the panel
+  if(false && fabActive){                                        // (banner retired — fabrication is just a row in the Modifiers stack)
     const vis=layers.filter(L=>L&&L.visible!==false).length;
     const banner=document.createElement("div");
     banner.style.cssText="padding:6px 8px;margin:0 0 5px;font-size:10px;line-height:1.35;color:var(--cyan);background:rgba(0,229,255,0.09);border:1px solid var(--cyan-dim);border-radius:5px";
@@ -6852,7 +6885,7 @@ function renderLayerList(){
     const vis=mkBtn("layerVis",L.visible?"&#128065;":"&#10005;","Toggle visibility",()=>{L.visible=!L.visible;renderInactiveLayers();renderLayerList();});
     const lock=mkBtn("layerBtn",L.locked?"&#128274;":"&#128275;",L.locked?"Locked (click to unlock)":"Unlocked (click to lock)",()=>{L.locked=!L.locked;renderLayerList();});
     const gear=L.gen?mkBtn("layerBtn layerGear","&#9881;","Edit "+primLabel(L.gen.prim)+" parameters",()=>editGenLayer(i)):null;
-    const nm=document.createElement("span"); nm.className="layerName"+(L.gen?" param":""); nm.textContent=(L.gen?"\u25C8 ":"")+L.name+" ("+L.mesh.faces.length+"f)";
+    const nm=document.createElement("span"); nm.className="layerName"+(L.gen?" param":""); nm.textContent=L.name+" ("+L.mesh.faces.length+"f)";
     nm.ondblclick = L.gen ? (()=>editGenLayer(i)) : (()=>{ const n=prompt("Layer name:",L.name); if(n){L.name=n;renderLayerList();} });
     const dup=mkBtn("layerBtn","&#10697;","Duplicate layer",()=>duplicateLayer(i));
     const merge=mkBtn("layerBtn","&#8675;","Merge down (combine geometry)",()=>mergeDownLayer(i)); merge.disabled=(i===0);
@@ -11807,8 +11840,13 @@ function setRhinoLink(on){
 $("#rhinoLink")&&$("#rhinoLink").addEventListener("click",()=>setRhinoLink(!rhinoLink));
 $("#rhinoLink")&&$("#rhinoLink").addEventListener("contextmenu",e=>{ e.preventDefault(); const u=prompt("Rhino receiver URL",rhinoURL); if(u){ rhinoURL=u.trim(); if(rhinoLink) rhinoPush(); } });
 // Fabrication footer node: ON flattens every visible layer + its modifiers into the fab input.
+var FAB_NAMES={papercraft:"Papercraft",layers:"Plywood · stacked layers",faces:"Plywood · face panels",laser:"Laser cut · finger joints",waffle:"Plywood · waffle"};
+var fabAdded=false;
+function fabTechnique(){ const N={papercraft:"Papercraft",layers:"Plywood · stacked layers",faces:"Plywood · face panels",laser:"Laser cut · finger joints",waffle:"Plywood · waffle"}; const ms=$("#mkPlyMode"); return N[ms&&ms.value]||"Fabrication"; }
 function renderFabNode(){
   const node=$("#fabNode"); if(!node) return;
+  node.classList.toggle("added",!!(fabAdded||fabActive)); node.classList.toggle("off",!fabActive);
+  const nmEl=$("#fabName"); if(nmEl) nmEl.textContent=fabTechnique();
   const tg=$("#fabToggle"), st=$("#fabStatus");
   if(tg){ tg.innerHTML = fabActive ? "&#9673;" : "&#9711;"; tg.style.color = fabActive ? "var(--cyan)" : "#9fb4c8"; }
   node.style.background = fabActive ? "rgba(0,229,255,0.10)" : "transparent";
@@ -11822,14 +11860,20 @@ function renderFabNode(){
   }
 }
 function setFabActive(on){
-  fabActive=!!on;
+  fabActive=!!on; if(fabActive) fabAdded=true;
   if(fabActive){ if(typeof openToolPop==="function") openToolPop("slab",null); if(typeof previewFab==="function") previewFab(); }
   else { if(typeof clearSlabOverlay==="function") clearSlabOverlay(); if(typeof clearSlabStack==="function") clearSlabStack(); }
   if(typeof rebuild==="function") rebuild();   // show the temporary flattened tree (on) or restore the layers (off)
   renderFabNode(); if(typeof renderLayerList==="function") renderLayerList();
 }
 $("#fabToggle")&&$("#fabToggle").addEventListener("click",(e)=>{ e.stopPropagation(); setFabActive(!fabActive); });
-$("#fabNode")&&$("#fabNode").addEventListener("click",()=>{ if(!fabActive) setFabActive(true); else if(typeof openToolPop==="function") openToolPop("slab",null); });
+$("#fabNode")&&$("#fabNode").addEventListener("click",()=>{ if(typeof openToolPop==="function") openToolPop("slab",null); });
+$("#fabRemove")&&$("#fabRemove").addEventListener("click",(e)=>{ e.stopPropagation(); fabAdded=false; if(fabActive) setFabActive(false); else renderFabNode(); if(typeof closeToolPop==="function"&&tpState&&tpState.op==="slab") closeToolPop(); });
+$("#mkPlyMode")&&$("#mkPlyMode").addEventListener("change",()=>renderFabNode());
+// choosing any fabrication technique (Make menu / Fabricate tools) adds it to the stack as its own row
+(function(){ const _o=window.openToolPop; if(typeof openToolPop!=="function") return;
+  const hook=()=>{ if(tpState&&tpState.op==="slab"){ fabAdded=true; renderFabNode(); } };
+  document.addEventListener("click",()=>setTimeout(hook,0),true); })();
 // ---- modifier wiring ----
 (function initModStack(){
   $$("[data-mod]").forEach(b=>b.addEventListener("click",()=>{
@@ -12119,7 +12163,24 @@ Examples:
   cv.addEventListener("mouseleave",()=>{ if(hoverFi>=0){matList[hoverFi].color.set(faces[hoverFi].length>=4?0x2c3d52:0x223044);hoverFi=-1;} });
 
   // home + pan arrows
-  $("#ncHome").addEventListener("click",()=>{ if(window.__tm&&window.__tm.frameAll) window.__tm.frameAll(); tweenTo(0.7,0.45); });
+  $("#ncHome").addEventListener("click",()=>{ if(window.__tm&&window.__tm.frameAll) window.__tm.frameAll(); tweenTo(0.7,0.45); toast&&toast("Home view — recentered and framed"); });
+/* Nav cube ◎ Focus: tap it, then tap the model — the view now orbits around that point. ⌂ Home recenters. */
+(function(){ function init(){ var b=document.getElementById("ncFocus"), cv=document.getElementById("view"); if(!b||!cv) return; var on=false;
+  function set(v){ on=v; b.classList.toggle("on",v); document.body.classList.toggle("focusPick",v); if(v&&typeof toast==="function") toast("Tap for new focus point"); }
+  b.addEventListener("click",function(e){ e.stopPropagation(); set(!on); });
+  cv.addEventListener("pointerdown",function(e){ if(!on) return; e.preventDefault(); e.stopImmediatePropagation(); window.__focusSwallow&&window.__focusSwallow();
+    var r=cv.getBoundingClientRect(), v=new THREE.Vector2(((e.clientX-r.left)/r.width)*2-1, -((e.clientY-r.top)/r.height)*2+1);
+    var ray=new THREE.Raycaster(); ray.setFromCamera(v,camera); var objs=[]; scene.traverse(function(o){ if(o.isMesh&&o.visible&&o.geometry&&!(o.material&&o.material.transparent&&o.material.opacity<0.2)) objs.push(o); });
+    var hit=ray.intersectObjects(objs,false).filter(function(h){ return h.object!==window.__gridObj; })[0];
+    if(!hit){ toast&&toast("No surface there — tap the model, or ◎ to cancel"); return; }
+    var p=hit.point, a=target.clone(), T0=performance.now();
+    (function st(){ var t=Math.min(1,(performance.now()-T0)/450), k=t<.5?2*t*t:1-Math.pow(-2*t+2,2)/2; target.set(a.x+(p.x-a.x)*k,a.y+(p.y-a.y)*k,a.z+(p.z-a.z)*k); applyCam(); if(t<1) requestAnimationFrame(st); })();
+    set(false); toast&&toast("New focus point — ⌂ to recenter"); },true);
+  var swallow=false; cv.addEventListener("pointerdown",function(){},true);
+  ["pointerup","click","touchend","mouseup"].forEach(function(t){ cv.addEventListener(t,function(e){ if(swallow){ e.preventDefault(); e.stopImmediatePropagation(); if(t==="click") swallow=false; } },true); });
+  window.__focusSwallow=function(){ swallow=true; setTimeout(function(){ swallow=false; },600); };
+  addEventListener("keydown",function(e){ if(on&&e.key==="Escape") set(false); }); }
+ if(document.readyState==="loading") document.addEventListener("DOMContentLoaded",init); else init(); })();
   
 })();
 
@@ -12726,10 +12787,29 @@ function openMakePanel(){ const ms=$("#mkPlyMode"); if(ms) ms.value="papercraft"
 // auto-play the unfold: sweep the animation slider 0(folded)→1(flat) slowly so you SEE it open out
 let _unfoldRAF=null;
 function stopUnfoldAnim(){ if(_unfoldRAF){ cancelAnimationFrame(_unfoldRAF); _unfoldRAF=null; } }
+// Fabrication animations zoom the camera OUT as pieces travel, so the model and every flat part stay in frame
+let _fabZoomRAF=null;
+function fabZoomOut(extraPts, dur){
+  try{
+    let mn=[1e9,1e9,1e9], mx=[-1e9,-1e9,-1e9]; const add=v=>{ for(let k=0;k<3;k++){ if(v[k]<mn[k])mn[k]=v[k]; if(v[k]>mx[k])mx[k]=v[k]; } };
+    (mesh&&mesh.verts||[]).forEach(add); (extraPts||[]).forEach(add);
+    if(mn[0]>mx[0]) return;
+    const c=[(mn[0]+mx[0])/2,(mn[1]+mx[1])/2,(mn[2]+mx[2])/2], R=Math.hypot(mx[0]-mn[0],mx[1]-mn[1],mx[2]-mn[2])/2;
+    const fov=(camera.fov||45)*Math.PI/180, asp=Math.max(0.3,camera.aspect||1.5), half=Math.min(fov/2, Math.atan(Math.tan(fov/2)*asp));
+    const goal=Math.max(dist, R/Math.sin(half)*1.08);
+    const d0=dist, t0x=target.x,t0y=target.y,t0z=target.z, T0=performance.now(); dur=dur||2600;
+    const ease=x=>x<0.5?2*x*x:1-Math.pow(-2*x+2,2)/2;
+    cancelAnimationFrame(_fabZoomRAF);
+    (function st(){ const t=ease(Math.min(1,(performance.now()-T0)/dur));
+      dist=d0+(goal-d0)*t; target.set(t0x+(c[0]-t0x)*t, t0y+(c[1]-t0y)*t, t0z+(c[2]-t0z)*t); applyCam();
+      if(t<1) _fabZoomRAF=requestAnimationFrame(st); })();
+  }catch(e){}
+}
 function playUnfoldAnim(dur){
   if(!liveNet||!makeNet) return;
   stopUnfoldAnim();
   dur=dur||2600;
+  try{ const pts=[]; layers.forEach(Lr=>{ if(Lr&&Lr.visible!==false&&Lr.mesh) Lr.mesh.verts.forEach(v=>pts.push(v)); }); fabZoomOut(pts, dur); }catch(e){}
   const sl=$("#mkAnim"), ov=$("#mkAnimV");
   const ease=x=>x<0.5?2*x*x:1-Math.pow(-2*x+2,2)/2;            // easeInOutQuad
   setAnim(0); if(sl) sl.value="0"; if(ov) ov.textContent="0.00";
@@ -13090,6 +13170,7 @@ function playSlabFlatten(dur){
   clearSlabAnim();
   const n=pairs.length;
   dur=dur||Math.min(6000, 2400+n*60);      // a few more pieces = a little longer, so the wave stays readable
+  try{ const pts=[]; pairs.forEach(pp=>pp.dst.forEach(q=>pts.push(q))); fabZoomOut(pts, dur*0.85); }catch(e){}
   const color = slabData.mode==="laser"?0x49b6ff: slabData.mode==="faces"?0x9be08a : slabData.mode==="waffle"?0xC9A15A : 0xCBA15A;
   if(slabOverlay) slabOverlay.visible=false;     // hide the final flat result until the morph lands
   if(slabStack) slabStack.visible=false;
@@ -15165,11 +15246,11 @@ window.__ek={applyWhole:applyWhole,ops:ops,snapshot:snapshot,rebuild:rebuild,toa
   document.body.classList.add("tbDock"); tb.classList.remove("tucked","collapsed");
   const bar=document.createElement("div"); bar.id="tbDockBar"; bar.title="Drag to resize the tools column"; document.body.appendChild(bar);
   const root=document.documentElement.style, phone=()=>Math.min(innerWidth,innerHeight)<=500;
-  let w=null; try{ const v=+localStorage.getItem("tmTbW"); if(v) w=v; }catch(e){}
+  let w=null; try{ const v=+localStorage.getItem("tmTbW2"); if(v) w=v; }catch(e){}
   function cells(){ const ph=phone(); root.setProperty("--tbCell",ph?"34px":"40px"); root.setProperty("--tbCellH",ph?"36px":"42px"); root.setProperty("--tbIcon",ph?"18px":"21px"); }
   function defaultW(){ const f=document.querySelector("#menubar .menu .mtitle"); const fx=f?f.getBoundingClientRect().left:0;
-    const ph=phone(), three=3*(ph?34:40)+2*3+8+10+12;          // 3 cells + gaps + group padding/border + column padding + scrollbar slack
-    return Math.round(Math.max(three, Math.min(fx-6, ph?three:240))); }
+    const ph=phone(), two=2*(ph?34:40)+1*3+8+10+12;            // default = TWO tool icons wide (+ gap, group padding/border, column padding, scrollbar slack)
+    return Math.round(two); }
   function layout(){
     const mb=document.getElementById("menubar"), st=document.getElementById("status");
     const top=mb?Math.round(mb.getBoundingClientRect().bottom):52, bot=st&&st.offsetParent!==null?Math.round(innerHeight-st.getBoundingClientRect().top):0;
@@ -15179,9 +15260,9 @@ window.__ek={applyWhole:applyWhole,ops:ops,snapshot:snapshot,rebuild:rebuild,toa
   let dg=null;
   bar.addEventListener("pointerdown",e=>{ dg={x:e.clientX,w:tb.getBoundingClientRect().width}; bar.setPointerCapture(e.pointerId); bar.classList.add("drag"); e.preventDefault(); e.stopPropagation(); });
   bar.addEventListener("pointermove",e=>{ if(!dg) return; w=Math.round(Math.max(110,Math.min(innerWidth*0.45,dg.w+e.clientX-dg.x))); layout(); });
-  const up=()=>{ if(!dg) return; dg=null; bar.classList.remove("drag"); try{ localStorage.setItem("tmTbW",String(w)); }catch(e){} };
+  const up=()=>{ if(!dg) return; dg=null; bar.classList.remove("drag"); try{ localStorage.setItem("tmTbW2",String(w)); }catch(e){} };
   bar.addEventListener("pointerup",up); bar.addEventListener("pointercancel",up);
-  bar.addEventListener("dblclick",()=>{ w=null; try{ localStorage.removeItem("tmTbW"); }catch(e){} layout(); });
+  bar.addEventListener("dblclick",()=>{ w=null; try{ localStorage.removeItem("tmTbW2"); }catch(e){} layout(); });
   addEventListener("resize",layout); addEventListener("orientationchange",()=>setTimeout(layout,250));
   new MutationObserver(()=>{ if(tb.classList.contains("tucked")) tb.classList.remove("tucked"); }).observe(tb,{attributes:true,attributeFilter:["class"]});
   try{ const st=document.getElementById('status'), mb=document.getElementById('menubar'); const ro=new ResizeObserver(()=>layout()); st&&ro.observe(st); mb&&ro.observe(mb); }catch(e){}
@@ -16666,7 +16747,7 @@ void main(){
   // demo names + credits (in SEQS order)
   const DEMO_INFO=[
     ["The TopMod Look","after Nathan Ho · TopMod: Akleman, Srinivasan, Chen"],
-    ["Hands","pinch · extrude · ring-pinch to Wire · two-hand zoom · grab to rotate"],
+    ["Hands","pinch select · ✌ pull to extrude · pinky undo/redo · third-finger shortcuts · two-hand zoom & orbit"],
     ["Gem Cuts","four cuts · diamond, sapphire, emerald, ruby"],
     ["Flame","equation deform · TopMod 3D"],
     ["Cloth","XPBD fabric: inflate + drape · after XRTailor / OpenCloth"],
@@ -16867,35 +16948,38 @@ void main(){
         if(window.__lineart && alive){ say("Line Art · wireframe, hidden lines removed"); window.__lineart.open(); EQ("lineart"); await wait(3600); window.__lineart.close(); await wait(300); }
       } finally { spinHold=false; try{ window.__eq&&window.__eq.op(null); }catch(e){} }
     },
-    // 1 — "Hands": simulated hand tracking — pinch a face, extrude it, ring-pinch shortcut to Wire, two-hand zoom, grab-and-turn
+    // 1 — "Hands": simulated hand tracking with the app's real gestures — index pinch select · right ✌ push/pull extrude ·
+    //     ring-finger shortcuts → Wire · pinky undo / redo · both pinch zoom · both ✌ orbit (hand right → model turns right)
     async () => {
       const NS="http://www.w3.org/2000/svg";
       const svg=document.createElementNS(NS,"svg"); svg.id="handSimSvg";
       Object.assign(svg.style,{position:"fixed",left:0,top:0,width:"100vw",height:"100vh",pointerEvents:"none",zIndex:100002});
       document.body.appendChild(svg); document.body.classList.add("handDemo");
-      const badge=document.createElement("div"); badge.id="handSimBadge"; badge.innerHTML="&#9995; HAND TRACKING";
-      document.body.appendChild(badge);
-      // 21-landmark hand (wrist, thumb, index, middle, ring, pinky), local units ≈ px; y up is negative
+      const badge=document.createElement("div"); badge.id="handSimBadge"; badge.innerHTML="&#9995; HAND TRACKING"; document.body.appendChild(badge);
       const BASE={w:[0,0],t:[[-18,-8],[-30,-22],[-38,-36],[-44,-48]],i:[[-14,-46],[-16,-66],[-17,-80],[-18,-92]],m:[[0,-48],[0,-70],[0,-86],[0,-99]],
                   r:[[13,-45],[15,-65],[16,-79],[17,-90]],p:[[25,-38],[29,-54],[31,-65],[33,-75]]};
-      const PI_I=[[-14,-46],[-19,-64],[-27,-71],[-34,-62]], PI_T=[[-18,-8],[-29,-26],[-34,-43],[-34,-60]];
-      const PR_R=[[13,-45],[8,-62],[-6,-66],[-20,-58]], PR_T=[[-18,-8],[-25,-24],[-24,-42],[-21,-57]];
+      // curled poses: each finger's tip meets the thumb tip
+      const CURL={ i:[[-14,-46],[-19,-64],[-27,-71],[-34,-62]], m:[[0,-48],[-6,-66],[-20,-72],[-33,-63]],
+                   r:[[13,-45],[8,-62],[-6,-68],[-22,-60]], p:[[25,-38],[22,-54],[8,-62],[-12,-56]] };
+      const TH={ i:[[-18,-8],[-29,-26],[-34,-43],[-34,-60]], two:[[-18,-8],[-29,-26],[-33,-44],[-33,-61]], r:[[-18,-8],[-25,-24],[-24,-42],[-22,-58]], p:[[-18,-8],[-22,-24],[-18,-42],[-12,-54]] };
       const L=(a,b,k)=>[a[0]+(b[0]-a[0])*k,a[1]+(b[1]-a[1])*k];
-      function mkHand(){ const g=document.createElementNS(NS,"g"); svg.appendChild(g); return {g,x:-200,y:-200,tx:-200,ty:-200,p:0,tp:0,ring:false,mirror:false,show:true,s:1.15}; }
-      function draw(h){ const k=h.p, sx=h.mirror?-1:1; let P=JSON.parse(JSON.stringify(BASE));
-        if(h.ring){ P.r=BASE.r.map((q,j)=>L(q,PR_R[j],k)); P.t=BASE.t.map((q,j)=>L(q,PR_T[j],k)); }
-        else { P.i=BASE.i.map((q,j)=>L(q,PI_I[j],k)); P.t=BASE.t.map((q,j)=>L(q,PI_T[j],k)); }
-        const tip=h.ring?L(P.r[3],P.t[3],.5):L(P.i[3],P.t[3],.5);       // pinch point = what the hand "points" with
+      const RING={sel:"rgba(255,215,0,0.95)",ui:"rgba(0,229,255,0.95)",ex:"rgba(255,140,34,0.95)",zoom:"rgba(0,230,118,0.9)",orbit:"rgba(0,229,255,0.9)",undo:"rgba(255,68,136,0.95)",redo:"rgba(0,230,118,0.95)",ring:"rgba(255,140,34,0.95)"};
+      function mkHand(){ const g=document.createElementNS(NS,"g"); svg.appendChild(g); return {g,x:-300,y:-300,tx:-300,ty:-300,p:0,tp:0,mode:"i",mirror:false,show:true,s:1.9,col:RING.sel}; }
+      function draw(h){ const k=h.p, sx=h.mirror?-1:1, P=JSON.parse(JSON.stringify(BASE));
+        const fs=h.mode==="two"?["i","m"]:[h.mode]; fs.forEach(f=>{ P[f]=BASE[f].map((q,j)=>L(q,CURL[f][j],k)); });
+        P.t=BASE.t.map((q,j)=>L(q,TH[h.mode]||TH.i,j===0?0:k).map?L(q,(TH[h.mode]||TH.i)[j],k):q);
+        const tip=L(P[fs[0]][3],P.t[3],.5);
         const X=q=>h.x+(q[0]-tip[0])*sx*h.s, Y=q=>h.y+(q[1]-tip[1])*h.s;
         let s=""; const seg=(a,b)=>{ s+='<line x1="'+X(a)+'" y1="'+Y(a)+'" x2="'+X(b)+'" y2="'+Y(b)+'"/>'; };
         ["t","i","m","r","p"].forEach(f=>{ seg(P.w,P[f][0]); for(let j=0;j<3;j++) seg(P[f][j],P[f][j+1]); });
         seg(P.i[0],P.m[0]); seg(P.m[0],P.r[0]); seg(P.r[0],P.p[0]);
-        let d=""; [P.w].concat(P.t,P.i,P.m,P.r,P.p).forEach(q=>{ d+='<circle cx="'+X(q)+'" cy="'+Y(q)+'" r="3.2"/>'; });
-        const glow=k>0.75?'<circle class="pg" cx="'+h.x+'" cy="'+h.y+'" r="'+(10+8*(k-0.75)*4)+'"/>':'';
-        h.g.innerHTML=h.show?'<g class="bones">'+s+'</g><g class="jts">'+d+'</g>'+glow:''; }
+        let d=""; const tips=[P.t[3],P.i[3],P.m[3],P.r[3],P.p[3]];
+        [P.w].concat(P.t.slice(0,3),P.i.slice(0,3),P.m.slice(0,3),P.r.slice(0,3),P.p.slice(0,3)).forEach(q=>{ d+='<circle class="j" cx="'+X(q)+'" cy="'+Y(q)+'" r="3.4"/>'; });
+        tips.forEach(q=>{ d+='<circle class="tg" cx="'+X(q)+'" cy="'+Y(q)+'" r="16"/><circle class="tp" cx="'+X(q)+'" cy="'+Y(q)+'" r="6"/>'; });
+        const ring=k>0.7?'<circle class="pr" cx="'+h.x+'" cy="'+h.y+'" r="'+(18+10*(k-0.7)/0.3)+'" style="stroke:'+h.col+'"/>':'';
+        h.g.innerHTML=h.show?'<g class="bones">'+s+'</g><g class="jts">'+d+'</g>'+ring:''; }
       const H1=mkHand(), H2=mkHand(); H2.mirror=true; H2.show=false;
-      let force=null, raf=0, live=true;
-      const curEl=cursor();
+      let force=null, raf=0, live=true; const curEl=cursor();
       function loop(){ if(!live) return;
         const cx=parseFloat(curEl.style.left), cy=parseFloat(curEl.style.top);
         if(H1.follow!==false && isFinite(cx) && isFinite(cy) && (cx>4||cy>4)){ H1.tx=cx; H1.ty=cy; }
@@ -16903,55 +16987,69 @@ void main(){
         H1.tp=force!=null?force:(clicking?1:0);
         [H1,H2].forEach(h=>{ h.x+=(h.tx-h.x)*0.22; h.y+=(h.ty-h.y)*0.22; h.p+=(h.tp-h.p)*0.3; draw(h); });
         raf=requestAnimationFrame(loop); }
-      H1.x=innerWidth*0.62; H1.y=innerHeight*0.7; loop();
+      H1.x=H1.tx=innerWidth*0.62; H1.y=H1.ty=innerHeight*0.72; loop();
       const moveTo=(x,y)=>{ curEl.style.left=x+"px"; curEl.style.top=y+"px"; curEl.classList.add("show"); };
-      const pinch=async (ms=420)=>{ force=1; await wait(ms); force=0; await wait(220); force=null; };
+      const pinch=async (ms=420)=>{ force=1; await wait(ms); force=0; await wait(260); force=null; };
       function frontFace(){ let best=-1,bd=-2; const cp=camera.position;
         mesh.faces.forEach((f,i)=>{ const c=TM.faceCentroid(mesh,f), n=TM.faceNormal(mesh,f), v=[cp.x-c[0],cp.y-c[1],cp.z-c[2]], l=Math.hypot(...v)||1, d=(n[0]*v[0]+n[1]*v[1]+n[2]*v[2])/l; if(d>bd){ bd=d; best=i; } });
         return best; }
       const ease=t=>t<.5?2*t*t:1-Math.pow(-2*t+2,2)/2;
       async function animate(ms,fn){ const t0=performance.now(); while(alive){ const t=Math.min(1,(performance.now()-t0)/ms); fn(ease(t)); if(t>=1) break; await wait(16); } }
+      const hb=q("#handFab");
       try{
         spinHold=true;
-        await prim("cube","Cube"); try{ window.__tm.frameAll(1.5); }catch(e){}
-        yaw=0.55; pitch=0.42; applyCam(); await wait(500);
-        say("Hands on · camera tracks your hand"); moveTo(innerWidth*0.55,innerHeight*0.55); await wait(1100);
-        // 1 · pinch a face to select it
+        await prim("cube","Cube"); try{ window.__tm.frameAll(1.6); }catch(e){}
+        yaw=0.55; pitch=0.42; applyCam(); await wait(400);
+        // 0 · show where Hands lives — glow it, don't press it
+        say("Hands · the camera button down here turns on tracking");
+        if(hb){ hb.classList.add("handGlow"); const r=hb.getBoundingClientRect(); H1.follow=false; H1.mode="i"; H1.col=RING.ui; H1.tx=r.left+r.width/2; H1.ty=r.top-28; }
+        await wait(2600); if(hb) hb.classList.remove("handGlow");
+        say("Hands on · the camera tracks your hand"); H1.tx=innerWidth*0.55; H1.ty=innerHeight*0.6; await wait(900); H1.follow=true;
+        // 1 · index pinch selects a face
         setMode("face"); const fi=frontFace(); const fp=window.__tm.faceScreen(fi);
-        say("Index pinch on a face · select"); moveTo(fp.x,fp.y); await wait(900);
+        say("Index pinch on a face · select"); H1.mode="i"; H1.col=RING.sel; moveTo(fp.x,fp.y); await wait(1000);
         await pinch(450); try{ sel.faces.clear(); sel.faces.add(fi); rebuildOverlay(); updateHint&&updateHint(); }catch(e){} await wait(700);
-        // 2 · extrude it (pinch the tool, pinch-drag the distance, pinch Apply)
-        await press('#toolbar [data-op="extrude"]', "Pinch · Extrude tool"); await wait(700);
-        try{ sel.faces.clear(); sel.faces.add(fi); rebuildOverlay(); }catch(e){}
-        force=1; await slide("pExDist", 0.2, 1.1, 12, "Pinch-drag · extrude distance"); force=null;
-        await apply("Pinch · Apply extrude"); await wait(1000);
-        // 3 · ring-finger pinch opens the Topology palette → Wire
-        const pal=q("#handPrim"); const items=["Catmull","Doo-Sabin","Loop","Dual","Honeycomb","Crust/Rind","Wire","Pipe","Handle"];
-        H1.follow=false; H1.tx=innerWidth*0.58; H1.ty=innerHeight*0.45; H1.ring=true; await wait(500);
-        say("Ring-finger pinch · Topology shortcuts"); force=1; await wait(350);
-        if(pal){ pal.innerHTML='<div class="ph">Topology</div>'+items.map(t=>'<button class="pbtn">'+t+'</button>').join(""); pal.style.left=(H1.tx+90)+"px"; pal.style.top=H1.ty+"px"; pal.classList.add("show"); }
-        await wait(500); force=null; H1.ring=false;
-        if(pal){ const bs=[...pal.querySelectorAll(".pbtn")]; for(let j=0;j<=6&&alive;j++){ bs.forEach(b=>b.classList.remove("phover")); bs[j].classList.add("phover"); const r=bs[j].getBoundingClientRect(); H1.tx=r.left+r.width/2; H1.ty=r.top+r.height/2; await wait(j===6?650:230); } }
-        await pinch(380); if(pal){ pal.classList.remove("show"); pal.innerHTML=""; } H1.follow=true;
-        await press('#toolbar [data-op="wireframe"]', "Wire · from the hand shortcut", 300); await wait(800);
-        say("Wire · live modifier on the stack"); try{ yaw+=0.0; }catch(e){} await wait(1600);
-        // 4 · two-hand zoom: spread to zoom in, bring together to zoom out
-        H1.follow=false; H2.show=true; const cx=innerWidth*0.5, cy=innerHeight*0.52; H1.x=H1.tx=cx+40; H1.y=H1.ty=cy; H2.x=H2.tx=cx-40; H2.y=H2.ty=cy;
+        // 2 · right two-finger pinch on the face, pull along its normal = live extrude; release commits
+        say("Two-finger pinch · pull the face out"); H1.follow=false; H1.mode="two"; H1.col=RING.ex; H1.tx=fp.x; H1.ty=fp.y; await wait(600); force=1; await wait(350);
+        if(beginExtrudePreview()){ const dir=faceNormalScreenDir(fi), span=150;
+          await animate(2200,t=>{ const d=1.25*t; H1.tx=fp.x+dir.x*span*t; H1.ty=fp.y+dir.y*span*t; updateExtrudePreview(d); });
+          await wait(300); force=0; await wait(250); endExtrudePreview(true); }
+        force=null; H1.mode="i"; await wait(900);
+        // 3 · pinky: left hand undo, right hand redo
+        say("Left pinky pinch · undo"); H1.mode="p"; H1.mirror=true; H1.col=RING.undo; H1.tx=innerWidth*0.38; H1.ty=innerHeight*0.55; await wait(700);
+        force=1; await wait(380); try{ undo(); }catch(e){} force=0; await wait(1300);
+        say("Right pinky pinch · redo"); H1.mirror=false; H1.col=RING.redo; H1.tx=innerWidth*0.62; await wait(700);
+        force=1; await wait(380); try{ redo(); }catch(e){} force=0; await wait(1200);
+        // 4 · ring-finger (third finger) pinch opens the Topology shortcuts → Wire
+        const pal=q("#handPrim"); const items=["Catmull","Doo-Sabin","Loop","Dual","Honeycomb","Stellate","Truncate","Crust/Rind","Wire","Pipe","Handle"];
+        H1.mode="r"; H1.mirror=true; H1.col=RING.ring; H1.tx=innerWidth*0.5; H1.ty=innerHeight*0.42; await wait(600);
+        say("Third-finger pinch · Topology shortcuts"); force=1; await wait(380);
+        if(pal){ pal.innerHTML='<div class="ph">Remesh / Topology</div>'+items.map(t=>'<button class="pbtn">'+t+'</button>').join(""); pal.style.left=(H1.tx+70)+"px"; pal.style.top=(innerHeight*0.5)+"px"; pal.classList.add("show"); }
+        await wait(500); force=0; H1.mode="i"; H1.col=RING.ui; H1.mirror=false; await wait(250);
+        if(pal){ const bs=[...pal.querySelectorAll(".pbtn")], wi=items.indexOf("Wire"); for(let j=0;j<=wi&&alive;j++){ bs.forEach(b=>b.classList.remove("phover")); bs[j].classList.add("phover"); const r=bs[j].getBoundingClientRect(); H1.tx=r.left+r.width/2; H1.ty=r.top+r.height/2; await wait(j===wi?650:170); } }
+        await pinch(380); if(pal){ pal.classList.remove("show"); pal.innerHTML=""; }
+        try{ const wb=q('#toolbar [data-op="wireframe"]'); if(wb) wb.click(); }catch(e){} say("Wire · added as a live modifier"); await wait(1800);
+        // 5 · both hands index pinch: spread = zoom in, together = zoom out
+        const cx=innerWidth*0.5, cy=innerHeight*0.55; H1.mode=H2.mode="i"; H1.col=H2.col=RING.zoom; H2.show=true;
+        H1.x=H1.tx=cx+40; H1.y=H1.ty=cy; H2.x=H2.tx=cx-40; H2.y=H2.ty=cy; await wait(400);
         force=1; H2.tp=1; const d0=dist;
-        say("Two hands · spread to zoom in");
+        say("Both hands pinch · spread to zoom in");
         await animate(1600,t=>{ const s=40+170*t; H1.tx=cx+s; H2.tx=cx-s; dist=d0*(1-0.42*t); applyCam(); });
-        await wait(400); say("Two hands · pinch together to zoom out"); const d1=dist;
+        await wait(350); say("Both hands pinch · bring together to zoom out"); const d1=dist;
         await animate(1800,t=>{ const s=210-185*t; H1.tx=cx+s; H2.tx=cx-s; dist=d1+(d0*1.35-d1)*t; applyCam(); });
-        await wait(300); await animate(900,t=>{ dist=d0*1.35+(d0-d0*1.35)*t; applyCam(); });
-        force=0; H2.tp=0; await wait(300); H2.show=false;
-        // 5 · grab and turn
-        say("Pinch and move · rotate the view"); const y0=yaw, p0=pitch; H1.tx=cx-150; H1.ty=cy; await wait(500); force=1;
-        await animate(2400,t=>{ H1.tx=cx-150+300*t; H1.ty=cy-40*Math.sin(t*Math.PI); yaw=y0+t*Math.PI*1.2; pitch=p0+0.18*Math.sin(t*Math.PI); applyCam(); });
-        force=0; await wait(400);
-        say("Pinch and move · back the other way"); force=1;
-        await animate(1600,t=>{ H1.tx=cx+150-200*t; yaw=y0+Math.PI*1.2-t*Math.PI*0.5; applyCam(); });
-        force=0; await wait(900);
+        await wait(250); await animate(800,t=>{ dist=d0*1.35+(d0-d0*1.35)*t; applyCam(); });
+        force=0; H2.tp=0; await wait(400);
+        // 6 · both hands two-finger pinch and move = orbit; the model follows the hands (move right → it turns right)
+        H1.mode=H2.mode="two"; H1.col=H2.col=RING.orbit; const y0=yaw, p0=pitch;
+        H1.tx=cx-60; H2.tx=cx-240; H1.ty=H2.ty=cy; await wait(600);
+        say("Both hands two-finger pinch · move right, the model turns right"); force=1; H2.tp=1;
+        await animate(2400,t=>{ const dx=300*t; H1.tx=cx-60+dx; H2.tx=cx-240+dx; yaw=y0-dx*0.012*1.4; pitch=p0+0.14*Math.sin(t*Math.PI); applyCam(); });
+        force=0; H2.tp=0; await wait(450);
+        say("… and back to the left"); force=1; H2.tp=1; const y1=yaw;
+        await animate(1700,t=>{ const dx=-200*t; H1.tx=cx+240+dx; H2.tx=cx+60+dx; yaw=y1-dx*0.012*1.4; applyCam(); });
+        force=0; H2.tp=0; await wait(900);
       } finally { live=false; cancelAnimationFrame(raf); svg.remove(); badge.remove(); document.body.classList.remove("handDemo"); spinHold=false;
+        if(hb) hb.classList.remove("handGlow"); try{ if(typeof exPreview!=="undefined"&&exPreview) endExtrudePreview(false); }catch(e){}
         const pal=q("#handPrim"); if(pal){ pal.classList.remove("show"); pal.innerHTML=""; } }
     },
     // 1 — "Gem Cuts": the Gem Cut tool shows four cuts, each shown in its matching ray-traced stone view
@@ -18008,7 +18106,7 @@ void main(){
   ["#toolbar","Tools","The tool column. Groups run TopMod-first: Primitives, Topology, Subdivide, Edit, Extrude, Deform, Boolean, Clean-up, Generate, Gems, Analyze, Fabricate."],
   ["#tbDockBar","Resize columns","Every column has a width bar like this one. Drag it to resize, double-click to reset."],
   ["#view","3D view","Drag to orbit, pinch or scroll to zoom. Tap a face, edge or vertex to select it; double-tap the neighbour to grab a whole loop."],
-  ["#navcube","Nav cube","Tap a face, edge or corner to snap the view. ⌂ frames everything, ⟳ slowly spins the model while you work."],
+  ["#navcube","Nav cube","Tap a face, edge or corner to snap the view. ⌂ frames everything, ⟳ slowly spins the model, ◎ sets a new focus point — tap it, then tap the model."],
   ["#toolpop","Options","The current tool's settings. Sliders preview live; press Apply to keep the result."],
   ["#layersPanel","Layers","Each layer is a separate object. Show / hide, lock, duplicate or delete it, and tap a layer to make it active. Tap the header to fold this section."],
   ["#modPanel","Modifiers","The live, editable history of the active layer. Every operation stacks here — toggle ◉ on and off, reorder, or edit its settings any time. Fabrication sits at the bottom."],

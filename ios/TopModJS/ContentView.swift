@@ -163,7 +163,8 @@ final class PhotosBridge: NSObject, WKScriptMessageHandler {
 final class LiDARProvider: NSObject, ARSessionDelegate {
     private let session = ARSession()
     weak var webView: WKWebView?
-    private(set) var available = false
+    private(set) var available = ARWorldTrackingConfiguration.supportsFrameSemantics(.sceneDepth)
+    private(set) var running = false
     private var latestDepth: CVPixelBuffer?
     private var depthW = 0, depthH = 0
 
@@ -172,13 +173,15 @@ final class LiDARProvider: NSObject, ARSessionDelegate {
             available = false; return
         }
         available = true
+        if running { return }
+        running = true
         let cfg = ARWorldTrackingConfiguration()
         cfg.frameSemantics.insert(.sceneDepth)
         session.delegate = self
         session.run(cfg, options: [.resetTracking, .removeExistingAnchors])
     }
 
-    func stop() { session.pause() }
+    func stop() { session.pause(); running = false }
 
     func session(_ session: ARSession, didUpdate frame: ARFrame) {
         guard let d = frame.sceneDepth?.depthMap else { return }
@@ -209,6 +212,8 @@ final class LiDARBridge: NSObject, WKScriptMessageHandler {
 
     func userContentController(_ ucc: WKUserContentController, didReceive message: WKScriptMessage) {
         guard message.name == "lidarQuery", let provider = provider, let webView = webView else { return }
+        // Start the LiDAR session only when hand tracking actually asks for depth — no camera prompt at launch.
+        if !provider.running { provider.start() }
         // body: { id: <n>, points: [{x,y}, ...] }  (x,y normalized 0..1)
         guard let body = message.body as? [String: Any],
               let id = body["id"],
@@ -397,9 +402,8 @@ struct TopModWebView: UIViewRepresentable {
         } else {
             webView.load(URLRequest(url: URL(string: "topmod://app/index.html")!))
         }
-        // Start LiDAR and tell the web app whether depth refinement is available.
+        // Tell the web app whether LiDAR depth refinement is available (the session starts lazily, on first use by Hands).
         let lidar = context.coordinator.lidar
-        lidar?.start()
         let avail = lidar?.available ?? false
         DispatchQueue.main.asyncAfter(deadline: .now() + 1.0) {
             webView.evaluateJavaScript("window.__lidarAvailable && window.__lidarAvailable(\(avail))", completionHandler: nil)
