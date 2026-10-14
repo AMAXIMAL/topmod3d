@@ -1050,7 +1050,7 @@ body.opDock #tpBody select,body.opDock #tpBody input[type=text]:not(.numbox):not
 body.opDock #tpBody button{max-width:100%;white-space:normal}
 body.opDock #tpApply{width:auto!important;max-width:calc(100% - 20px)}
 /* collapsible Layers / Modifiers sections */
-.secChev{background:transparent;border:0;color:#00E5FF;font-size:11px;width:16px;padding:0;margin-right:4px;cursor:pointer;line-height:1;flex:0 0 auto}
+.secChev{background:rgba(0,229,255,.1);border:1px solid rgba(0,229,255,.35);border-radius:6px;color:#00E5FF;width:28px;height:24px;padding:0;margin-right:8px;cursor:pointer;line-height:0;flex:0 0 auto;display:inline-flex;align-items:center;justify-content:center}.secChev svg{width:14px;height:14px;transition:transform .15s}.secChev.shut svg{transform:rotate(-90deg)}
 body.layCol #layerList,body.layCol #layerAdd,body.modCol #modList,body.modCol #fabNode,body.modCol #modBar,body.modCol #modPanel>*:not(#modHead){display:none!important}
 body.layCol #layersPanel,body.modCol #modPanel{overflow:hidden!important}
 /* no Math · Live window */
@@ -16035,10 +16035,10 @@ window.__shot={ load(m){ mesh={verts:m.verts.map(v=>v.slice()),faces:m.faces.map
     el.addEventListener("dblclick",()=>{ ha=hb=null; try{ localStorage.removeItem("tmRA"); localStorage.removeItem("tmRB"); }catch(e){} place(); }); }
   drag(A,"a"); drag(Bb,"b");
   // collapsible sections: tap the LAYERS / MODIFIERS header (or its chevron) to fold it to a single line — Options takes the space
-  let cA=false, cB=false; try{ cA=localStorage.getItem("tmColA")==="1"; cB=localStorage.getItem("tmColB")==="1"; }catch(e){}
+  let cA=true, cB=false; try{ cB=localStorage.getItem("tmColB")==="1"; }catch(e){}   /* Layers always opens collapsed */
   function chev(headId,get,set,key,cls){ const h=document.getElementById(headId); if(!h) return;
     const c=document.createElement("button"); c.className="secChev"; c.type="button"; c.title="Collapse / expand"; h.insertBefore(c,h.firstChild);
-    const paint=()=>{ c.innerHTML=get()?"&#9656;":"&#9662;"; B.classList.toggle(cls,get()); };
+    c.innerHTML='<svg viewBox="0 0 14 14"><path d="M2 4.5h10L7 10.5Z" fill="currentColor"/></svg>'; const paint=()=>{ c.classList.toggle("shut",get()); B.classList.toggle(cls,get()); };
     const flip=e=>{ if(e.target.closest("button")&&e.target!==c) return; e.stopPropagation(); set(!get()); try{ localStorage.setItem(key,get()?"1":"0"); }catch(_){} paint(); place(); };
     h.addEventListener("click",flip); h.style.cursor="pointer"; paint(); }
   chev("layersHead",()=>cA,v=>cA=v,"tmColA","layCol"); chev("modHead",()=>cB,v=>cB=v,"tmColB","modCol");
