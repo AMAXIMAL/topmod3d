@@ -24,7 +24,7 @@
           }
         }
       },
-      "RhinoCommon/8.35.26251.13001": {
+      "RhinoCommon/8.19.25132.1001": {
         "type": "package",
         "dependencies": {
           "System.Drawing.Common": "7.0.0"
@@ -47,8 +47,8 @@
           }
         },
         "build": {
-          "buildTransitive/net7.0/RhinoCommon.props": {},
-          "buildTransitive/net7.0/RhinoCommon.targets": {}
+          "build/net7.0/RhinoCommon.props": {},
+          "build/net7.0/RhinoCommon.targets": {}
         }
       },
       "System.Drawing.Common/7.0.0": {
@@ -110,18 +110,17 @@
         "useSharedDesignerContext.txt"
       ]
     },
-    "RhinoCommon/8.35.26251.13001": {
-      "sha512": "SCqpxL+sBrO3QN6p1JqvSndnC5N96adBigzE4nxwsvC4anLH2PZFcbHCfN2pjLgFSb8QEMLS9R0GFPxkjhOtxg==",
+    "RhinoCommon/8.19.25132.1001": {
+      "sha512": "Axf8S380nDXceCd6FEBqjv8qqyLAi6gQXcMBR3+UYyWPkiYbk4yRSceuxrw9BpK7UqybMyr8c7reWdBhYRDVVw==",
       "type": "package",
-      "path": "rhinocommon/8.35.26251.13001",
+      "path": "rhinocommon/8.19.25132.1001",
       "files": [
         ".nupkg.metadata",
         ".signature.p7s",
         "Eto-LICENSE.txt",
         "build/net48/RhinoCommon.targets",
+        "build/net7.0/RhinoCommon.props",
         "build/net7.0/RhinoCommon.targets",
-        "buildTransitive/net7.0/RhinoCommon.props",
-        "buildTransitive/net7.0/RhinoCommon.targets",
         "lib/net48/Ed.Eto.dll",
         "lib/net48/Ed.Eto.xml",
         "lib/net48/Eto.dll",
@@ -136,7 +135,7 @@
         "lib/net7.0/Rhino.UI.dll",
         "lib/net7.0/RhinoCommon.dll",
         "lib/net7.0/RhinoCommon.xml",
-        "rhinocommon.8.35.26251.13001.nupkg.sha512",
+        "rhinocommon.8.19.25132.1001.nupkg.sha512",
         "rhinocommon.nuspec",
         "rhinocommon.png"
       ]
@@ -181,7 +180,7 @@
   },
   "projectFileDependencyGroups": {
     "net7.0": [
-      "RhinoCommon >= 8.35.26251.13001"
+      "RhinoCommon >= 8.19.25132.1001"
     ]
   },
   "packageFolders": {
@@ -233,7 +232,7 @@
           "RhinoCommon": {
             "include": "Compile, Build, Native, ContentFiles, Analyzers, BuildTransitive",
             "target": "Package",
-            "version": "[8.35.26251.13001, )"
+            "version": "[8.19.25132.1001, )"
           }
         },
         "imports": [

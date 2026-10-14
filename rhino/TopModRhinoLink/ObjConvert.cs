@@ -70,6 +70,22 @@ namespace TopModRhinoLink
             return sb.ToString();
         }
 
+        /// <summary>TopMod (three.js) is Y-up, Rhino is Z-up: Rhino (X,Y,Z) = TopMod (x, -z, y). A proper rotation, so winding is unchanged.</summary>
+        public static PolyMesh YupToZup(PolyMesh pm)
+        {
+            var o = new PolyMesh { Faces = pm.Faces };
+            foreach (var v in pm.Verts) o.Verts.Add(new Point3d(v.X, -v.Z, v.Y));
+            return o;
+        }
+
+        /// <summary>Inverse of <see cref="YupToZup"/>: TopMod (x,y,z) = Rhino (X, Z, -Y).</summary>
+        public static PolyMesh ZupToYup(PolyMesh pm)
+        {
+            var o = new PolyMesh { Faces = pm.Faces };
+            foreach (var v in pm.Verts) o.Verts.Add(new Point3d(v.X, v.Z, -v.Y));
+            return o;
+        }
+
         /// <summary>Scale every vertex (TopMod units are inches; Rhino docs can be anything).</summary>
         public static PolyMesh Scaled(PolyMesh pm, double s)
         {

@@ -34,6 +34,7 @@ namespace TopModRhinoLink
         public LiveSync()
         {
             RhinoDoc.ReplaceRhinoObject += OnReplace;
+            RhinoDoc.AddRhinoObject += OnAdd;
             RhinoDoc.DeleteRhinoObject += OnDelete;
             RhinoDoc.UndeleteRhinoObject += OnUndelete;
             RhinoDoc.EndOpenDocument += (s, e) => _liveId = Guid.Empty;
@@ -43,6 +44,7 @@ namespace TopModRhinoLink
         public void Dispose()
         {
             RhinoDoc.ReplaceRhinoObject -= OnReplace;
+            RhinoDoc.AddRhinoObject -= OnAdd;
             RhinoDoc.DeleteRhinoObject -= OnDelete;
             RhinoDoc.UndeleteRhinoObject -= OnUndelete;
         }
@@ -56,7 +58,7 @@ namespace TopModRhinoLink
         /// <summary>Replace (or create) the live object from OBJ text sent by the page. Must run on the UI thread.</summary>
         public void ApplyFromWeb(RhinoDoc doc, string objText)
         {
-            var pm = ObjConvert.Scaled(ObjConvert.Parse(objText), InToDoc(doc));
+            var pm = ObjConvert.Scaled(ObjConvert.YupToZup(ObjConvert.Parse(objText)), InToDoc(doc));
             if (pm.IsEmpty) return;
             var tol = doc.ModelAbsoluteTolerance;
             GeometryBase geo = ObjConvert.ToBrep(pm, tol);
@@ -87,13 +89,26 @@ namespace TopModRhinoLink
         }
 
         // ---------------- rhino → web ----------------
+        bool _replacing;   // set by ReplaceRhinoObject on the live object; the following AddRhinoObject carries the new geometry
+
         void OnReplace(object sender, RhinoReplaceObjectEventArgs e)
         {
             if (_suppress || !IsLive(e.OldRhinoObject)) return;
-            // the new object isn't in the doc yet in some paths; prefer NewRhinoObject's geometry
-            var geo = e.NewRhinoObject?.Geometry;
+            _replacing = true;
+        }
+
+        // Rhino fires Replace → Delete(old) → Add(new, same id). Gumball, Move/Scale/Rotate, PointsOn drags,
+        // and Undo/Redo all land here with the finished geometry, which is the reliable place to read it.
+        void OnAdd(object sender, RhinoObjectEventArgs e)
+        {
+            if (_suppress) return;
+            bool mine = _replacing && (e.ObjectId == _liveId || IsLive(e.TheObject));
+            _replacing = false;
+            if (!mine && !IsLive(e.TheObject)) return;
+            var geo = e.TheObject?.Geometry;
             if (geo == null) return;
-            QueueFromRhino(e.Document, geo, "sync");
+            _liveId = e.ObjectId;
+            QueueFromRhino(e.TheObject.Document, geo, "sync");
             RhinoEdits++; LastActivity = DateTime.Now;
         }
 
@@ -105,7 +120,11 @@ namespace TopModRhinoLink
 
         void OnUndelete(object sender, RhinoObjectEventArgs e)
         {
-            if (IsLive(e.TheObject)) _liveId = e.ObjectId;
+            if (_suppress || !IsLive(e.TheObject)) return;
+            _liveId = e.ObjectId;
+            var geo = e.TheObject?.Geometry; if (geo == null) return;
+            QueueFromRhino(e.TheObject.Document, geo, "sync");
+            RhinoEdits++; LastActivity = DateTime.Now;
         }
 
         /// <summary>Convert Rhino geometry to an OBJ in inches and hand it to the page on its next poll.</summary>
@@ -122,8 +141,12 @@ namespace TopModRhinoLink
                 case SubD sd: { var sm = Mesh.CreateFromSubD(sd, 0); if (sm != null) pm = ObjConvert.FromRhinoMesh(sm, tol); break; }
             }
             if (pm == null || pm.IsEmpty) return;
-            QueueObj(ObjConvert.Write(ObjConvert.Scaled(pm, DocToIn(doc)), kind == "import" ? "rhino_import" : "rhino"), kind);
+            QueueObj(ToTopModObj(pm, doc, kind == "import" ? "rhino_import" : "rhino"), kind);
         }
+
+        /// <summary>Rhino polygon soup (doc units, Z-up) → OBJ text for TopMod (inches, Y-up).</summary>
+        public static string ToTopModObj(PolyMesh pm, RhinoDoc doc, string name)
+            => ObjConvert.Write(ObjConvert.ZupToYup(ObjConvert.Scaled(pm, DocToIn(doc))), name);
 
         public void QueueObj(string obj, string kind)
         {

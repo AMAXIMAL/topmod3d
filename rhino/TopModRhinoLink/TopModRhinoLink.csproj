@@ -19,11 +19,13 @@
     <TopModHtml Condition="'$(TopModHtml)'==''">TOPMOD.html</TopModHtml>
   </PropertyGroup>
   <ItemGroup>
-    <PackageReference Include="RhinoCommon" Version="8.35.26251.13001" ExcludeAssets="runtime" />
+    <PackageReference Include="RhinoCommon" Version="8.19.25132.1001" ExcludeAssets="runtime" />
   </ItemGroup>
   <ItemGroup>
     <EmbeddedResource Include="$(TopModHtml)" LogicalName="TOPMOD.html" />
     <EmbeddedResource Include="bridge.js" LogicalName="bridge.js" />
+    <EmbeddedResource Include="topmod.ico" LogicalName="TopModRhinoLink.topmod.ico" />
+    <EmbeddedResource Include="TopMod.rhw" LogicalName="TopMod.rhw" Condition="Exists('TopMod.rhw')" />
   </ItemGroup>
   <Target Name="ReportHtml" BeforeTargets="Build">
     <Message Importance="high" Text="Embedding TopMod app from: $(TopModHtml)" />

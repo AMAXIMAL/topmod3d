@@ -9,10 +9,64 @@ using Rhino.Input.Custom;
 
 namespace TopModRhinoLink
 {
-    /// <summary>TopMod — open the linked TopMod window (starts the link server if needed).</summary>
+    /// <summary>TopMod — open TopMod as a dockable Rhino panel (toggle).</summary>
     public class TopModCommand : Command
     {
         public override string EnglishName => "TopMod";
+        protected override Result RunCommand(RhinoDoc doc, RunMode mode)
+        {
+            var id = TopModPanel.PanelId;
+            var p = TopModLinkPlugIn.Instance;
+            if (Rhino.UI.Panels.IsPanelVisible(id)) { Rhino.UI.Panels.ClosePanel(id); return Result.Success; }
+            Rhino.UI.Panels.OpenPanel(id);
+            if (!p.WorkspaceApplied)
+            {
+                // first run: set up the TopMod workspace (panel docked right, half width, single Perspective view)
+                p.WorkspaceApplied = true;
+                Eto.Forms.Application.Instance.AsyncInvoke(() => RhinoApp.RunScript("_TopModWorkspace", false));
+                RhinoApp.WriteLine("TopMod workspace applied. Run TopModWorkspace any time to restore it.");
+            }
+            return Result.Success;
+        }
+    }
+
+    /// <summary>TopModDefaultLayout — back to Rhino's default window layout and four viewports.</summary>
+    [CommandStyle(Style.ScriptRunner)]
+    public class TopModDefaultLayoutCommand : Command
+    {
+        public override string EnglishName => "TopModDefaultLayout";
+        protected override Result RunCommand(RhinoDoc doc, RunMode mode)
+        {
+            RhinoApp.RunScript("_-WindowLayout \"Default Window Layout\"", false);
+            if (doc != null)
+            {
+                foreach (var v in doc.Views) if (v.Maximized) v.Maximized = false;
+                doc.Views.Redraw();
+            }
+            return Result.Success;
+        }
+    }
+
+    /// <summary>TopModWorkspace — restore the TopMod window layout (panel docked right, half width) and maximize Perspective.</summary>
+    [CommandStyle(Style.ScriptRunner)]
+    public class TopModWorkspaceCommand : Command
+    {
+        public override string EnglishName => "TopModWorkspace";
+        protected override Result RunCommand(RhinoDoc doc, RunMode mode)
+        {
+            var p = TopModLinkPlugIn.Instance;
+            if (!Rhino.UI.Panels.IsPanelVisible(TopModPanel.PanelId)) Rhino.UI.Panels.OpenPanel(TopModPanel.PanelId);
+            bool ok = p.ApplyWorkspace(doc);
+            p.WorkspaceApplied = true;
+            if (!ok) RhinoApp.WriteLine("No embedded window layout; maximized Perspective only. Save one with SaveWindowLayout as \"TopMod\".");
+            return Result.Success;
+        }
+    }
+
+    /// <summary>TopModWindow — open TopMod in a separate floating window instead of the panel.</summary>
+    public class TopModWindowCommand : Command
+    {
+        public override string EnglishName => "TopModWindow";
         protected override Result RunCommand(RhinoDoc doc, RunMode mode)
         {
             var p = TopModLinkPlugIn.Instance;
@@ -90,7 +144,7 @@ namespace TopModRhinoLink
             if (merged.IsEmpty) { RhinoApp.WriteLine("Nothing convertible was selected."); return Result.Nothing; }
 
             var sync = TopModLinkPlugIn.Instance.Sync;
-            sync.QueueObj(ObjConvert.Write(ObjConvert.Scaled(merged, LiveSync.DocToIn(doc)), "rhino_import"), "import");
+            sync.QueueObj(LiveSync.ToTopModObj(merged, doc, "rhino_import"), "import");
             RhinoApp.WriteLine("Sent {0} faces / {1} vertices to TopMod as a new layer.", merged.Faces.Count, merged.Verts.Count);
             return Result.Success;
         }

@@ -50,7 +50,7 @@
             "RhinoCommon": {
               "include": "Compile, Build, Native, ContentFiles, Analyzers, BuildTransitive",
               "target": "Package",
-              "version": "[8.35.26251.13001, )"
+              "version": "[8.19.25132.1001, )"
             }
           },
           "imports": [

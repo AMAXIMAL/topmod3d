@@ -12184,6 +12184,13 @@ function rhinoPush(){
     .catch(()=>{ const b=$("#rhinoLink"); if(b) b.style.borderColor="#ff5a5a"; toast&&toast("Rhino link: can't reach "+rhinoURL+" — start the receiver in Rhino",true); });
 }
 function maybeRhinoPush(){ if(!rhinoLink) return; clearTimeout(_rhinoT); _rhinoT=setTimeout(rhinoPush,250); }
+/* Rhino plug-in bridge: the app runs inside a closure, so expose what the in-process link needs */
+window.__tmBridge={ get mesh(){return mesh}, set mesh(v){mesh=v}, get layers(){return layers}, get activeLayer(){return activeLayer},
+  get rhinoLink(){return rhinoLink}, get TM(){return TM}, fabMesh:function(){return fabMesh()}, rebuild:function(o){return rebuild(o)},
+  snapshot:function(){return snapshot()}, addLayer:function(m,b){return addLayer(m,b)}, clearSel:function(r){return clearSel(r)},
+  updateCrustUI:function(){return updateCrustUI()}, renderLayerList:function(){return renderLayerList()}, renderModStack:function(){return renderModStack()},
+  setRhinoLink:function(on){return setRhinoLink(on)}, setRhinoPush:function(f){rhinoPush=f}, clearCrust:function(){crustPairs=null}, toast:function(m,b){return toast(m,b)},
+  cam:function(){return {p:[camera.position.x,camera.position.y,camera.position.z],t:[target.x,target.y,target.z],fov:camera.fov}} };
 function setRhinoLink(on){
   rhinoLink=!!on; const b=$("#rhinoLink"); if(b) b.classList.toggle("on",rhinoLink);
   if(rhinoLink){ toast&&toast("Rhino link ON \u2192 pushing to "+rhinoURL); rhinoPush(); }
