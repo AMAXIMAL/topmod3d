@@ -945,6 +945,16 @@ body.uiGrey #ncCanvas{filter:invert(.2) hue-rotate(-100deg) saturate(1.15)}
 /* version tag: small and narrow */
 html body #wordmark .ver{font-size:7px!important;letter-spacing:0!important;font-weight:600!important;display:inline-block;transform:scaleX(.82);transform-origin:left center;margin-left:1px}
 html body.phone #wordmark .ver{font-size:6px!important}
+/* Splash on open: logo card for ~2.4 s, fades into the app */
+#tmSplash{position:fixed;inset:0;z-index:200000;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:10px;background:radial-gradient(ellipse at 50% 45%,#0f1a2a 0%,#05070c 70%);transition:opacity .6s ease}
+#tmSplash.out{opacity:0;pointer-events:none}
+#tmSplash .lg{font:800 clamp(28px,7vw,54px)/1 var(--font,system-ui);letter-spacing:.18em;color:#fff}
+#tmSplash .lg b{color:#00E5FF}
+#tmSplash .tg{font:600 clamp(10px,2.2vw,13px) var(--mono,monospace);letter-spacing:.32em;text-transform:uppercase;color:#7fb6c8}
+#tmSplash .by{font:600 10px var(--mono,monospace);letter-spacing:.22em;color:#5c7486;margin-top:6px}
+#tmSplash .ring{width:64px;height:64px;border-radius:50%;border:2px solid rgba(0,229,255,.18);border-top-color:#00E5FF;animation:tmSpin 1s linear infinite;margin-bottom:8px}
+@keyframes tmSpin{to{transform:rotate(360deg)}}
+html.tmBoot body #tmSplash{opacity:1!important}
 /* Layers + Modifiers rows: one compact style — small, bold, white, no decorative icons */
 #layerList .layerRow,#modList .modRow,#fabNode.added{min-height:0!important;padding:3px 6px!important;font:700 11px/1.25 var(--font,system-ui)!important;color:#fff!important;border-radius:6px!important}
 #layerList .layerRow .layerName,#modList .modRow .modName,#fabNode .modName{font:700 11px/1.25 var(--font,system-ui)!important;color:#fff!important;font-style:normal!important}
@@ -1031,10 +1041,11 @@ body.layCol #layersPanel,body.modCol #modPanel{overflow:hidden!important}
 [data-act="liveEq"]{display:none!important}
 </style>
 
-<style id="bootCloak">html{background:#080a12}html.tmBoot body{opacity:0!important}html.tmBooted body{opacity:1;transition:opacity .28s ease}</style>
+<style id="bootCloak">html{background:#080a12}html.tmBoot body>*:not(#tmSplash){opacity:0!important}html.tmBooted body>*{transition:opacity .28s ease}</style>
 <script>document.documentElement.classList.add("tmBoot");setTimeout(function(){var h=document.documentElement;if(h.classList.contains("tmBoot")){h.classList.remove("tmBoot");h.classList.add("tmBooted");}},5000);</script>
 </head>
 <body>
+<div id="tmSplash"><div class="ring"></div><div class="lg">TOP<b>MOD</b> 3D</div><div class="tg">Topological mesh modeler · 3D print</div><div class="by">AMAXIMAL · after TopMod (Akleman · Srinivasan · Chen)</div></div>
 <style id="inAppCss">
 /* Web + iOS app: hide web-browser-only UI and browser behaviours */
 html.inApp,html.inApp body{-webkit-user-select:none;user-select:none;-webkit-touch-callout:none;overscroll-behavior:none;-webkit-tap-highlight-color:transparent}
@@ -18390,7 +18401,7 @@ void main(){
  function init(){ var b=document.getElementById("creditsBtn"); if(b) b.addEventListener("click",function(e){ e.stopPropagation(); open(); }); addEventListener("keydown",function(e){ if(e.key==="Escape") close(); }); }
  if(document.readyState==="loading") document.addEventListener("DOMContentLoaded",init); else init(); })();</script>
 <script>/* reveal only once every layout pass (docks, stacked panels, phone sizing, restored widths) has run — no flash of the old UI */
-(function(){function reveal(){requestAnimationFrame(function(){requestAnimationFrame(function(){setTimeout(function(){var h=document.documentElement;h.classList.remove("tmBoot");h.classList.add("tmBooted");try{dispatchEvent(new Event("resize"))}catch(e){}},120);});});}
+(function(){function reveal(){requestAnimationFrame(function(){requestAnimationFrame(function(){setTimeout(function(){var h=document.documentElement;h.classList.remove("tmBoot");h.classList.add("tmBooted");try{dispatchEvent(new Event("resize"))}catch(e){} var sp=document.getElementById("tmSplash"); if(sp){ setTimeout(function(){ sp.classList.add("out"); setTimeout(function(){ sp.remove(); },700); },2200); } },120);});});}
  if(document.readyState==="complete") reveal(); else addEventListener("load",reveal);})();</script>
 </body>
 </html>
