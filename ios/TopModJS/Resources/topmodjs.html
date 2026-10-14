@@ -866,6 +866,16 @@ body.opCol.opDock.opOpen #ocBar{display:block;position:fixed;top:var(--tbTop,52p
 body.opCol #ocBar::after{content:"";position:absolute;left:1px;top:50%;width:3px;height:34px;margin-top:-17px;border-radius:2px;background:rgba(0,229,255,.45)}
 body.opCol #ocBar:hover,body.opCol #ocBar.drag{background:rgba(0,229,255,.18)}
 body.opCol.fullscreen #ocBar{display:none!important}
+/* column width bars: no hard borders around the 3D view — a seamless gutter with a faint grip that lights up on hover / drag */
+#tbDockBar,#opDockBar,#ocBar{background:transparent!important;border:0!important}
+#tbDockBar::after,#opDockBar::after,#ocBar::after{background:rgba(0,229,255,.22)!important}
+#tbDockBar:hover,#opDockBar:hover,#ocBar:hover,#tbDockBar.drag,#opDockBar.drag,#ocBar.drag{background:rgba(0,229,255,.10)!important}
+#tbDockBar:hover::after,#opDockBar:hover::after,#ocBar:hover::after,#tbDockBar.drag::after,#opDockBar.drag::after,#ocBar.drag::after{background:rgba(0,229,255,.7)!important}
+body.opDock #toolpop,body.opDock.opOpen #layersPanel,body.opDock.opOpen #modPanel{border-left:0!important}
+#toolbar{border-right:0!important}
+#toast{max-width:calc(100% - 24px)!important;white-space:normal!important;text-align:center;box-sizing:border-box}
+/* no floating Apply / Cancel over the 3D view — Apply lives in the Options column */
+#floatApply{display:none!important}
 /* Hands demo: simulated tracking overlay */
 body.handDemo #amxCursor{opacity:0!important}
 #handSimSvg .bones line{stroke:#00E5FF;stroke-width:3;stroke-linecap:round;opacity:.9;filter:drop-shadow(0 0 4px rgba(0,229,255,.8))}
