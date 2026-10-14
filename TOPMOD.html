@@ -892,6 +892,19 @@ body.opDock #tpBody label.mkrow,body.opDock #tpBody .mkrow,body.opDock #tpBody .
 body.opDock #tpBody label.mkrow>input[type=range],body.opDock #tpBody .mkrow>input[type=range],body.opDock #tpBody .modParam input[type=range],body.opDock #tpBody .osdRow input[type=range]{flex:1 1 80px!important;width:auto!important}
 body.opDock #tpBody label.mkrow>output,body.opDock #tpBody label.mkrow>.numbox,body.opDock #tpBody label.mkrow>input[type=text],body.opDock #tpBody label.mkrow>input[type=number],body.opDock #tpBody .modParam .numbox,body.opDock #tpBody .osdRow .numbox{flex:0 0 46px!important;width:46px!important;min-width:0!important}
 body.opDock #tpBody label.mkrow>select{flex:1 1 100%!important;width:100%!important}
+/* menus: the active render style / UI mode shows a check, like the bottom-bar View select */
+#menubar .mi[data-rm].on,#menubar .mi[data-ui].on,.mlist .mi[data-rm].on,.mlist .mi[data-ui].on{color:#00E5FF}
+.mlist .mi[data-rm].on::before,.mlist .mi[data-ui].on::before{content:"\2713  ";color:#00E5FF;font-weight:700}
+.mlist .mlab{padding:6px 12px 2px;font:800 9px var(--mono,monospace);letter-spacing:1.6px;text-transform:uppercase;color:#6f8ba0}
+/* White UI mode: light chrome, light 3D backdrop */
+body.uiLight #menubar,body.uiLight #toolbar,body.uiLight #toolpop,body.uiLight #layersPanel,body.uiLight #modPanel,body.uiLight #status,body.uiLight .mlist,body.uiLight #fabNode{filter:invert(1) hue-rotate(180deg)}
+body.uiLight #toolbar img.ticon,body.uiLight #toolbar svg,body.uiLight #status #lightBtn{filter:invert(1) hue-rotate(180deg)}
+body.uiLight,body.uiLight #frame,body.uiLight #main{background:#eef1f5!important}
+body.uiLight #tbDockBar,body.uiLight #opDockBar,body.uiLight #ocBar{background:#e3e8ee!important}
+/* Layers / Modifiers / Options section labels: short header bars */
+html body #layersHead,html body #modHead,html body.opDock.rStack #layersHead,html body #tpHead{min-height:0!important;height:auto!important;padding:2px 8px!important;font-size:9.5px!important;line-height:16px!important}
+html body #tpHead #tpTitle{font-size:9.5px!important;line-height:16px!important}
+html body #layersHead .secChev,html body #modHead .secChev{font-size:9px!important}
 /* Layers + Modifiers rows: one compact style — small, bold, white, no decorative icons */
 #layerList .layerRow,#modList .modRow,#fabNode.added{min-height:0!important;padding:3px 6px!important;font:700 11px/1.25 var(--font,system-ui)!important;color:#fff!important;border-radius:6px!important}
 #layerList .layerRow .layerName,#modList .modRow .modName,#fabNode .modName{font:700 11px/1.25 var(--font,system-ui)!important;color:#fff!important;font-style:normal!important}
@@ -913,11 +926,11 @@ body.opDock #tpBody label.mkrow>select{flex:1 1 100%!important;width:100%!import
 #floatApply{display:none!important}
 /* Hands demo: simulated tracking overlay */
 body.handDemo #amxCursor{opacity:0!important}
-#handSimSvg .bones line{stroke:hsla(189,85%,58%,.85);stroke-width:3.2;stroke-linecap:round}
-#handSimSvg .j{fill:hsla(189,90%,65%,.8)}
+#handSimSvg .bones line{stroke:hsla(189,85%,60%,.9);stroke-width:1.6;stroke-linecap:round}
+#handSimSvg .j{fill:hsla(189,90%,68%,.85)}
 #handSimSvg .tp{fill:hsla(189,100%,74%,.95)}
 #handSimSvg .tg{fill:hsla(189,100%,70%,.18)}
-#handSimSvg .pr{fill:none;stroke-width:3.5;filter:drop-shadow(0 0 6px currentColor)}
+#handSimSvg .pr{fill:none;stroke-width:2.2;filter:drop-shadow(0 0 6px currentColor)}
 #handFab.handGlow{box-shadow:0 0 0 2px #00E5FF,0 0 18px 6px rgba(0,229,255,.75)!important;background:rgba(0,229,255,.25)!important;animation:hgl 1s ease-in-out infinite alternate}
 @keyframes hgl{from{box-shadow:0 0 0 2px #00E5FF,0 0 8px 2px rgba(0,229,255,.5)}to{box-shadow:0 0 0 3px #00E5FF,0 0 24px 9px rgba(0,229,255,.9)}}
 #handSimBadge{position:fixed;left:50%;top:calc(var(--tbTop,52px) + 8px);transform:translateX(-50%);z-index:99991;font:700 10px var(--mono,monospace);letter-spacing:2px;color:#FF8C22;background:rgba(11,15,22,.85);border:1px solid rgba(255,140,34,.5);border-radius:8px;padding:4px 10px;pointer-events:none}
@@ -925,6 +938,26 @@ body.handDemo #amxCursor{opacity:0!important}
 #ncFocus:hover,#ncFocus.on{background:var(--cyan);color:#04222a;box-shadow:0 0 10px rgba(0,229,255,.6)}
 body.focusPick #view{cursor:crosshair!important}
 body.phone #ncFocus{left:-26px!important;top:50px!important;width:22px!important;height:22px!important;font-size:12px!important}
+/* nav cube tucked into the top-right corner: ⌂ ⟳ ⛶ in a column on its left, ◎ focus on its upper-right corner */
+#navcube{top:4px!important;right:4px!important}
+#ncHome,#ncSpin,#ncFull{position:absolute!important;right:auto!important;left:-20px!important;width:16px!important;height:16px!important;border-radius:50%!important;padding:0!important;line-height:1!important;font-size:10px!important}
+#ncHome{top:2px!important}#ncSpin{top:22px!important}#ncFull{top:42px!important}
+#ncFull{background:rgba(0,229,255,0.14);border:1px solid rgba(0,229,255,0.4);color:var(--cyan);cursor:pointer;z-index:31}
+#ncFull:hover,#ncFull.on{background:var(--cyan);color:#04222a}
+#ncFocus{top:-2px!important;right:-2px!important;left:auto!important}
+body.phone #navcube{top:4px!important;right:4px!important}
+body.phone #ncHome,body.phone #ncSpin,body.phone #ncFull{left:-26px!important;width:22px!important;height:22px!important;font-size:12px!important}
+body.phone #ncHome{top:0!important}body.phone #ncSpin{top:26px!important}body.phone #ncFull{top:52px!important}
+body.phone #ncFocus{top:-4px!important;right:-4px!important;left:auto!important;width:20px!important;height:20px!important}
+/* full screen = only the geometry + nav cube: every panel, bar and handle goes */
+body.fullscreen #toolbar,body.fullscreen #tbDockBar,body.fullscreen #toolpop,body.fullscreen #opDockBar,body.fullscreen #ocBar,body.fullscreen #layersPanel,body.fullscreen #modPanel,body.fullscreen .rSp,body.fullscreen #rSplit,body.fullscreen #rTabs,body.fullscreen #tbScroll,body.fullscreen #mbScroll,body.fullscreen #fabNode,body.fullscreen #menubar,body.fullscreen #status,body.fullscreen #amxDemo{display:none!important}
+body.fullscreen #main{padding:0!important}
+html body.fullscreen.fullscreen.fullscreen.fullscreen.fullscreen.fullscreen.fullscreen #toolbar,html body.fullscreen.fullscreen.fullscreen.fullscreen.fullscreen.fullscreen.fullscreen #tbDockBar,html body.fullscreen.fullscreen.fullscreen.fullscreen.fullscreen.fullscreen.fullscreen #toolpop,html body.fullscreen.fullscreen.fullscreen.fullscreen.fullscreen.fullscreen.fullscreen #opDockBar,html body.fullscreen.fullscreen.fullscreen.fullscreen.fullscreen.fullscreen.fullscreen #ocBar,html body.fullscreen.fullscreen.fullscreen.fullscreen.fullscreen.fullscreen.fullscreen #layersPanel,html body.fullscreen.fullscreen.fullscreen.fullscreen.fullscreen.fullscreen.fullscreen #modPanel,html body.fullscreen.fullscreen.fullscreen.fullscreen.fullscreen.fullscreen.fullscreen .rSp,html body.fullscreen.fullscreen.fullscreen.fullscreen.fullscreen.fullscreen.fullscreen #rSplit,html body.fullscreen.fullscreen.fullscreen.fullscreen.fullscreen.fullscreen.fullscreen #rTabs,html body.fullscreen.fullscreen.fullscreen.fullscreen.fullscreen.fullscreen.fullscreen #tbScroll,html body.fullscreen.fullscreen.fullscreen.fullscreen.fullscreen.fullscreen.fullscreen #mbScroll,html body.fullscreen.fullscreen.fullscreen.fullscreen.fullscreen.fullscreen.fullscreen #fabNode,html body.fullscreen.fullscreen.fullscreen.fullscreen.fullscreen.fullscreen.fullscreen #menubar,html body.fullscreen.fullscreen.fullscreen.fullscreen.fullscreen.fullscreen.fullscreen #status,html body.fullscreen.fullscreen.fullscreen.fullscreen.fullscreen.fullscreen.fullscreen #amxDemo,html body.fullscreen.fullscreen.fullscreen.fullscreen.fullscreen.fullscreen.fullscreen #fabReplay{display:none!important}
+html body.fullscreen.fullscreen.fullscreen.fullscreen.fullscreen.fullscreen.fullscreen #main{padding:0!important}
+/* the 3D view runs right up to the columns — the resize bars float over its edges instead of taking space */
+body.tbDock #main{padding-left:calc(var(--tbw,150px) + env(safe-area-inset-left))!important}
+body.opCol.opDock.opOpen #main{padding-right:calc(var(--opw,280px) + var(--ocw,260px) + 6px + env(safe-area-inset-right))!important}
+#tbDockBar{z-index:41}
 /* iPhone: smaller nav cube — Home and Auto-rotate buttons keep their size */
 body.phone #navcube{width:54px!important;height:54px!important;top:8px!important;right:10px!important}
 body.phone #ncCanvas{width:54px!important;height:54px!important}
@@ -1013,27 +1046,9 @@ html.inApp [data-act="fullscreen"],html.inApp [data-act="shortcuts"],html.inApp 
       <div class="mi" data-act="tgEdgeLen">Toggle Edge Lengths</div>
       <div class="mi" data-act="tgSeam">Toggle Seam Highlights</div>
       <div class="msep"></div>
-      <div class="mi" data-rm="solid">Solid</div>
-      <div class="mi" data-rm="normals">Normals</div>
-      <div class="mi" data-rm="xray">X-Ray<span class="kbd">X</span></div>
-      <div class="mi" data-rm="diamond">Diamond (ray-traced gem)</div>
-      <div class="mi" data-rm="reddiamond">Red Diamond (ray-traced gem)</div>
-      <div class="mi" data-rm="ruby">Ruby (ray-traced gem)</div>
-      <div class="mi" data-rm="sapphire">Sapphire (ray-traced gem)</div>
-      <div class="mi" data-rm="emerald">Emerald (ray-traced gem)</div>
-      <div class="mi" data-act="lineArt">Line Art (pen-plotter styles)</div>
-      <div class="mi" data-act="liveEq">Live Equations (math overlay)</div>
-      <div class="msep"></div>
-      <div class="mi" data-rm="galaxy">Galaxy</div>
-      <div class="mi" data-rm="matrix">Matrix</div>
-      <div class="mi" data-rm="water">Water</div>
-      <div class="mi" data-rm="moonwater">Moonwater</div>
-      <div class="mi" data-rm="carbon">Carbon Fiber</div>
-      <div class="mi" data-rm="carpet">Red Carpet</div>
-      <div class="mi" data-rm="flower">Flower</div>
-      <div class="mi" data-rm="laser">Laser</div>
-      <div class="mi" data-rm="patent">Patent / Halftone</div>
-      <div class="mi" data-rm="patent3d">3D Glasses · Halftone</div>
+      <div class="mlab">Interface</div>
+      <div class="mi" data-ui="dark">Dark mode (default)</div>
+      <div class="mi" data-ui="light">White mode</div>
       <div class="msep"></div>
       <div class="mi" data-act="tgB">Toggle Bounding Box</div>
       <div class="mi" data-act="tgSec">Toggle Section Plane</div>
@@ -1113,8 +1128,30 @@ html.inApp [data-act="fullscreen"],html.inApp [data-act="shortcuts"],html.inApp 
       <div class="mi" data-act="fabRender">Render Image (PNG)&hellip;</div>
     </div></div>
     <div class="menu"><span class="mtitle">Render</span><div class="mlist">
-      <div class="mi" data-act="renderPNG">Save High-Res Render (PNG)&hellip;</div>
+      <div class="mlab">Render style</div>
+      <div class="mi" data-rm="solid">Solid</div>
+      <div class="mi" data-rm="normals">Normals</div>
+      <div class="mi" data-rm="xray">X-Ray<span class="kbd">X</span></div>
+      <div class="mi" data-rm="diamond">Diamond (ray-traced gem)</div>
+      <div class="mi" data-rm="reddiamond">Red Diamond (ray-traced gem)</div>
+      <div class="mi" data-rm="ruby">Ruby (ray-traced gem)</div>
+      <div class="mi" data-rm="sapphire">Sapphire (ray-traced gem)</div>
+      <div class="mi" data-rm="emerald">Emerald (ray-traced gem)</div>
       <div class="mi" data-act="lineArt">Line Art (pen-plotter styles)</div>
+      <div class="mi" data-act="liveEq">Live Equations (math overlay)</div>
+      <div class="msep"></div>
+      <div class="mi" data-rm="galaxy">Galaxy</div>
+      <div class="mi" data-rm="matrix">Matrix</div>
+      <div class="mi" data-rm="water">Water</div>
+      <div class="mi" data-rm="moonwater">Moonwater</div>
+      <div class="mi" data-rm="carbon">Carbon Fiber</div>
+      <div class="mi" data-rm="carpet">Red Carpet</div>
+      <div class="mi" data-rm="flower">Flower</div>
+      <div class="mi" data-rm="laser">Laser</div>
+      <div class="mi" data-rm="patent">Patent / Halftone</div>
+      <div class="mi" data-rm="patent3d">3D Glasses · Halftone</div>
+      <div class="msep"></div>
+      <div class="mi" data-act="renderPNG">Save High-Res Render (PNG)&hellip;</div>
     </div></div>
     <div class="menu"><span class="mtitle">Help</span><div class="mlist">
       <div class="mi" id="miDemo">&#9654; Demo &mdash; watch TopMod build models</div>
@@ -1298,6 +1335,7 @@ html.inApp [data-act="fullscreen"],html.inApp [data-act="shortcuts"],html.inApp 
         <button id="ncHome" title="Home view (frame all)">&#8962;</button>
         <button id="ncSpin" title="Auto-rotate — slowly spins the view while you work">&#10227;</button>
         <button id="ncFocus" title="Focus — tap this, then tap the model to orbit around that point (⌂ recenters)">&#9678;</button>
+        <button id="ncFull" title="Full screen — only the model and this cube (great for Hands). Tap again to bring the panels back">&#9974;</button>
       </div>
     </div>
 
@@ -7536,6 +7574,7 @@ function updateViewLights(){
 
 const GROUND_Y=-2.6;
 const grid=new THREE.GridHelper(10,10,0x7fd8ef,0x4699b3);   // 10 x 10 ground, 1-inch cells
+window.__setSceneBg=function(light){ try{ scene.background=new THREE.Color(light?0xeef1f5:0x080a12); const ms=Array.isArray(grid.material)?grid.material:[grid.material]; ms.forEach((mt,i)=>{ mt.color&&mt.color.set(light?(i?0x8fa3b6:0x3b6e8a):(i?0x4699b3:0x7fd8ef)); }); }catch(e){} };
 grid.material.transparent=true; grid.material.opacity=0.33;
 grid.position.y=GROUND_Y; scene.add(grid);
 // 10 x 10 x 10 inch build-volume reference (child of grid -> toggles & moves with it)
@@ -11592,7 +11631,7 @@ function toggleFullscreen(force){
   [50,250,600,1200].forEach(ms=>setTimeout(verifyFullscreenSize,ms));   // reflow after the chrome hides/shows and after the (possibly slow) fullscreen transition
   if(on) setTimeout(()=>{ const sw=screen.width, sh=screen.height, iw=innerWidth, ih=innerHeight;
     const short=(sh-ih>4)||(sw-iw>4);
-    toast&&toast("Full screen "+iw+"×"+ih+(short?"  (screen is "+sw+"×"+sh+" — the browser kept "+(sh-ih)+"px; use F11 / ⌃⌘F for true full screen)":"")+" — Shift+F to exit", short); },900);
+    toast&&toast("Full screen "+iw+"×"+ih+(short?"  (screen is "+sw+"×"+sh+" — the browser kept "+(sh-ih)+"px; use F11 / ⌃⌘F for true full screen)":"")+" — tap ⛶ (or Shift+F) to exit", short); },900);
   else toast&&toast("Exited full screen");
 }
 // Verify the layout really spans the viewport we were given: percentage heights on html/body can stay stale
@@ -12163,7 +12202,18 @@ Examples:
   cv.addEventListener("mouseleave",()=>{ if(hoverFi>=0){matList[hoverFi].color.set(faces[hoverFi].length>=4?0x2c3d52:0x223044);hoverFi=-1;} });
 
   // home + pan arrows
-  $("#ncHome").addEventListener("click",()=>{ if(window.__tm&&window.__tm.frameAll) window.__tm.frameAll(); tweenTo(0.7,0.45); toast&&toast("Home view — recentered and framed"); });
+  $("#ncHome").addEventListener("click",()=>{
+    // Home = refocus on everything visible (all layers, evaluated) and zoom to fit, from the home angle
+    try{ let mn=[1e9,1e9,1e9],mx=[-1e9,-1e9,-1e9]; const add=v=>{ for(let i=0;i<3;i++){ if(v[i]<mn[i])mn[i]=v[i]; if(v[i]>mx[i])mx[i]=v[i]; } };
+      layers.forEach((Lr,i)=>{ if(!Lr||Lr.visible===false) return; const M=(i===activeLayer&&typeof dispMesh==="function")?dispMesh():(Lr._ev||Lr.mesh); if(M&&M.verts) M.verts.forEach(add); });
+      if(mn[0]<=mx[0]){ const c=[(mn[0]+mx[0])/2,(mn[1]+mx[1])/2,(mn[2]+mx[2])/2], R=Math.hypot(mx[0]-mn[0],mx[1]-mn[1],mx[2]-mn[2])/2||1, fov=camera.fov*Math.PI/180;
+        const a=target.clone(), d0=dist, d1=Math.max(R*1.2,(R/Math.sin(fov/2))*1.25), T0=performance.now();
+        (function st(){ const t=Math.min(1,(performance.now()-T0)/450), k=t<.5?2*t*t:1-Math.pow(-2*t+2,2)/2; target.set(a.x+(c[0]-a.x)*k,a.y+(c[1]-a.y)*k,a.z+(c[2]-a.z)*k); dist=d0+(d1-d0)*k; applyCam(); if(t<1) requestAnimationFrame(st); })(); }
+      else if(window.__tm&&window.__tm.frameAll) window.__tm.frameAll();
+    }catch(e){ if(window.__tm&&window.__tm.frameAll) window.__tm.frameAll(); }
+    tweenTo(0.7,0.45); toast&&toast("Home — refocused and zoomed to fit"); });
+  $("#ncFull")&&$("#ncFull").addEventListener("click",e=>{ e.stopPropagation(); toggleFullscreen(); });
+  new MutationObserver(()=>{ const f=$("#ncFull"); if(f) f.classList.toggle("on",document.body.classList.contains("fullscreen")); }).observe(document.body,{attributes:true,attributeFilter:["class"]});
 /* Nav cube ◎ Focus: tap it, then tap the model — the view now orbits around that point. ⌂ Home recenters. */
 (function(){ function init(){ var b=document.getElementById("ncFocus"), cv=document.getElementById("view"); if(!b||!cv) return; var on=false;
   function set(v){ on=v; b.classList.toggle("on",v); document.body.classList.toggle("focusPick",v); if(v&&typeof toast==="function") toast("Tap for new focus point"); }
@@ -12171,9 +12221,12 @@ Examples:
   cv.addEventListener("pointerdown",function(e){ if(!on) return; e.preventDefault(); e.stopImmediatePropagation(); window.__focusSwallow&&window.__focusSwallow();
     var r=cv.getBoundingClientRect(), v=new THREE.Vector2(((e.clientX-r.left)/r.width)*2-1, -((e.clientY-r.top)/r.height)*2+1);
     var ray=new THREE.Raycaster(); ray.setFromCamera(v,camera); var objs=[]; scene.traverse(function(o){ if(o.isMesh&&o.visible&&o.geometry&&!(o.material&&o.material.transparent&&o.material.opacity<0.2)) objs.push(o); });
-    var hit=ray.intersectObjects(objs,false).filter(function(h){ return h.object!==window.__gridObj; })[0];
-    if(!hit){ toast&&toast("No surface there — tap the model, or ◎ to cancel"); return; }
-    var p=hit.point, a=target.clone(), T0=performance.now();
+    var hit=ray.intersectObjects(objs,false)[0], p=null;
+    if(hit) p=hit.point;
+    else { var gy=(typeof grid!=="undefined"&&grid)?grid.position.y:0, pl=new THREE.Plane(new THREE.Vector3(0,1,0),-gy), q=new THREE.Vector3();   // empty space → a point on the grid
+      if(ray.ray.intersectPlane(pl,q)) p=q; }
+    if(!p){ toast&&toast("Tap the model or the grid, or ◎ to cancel"); return; }
+    var a=target.clone(), T0=performance.now();
     (function st(){ var t=Math.min(1,(performance.now()-T0)/450), k=t<.5?2*t*t:1-Math.pow(-2*t+2,2)/2; target.set(a.x+(p.x-a.x)*k,a.y+(p.y-a.y)*k,a.z+(p.z-a.z)*k); applyCam(); if(t<1) requestAnimationFrame(st); })();
     set(false); toast&&toast("New focus point — ⌂ to recenter"); },true);
   var swallow=false; cv.addEventListener("pointerdown",function(){},true);
@@ -16964,7 +17017,7 @@ void main(){
       const TH={ i:[[-18,-8],[-29,-26],[-34,-43],[-34,-60]], two:[[-18,-8],[-29,-26],[-33,-44],[-33,-61]], r:[[-18,-8],[-25,-24],[-24,-42],[-22,-58]], p:[[-18,-8],[-22,-24],[-18,-42],[-12,-54]] };
       const L=(a,b,k)=>[a[0]+(b[0]-a[0])*k,a[1]+(b[1]-a[1])*k];
       const RING={sel:"rgba(255,215,0,0.95)",ui:"rgba(0,229,255,0.95)",ex:"rgba(255,140,34,0.95)",zoom:"rgba(0,230,118,0.9)",orbit:"rgba(0,229,255,0.9)",undo:"rgba(255,68,136,0.95)",redo:"rgba(0,230,118,0.95)",ring:"rgba(255,140,34,0.95)"};
-      function mkHand(){ const g=document.createElementNS(NS,"g"); svg.appendChild(g); return {g,x:-300,y:-300,tx:-300,ty:-300,p:0,tp:0,mode:"i",mirror:false,show:true,s:1.9,col:RING.sel}; }
+      function mkHand(){ const g=document.createElementNS(NS,"g"); svg.appendChild(g); return {g,x:-300,y:-300,tx:-300,ty:-300,p:0,tp:0,mode:"i",mirror:false,show:true,s:2.6,col:RING.sel}; }
       function draw(h){ const k=h.p, sx=h.mirror?-1:1, P=JSON.parse(JSON.stringify(BASE));
         const fs=h.mode==="two"?["i","m"]:[h.mode]; fs.forEach(f=>{ P[f]=BASE[f].map((q,j)=>L(q,CURL[f][j],k)); });
         P.t=BASE.t.map((q,j)=>L(q,TH[h.mode]||TH.i,j===0?0:k).map?L(q,(TH[h.mode]||TH.i)[j],k):q);
@@ -16974,11 +17027,12 @@ void main(){
         ["t","i","m","r","p"].forEach(f=>{ seg(P.w,P[f][0]); for(let j=0;j<3;j++) seg(P[f][j],P[f][j+1]); });
         seg(P.i[0],P.m[0]); seg(P.m[0],P.r[0]); seg(P.r[0],P.p[0]);
         let d=""; const tips=[P.t[3],P.i[3],P.m[3],P.r[3],P.p[3]];
-        [P.w].concat(P.t.slice(0,3),P.i.slice(0,3),P.m.slice(0,3),P.r.slice(0,3),P.p.slice(0,3)).forEach(q=>{ d+='<circle class="j" cx="'+X(q)+'" cy="'+Y(q)+'" r="3.4"/>'; });
-        tips.forEach(q=>{ d+='<circle class="tg" cx="'+X(q)+'" cy="'+Y(q)+'" r="16"/><circle class="tp" cx="'+X(q)+'" cy="'+Y(q)+'" r="6"/>'; });
+        [P.w].concat(P.t.slice(0,3),P.i.slice(0,3),P.m.slice(0,3),P.r.slice(0,3),P.p.slice(0,3)).forEach(q=>{ d+='<circle class="j" cx="'+X(q)+'" cy="'+Y(q)+'" r="2.6"/>'; });
+        tips.forEach(q=>{ d+='<circle class="tg" cx="'+X(q)+'" cy="'+Y(q)+'" r="15"/><circle class="tp" cx="'+X(q)+'" cy="'+Y(q)+'" r="4.5"/>'; });
         const ring=k>0.7?'<circle class="pr" cx="'+h.x+'" cy="'+h.y+'" r="'+(18+10*(k-0.7)/0.3)+'" style="stroke:'+h.col+'"/>':'';
         h.g.innerHTML=h.show?'<g class="bones">'+s+'</g><g class="jts">'+d+'</g>'+ring:''; }
-      const H1=mkHand(), H2=mkHand(); H2.mirror=true; H2.show=false;
+      const H1=mkHand(), H2=mkHand(); H2.mirror=true; H2.show=true;
+      const idleL=()=>{ H2.mode="i"; H2.tp=0; H2.tx=innerWidth*0.30; H2.ty=innerHeight*0.80; };   // the left hand stays in view, resting, when it isn't doing anything
       let force=null, raf=0, live=true; const curEl=cursor();
       function loop(){ if(!live) return;
         const cx=parseFloat(curEl.style.left), cy=parseFloat(curEl.style.top);
@@ -16987,7 +17041,7 @@ void main(){
         H1.tp=force!=null?force:(clicking?1:0);
         [H1,H2].forEach(h=>{ h.x+=(h.tx-h.x)*0.22; h.y+=(h.ty-h.y)*0.22; h.p+=(h.tp-h.p)*0.3; draw(h); });
         raf=requestAnimationFrame(loop); }
-      H1.x=H1.tx=innerWidth*0.62; H1.y=H1.ty=innerHeight*0.72; loop();
+      H1.x=H1.tx=innerWidth*0.62; H1.y=H1.ty=innerHeight*0.72; idleL(); H2.x=H2.tx; H2.y=H2.ty; loop();
       const moveTo=(x,y)=>{ curEl.style.left=x+"px"; curEl.style.top=y+"px"; curEl.classList.add("show"); };
       const pinch=async (ms=420)=>{ force=1; await wait(ms); force=0; await wait(260); force=null; };
       function frontFace(){ let best=-1,bd=-2; const cp=camera.position;
@@ -17016,22 +17070,22 @@ void main(){
           await wait(300); force=0; await wait(250); endExtrudePreview(true); }
         force=null; H1.mode="i"; await wait(900);
         // 3 · pinky: left hand undo, right hand redo
-        say("Left pinky pinch · undo"); H1.mode="p"; H1.mirror=true; H1.col=RING.undo; H1.tx=innerWidth*0.38; H1.ty=innerHeight*0.55; await wait(700);
-        force=1; await wait(380); try{ undo(); }catch(e){} force=0; await wait(1300);
-        say("Right pinky pinch · redo"); H1.mirror=false; H1.col=RING.redo; H1.tx=innerWidth*0.62; await wait(700);
-        force=1; await wait(380); try{ redo(); }catch(e){} force=0; await wait(1200);
+        say("Left pinky pinch · undo"); H2.mode="p"; H2.col=RING.undo; H2.tx=innerWidth*0.38; H2.ty=innerHeight*0.55; H1.tx=innerWidth*0.66; H1.ty=innerHeight*0.72; await wait(700);
+        H2.tp=1; await wait(380); try{ undo(); }catch(e){} H2.tp=0; await wait(1100); idleL();
+        say("Right pinky pinch · redo"); H1.mode="p"; H1.col=RING.redo; H1.tx=innerWidth*0.62; H1.ty=innerHeight*0.55; await wait(700);
+        force=1; await wait(380); try{ redo(); }catch(e){} force=0; await wait(1100); H1.mode="i";
         // 4 · ring-finger (third finger) pinch opens the Topology shortcuts → Wire
         const pal=q("#handPrim"); const items=["Catmull","Doo-Sabin","Loop","Dual","Honeycomb","Stellate","Truncate","Crust/Rind","Wire","Pipe","Handle"];
-        H1.mode="r"; H1.mirror=true; H1.col=RING.ring; H1.tx=innerWidth*0.5; H1.ty=innerHeight*0.42; await wait(600);
-        say("Third-finger pinch · Topology shortcuts"); force=1; await wait(380);
-        if(pal){ pal.innerHTML='<div class="ph">Remesh / Topology</div>'+items.map(t=>'<button class="pbtn">'+t+'</button>').join(""); pal.style.left=(H1.tx+70)+"px"; pal.style.top=(innerHeight*0.5)+"px"; pal.classList.add("show"); }
-        await wait(500); force=0; H1.mode="i"; H1.col=RING.ui; H1.mirror=false; await wait(250);
+        H2.mode="r"; H2.col=RING.ring; H2.tx=innerWidth*0.36; H2.ty=innerHeight*0.45; await wait(600);
+        say("Left third-finger pinch · Topology shortcuts"); H2.tp=1; await wait(380);
+        if(pal){ pal.innerHTML='<div class="ph">Remesh / Topology</div>'+items.map(t=>'<button class="pbtn">'+t+'</button>').join(""); pal.style.left=(H2.tx+120)+"px"; pal.style.top=(innerHeight*0.5)+"px"; pal.classList.add("show"); }
+        await wait(500); H2.tp=0; await wait(200); idleL(); H1.mode="i"; H1.col=RING.ui; H1.mirror=false;
         if(pal){ const bs=[...pal.querySelectorAll(".pbtn")], wi=items.indexOf("Wire"); for(let j=0;j<=wi&&alive;j++){ bs.forEach(b=>b.classList.remove("phover")); bs[j].classList.add("phover"); const r=bs[j].getBoundingClientRect(); H1.tx=r.left+r.width/2; H1.ty=r.top+r.height/2; await wait(j===wi?650:170); } }
         await pinch(380); if(pal){ pal.classList.remove("show"); pal.innerHTML=""; }
         try{ const wb=q('#toolbar [data-op="wireframe"]'); if(wb) wb.click(); }catch(e){} say("Wire · added as a live modifier"); await wait(1800);
         // 5 · both hands index pinch: spread = zoom in, together = zoom out
         const cx=innerWidth*0.5, cy=innerHeight*0.55; H1.mode=H2.mode="i"; H1.col=H2.col=RING.zoom; H2.show=true;
-        H1.x=H1.tx=cx+40; H1.y=H1.ty=cy; H2.x=H2.tx=cx-40; H2.y=H2.ty=cy; await wait(400);
+        H1.tx=cx+40; H1.ty=cy; H2.tx=cx-40; H2.ty=cy; await wait(700);
         force=1; H2.tp=1; const d0=dist;
         say("Both hands pinch · spread to zoom in");
         await animate(1600,t=>{ const s=40+170*t; H1.tx=cx+s; H2.tx=cx-s; dist=d0*(1-0.42*t); applyCam(); });
@@ -17047,7 +17101,7 @@ void main(){
         force=0; H2.tp=0; await wait(450);
         say("… and back to the left"); force=1; H2.tp=1; const y1=yaw;
         await animate(1700,t=>{ const dx=-200*t; H1.tx=cx+240+dx; H2.tx=cx+60+dx; yaw=y1-dx*0.012*1.4; applyCam(); });
-        force=0; H2.tp=0; await wait(900);
+        force=0; H2.tp=0; idleL(); await wait(900);
       } finally { live=false; cancelAnimationFrame(raf); svg.remove(); badge.remove(); document.body.classList.remove("handDemo"); spinHold=false;
         if(hb) hb.classList.remove("handGlow"); try{ if(typeof exPreview!=="undefined"&&exPreview) endExtrudePreview(false); }catch(e){}
         const pal=q("#handPrim"); if(pal){ pal.classList.remove("show"); pal.innerHTML=""; } }
@@ -18111,7 +18165,7 @@ void main(){
   ["#toolbar","Tools","The tool column. Groups run TopMod-first: Primitives, Topology, Subdivide, Edit, Extrude, Deform, Boolean, Clean-up, Generate, Gems, Analyze, Fabricate."],
   ["#tbDockBar","Resize columns","Every column has a width bar like this one. Drag it to resize, double-click to reset."],
   ["#view","3D view","Drag to orbit, pinch or scroll to zoom. Tap a face, edge or vertex to select it; double-tap the neighbour to grab a whole loop."],
-  ["#navcube","Nav cube","Tap a face, edge or corner to snap the view. ⌂ frames everything, ⟳ slowly spins the model, ◎ sets a new focus point — tap it, then tap the model."],
+  ["#navcube","Nav cube","Tap a face, edge or corner to snap the view. ⌂ refocuses and zooms to fit, ⟳ slowly spins the model, ⛶ goes full screen (just the model — great for Hands), ◎ sets a new focus point: tap it, then tap the model or the grid."],
   ["#toolpop","Options","The current tool's settings. Sliders preview live; press Apply to keep the result."],
   ["#layersPanel","Layers","Each layer is a separate object. Show / hide, lock, duplicate or delete it, and tap a layer to make it active. Tap the header to fold this section."],
   ["#modPanel","Modifiers","The live, editable history of the active layer. Every operation stacks here — toggle ◉ on and off, reorder, or edit its settings any time. Fabrication sits at the bottom."],
@@ -18225,6 +18279,15 @@ void main(){
  try{ new ResizeObserver(upd).observe(row); new ResizeObserver(upd).observe(tb); }catch(e){}
  setTimeout(upd,300); setTimeout(upd,1500); }
  if(document.readyState==="loading") document.addEventListener("DOMContentLoaded",init); else init();})();</script>
+<script>/* View ▸ Interface: Dark (default) / White mode — remembered per device */
+(function(){ function apply(m){ var L=m==="light"; document.body.classList.toggle("uiLight",L);
+   try{ if(window.__setSceneBg) window.__setSceneBg(L); }catch(e){}
+   document.querySelectorAll("[data-ui]").forEach(function(el){ el.classList.toggle("on",el.dataset.ui===(L?"light":"dark")); }); }
+ function init(){ var m="dark"; try{ m=localStorage.getItem("tmUI")||"dark"; }catch(e){} apply(m);
+   var vs=document.getElementById("viewStyleSel"); var cur=(vs&&vs.value)||"solid"; document.querySelectorAll("[data-rm]").forEach(function(el){ el.classList.toggle("on",el.dataset.rm===cur); });
+   document.querySelectorAll("[data-ui]").forEach(function(el){ el.addEventListener("click",function(e){ e.stopPropagation(); document.querySelectorAll("#menubar .menu.open").forEach(function(x){x.classList.remove("open");});
+     var v=el.dataset.ui; try{ localStorage.setItem("tmUI",v); }catch(_){} apply(v); }); }); }
+ if(document.readyState==="loading") document.addEventListener("DOMContentLoaded",init); else init(); })();</script>
 <script>/* reveal only once every layout pass (docks, stacked panels, phone sizing, restored widths) has run — no flash of the old UI */
 (function(){function reveal(){requestAnimationFrame(function(){requestAnimationFrame(function(){setTimeout(function(){var h=document.documentElement;h.classList.remove("tmBoot");h.classList.add("tmBooted");try{dispatchEvent(new Event("resize"))}catch(e){}},120);});});}
  if(document.readyState==="complete") reveal(); else addEventListener("load",reveal);})();</script>
