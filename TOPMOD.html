@@ -18281,10 +18281,11 @@ void main(){
       try {
         fresh(); say("New scene"); await wait(400);
         stageLoad(TM.primitives.buckyball()); try{ const L=layers[activeLayer]; L.name="Buckyball"; renderLayerList&&renderLayerList(); window.__tm.frameAll(1.6); }catch(e){} await wait(700);
+        await op("wireframe","Wireframe modeling"); if(!alive) return; try{ window.__tm.frameAll(1.6); }catch(e){} await wait(500);
         await press('#toolbar [data-op="bejewel"]', "Gems · Bejewel — a gem on every face, table facing out", 500); await wait(1400); if(!alive) return;
         await slide("bejSize", 0.4, 0.9, 10, "Bejewel · gem size");
         const pick=async(cut,label)=>{ const el=q("#bejGem"); if(!el||!alive) return; moveCursor(el); el.value="d:"+cut; el.dispatchEvent(new Event("change",{bubbles:true})); say(label); await wait(1700); };
-        await pick("princess","Gem · Princess cut"); await pick("oval","Gem · Oval cut"); await pick("round","Gem · Round brilliant");
+        await pick("emerald","Gem · Emerald cut");
         await slide("bejSym", 8, 12, 4, "Gem adjust · more facets");
         await slide("bejCrown", 34.5, 40, 8, "Gem adjust · taller crown");
         const bk=q("#bejBake"); if(bk&&alive){ moveCursor(bk); await wait(500); say("Bake the gems to their own layer"); bk.click(); } await wait(900); if(!alive) return;
@@ -18379,10 +18380,12 @@ void main(){
     for (let k = startK % SEQS.length; alive && myGen===runGen; k = (k + 1) % SEQS.length) {
       if (k !== curK || !pill.querySelector(".dname")) { curK = k; wirePill(false); } curK = k;
       try { await SEQS[k](); await frame(); } catch(e){ if (e === "stopped") return; console.warn("demo "+k+" failed", e); }
+      if (onlyOne) { stop(true); return; }
     }
   }
-  function start(k0){
-    if (alive) return; if (pill) { pill.remove(); pill = null; } alive = true; startK = (typeof k0==="number") ? k0 : 0;
+  let onlyOne=false;
+  function start(k0, once){
+    if (alive) return; onlyOne=!!once; if (pill) { pill.remove(); pill = null; } alive = true; startK = (typeof k0==="number") ? k0 : 0;
     pill = document.createElement("div");
     pill.id = "amxDemo"; pill.setAttribute("role","status");
     curK = startK % SEQS.length; try{ window.__eq&&window.__eq.toggle(true); }catch(e){} wirePill(false);
