@@ -906,6 +906,22 @@ html body #layersHead,html body #modHead,html body.opDock.rStack #layersHead,htm
 html body #tpHead #tpTitle{font-size:9.5px!important;line-height:16px!important}
 html body #layersHead,html body #layersHead span,html body #modHead{font:800 9.5px/16px var(--mono,monospace)!important;letter-spacing:1.6px!important;color:#00E5FF!important;text-transform:uppercase}
 html body #layersHead .secChev,html body #modHead .secChev{font-size:9px!important}
+/* top bar: no Controller / Send model / Generators */
+#menubar>button.tb,#ekMenu{display:none!important}
+/* touch devices: each top menu is a native picker, exactly like the bottom-bar shading select */
+.mNative{position:absolute;inset:0;width:100%;height:100%;opacity:0;-webkit-appearance:none;appearance:none;font-size:16px;cursor:pointer;z-index:2}
+#menubar .menu.hasNative{position:relative}
+#creditCard{position:fixed;left:50%;top:50%;transform:translate(-50%,-50%);z-index:100020;width:min(360px,calc(100vw - 28px));max-height:calc(100vh - 40px);overflow:auto;background:#0b0f18;border:1px solid rgba(0,229,255,.45);border-radius:14px;padding:16px 18px 14px;color:#dff6ff;font:12.5px/1.5 var(--font,system-ui);box-shadow:0 18px 60px rgba(0,0,0,.7)}
+#creditCard h3{margin:0 0 2px;font:800 15px var(--font,system-ui);letter-spacing:2px;color:#fff}
+#creditCard h3 b{color:#00E5FF}
+#creditCard .sub{color:#7f9bb0;font-size:11px;margin-bottom:10px}
+#creditCard h5{margin:10px 0 3px;font:800 9.5px var(--mono,monospace);letter-spacing:1.6px;text-transform:uppercase;color:#00E5FF}
+#creditCard p{margin:0 0 4px}
+#creditCard a{color:#00E5FF}
+#creditCard .row{display:flex;gap:8px;margin-top:12px}
+#creditCard .row a,#creditCard .row button{flex:1;text-align:center;text-decoration:none;background:rgba(0,229,255,.1);border:1px solid rgba(0,229,255,.4);color:#bff3ff;border-radius:8px;padding:7px 8px;font:700 11.5px var(--font,system-ui);cursor:pointer}
+#creditCard .row a.go{background:#00E5FF;color:#04222a;border-color:#00E5FF}
+#creditShade{position:fixed;inset:0;background:rgba(3,6,12,.6);z-index:100019}
 /* Layers + Modifiers rows: one compact style — small, bold, white, no decorative icons */
 #layerList .layerRow,#modList .modRow,#fabNode.added{min-height:0!important;padding:3px 6px!important;font:700 11px/1.25 var(--font,system-ui)!important;color:#fff!important;border-radius:6px!important}
 #layerList .layerRow .layerName,#modList .modRow .modName,#fabNode .modName{font:700 11px/1.25 var(--font,system-ui)!important;color:#fff!important;font-style:normal!important}
@@ -927,11 +943,15 @@ html body #layersHead .secChev,html body #modHead .secChev{font-size:9px!importa
 #floatApply{display:none!important}
 /* Hands demo: simulated tracking overlay */
 body.handDemo #amxCursor{opacity:0!important}
-#handSimSvg .bones line{stroke:hsla(189,85%,60%,.9);stroke-width:1.6;stroke-linecap:round}
+#handSimSvg .bones line{stroke:hsla(189,85%,62%,.9);stroke-width:0.9;stroke-linecap:round}
+#handSimSvg g.L .bones line{stroke:hsla(330,95%,66%,.9)}
+#handSimSvg g.L .j{fill:hsla(330,95%,72%,.85)}
+#handSimSvg g.L .tp{fill:hsla(330,100%,78%,.95)}
+#handSimSvg g.L .tg{fill:hsla(330,100%,70%,.16)}
 #handSimSvg .j{fill:hsla(189,90%,68%,.85)}
 #handSimSvg .tp{fill:hsla(189,100%,74%,.95)}
 #handSimSvg .tg{fill:hsla(189,100%,70%,.18)}
-#handSimSvg .pr{fill:none;stroke-width:2.2;filter:drop-shadow(0 0 6px currentColor)}
+#handSimSvg .pr{fill:none;stroke-width:1.4;filter:drop-shadow(0 0 6px currentColor)}
 #handFab.handGlow{box-shadow:0 0 0 2px #00E5FF,0 0 18px 6px rgba(0,229,255,.75)!important;background:rgba(0,229,255,.25)!important;animation:hgl 1s ease-in-out infinite alternate}
 @keyframes hgl{from{box-shadow:0 0 0 2px #00E5FF,0 0 8px 2px rgba(0,229,255,.5)}to{box-shadow:0 0 0 3px #00E5FF,0 0 24px 9px rgba(0,229,255,.9)}}
 #handSimBadge{position:fixed;left:50%;top:calc(var(--tbTop,52px) + 8px);transform:translateX(-50%);z-index:99991;font:700 10px var(--mono,monospace);letter-spacing:2px;color:#FF8C22;background:rgba(11,15,22,.85);border:1px solid rgba(255,140,34,.5);border-radius:8px;padding:4px 10px;pointer-events:none}
@@ -2046,6 +2066,7 @@ html.inApp [data-act="fullscreen"],html.inApp [data-act="shortcuts"],html.inApp 
     <button class="cell" id="snapToggle" title="Snap movement to grid">&#9783; Snap</button>
     <button class="cell" id="dockToggle" title="Toggle bottom tool dock">&#9636; Dock</button>
     <button class="cell" id="consoleToggle" title="Script console (&#96;)">&gt;_</button>
+    <button class="cell" id="creditsBtn" title="Credits — the TopMod team and project">&#9733; Credits</button>
     <button class="cell" id="voiceToggle" title="Voice control — toggle on, then speak a command (e.g. &quot;cube&quot;, &quot;extrude&quot;, &quot;catmull&quot;, &quot;undo&quot;, &quot;zoom to fit&quot;, &quot;face mode&quot;). Say &quot;help&quot; — or right-click — to list all commands.">&#127908; Voice</button>
     <button class="cell" id="rhinoLink" title="Live-link geometry to Rhino — toggle on to push the visible model to a Rhino receiver on every edit. Right-click to set the receiver URL.">&#8644; Rhino</button>
   </div>
@@ -11951,12 +11972,13 @@ $("#toolpop")&&$("#toolpop").classList.add("empty");
   function line(txt,cls){ const d=document.createElement("div"); if(cls)d.className=cls; d.textContent=txt; out.appendChild(d); out.scrollTop=out.scrollHeight; }
   function show(on){ box.classList.toggle("show",on); tgl.classList.toggle("on",on); if(on) requestAnimationFrame(()=>inp.focus()); }
   tgl.addEventListener("click",()=>show(!box.classList.contains("show")));
-  const hideBtn=$("#conHide"); if(hideBtn) hideBtn.addEventListener("click",()=>show(false));
+  const hideBtn=$("#conHide"); if(hideBtn){ hideBtn.addEventListener("click",e=>{ e.stopPropagation(); show(false); }); hideBtn.addEventListener("touchend",e=>{ e.preventDefault(); e.stopPropagation(); show(false); }); }
   // draggable by header
   const head=$("#conHead");
   if(head){
     let dragging=false, ox=0, oy=0;
-    const down=e=>{ dragging=true; const p=e.touches?e.touches[0]:e; const r=box.getBoundingClientRect();
+    const down=e=>{ if(e.target&&e.target.closest&&e.target.closest("#conHide")) return;   // let the × be tapped (touchstart preventDefault was eating its click on iPhone)
+      dragging=true; const p=e.touches?e.touches[0]:e; const r=box.getBoundingClientRect();
       ox=p.clientX-r.left; oy=p.clientY-r.top; box.style.bottom="auto"; box.style.right="auto";
       box.style.left=r.left+"px"; box.style.top=r.top+"px"; e.preventDefault(); };
     const move=e=>{ if(!dragging) return; const p=e.touches?e.touches[0]:e;
@@ -12005,11 +12027,17 @@ Examples:
     const fn=new Function(...names, "return (\n"+src+"\n);");
     return fn(...vals);
   }
+  inp.addEventListener("paste",e=>{ const t=(e.clipboardData||window.clipboardData).getData("text"); if(!t||t.indexOf("\n")<0) return; e.preventDefault();
+    line(">>> (pasted "+t.split(/\r?\n/).filter(x=>x.trim()).length+" lines)","in");
+    if(window.__eq&&window.__eq.run){ try{ window.__eq.run(t); line("↳ equations → mesh","res"); }catch(err){ line(String(err&&err.message||err),"err"); } } });
   inp.addEventListener("keydown",e=>{
     if(e.key==="Enter"){
       const src=inp.value.trim(); if(!src) return;
       hist.push(src); hi=hist.length; inp.value="";
       line(">>> "+src,"in");
+      // equations go to the equation engine: z = sin(x)*cos(y) · r = 1+0.3*sin(4*theta) · x^2+y^2+z^2-1 = 0 · x=…/y=…/z=… (u,v) · "eq …" forces it
+      const isEq = /^eq\s+/i.test(src) || (/[^=!<>]=[^=>]/.test(src) && !/\b(let|const|var|function|return)\b|=>|\.\w+\s*=|\[/.test(src)) || /^\s*[uv]\s*:/.test(src) || /^\s*(range|res|tube)\b/i.test(src);
+      if(isEq && window.__eq && window.__eq.run){ try{ window.__eq.run(src.replace(/^eq\s+/i,"")); line("↳ equation → mesh","res"); }catch(err){ line(String(err&&err.message||err),"err"); } return; }
       try{
         let r;
         try{ r=run(src); }
@@ -15552,7 +15580,7 @@ applyOriginalIcons(); }catch(e){ console.warn("icon render skipped:",e); }
   let lidarOn=false;              // becomes true if native reports LiDAR available
   let lidarDepths=null;           // latest {thumb, index} depths in metres (or null)
   let lidarQid=0, lidarPending=false;
-  window.__lidarAvailable=function(b){ lidarOn=!!b; if(lidarOn&&toast) toast("LiDAR depth refinement active"); };
+  window.__lidarAvailable=function(b){ lidarOn=!!b; };   // silent at launch (no LiDAR message)
   window.__lidarDepth=function(res){ if(res&&res.depths){ lidarDepths={thumb:res.depths[0],index:res.depths[1]}; } lidarPending=false; };
   window.__onPhotoResult=function(ok,msg){ if(typeof toast==="function") toast(msg||(ok?"Saved to Photos":"Couldn't save to Photos"), !ok); };
   function queryLidar(){
@@ -17025,11 +17053,11 @@ void main(){
         ["t","i","m","r","p"].forEach(f=>{ seg(P.w,P[f][0]); for(let j=0;j<3;j++) seg(P[f][j],P[f][j+1]); });
         seg(P.i[0],P.m[0]); seg(P.m[0],P.r[0]); seg(P.r[0],P.p[0]);
         let d=""; const tips=[P.t[3],P.i[3],P.m[3],P.r[3],P.p[3]];
-        [P.w].concat(P.t.slice(0,3),P.i.slice(0,3),P.m.slice(0,3),P.r.slice(0,3),P.p.slice(0,3)).forEach(q=>{ d+='<circle class="j" cx="'+X(q)+'" cy="'+Y(q)+'" r="2.6"/>'; });
-        tips.forEach(q=>{ d+='<circle class="tg" cx="'+X(q)+'" cy="'+Y(q)+'" r="15"/><circle class="tp" cx="'+X(q)+'" cy="'+Y(q)+'" r="4.5"/>'; });
+        [P.w].concat(P.t.slice(0,3),P.i.slice(0,3),P.m.slice(0,3),P.r.slice(0,3),P.p.slice(0,3)).forEach(q=>{ d+='<circle class="j" cx="'+X(q)+'" cy="'+Y(q)+'" r="1.8"/>'; });
+        tips.forEach(q=>{ d+='<circle class="tg" cx="'+X(q)+'" cy="'+Y(q)+'" r="12"/><circle class="tp" cx="'+X(q)+'" cy="'+Y(q)+'" r="3.2"/>'; });
         const ring=k>0.7?'<circle class="pr" cx="'+h.x+'" cy="'+h.y+'" r="'+(18+10*(k-0.7)/0.3)+'" style="stroke:'+h.col+'"/>':'';
         h.g.innerHTML=h.show?'<g class="bones">'+s+'</g><g class="jts">'+d+'</g>'+ring:''; }
-      const H1=mkHand(), H2=mkHand(); H2.mirror=true; H2.show=true;
+      const H1=mkHand(), H2=mkHand(); H2.mirror=true; H2.show=true; H2.g.setAttribute("class","L"); H2.col=RING.undo;   // left hand = pink, right hand = cyan
       const idleL=()=>{ H2.mode="i"; H2.tp=0; H2.tx=innerWidth*0.30; H2.ty=innerHeight*0.80; };   // the left hand stays in view, resting, when it isn't doing anything
       let force=null, raf=0, live=true; const curEl=cursor();
       function loop(){ if(!live) return;
@@ -17055,7 +17083,11 @@ void main(){
         // 0 · show where Hands lives — glow it, don't press it
         say("Hands · the camera button down here turns on tracking");
         if(hb){ hb.classList.add("handGlow"); const r=hb.getBoundingClientRect(); H1.follow=false; H1.mode="i"; H1.col=RING.ui; H1.tx=r.left+r.width/2; H1.ty=r.top-28; }
-        await wait(2600); if(hb) hb.classList.remove("handGlow");
+        { const t0=performance.now(); while(alive && performance.now()-t0<3200){ const t=(performance.now()-t0)/1000;
+            H2.tx=innerWidth*(0.30+0.06*Math.sin(t*1.7)); H2.ty=innerHeight*(0.62+0.08*Math.sin(t*2.3+1));
+            if(t>1.2){ H1.tx=innerWidth*(0.62+0.07*Math.sin(t*1.9+2)); H1.ty=innerHeight*(0.58+0.09*Math.cos(t*2.1)); }
+            await wait(30); } }
+        if(hb) hb.classList.remove("handGlow"); idleL();
         say("Hands on · the camera tracks your hand"); H1.tx=innerWidth*0.55; H1.ty=innerHeight*0.6; await wait(900); H1.follow=true;
         // 1 · index pinch selects a face
         setMode("face"); const fi=frontFace(); const fp=window.__tm.faceScreen(fi);
@@ -18285,6 +18317,38 @@ void main(){
    var vs=document.getElementById("viewStyleSel"); var cur=(vs&&vs.value)||"solid"; document.querySelectorAll("[data-rm]").forEach(function(el){ el.classList.toggle("on",el.dataset.rm===cur); });
    document.querySelectorAll("[data-ui]").forEach(function(el){ el.addEventListener("click",function(e){ e.stopPropagation(); document.querySelectorAll("#menubar .menu.open").forEach(function(x){x.classList.remove("open");});
      var v=el.dataset.ui; try{ localStorage.setItem("tmUI",v); }catch(_){} apply(v); }); }); }
+ if(document.readyState==="loading") document.addEventListener("DOMContentLoaded",init); else init(); })();</script>
+<script>/* Top menus on touch screens use the native picker (same as the bottom-bar shading select): pick an item → it runs */
+(function(){ var touch=("ontouchstart" in window)||(navigator.maxTouchPoints>0); if(!touch) return;
+ function vis(el){ var cs=getComputedStyle(el); return cs.display!=="none"&&cs.visibility!=="hidden"; }
+ function build(menu,sel){ var items=[].slice.call(menu.querySelectorAll(".mi, .mlab, .msep")), lst=menu._mlist||menu.querySelector(".mlist"); if(lst) items=[].slice.call(lst.querySelectorAll(".mi, .mlab"));
+   sel.innerHTML=""; var head=document.createElement("option"); head.textContent=(menu.querySelector(".mtitle")||{}).textContent||"Menu"; head.disabled=true; head.selected=true; head.value=""; sel.appendChild(head);
+   var grp=null; menu._map=[];
+   items.forEach(function(el){ if(el.classList.contains("mlab")){ grp=document.createElement("optgroup"); grp.label=el.textContent.trim(); sel.appendChild(grp); return; }
+     if(!vis(el)||el.dataset.tbHidden) return; var o=document.createElement("option"); var t=el.cloneNode(true); [].slice.call(t.querySelectorAll(".kbd")).forEach(function(k){k.remove();});
+     o.textContent=(el.classList.contains("on")?"✓ ":"")+t.textContent.replace(/\s+/g," ").trim(); o.value=String(menu._map.length); menu._map.push(el); (grp||sel).appendChild(o); }); }
+ function init(){ [].slice.call(document.querySelectorAll("#menubar > .menu")).forEach(function(menu){ if(menu.id==="ekMenu"||menu.id==="demoMenu") return;
+   var title=menu.querySelector(".mtitle"); if(!title) return; menu._mlist=menu.querySelector(".mlist");
+   var sel=document.createElement("select"); sel.className="mNative"; sel.setAttribute("aria-label",title.textContent); menu.classList.add("hasNative"); menu.appendChild(sel);
+   build(menu,sel);
+   ["touchstart","pointerdown","mousedown","focus"].forEach(function(ev){ sel.addEventListener(ev,function(e){ e.stopPropagation(); build(menu,sel); },{passive:true}); });
+   sel.addEventListener("click",function(e){ e.stopPropagation(); });
+   sel.addEventListener("change",function(){ var el=menu._map[+sel.value]; sel.selectedIndex=0; if(el){ try{ el.click(); }catch(e){} } document.querySelectorAll("#menubar .menu.open").forEach(function(m){m.classList.remove("open");}); }); }); }
+ if(document.readyState==="complete") setTimeout(init,50); else addEventListener("load",function(){ setTimeout(init,50); }); })();</script>
+<script>/* ★ Credits (last button in the bottom bar) */
+(function(){ function open(){ close();
+  var sh=document.createElement("div"); sh.id="creditShade"; var c=document.createElement("div"); c.id="creditCard";
+  c.innerHTML='<h3>TOP<b>MOD</b> 3D</h3><div class="sub">Topological mesh modeling — free on the App Store and the web</div>'
+   +'<h5>TopMod — the original project</h5><p>Ergun Akleman · Vinod Srinivasan · Jianer Chen<br>Visual Computing &amp; Computational Media, Texas A&amp;M University</p>'
+   +'<p>Doubly linked face list (DLFL) topology, handles, rind and wireframe modeling — with Esan Mandal, Zhangyang Chen and the TopMod team.</p>'
+   +'<h5>TopMod developers group</h5><p>Ergun Akleman, Tolga Yildiz, Xiaoming Wang, Vinod Srinivasan and everyone in the TopMod developers meetings.</p>'
+   +'<h5>TopMod 3D — web &amp; iOS</h5><p>John Briscella · <b>AMAXIMAL</b></p>'
+   +'<div class="row"><a class="go" href="https://amaximal.com/topmod3d/" target="_blank" rel="noopener">amaximal.com/topmod3d</a><button class="x">Close</button></div>';
+  document.body.appendChild(sh); document.body.appendChild(c);
+  sh.onclick=close; c.querySelector(".x").onclick=close; }
+ function close(){ var a=document.getElementById("creditCard"), b=document.getElementById("creditShade"); if(a) a.remove(); if(b) b.remove(); }
+ window.__credits={open:open,close:close};
+ function init(){ var b=document.getElementById("creditsBtn"); if(b) b.addEventListener("click",function(e){ e.stopPropagation(); open(); }); addEventListener("keydown",function(e){ if(e.key==="Escape") close(); }); }
  if(document.readyState==="loading") document.addEventListener("DOMContentLoaded",init); else init(); })();</script>
 <script>/* reveal only once every layout pass (docks, stacked panels, phone sizing, restored widths) has run — no flash of the old UI */
 (function(){function reveal(){requestAnimationFrame(function(){requestAnimationFrame(function(){setTimeout(function(){var h=document.documentElement;h.classList.remove("tmBoot");h.classList.add("tmBooted");try{dispatchEvent(new Event("resize"))}catch(e){}},120);});});}
