@@ -134,7 +134,7 @@ h2{font:600 12px var(--f-mono);letter-spacing:.12em;text-transform:uppercase;col
       </div>
       <div class="row"><label>Phone</label><button class="chip" id="qWhite">White phone</button><button class="chip" id="qBlack">Black phone</button></div>
       <div class="row"><label>Hinge</label><button class="chip" id="oHalf">Open halfway</button><button class="chip" id="oFull">Open fully</button><button class="chip" id="cHalf">Close halfway</button><button class="chip" id="cFull">Close fully</button></div>
-      <div class="row"><label>Demos</label><button class="chip" id="demo2">1 · Table TopOpt</button><button class="chip" id="demo1">2 · Equation</button><button class="chip" id="demo3">3 · Bejewel + Physics</button><button class="chip" id="demo4">4 · Hands-free</button><button class="chip" id="demo5">5 · AR</button></div>
+      <div class="row"><label>Demos</label><button class="chip" id="demo2">1 · Table TopOpt</button><button class="chip" id="demo1">2 · Twisted handles</button><button class="chip" id="demo3">3 · Bejewel + Physics</button><button class="chip" id="demo4">4 · Hands-free</button><button class="chip" id="demo5">5 · AR</button></div>
       <div class="row"><label>Motion</label><button class="chip on" id="sway" aria-pressed="true">Sway</button><button class="chip" id="turntable" aria-pressed="false">Turntable</button><button class="chip" id="reset">Reset view</button><button class="chip" id="replay">Replay intro</button></div>
     </div>
       <div class="row"><label for="swspeed">Sway speed</label><input id="swspeed" type="range" min="0.1" max="3" step="0.05" value="1"><output id="swspeedO">1.00</output></div>
@@ -293,13 +293,23 @@ var chromeCube=(function(){ function face(kind){ var c=document.createElement("c
     if(kind==="up"){ g.fillStyle="#ffffff"; g.fillRect(40,0,30,256); g.fillRect(110,0,40,256); g.fillRect(190,0,26,256); }
     return c; }
   var t=new THREE.CubeTexture([face("side"),face("side"),face("up"),face("down"),face("side"),face("side")]); t.encoding=THREE.sRGBEncoding; t.needsUpdate=true; return t; })();
-var chromeMat=(function(){ var c=document.createElement("canvas"); c.width=c.height=512; var g=c.getContext("2d");
-  var lin=g.createLinearGradient(0,0,0,512); /* baked studio: bright sky, soft-box band, dark horizon, warm floor bounce */
-  [[0,"#ffffff"],[0.16,"#e9eef6"],[0.3,"#9aa3ae"],[0.4,"#fdfdfd"],[0.47,"#c4cad3"],[0.53,"#1d2026"],[0.6,"#3a3f47"],[0.72,"#8d939c"],[0.86,"#c9c2b8"],[1,"#5f6064"]].forEach(function(s){ lin.addColorStop(s[0],s[1]); });
-  g.fillStyle=lin; g.fillRect(0,0,512,512);
-  var v=g.createRadialGradient(256,256,120,256,256,256); v.addColorStop(0,"rgba(0,0,0,0)"); v.addColorStop(0.85,"rgba(0,0,0,.25)"); v.addColorStop(1,"rgba(0,0,0,.65)"); g.fillStyle=v; g.fillRect(0,0,512,512);
-  g.fillStyle="rgba(255,255,255,.9)"; g.beginPath(); g.ellipse(170,150,46,20,-0.5,0,Math.PI*2); g.fill();
-  var t=new THREE.CanvasTexture(c); t.encoding=THREE.sRGBEncoding; return new THREE.MeshMatcapMaterial({matcap:t}); })();
+var chromeMat=(function(){ var N=1024, c=document.createElement("canvas"); c.width=c.height=N; var g=c.getContext("2d"), C=N/2;
+  /* baked studio: cool sky dome, two overhead soft boxes, a crisp horizon, warm floor bounce; drawn as seen on a mirror ball */
+  var lin=g.createLinearGradient(0,0,0,N);
+  [[0,"#f7f9fc"],[0.12,"#dde4ee"],[0.24,"#7d8794"],[0.33,"#f4f6f9"],[0.38,"#ffffff"],[0.43,"#aab2bd"],[0.49,"#2a2e35"],[0.515,"#0c0d10"],[0.55,"#3d424a"],[0.66,"#7b828c"],[0.78,"#b9b3aa"],[0.9,"#8a8780"],[1,"#3b3c40"]].forEach(function(s){ lin.addColorStop(s[0],s[1]); });
+  g.fillStyle=lin; g.fillRect(0,0,N,N);
+  // curved soft-box bars following the sphere
+  function bar(y,h,a,alpha){ g.save(); g.globalAlpha=alpha; g.beginPath(); g.ellipse(C,y,C*0.92,h,0,a?Math.PI:0,a?2*Math.PI:Math.PI); g.lineWidth=h*0.5; g.strokeStyle="#ffffff"; g.filter="blur("+(h*0.12)+"px)"; g.stroke(); g.restore(); }
+  bar(N*0.36,N*0.06,true,0.65); bar(N*0.2,N*0.035,true,0.45);
+  // vertical strip lights left and right (rim)
+  [[0.14,0.05,0.85],[0.86,0.035,0.7],[0.3,0.015,0.35],[0.7,0.015,0.35]].forEach(function(v){ var x=N*v[0], w=N*v[1], gr=g.createLinearGradient(x-w,0,x+w,0); gr.addColorStop(0,"rgba(255,255,255,0)"); gr.addColorStop(0.5,"rgba(255,255,255,"+v[2]+")"); gr.addColorStop(1,"rgba(255,255,255,0)"); g.fillStyle=gr; g.fillRect(x-w,N*0.08,2*w,N*0.42); });
+  // tint: cool top, warm bottom
+  var tint=g.createLinearGradient(0,0,0,N); tint.addColorStop(0,"rgba(150,190,255,.10)"); tint.addColorStop(0.5,"rgba(0,0,0,0)"); tint.addColorStop(1,"rgba(255,200,150,.10)"); g.fillStyle=tint; g.fillRect(0,0,N,N);
+  // fresnel rim + sphere falloff
+  var v=g.createRadialGradient(C,C,N*0.3,C,C,C); v.addColorStop(0,"rgba(0,0,0,0)"); v.addColorStop(0.82,"rgba(0,0,0,.18)"); v.addColorStop(0.95,"rgba(0,0,0,.5)"); v.addColorStop(1,"rgba(255,255,255,.55)"); g.fillStyle=v; g.fillRect(0,0,N,N);
+  // two hot specular kicks
+  [[0.33,0.27,0.05],[0.7,0.31,0.025]].forEach(function(p){ var r=g.createRadialGradient(N*p[0],N*p[1],0,N*p[0],N*p[1],N*p[2]); r.addColorStop(0,"rgba(255,255,255,1)"); r.addColorStop(1,"rgba(255,255,255,0)"); g.fillStyle=r; g.fillRect(0,0,N,N); });
+  var t=new THREE.CanvasTexture(c); t.encoding=THREE.sRGBEncoding; t.anisotropy=8; return new THREE.MeshMatcapMaterial({matcap:t}); })();
 var bodyMeshes=[];
 var FIN={ white:{back:[0xf4f4f1,0.0,0.28,1.0],edge:[0xeceef1,1.0,0.045],dark:[0xd9dce0,0.6,0.25]},
   night:{back:[0x0b1019,0.1,0.5,0.35],edge:[0x1f2737,0.85,0.25],dark:[0x0d111a,0.85,0.3]},
@@ -487,7 +497,7 @@ frame.addEventListener("load",function(){
       if(!heldCv&&performance.now()-splashT0>2700&&outerCv){ heldCv=document.createElement("canvas"); heldCv.width=outerCv.width; heldCv.height=outerCv.height; heldCv.getContext("2d").drawImage(outerCv,0,0); } } }
   else if(!outerLogo&&outerTex){ if(heldCv){ var og=outerCv.getContext("2d"); og.setTransform(1,0,0,1,0,0); og.drawImage(heldCv,0,0); outerTex.needsUpdate=true; } else logoCanvas(); outerLogo=true; }
   try{ var hb=frame.contentDocument.body, hs=hb&&hb.classList.contains("handDemo")?frame.contentDocument.getElementById("handSimSvg"):null; $("camLight").hidden=!hs;
-    if(hs){ if(!handCss){ handCss=document.createElement("style"); var rules=""; [].forEach.call(frame.contentDocument.styleSheets,function(sh){ try{ [].forEach.call(sh.cssRules,function(r){ if(/handSim|handDemo/.test(r.cssText)) rules+=r.cssText.replace(/body\.handDemo\s*/g,"")+"\n"; }); }catch(e){} }); handCss.textContent=rules; document.head.appendChild(handCss); } if(++handTick%2===0) $("topHand").innerHTML=hs.outerHTML; } else if($("topHand").firstChild) $("topHand").innerHTML=""; }catch(e){}
+    if(false&&hs){ if(!handCss){ handCss=document.createElement("style"); var rules=""; [].forEach.call(frame.contentDocument.styleSheets,function(sh){ try{ [].forEach.call(sh.cssRules,function(r){ if(/handSim|handDemo/.test(r.cssText)) rules+=r.cssText.replace(/body\.handDemo\s*/g,"")+"\n"; }); }catch(e){} }); handCss.textContent=rules; document.head.appendChild(handCss); } if(++handTick%2===0) $("topHand").innerHTML=hs.outerHTML; } else if($("topHand").firstChild) $("topHand").innerHTML=""; }catch(e){}
   var w=mirror.clientWidth, h=mirror.clientHeight, dpr=Math.min(2,devicePixelRatio||1);
   if(mirror.width!==Math.round(w*dpr)){ mirror.width=Math.round(w*dpr); mirror.height=Math.round(h*dpr); }
   try{ if(!arMode){ mctx.globalCompositeOperation="source-over"; mctx.drawImage(appCanvas,0,0,mirror.width,mirror.height); }
@@ -529,19 +539,10 @@ function wait(ms){ return new Promise(function(r){ setTimeout(r,ms); }); }
 var demoTok=0;
 function endAR(){ arMode=false; }
 function appDemo(k){ if(!W) return; ++demoTok; autoDemoed=true; endAR(); preset("duo"); closePanels(); userDemo=true; try{ W.__demo.stop&&W.__demo.stop(true); }catch(e){} setTimeout(function(){ try{ W.__demo.start(k,true); }catch(e){} },500); }
-$("demo1").onclick=async function(){ if(!W) return; var tok=++demoTok; autoDemoed=true; endAR(); preset("duo"); closePanels(); userDemo=true; try{ W.__demo.stop&&W.__demo.stop(true); }catch(e){}
-  try{ W.__eq.toggle(true); await wait(400); var EQ="# knotted ball — a torus knot T(3,7) swept as a tube\nu: 0..2*pi\nres 260\nx = (1.6 + cos(7*u))*cos(3*u)\ny = (1.6 + cos(7*u))*sin(3*u)\nz = sin(7*u)\ntube 0.22";
-    await W.__eq.type(EQ); if(tok!==demoTok) return; W.__eq.run(EQ); await wait(2400); if(tok!==demoTok) return; try{ W.__tm.frameAll(1.1); }catch(e){} }catch(e){ console.warn(e); } };
-$("demo2").onclick=function(){ if(!W) return; ++demoTok; autoDemoed=true; endAR(); preset("duo"); var d=appDoc();
-  try{ W.__demo.stop&&W.__demo.stop(true); }catch(e){}
-  var b=d.querySelector('#toolbar [data-act="topopt"]')||d.querySelector('[data-act="topopt"]');
-  setTimeout(function(){ if(b) b.click(); else if(W.__topopt) W.__topopt.open();
-    var n=0; (function pick(){ var ex=d.getElementById("toEx"); if(!ex){ if(n++<20) setTimeout(pick,250); return; }
-      ex.value="table"; ex.dispatchEvent(new W.Event("change",{bubbles:true}));
-      /* reframe the camera on the table once it loads and again after it is optimised */
-      [1500,6000,12000,20000].forEach(function(ms){ setTimeout(function(){ var f=d.querySelector('[data-act="frameAll"]'); if(f) f.click(); },ms); }); })(); },350); };
-$("demo3").onclick=function(){ appDemo(5); };   /* the app's "Bejeweled" demo: wireframe, gems, one cut change, physics */
-$("demo4").onclick=function(){ appDemo(1); };   /* the app's simulated hands-free demo */
+$("demo1").onclick=function(){ appDemo(1); };   /* the app's TopMod Look: twisted handles */
+$("demo2").onclick=function(){ appDemo(0); };   /* Duo demo 1: Table topology optimisation */
+$("demo3").onclick=function(){ appDemo(2); };   /* the app's "Bejeweled" demo: wireframe, gems, one cut change, physics */
+$("demo4").onclick=function(){ appDemo(3); };   /* the app's simulated hands-free demo */
 var arMode=false;
 $("demo5").onclick=function(){ if(!W) return; ++demoTok; preset("duo"); stopAppDemo(); arMode=!arMode; this.classList.toggle("on",arMode); var b5=this; clearTimeout(window.__arT); if(arMode) window.__arT=setTimeout(function(){ arMode=false; b5.classList.remove("on"); },14000); };
 })();
