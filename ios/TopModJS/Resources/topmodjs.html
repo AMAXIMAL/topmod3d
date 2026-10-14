@@ -964,8 +964,8 @@ html body #layersHead,html body #layersHead span,html body #modHead,html body #m
 html body #modHead #modLayerName,html body #modHead .modSep{opacity:.7;letter-spacing:.6px!important;text-transform:none!important}
 html body #tpHead{padding:4px 10px!important;line-height:16px!important}
 /* ★ Credits matches the other bottom-bar buttons */
-#creditsBtn{cursor:pointer;background:rgba(0,229,255,0.1)!important;border:1px solid rgba(0,229,255,0.3)!important;color:var(--cyan)!important;font:11px var(--mono)!important;padding:3px 9px;border-radius:7px}
-body.phone #creditsBtn{font-size:8.5px!important;padding:3px 4.5px!important;border-radius:6px!important}
+#arBtn{cursor:pointer;background:rgba(0,229,255,0.1)!important;border:1px solid rgba(0,229,255,0.3)!important;color:var(--cyan)!important;font:11px var(--mono)!important;padding:3px 9px;border-radius:7px}
+body.phone #arBtn{font-size:8.5px!important;padding:3px 4.5px!important;border-radius:6px!important}
 #creditCard{width:min(560px,calc(100vw - 28px))!important;padding:14px 20px 14px!important}
 #creditCard .cx{position:absolute;top:8px;right:8px;width:22px;height:22px;border-radius:50%;border:1px solid rgba(0,229,255,.4);background:rgba(0,229,255,.1);color:#bff3ff;font:700 13px/18px var(--font,system-ui);cursor:pointer;padding:0;text-align:center}
 #creditCard .cols{display:grid;grid-template-columns:1fr 1fr;gap:0 18px}
@@ -1238,6 +1238,7 @@ html.inApp [data-act="fullscreen"],html.inApp [data-act="shortcuts"],html.inApp 
       <div class="mi" id="miDemo">&#9654; Demo &mdash; watch TopMod build models</div>
       <div class="mi" id="miExplain">&#10067; Explain the interface &mdash; guided tour</div>
       <div class="mi" id="miHandGuide">&#9995; Hand controls &mdash; visual guide</div>
+      <div class="mi" id="creditsBtn">&#9733; Credits &mdash; the TopMod team</div>
       <div class="mi" data-act="controls">Controls &amp; Gestures</div>
       <div class="mi" data-act="shortcuts">Keyboard Shortcuts</div>
       <div class="mi" data-act="about">About TopMod 3D</div>
@@ -2136,7 +2137,7 @@ html.inApp [data-act="fullscreen"],html.inApp [data-act="shortcuts"],html.inApp 
     <button class="cell" id="snapToggle" title="Snap movement to grid">&#9783; Snap</button>
     <button class="cell" id="dockToggle" title="Toggle bottom tool dock">&#9636; Dock</button>
     <button class="cell" id="consoleToggle" title="Script console (&#96;)">&gt;_</button>
-    <button class="cell" id="creditsBtn" title="Credits — the TopMod team and project">&#9733; Credits</button>
+    <button class="cell" id="arBtn" title="AR — place the model in your room (AR Quick Look on iPhone / iPad)">&#9672; AR</button>
     <button class="cell" id="voiceToggle" title="Voice control — toggle on, then speak a command (e.g. &quot;cube&quot;, &quot;extrude&quot;, &quot;catmull&quot;, &quot;undo&quot;, &quot;zoom to fit&quot;, &quot;face mode&quot;). Say &quot;help&quot; — or right-click — to list all commands.">&#127908; Voice</button>
     <button class="cell" id="rhinoLink" title="Live-link geometry to Rhino — toggle on to push the visible model to a Rhino receiver on every edit. Right-click to set the receiver URL.">&#8644; Rhino</button>
   </div>
@@ -16000,6 +16001,48 @@ window.__ek={applyWhole:applyWhole,ops:ops,snapshot:snapshot,rebuild:rebuild,toa
   wire("aero",aeroOpen); wire("fea",feaOpen);
 })();
 
+// ---------- AR: export the visible model as USDZ and open it in AR Quick Look (iPhone / iPad) ----------
+(function(){
+  const CRC=(()=>{ const t=new Uint32Array(256); for(let n=0;n<256;n++){ let c=n; for(let k=0;k<8;k++) c=c&1?0xEDB88320^(c>>>1):c>>>1; t[n]=c>>>0; } return t; })();
+  const crc32=b=>{ let c=0xFFFFFFFF; for(let i=0;i<b.length;i++) c=CRC[(c^b[i])&255]^(c>>>8); return (c^0xFFFFFFFF)>>>0; };
+  function zipStored(files){ // USDZ = uncompressed zip, every file's data 64-byte aligned
+    const parts=[], cen=[]; let off=0; const enc=new TextEncoder();
+    for(const f of files){ const name=enc.encode(f.name), data=f.data, crc=crc32(data);
+      let extra=(64-((off+30+name.length+4)%64))%64; const ex=new Uint8Array(4+extra); new DataView(ex.buffer).setUint16(0,0x1986,true); new DataView(ex.buffer).setUint16(2,extra,true);
+      const h=new Uint8Array(30), d=new DataView(h.buffer); d.setUint32(0,0x04034b50,true); d.setUint16(4,20,true); d.setUint16(8,0,true); d.setUint32(14,crc,true); d.setUint32(18,data.length,true); d.setUint32(22,data.length,true); d.setUint16(26,name.length,true); d.setUint16(28,ex.length,true);
+      parts.push(h,name,ex,data);
+      const c=new Uint8Array(46), e=new DataView(c.buffer); e.setUint32(0,0x02014b50,true); e.setUint16(4,20,true); e.setUint16(6,20,true); e.setUint32(16,crc,true); e.setUint32(20,data.length,true); e.setUint32(24,data.length,true); e.setUint16(28,name.length,true); e.setUint32(42,off,true);
+      cen.push(c,name); off+=30+name.length+ex.length+data.length; }
+    const cenSize=cen.reduce((a,b)=>a+b.length,0), end=new Uint8Array(22), q=new DataView(end.buffer);
+    q.setUint32(0,0x06054b50,true); q.setUint16(8,files.length,true); q.setUint16(10,files.length,true); q.setUint32(12,cenSize,true); q.setUint32(16,off,true);
+    const all=parts.concat(cen,[end]), out=new Uint8Array(all.reduce((a,b)=>a+b.length,0)); let p=0; for(const a of all){ out.set(a,p); p+=a.length; } return out; }
+  function sceneMesh(){ const vis=layers.filter(L=>L&&L.visible!==false).map(L=>(typeof layerEval==="function")?layerEval(L):L.mesh).filter(m=>m&&m.faces&&m.faces.length); return vis.length===1?vis[0]:(vis.length?TM.mergeMeshes(vis):null); }
+  function usda(m){ let mn=[1e30,1e30,1e30], mx=[-1e30,-1e30,-1e30]; for(const v of m.verts) for(let i=0;i<3;i++){ if(v[i]<mn[i]) mn[i]=v[i]; if(v[i]>mx[i]) mx[i]=v[i]; }
+    const cx=(mn[0]+mx[0])/2, cz=(mn[2]+mx[2])/2, f=n=>(+n.toFixed(5)).toString();
+    const pts=m.verts.map(v=>"("+f(v[0]-cx)+","+f(v[1]-mn[1])+","+f(v[2]-cz)+")").join(","), cnt=m.faces.map(F=>F.length).join(","), idx=m.faces.map(F=>F.join(",")).join(",");
+    const col=(renderMode&&/gem|diamond|sapphire|ruby|emerald/.test(renderMode))?"(0.85,0.92,1)":"(1,0.62,0.16)";
+    return '#usda 1.0\n(\n    defaultPrim = "Root"\n    metersPerUnit = 0.0254\n    upAxis = "Y"\n)\n\ndef Xform "Root"\n{\n'
+     +'    def Mesh "TopMod"\n    {\n        uniform bool doubleSided = 1\n        int[] faceVertexCounts = ['+cnt+']\n        int[] faceVertexIndices = ['+idx+']\n        point3f[] points = ['+pts+']\n        uniform token subdivisionScheme = "none"\n        rel material:binding = </Root/Mat>\n    }\n\n'
+     +'    def Material "Mat"\n    {\n        token outputs:surface.connect = </Root/Mat/PBR.outputs:surface>\n        def Shader "PBR"\n        {\n            uniform token info:id = "UsdPreviewSurface"\n            color3f inputs:diffuseColor = '+col+'\n            float inputs:metallic = 0.15\n            float inputs:roughness = 0.38\n            token outputs:surface\n        }\n    }\n}\n'; }
+  function makeUSDZ(){ const m=sceneMesh(); if(!m) return null; return zipStored([{name:"model.usda",data:new TextEncoder().encode(usda(m))}]); }
+  function b64(u8){ let s=""; for(let i=0;i<u8.length;i+=0x8000) s+=String.fromCharCode.apply(null,u8.subarray(i,i+0x8000)); return btoa(s); }
+  function openAR(){
+    const z=makeUSDZ(); if(!z){ toast&&toast("Nothing to show in AR",true); return; }
+    const name=((typeof currentProjectName!=="undefined"&&currentProjectName)||"TopMod")+".usdz";
+    const wk=window.webkit&&window.webkit.messageHandlers&&window.webkit.messageHandlers.arQuickLook;
+    if(wk){ wk.postMessage({b64:b64(z),filename:name}); toast&&toast("Opening AR — tap AR to place it in your room"); return; }
+    const blob=new Blob([z],{type:"model/vnd.usdz+zip"}), url=URL.createObjectURL(blob);
+    const ios=/iPad|iPhone|iPod/.test(navigator.userAgent)||(navigator.platform==="MacIntel"&&navigator.maxTouchPoints>1);
+    const a=document.createElement("a"); a.href=url;
+    if(ios){ a.rel="ar"; const img=document.createElement("img"); img.style.display="none"; a.appendChild(img); }
+    else a.download=name;
+    document.body.appendChild(a); a.click(); setTimeout(()=>{ a.remove(); URL.revokeObjectURL(url); },60000);
+    if(!ios) toast&&toast("Saved "+name+" — AirDrop it to an iPhone or iPad to see it in AR");
+  }
+  window.__ar={open:openAR, usdz:makeUSDZ, usda:()=>{ const m=sceneMesh(); return m?usda(m):""; }};
+  const b=document.getElementById("arBtn"); if(b) b.addEventListener("click",e=>{ e.stopPropagation(); openAR(); });
+})();
+
 // ---------- Docked tools column: width = up to the File menu (3 tools wide on iPhone), drag bar to resize ----------
 (function(){
   const tb=document.getElementById("toolbar"); if(!tb) return;
@@ -19061,7 +19104,7 @@ void main(){
   sh.onclick=close; c.querySelector(".cx").onclick=close; }
  function close(){ var a=document.getElementById("creditCard"), b=document.getElementById("creditShade"); if(a) a.remove(); if(b) b.remove(); }
  window.__credits={open:open,close:close};
- function init(){ var b=document.getElementById("creditsBtn"); if(b) b.addEventListener("click",function(e){ e.stopPropagation(); open(); }); addEventListener("keydown",function(e){ if(e.key==="Escape") close(); }); }
+ function init(){ var b=document.getElementById("creditsBtn"); if(b) b.addEventListener("click",function(e){ e.stopPropagation(); document.querySelectorAll("#menubar .menu.open").forEach(function(m){m.classList.remove("open");}); open(); }); addEventListener("keydown",function(e){ if(e.key==="Escape") close(); }); }
  if(document.readyState==="loading") document.addEventListener("DOMContentLoaded",init); else init(); })();</script>
 <script>/* Splash motion graphic: small points swirl in → "TOPMOD 3D" assembles from extruded Voronoi shards (per letter, left → right) → it shatters and the shards fall to the floor with physics → fade into the app */
 (function(){ var sp=document.getElementById("tmSplash"), cv=document.getElementById("tmSplashCv"); if(!sp||!cv||!window.THREE) return;

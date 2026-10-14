@@ -3,6 +3,7 @@ import WebKit
 import ARKit
 import Photos
 import Network
+import QuickLook
 
 // MARK: - Custom scheme handler
 // Serves the bundled single-file app over topmod:// with EXPLICIT Content-Type
@@ -96,6 +97,35 @@ final class ExportBridge: NSObject, WKScriptMessageHandler, UIDocumentPickerDele
     }
 }
 
+
+// MARK: - JS -> Swift AR Quick Look bridge
+//   window.webkit.messageHandlers.arQuickLook  body {b64, filename}  -> writes the USDZ and presents AR Quick Look
+final class ARQuickLookBridge: NSObject, WKScriptMessageHandler, QLPreviewControllerDataSource {
+    private var fileURL: URL?
+    func userContentController(_ ucc: WKUserContentController, didReceive message: WKScriptMessage) {
+        guard let body = message.body as? [String: Any], let b64 = body["b64"] as? String,
+              let data = Data(base64Encoded: b64) else { return }
+        let name = ((body["filename"] as? String) ?? "TopMod.usdz").replacingOccurrences(of: "/", with: "-")
+        let url = FileManager.default.temporaryDirectory.appendingPathComponent(name.hasSuffix(".usdz") ? name : name + ".usdz")
+        do { try? FileManager.default.removeItem(at: url); try data.write(to: url) } catch { return }
+        fileURL = url
+        DispatchQueue.main.async {
+            guard let scene = UIApplication.shared.connectedScenes.first as? UIWindowScene,
+                  let root = scene.keyWindow?.rootViewController else { return }
+            var top = root
+            while let presented = top.presentedViewController { top = presented }
+            let ql = QLPreviewController()
+            ql.dataSource = self
+            top.present(ql, animated: true)
+        }
+    }
+    func numberOfPreviewItems(in controller: QLPreviewController) -> Int { fileURL == nil ? 0 : 1 }
+    func previewController(_ controller: QLPreviewController, previewItemAt index: Int) -> QLPreviewItem {
+        let item = ARQuickLookPreviewItem(fileAt: fileURL!)
+        item.allowsContentScaling = true
+        return item
+    }
+}
 
 // MARK: - JS -> Swift Photos bridge
 // Saves exports straight into the user's photo library (add-only permission):
@@ -343,6 +373,9 @@ struct TopModWebView: UIViewRepresentable {
         config.userContentController.add(bridge, name: "exportOBJ")
         config.userContentController.add(bridge, name: "saveOBJ")
         config.userContentController.add(bridge, name: "saveImage")
+        let arBridge = ARQuickLookBridge()
+        config.userContentController.add(arBridge, name: "arQuickLook")
+        context.coordinator.arBridge = arBridge
         config.allowsInlineMediaPlayback = true
         // Shift+F / View > Full Screen calls requestFullscreen(); WKWebView ignores it unless this is on (iOS 15.4+).
         if #available(iOS 15.4, *) { config.preferences.isElementFullscreenEnabled = true }
@@ -415,6 +448,7 @@ struct TopModWebView: UIViewRepresentable {
         var lidar: LiDARProvider?
         var lidarBridge: LiDARBridge?
         var photos: PhotosBridge?
+        var arBridge: ARQuickLookBridge?
         var uiDelegate: WebUIDelegate?
         var server: LocalServer?
         var didFallback = false
