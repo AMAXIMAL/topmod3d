@@ -897,13 +897,13 @@ body.opDock #tpBody label.mkrow>select{flex:1 1 100%!important;width:100%!import
 .mlist .mi[data-rm].on::before,.mlist .mi[data-ui].on::before{content:"\2713  ";color:#00E5FF;font-weight:700}
 .mlist .mlab{padding:6px 12px 2px;font:800 9px var(--mono,monospace);letter-spacing:1.6px;text-transform:uppercase;color:#6f8ba0}
 /* UI modes — White (orange accent) and Grey (lime accent) are colour transforms of the dark UI; tool icons are counter-filtered to keep their colours */
-body.uiLight #menubar,body.uiLight #toolbar,body.uiLight #toolpop,body.uiLight #layersPanel,body.uiLight #modPanel,body.uiLight #status,body.uiLight .mlist,body.uiLight #fabNode,body.uiLight #console,body.uiLight #tourCard,body.uiLight #creditCard,body.uiLight #handPrim,body.uiLight #toast,body.uiLight #amxDemo{filter:invert(1) hue-rotate(25deg)}
-body.uiLight #toolbar img.ticon,body.uiLight #toolbar svg,body.uiLight #status #lightBtn{filter:hue-rotate(-25deg) invert(1)}
+body.uiLight #menubar,body.uiLight #toolbar,body.uiLight #toolpop,body.uiLight #layersPanel,body.uiLight #modPanel,body.uiLight #status,body.uiLight .mlist,body.uiLight #fabNode,body.uiLight #console,body.uiLight #tourCard,body.uiLight #creditCard,body.uiLight #handPrim,body.uiLight #toast,body.uiLight #amxDemo{filter:invert(1) hue-rotate(83deg)}
+body.uiLight #toolbar img.ticon,body.uiLight #toolbar svg,body.uiLight #status #lightBtn{filter:hue-rotate(-83deg) invert(1)}
 body.uiLight,body.uiLight #frame,body.uiLight #main{background:#eef1f5!important}
 body.uiLight #tbDockBar,body.uiLight #opDockBar,body.uiLight #ocBar{background:transparent!important}
-body.uiGrey #menubar,body.uiGrey #toolbar,body.uiGrey #toolpop,body.uiGrey #layersPanel,body.uiGrey #modPanel,body.uiGrey #status,body.uiGrey .mlist,body.uiGrey #fabNode,body.uiGrey #console,body.uiGrey #tourCard,body.uiGrey #creditCard,body.uiGrey #handPrim,body.uiGrey #toast,body.uiGrey #amxDemo{filter:invert(1) hue-rotate(208deg) brightness(.92) saturate(.65)}
-body.uiGrey #toolbar img.ticon,body.uiGrey #toolbar svg,body.uiGrey #status #lightBtn{filter:saturate(1.5) brightness(1.08) hue-rotate(-208deg) invert(1)}
-body.uiGrey,body.uiGrey #frame,body.uiGrey #main{background:#a3a6ab!important}
+body.uiGrey #menubar,body.uiGrey #toolbar,body.uiGrey #toolpop,body.uiGrey #layersPanel,body.uiGrey #modPanel,body.uiGrey #status,body.uiGrey .mlist,body.uiGrey #fabNode,body.uiGrey #console,body.uiGrey #tourCard,body.uiGrey #creditCard,body.uiGrey #handPrim,body.uiGrey #toast,body.uiGrey #amxDemo{filter:invert(.2) hue-rotate(-157deg) saturate(1.2)}
+body.uiGrey #toolbar img.ticon,body.uiGrey #toolbar svg,body.uiGrey #status #lightBtn{filter:hue-rotate(157deg) contrast(1.15)}
+body.uiGrey,body.uiGrey #frame,body.uiGrey #main{background:#3b3f45!important}
 /* top bar: no Controller / Send model / Generators */
 #menubar>button.tb,#ekMenu{display:none!important}
 /* touch devices: each top menu is a native picker, exactly like the bottom-bar shading select */
@@ -920,8 +920,8 @@ body.uiGrey,body.uiGrey #frame,body.uiGrey #main{background:#a3a6ab!important}
 #creditCard .row a,#creditCard .row button{flex:1;text-align:center;text-decoration:none;background:rgba(0,229,255,.1);border:1px solid rgba(0,229,255,.4);color:#bff3ff;border-radius:8px;padding:7px 8px;font:700 11.5px var(--font,system-ui);cursor:pointer}
 #creditCard .row a.go{background:#00E5FF;color:#04222a;border-color:#00E5FF}
 #creditShade{position:fixed;inset:0;background:rgba(3,6,12,.6);z-index:100019}
-body.uiLight #navcube>button,body.uiLight #tbScroll,body.uiLight #mbScroll{filter:invert(1) hue-rotate(25deg)}
-body.uiGrey #navcube>button,body.uiGrey #tbScroll,body.uiGrey #mbScroll{filter:invert(1) hue-rotate(208deg) brightness(.92) saturate(.65)}
+body.uiLight #navcube>button,body.uiLight #tbScroll,body.uiLight #mbScroll{filter:invert(1) hue-rotate(83deg)}
+body.uiGrey #navcube>button,body.uiGrey #tbScroll,body.uiGrey #mbScroll{filter:invert(.2) hue-rotate(-157deg) saturate(1.2)}
 /* nav cube buttons: mirrored columns with equal spacing — ⌂ ⟳ on the left, ◎ ⛶ on the right */
 html body #navcube{top:4px!important;right:26px!important}
 html body #ncHome,html body #ncSpin,html body #ncFocus,html body #ncFull{position:absolute!important;width:16px!important;height:16px!important;bottom:auto!important}
@@ -940,8 +940,8 @@ body.uiNavy #menubar,body.uiNavy #toolbar,body.uiNavy #toolpop,body.uiNavy #laye
 body.uiNavy #toolbar img.ticon,body.uiNavy #toolbar svg,body.uiNavy #status #lightBtn{filter:brightness(.9) saturate(.48) hue-rotate(-128deg)}
 body.uiNavy,body.uiNavy #frame,body.uiNavy #main{background:#0b0614!important}
 /* nav cube follows the theme too */
-body.uiLight #ncCanvas{filter:invert(1) hue-rotate(25deg)}
-body.uiGrey #ncCanvas{filter:grayscale(1) brightness(1.25)}
+body.uiLight #ncCanvas{filter:invert(1) hue-rotate(83deg)}
+body.uiGrey #ncCanvas{filter:invert(.2) hue-rotate(-157deg) saturate(1.2)}
 /* version tag: small and narrow */
 html body #wordmark .ver{font-size:7px!important;letter-spacing:0!important;font-weight:600!important;display:inline-block;transform:scaleX(.82);transform-origin:left center;margin-left:1px}
 html body.phone #wordmark .ver{font-size:6px!important}
@@ -1120,8 +1120,8 @@ html.inApp [data-act="fullscreen"],html.inApp [data-act="shortcuts"],html.inApp 
       <div class="msep"></div>
       <div class="mlab">Interface</div>
       <div class="mi" data-ui="dark">Dark mode (default · cyan)</div>
-      <div class="mi" data-ui="grey">Rhino (light grey · blue)</div>
-      <div class="mi" data-ui="light">White mode (orange)</div>
+      <div class="mi" data-ui="grey">Grey mode (orange)</div>
+      <div class="mi" data-ui="light">White mode (lime)</div>
       <div class="mi" data-ui="navy">Neon (magenta · lime) — suggested</div>
       <div class="msep"></div>
       <div class="mi" data-act="tgB">Toggle Bounding Box</div>
@@ -7651,7 +7651,7 @@ function makeGroundGrid(size,c1,c2){ const h=size/2, pos=[], col=[], A=new THREE
   const g=new THREE.BufferGeometry(); g.setAttribute("position",new THREE.Float32BufferAttribute(pos,3)); g.setAttribute("color",new THREE.Float32BufferAttribute(col,3));
   const L=new THREE.LineSegments(g,new THREE.LineBasicMaterial({vertexColors:true})); L.userData.size=size; return L; }
 const grid=makeGroundGrid(60,0x7fd8ef,0x4699b3);   // 60 x 60 ground, 1-inch cells
-window.__setSceneBg=function(m){ if(m===true) m="light"; if(!m) m="dark"; try{ const C={dark:[0x080a12,0x7fd8ef,0x4699b3],grey:[0xa3a6ab,0x5e6268,0x92959a],light:[0xeef1f5,0xe07a1f,0xb9a48c],navy:[0x0b0614,0x39ff14,0xff2bd6]}[m]||[0x080a12,0x7fd8ef,0x4699b3];
+window.__setSceneBg=function(m){ if(m===true) m="light"; if(!m) m="dark"; try{ const C={dark:[0x080a12,0x7fd8ef,0x4699b3],grey:[0x3b3f45,0xff9a1f,0x7a6a5a],light:[0xeef1f5,0x7ccf1a,0xb4c3a2],navy:[0x0b0614,0x39ff14,0xff2bd6]}[m]||[0x080a12,0x7fd8ef,0x4699b3];
   scene.background=new THREE.Color(C[0]); const ca=grid.geometry.attributes.color, pa=grid.geometry.attributes.position, A=new THREE.Color(C[1]), B=new THREE.Color(C[2]);
   for(let v=0;v<pa.count;v+=4){ const x0=pa.getX(v), x1=pa.getX(v+1), z0=pa.getZ(v), cen=(x0===0&&x1===0); const K=cen?A:B; for(let k=0;k<4;k++){ const isB=(k>=2); const c=(isB? (pa.getZ(v+2)===0&&pa.getZ(v+3)===0) : cen)?A:B; ca.setXYZ(v+k,c.r,c.g,c.b); } } ca.needsUpdate=true; }catch(e){} };
 grid.material.transparent=true; grid.material.opacity=0.33;
@@ -11242,8 +11242,10 @@ function _layersMaxX(){ let mx=-Infinity; for(const L of layers){ if(L&&L.mesh&&
 function _besideDX(minX){ const mx=_layersMaxX(); return (isFinite(mx)?mx:0)+0.6-minX; }   // shift so a mesh sits just right of all layers
 function _latParams(){
   const hi=$("#latHost"), mi=$("#latMod");
-  const hostLayer=hi?+hi.value:-1, modLayer=mi?+mi.value:-1;
-  return { host:(layers[hostLayer]?layers[hostLayer].mesh:null), mod:(layers[modLayer]?layers[modLayer].mesh:null),
+  const hostLayer=hi?+hi.value:-1; const mv=mi?mi.value:"-1"; let modLayer=-1, modMesh=null;
+  if(mv.indexOf("p:")===0){ const nm=mv.slice(2); window.__latPrimCache=window.__latPrimCache||{}; try{ modMesh=window.__latPrimCache[nm]||(window.__latPrimCache[nm]=TM.primitives[nm]()); }catch(e){ modMesh=null; } }
+  else { modLayer=+mv; modMesh=layers[modLayer]?layers[modLayer].mesh:null; }
+  return { host:(layers[hostLayer]?layers[hostLayer].mesh:null), mod:modMesh,
            hostLayer, modLayer,
            src:($("#latSrc")?$("#latSrc").value:"shell"), dir:($("#latDir")?$("#latDir").value:"out"),
            val:+($("#latCell")?$("#latCell").value:0.3), clip:$("#latClip")?$("#latClip").checked:true };
@@ -11441,14 +11443,15 @@ $("#snapToggle")&&$("#snapToggle").addEventListener("click",()=>{ snapToGrid=!sn
   if(op==="lattice"){
     $("#tpTitle").textContent="Lattice — Cage Morph";
     const optsHTML=layers.map((L,idx)=>'<option value="'+idx+'">'+(L.name||("Layer "+(idx+1)))+'</option>').join("");
+    const primOpts=['cube','tetrahedron','octahedron','icosahedron','dodecahedron','cuboctahedron','buckyball','torus','cylinder'].filter(n=>TM.primitives&&TM.primitives[n]).map(n=>'<option value="p:'+n+'">'+n.charAt(0).toUpperCase()+n.slice(1)+'</option>').join("");
     body.innerHTML=
-      '<div style="padding:8px 12px;color:var(--text-dim);font-size:11px;line-height:1.5">Fill a <b>host</b> with copies of a <b>module</b>, each stretched to its cell (Rhino-style <i>cage edit</i> / box-morph). The result is previewed <b>beside</b> (never overlapping) and baked to its own new layer.</div>'+
-      '<div class="param"><label>① Host shape — layer</label><select id="latHost">'+optsHTML+'</select></div>'+
+      '<div style="padding:8px 12px;color:var(--text-dim);font-size:11px;line-height:1.5">Fill a <b>host</b> with copies of a <b>module</b>.</div>'+
+      '<div class="param"><label>① Module shape</label><select id="latMod"><optgroup label="Layers">'+optsHTML+'</optgroup><optgroup label="Primitives">'+primOpts+'</optgroup></select></div>'+
       '<div class="param"><label>Cell source</label><select id="latSrc"><option value="shell">Surface shell (offset double layer)</option><option value="voxel">Voxel grid (bounding box)</option></select></div>'+
+      '<div class="param"><label>Host shape — layer</label><select id="latHost">'+optsHTML+'</select></div>'+
       '<div class="param" id="latRowOffset"><label>② Offset (shell thickness)</label><input type="range" id="latCell" min="0.02" max="1.5" step="0.01" value="0.3"><output id="latCellV">0.30</output></div>'+
       '<div class="param" id="latRowDir"><label>Offset direction</label><select id="latDir"><option value="out">Outward (grow)</option><option value="both">Both sides</option><option value="in">Inward</option></select></div>'+
       '<div class="param" id="latRowClip"><label class="chk"><input type="checkbox" id="latClip" checked> X-ray clip to host (fill inside only)</label></div>'+
-      '<div class="param"><label>③ Module shape — layer</label><select id="latMod">'+optsHTML+'</select></div>'+
       '<div id="latInfo" style="padding:2px 12px 6px;color:#8fce9b;font-size:11px;line-height:1.4"></div>'+
       '<div style="padding:4px 12px 10px"><button id="latBake" class="mkbtn" style="width:100%">④ Bake to new layer (beside)</button></div>';
     if($("#latHost")) $("#latHost").value=String(activeLayer);
