@@ -18280,15 +18280,15 @@ void main(){
       spinHold=false;
       try {
         fresh(); say("New scene"); await wait(400);
-        stageLoad(TM.primitives.buckyball()); try{ const L=layers[activeLayer]; L.name="Buckyball"; renderLayerList&&renderLayerList(); window.__tm.frameAll(1.08); }catch(e){} await wait(700);
-        await op("wireframe","Wireframe modeling"); if(!alive) return; try{ window.__tm.frameAll(1.05); }catch(e){} await wait(500);
+        stageLoad(TM.primitives.buckyball()); try{ const L=layers[activeLayer]; L.name="Buckyball"; renderLayerList&&renderLayerList(); window.__tm.frameAll(DUOD()?0.9:1.6); }catch(e){} await wait(700);
+        if(DUOD()){ await op("wireframe","Wireframe modeling"); if(!alive) return; try{ window.__tm.frameAll(0.82); }catch(e){} await wait(500); }
         await press('#toolbar [data-op="bejewel"]', "Gems · Bejewel — a gem on every face, table facing out", 500); await wait(1400); if(!alive) return;
         await slide("bejSize", 0.4, 0.9, 10, "Bejewel · gem size");
         const pick=async(cut,label)=>{ const el=q("#bejGem"); if(!el||!alive) return; moveCursor(el); el.value="d:"+cut; el.dispatchEvent(new Event("change",{bubbles:true})); say(label); await wait(1700); };
-        await pick("emerald","Gem · Emerald cut");
+        if(DUOD()) await pick("emerald","Gem · Emerald cut"); else { await pick("princess","Gem · Princess cut"); await pick("oval","Gem · Oval cut"); await pick("round","Gem · Round brilliant"); }
         await slide("bejSym", 8, 12, 4, "Gem adjust · more facets");
         await slide("bejCrown", 34.5, 40, 8, "Gem adjust · taller crown");
-        const bk=q("#bejBake"); if(bk&&alive){ moveCursor(bk); await wait(500); say("Bake the gems to their own layer"); bk.click(); } await wait(900); if(!alive) return;
+        const bk=q("#bejBake"); if(bk&&alive){ moveCursor(bk); await wait(500); say("Bake the gems to their own layer"); bk.click(); } await wait(900); if(!alive) return; if(DUOD()) try{ window.__tm.frameAll(0.72); }catch(e){}
         window.__gemOpts=Object.assign(window.__gemOpts||{}, {disp:false, bounces:4}); say("View · Diamond"); setRenderMode("diamond"); try{ window.__eq&&window.__eq.gem("diamond"); }catch(e){} await wait(3200);
         setRenderMode("solid"); if(!alive) return;
         const PH=window.__physics; if(PH){ await point('#toolbar [data-act="physics"]', "Simulate · Physics — every gem is a rigid body", 300); PH.open(); await wait(1600); if(!alive) return;
@@ -18372,6 +18372,23 @@ void main(){
       await apply("Helix · apply"); await wait(1800);
     },
   ];
+   /* Duo layout (iPhone Duo) only: its own demo order, led by the Table topology-optimisation demo */
+   function DUOD(){ return document.body.classList.contains("duo")||document.body.classList.contains("duoBottom"); }
+   const SEQ_TABLE = async () => {
+     try {
+       fresh(); say("New scene"); await wait(400);
+       await press('#toolbar [data-act="topopt"]', "Simulate · Topology optimisation", 500); await wait(1200); if(!alive) return;
+       const ex=q("#toEx"); if(ex){ moveCursor&&moveCursor(ex); ex.value="table"; ex.dispatchEvent(new Event("change",{bubbles:true})); say("Example · Table — four feet, load spread across the top"); }
+       await wait(1500); try{ window.__tm.frameAll(1.15); }catch(e){}
+       for(let i=0;i<6&&alive;i++){ await wait(2500); try{ window.__tm.frameAll(1.1); }catch(e){} }
+       say("Material carved away where it carries little load"); await wait(2500);
+     } finally { try{ window.__topopt&&window.__topopt.close&&window.__topopt.close(); }catch(e){} }
+   };
+   const SEQS_ORIG = SEQS.slice(), INFO_ORIG = DEMO_INFO.slice();
+   function applyDemoOrder(){ SEQS.length=0; DEMO_INFO.length=0;
+     if(DUOD()){ SEQS.push(SEQ_TABLE); DEMO_INFO.push(["Table","topology optimisation · SIMP minimum compliance"]);
+       const lead=[0,5,1]; lead.concat(SEQS_ORIG.map((_,i)=>i).filter(i=>lead.indexOf(i)<0)).forEach(i=>{ SEQS.push(SEQS_ORIG[i]); DEMO_INFO.push(INFO_ORIG[i]||["Demo",""]); }); }
+     else { SEQS_ORIG.forEach(f=>SEQS.push(f)); INFO_ORIG.forEach(f=>DEMO_INFO.push(f)); } }
 
   async function run(){
     await wait(1200);
@@ -18385,7 +18402,7 @@ void main(){
   }
   let onlyOne=false;
   function start(k0, once){
-    if (alive) return; onlyOne=!!once; if (pill) { pill.remove(); pill = null; } alive = true; startK = (typeof k0==="number") ? k0 : 0;
+    if (alive) return; onlyOne=!!once; applyDemoOrder(); if (pill) { pill.remove(); pill = null; } alive = true; startK = (typeof k0==="number") ? k0 : 0;
     pill = document.createElement("div");
     pill.id = "amxDemo"; pill.setAttribute("role","status");
     curK = startK % SEQS.length; try{ window.__eq&&window.__eq.toggle(true); }catch(e){} wirePill(false);
