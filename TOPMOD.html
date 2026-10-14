@@ -1341,6 +1341,7 @@ html.inApp [data-act="fullscreen"],html.inApp [data-act="shortcuts"],html.inApp 
       </span>
       <span class="tgrp" data-label="Parametric">
         <button class="tb" data-op="lattice" title="Lattice (Cage Morph) — pick a host shape, voxelize it into cells with the offset slider (x-ray), then populate every cell with a copy of a second layer stretched to the cell box; bake to a new layer"><img class="ticon" alt="lattice"><span class="tlbl">Lattice</span></button>
+        <button class="tb" data-op="bejewel" title="Bejewel — set a gem on every face centroid (or vertex) of a host shape, table facing out along the normal; slider scales the gems; bake to a new layer"><img class="ticon" alt="bejewel"><span class="tlbl">Bejewel</span></button>
       </span>
       <span class="tgrp" data-label="Modifiers">
         <button class="tb" data-mod="twist" title="Twist — non-destructive deformer added to the active layer's stack"><svg width="22" height="22" viewBox="0 0 22 22"><path d="M6 4c5 2 5 4 0 6s-5 4 0 6" stroke="#FF8C22" stroke-width="1.5" fill="none" stroke-linecap="round"/><path d="M16 4c-5 2-5 4 0 6s5 4 0 6" stroke="#00E5FF" stroke-width="1.5" fill="none" stroke-linecap="round"/></svg><span class="tlbl">Twist</span></button>
@@ -5863,6 +5864,35 @@ function latticeMorph(host, mod, opts){
   }
   return { verts, faces, lattice:{ nx:L.nx, ny:L.ny, nz:L.nz, cell:cs, total:L.total, filled:cells.length, clipped:opts.clip!==false, capped } };
 }
+// Bejewel: set a gem on every face centroid (and/or vertex), table facing out along the normal, sized to fit the face.
+function bejewel(host, gem, opts){
+  opts=opts||{}; const size=opts.size!=null?opts.size:0.7, lift=opts.lift||0, where=opts.where||"faces", maxInst=opts.maxInst||6000;
+  const bb=meshBBox(gem); const cx=(bb.min[0]+bb.max[0])/2, cz=(bb.min[2]+bb.max[2])/2;
+  let r=1e-9; for(const v of gem.verts){ const d=Math.hypot(v[0]-cx,v[2]-cz); if(d>r) r=d; }
+  const G=gem.verts.map(v=>[(v[0]-cx)/(2*r),v[1]/(2*r),(v[2]-cz)/(2*r)]);   // unit girdle diameter, girdle plane y≈0
+  const sub=(a,b)=>[a[0]-b[0],a[1]-b[1],a[2]-b[2]], cr=(a,b)=>[a[1]*b[2]-a[2]*b[1],a[2]*b[0]-a[0]*b[2],a[0]*b[1]-a[1]*b[0]];
+  const nz=a=>{ const l=Math.hypot(a[0],a[1],a[2])||1; return [a[0]/l,a[1]/l,a[2]/l]; }, dot=(a,b)=>a[0]*b[0]+a[1]*b[1]+a[2]*b[2];
+  const H=host.verts, sites=[];
+  const fN=host.faces.map(f=>{ let n=[0,0,0]; for(let i=0;i<f.length;i++){ const a=H[f[i]],b=H[f[(i+1)%f.length]]; n[0]+=(a[1]-b[1])*(a[2]+b[2]); n[1]+=(a[2]-b[2])*(a[0]+b[0]); n[2]+=(a[0]-b[0])*(a[1]+b[1]); } return nz(n); });
+  if(where!=="verts"){
+    host.faces.forEach((f,fi)=>{ if(f.length<3) return; const c=[0,0,0]; for(const vi of f){ c[0]+=H[vi][0]; c[1]+=H[vi][1]; c[2]+=H[vi][2]; } c[0]/=f.length; c[1]/=f.length; c[2]/=f.length;
+      let md=1e30; for(let i=0;i<f.length;i++){ const a=H[f[i]],b=H[f[(i+1)%f.length]], e=sub(b,a), t=Math.max(0,Math.min(1,dot(sub(c,a),e)/(dot(e,e)||1))); const q=[a[0]+e[0]*t,a[1]+e[1]*t,a[2]+e[2]*t]; md=Math.min(md,Math.hypot(c[0]-q[0],c[1]-q[1],c[2]-q[2])); }
+      sites.push({c, n:fN[fi], x:sub(H[f[1]],H[f[0]]), s:2*md*size}); });
+  }
+  if(where!=="faces"){
+    const vn=H.map(()=>[0,0,0]), nb=H.map(()=>null), ml=H.map(()=>1e30);
+    host.faces.forEach((f,fi)=>{ for(let i=0;i<f.length;i++){ const a=f[i], b=f[(i+1)%f.length]; vn[a][0]+=fN[fi][0]; vn[a][1]+=fN[fi][1]; vn[a][2]+=fN[fi][2]; if(nb[a]==null) nb[a]=b; const L=Math.hypot(...sub(H[a],H[b])); if(L<ml[a]) ml[a]=L; if(L<ml[b]) ml[b]=L; } });
+    H.forEach((v,i)=>{ if(nb[i]==null) return; sites.push({c:v, n:nz(vn[i]), x:sub(H[nb[i]],v), s:0.5*ml[i]*size}); });
+  }
+  const verts=[], faces=[]; let count=0; const capped=sites.length>maxInst;
+  for(const S of sites.slice(0,maxInst)){
+    const y=S.n; let x=sub(S.x,[y[0]*dot(S.x,y),y[1]*dot(S.x,y),y[2]*dot(S.x,y)]); if(Math.hypot(...x)<1e-9) x=Math.abs(y[0])<0.9?[1,0,0]:[0,1,0], x=sub(x,[y[0]*dot(x,y),y[1]*dot(x,y),y[2]*dot(x,y)]); x=nz(x); const z=cr(x,y);
+    const o=verts.length, k=S.s, L=lift*k;
+    for(const g of G) verts.push([S.c[0]+y[0]*L+k*(x[0]*g[0]+y[0]*g[1]+z[0]*g[2]), S.c[1]+y[1]*L+k*(x[1]*g[0]+y[1]*g[1]+z[1]*g[2]), S.c[2]+y[2]*L+k*(x[2]*g[0]+y[2]*g[1]+z[2]*g[2])]);
+    for(const f of gem.faces) faces.push(f.map(i=>i+o)); count++;
+  }
+  return { verts, faces, bejewel:{ count, sites:sites.length, capped } };
+}
 // Surface shell: offset every host face along (smooth) vertex normals to make a double layer; each face becomes a hexahedral
 // cell that follows the surface (the torus "offset double layer"). Module morphs into each cell by trilinear interpolation.
 function shellCells(host, opts){
@@ -5950,7 +5980,7 @@ return {V3, orientShells, clone, edges, directedMap, validate, eulerInfo, faceCe
   twistMesh, taperMesh, bulgeMesh, bendMesh, spherifyMesh, noiseMesh,
   fanAroundVertex, primitives, insertEdge, deleteEdge, subdivideEdge, subdivideAllEdges,
   triangulateFace, triangulateAll, catmullClark, catmullClarkCrease, dooSabin, dual, loopSubdiv, honeycomb,
-  GEM_CUTS, gemCut, vertexTruncate, quadRemesh, simplifyMesh, extrudeFace, pinchExtrude, stellate, extrudeFace, addHandle, createCrust, punchPair, rindRemove, topmodLook, tmHandles, tmLoopRind, tmLoops, tmPairs, wireframeModel, toOBJ, fromOBJ, compact,
+  GEM_CUTS, gemCut, bejewel, vertexTruncate, quadRemesh, simplifyMesh, extrudeFace, pinchExtrude, stellate, extrudeFace, addHandle, createCrust, punchPair, rindRemove, topmodLook, tmHandles, tmLoopRind, tmLoops, tmPairs, wireframeModel, toOBJ, fromOBJ, compact,
   pentagonalize, root3, domeExtrude, doubleStellate, mengerSponge, voxelToMesh, gyroid, gyroidPoly, tpmsSolid, breezeBlock, reorientMesh, thickenSurface, mobiusSolid, planarize, geodesicSphere, torusRef, orientToGround, orientFaceToFace, hybridSurface, sierpinski, scaleMesh, mirrorMesh, mirrorMeshPlane, mergeMeshes, translateMesh, arrayMesh, polarArray, sphereArray, fibonacciArray, rotateMeshAxis, rotateMeshArbitrary, modifiedCornerCutting, wireframeWithCorners, insertEdgeByVerts, flipNormals, fillHoles, deleteFaces, deleteVertexMerge, deleteVertices, offsetMesh, pipes, unfoldMesh, planeCut, connectFaces, sliceLayers, insetLoop, panelizeFaces, laserPanels, selfIntersections, triangulate2D, triangulatePlanar, extrudeProfile, waffleSlices, waffleSlicesPolar, meshBBox, pointInMesh, latticeCells, latticeMorph, shellCells, shellMorph};
 })();
 
@@ -7412,7 +7442,7 @@ function renderModStack(){
     list.appendChild(row);
   });
   if(!mods.length && !((L&&L.steps)||[]).length){ const e=document.createElement("div"); e.className="modEmpty"; e.textContent="Pick a tool, or add a modifier — it stacks above the base and stays editable."; list.appendChild(e); }
-  const fl=$("#modFlatten"); if(fl) fl.disabled=!mods.some(x=>x.on);
+  const fl=$("#modFlatten"); if(fl){ fl.disabled=!mods.some(x=>x.on); fl.style.display=(fl.disabled||(tpState&&(tpState.op==="lattice"||tpState.op==="bejewel")))?"none":""; }
 }
 // ================= Selection groups — saved face sets, per layer =================
 // Each group stores the FACE ID numbers (indices into the layer's base mesh) so a
@@ -11159,7 +11189,7 @@ function triggerTool(op){
 
 // ---------- tool options popover (TopMod-style tool options) ----------
 const OP_PARAMS={
-  lattice:[],
+  lattice:[], bejewel:[],
   catmull:["pIters"], truncate:["pTrunc"], pentagonalize:["pPenta"],
   stellate:["pStell"], doubleStellate:["pStell"],
   greeble:["pGrbCover","pGrbHMin","pGrbHMax","pGrbBevel","pGrbSpike","pGrbSpikeH","pGrbSeed","pGrbInvert","pGrbWidgets","pWgtBox","pWgtSlab","pWgtPin","pWgtTwin","pWgtL","pWgtStep","pWgtDensity","pWgtSize","pWgtHeight"],
@@ -11237,13 +11267,21 @@ const TP_TITLES={selSimilar:"Select similar — tolerance", section:"Section pla
 OP_PARAMS["print3d"]=[]; TP_TITLES["print3d"]="3D Print — build plate & scale";
 // ---------- Parametric: Lattice / Cage-Morph (populate host with a stretched module per cell) ----------
 let _latGrp=null;
+let _latHid=null;
+function _latHostShow(){ if(_latHid==null) return; const i=_latHid; _latHid=null;
+  if(i===activeLayer){ [meshObj,edgeObj,pointObj].forEach(o=>{ if(o) o.visible=true; }); }
+  else if(layers[i]&&layers[i]._latHid){ layers[i].visible=true; delete layers[i]._latHid; renderInactiveLayers&&renderInactiveLayers(); } }
+function _latHostHide(i){ if(_latHid===i) { if(i===activeLayer) [meshObj,edgeObj,pointObj].forEach(o=>{ if(o) o.visible=false; }); return; } _latHostShow(); if(i<0||!layers[i]) return; _latHid=i;
+  if(i===activeLayer){ [meshObj,edgeObj,pointObj].forEach(o=>{ if(o) o.visible=false; }); }
+  else if(layers[i].visible!==false){ layers[i].visible=false; layers[i]._latHid=true; renderInactiveLayers&&renderInactiveLayers(); } }
 function _latClear(){ if(_latGrp){ scene.remove(_latGrp); _latGrp.traverse(o=>{ o.geometry&&o.geometry.dispose&&o.geometry.dispose(); o.material&&o.material.dispose&&o.material.dispose(); }); _latGrp=null; } }
 function _layersMaxX(){ let mx=-Infinity; for(const L of layers){ if(L&&L.mesh&&L.mesh.verts) for(const v of L.mesh.verts) if(v[0]>mx) mx=v[0]; } return mx; }
 function _besideDX(minX){ const mx=_layersMaxX(); return (isFinite(mx)?mx:0)+0.6-minX; }   // shift so a mesh sits just right of all layers
 function _latParams(){
   const hi=$("#latHost"), mi=$("#latMod");
   const hostLayer=hi?+hi.value:-1; const mv=mi?mi.value:"-1"; let modLayer=-1, modMesh=null;
-  if(mv.indexOf("p:")===0){ const nm=mv.slice(2); window.__latPrimCache=window.__latPrimCache||{}; try{ modMesh=window.__latPrimCache[nm]||(window.__latPrimCache[nm]=TM.primitives[nm]()); }catch(e){ modMesh=null; } }
+  if(mv.indexOf("d:")===0){ const cut=mv.slice(2); window.__latPrimCache=window.__latPrimCache||{}; try{ modMesh=window.__latPrimCache[mv]||(window.__latPrimCache[mv]=TM.primitives.diamond(57,34.5,40.8,3,8,1,50,77,cut)); }catch(e){ modMesh=null; } }
+  else if(mv.indexOf("p:")===0){ const nm=mv.slice(2); window.__latPrimCache=window.__latPrimCache||{}; try{ modMesh=window.__latPrimCache[nm]||(window.__latPrimCache[nm]=TM.primitives[nm]()); }catch(e){ modMesh=null; } }
   else { modLayer=+mv; modMesh=layers[modLayer]?layers[modLayer].mesh:null; }
   return { host:(layers[hostLayer]?layers[hostLayer].mesh:null), mod:modMesh,
            hostLayer, modLayer,
@@ -11279,50 +11317,81 @@ function _latInfo(L,mm,beside){
   const el=$("#latInfo"); if(!el) return;
   const cs=L.cs.map(x=>+x.toFixed(2));
   let s="Voxel "+L.nx+"×"+L.ny+"×"+L.nz+" · "+L.cells.length+" cell"+(L.cells.length!==1?"s":"")+" filled · cell "+cs[0]+"×"+cs[1]+"×"+cs[2];
-  if(mm) s+=" · "+mm.lattice.filled+" cop"+(mm.lattice.filled!==1?"ies":"y")+(mm.lattice.capped?" (capped 4000)":"")+(beside?" · previewed beside ↦":"");
+  if(mm) s+=" · "+mm.lattice.filled+" cop"+(mm.lattice.filled!==1?"ies":"y")+(mm.lattice.capped?" (capped 4000)":"")+"";
   el.textContent=s;
 }
 function _latInfoShell(S,mm,p,beside){
   const el=$("#latInfo"); if(!el) return;
   let s="Shell · "+S.count+" surface cell"+(S.count!==1?"s":"")+" (one per host face) · offset "+(+p.val).toFixed(2)+" "+p.dir;
-  if(mm) s+=" · "+mm.shell.filled+" cop"+(mm.shell.filled!==1?"ies":"y")+(mm.shell.capped?" (capped 6000)":"")+(beside?" · previewed beside ↦":"");
+  if(mm) s+=" · "+mm.shell.filled+" cop"+(mm.shell.filled!==1?"ies":"y")+(mm.shell.capped?" (capped 6000)":"")+"";
   el.textContent=s;
 }
 function beginLatticePreview(){ _latClear(); refreshLatticePreview(); }
-function endLatticePreview(){ _latClear(); }
+function endLatticePreview(){ _latClear(); _latHostShow(); }
 function refreshLatticePreview(){
   _latClear();
   const p=_latParams(); if(!p.host||!p.host.verts.length){ const el=$("#latInfo"); if(el)el.textContent="Pick a host shape (layer or default) with geometry."; return; }
   _latGrp=new THREE.Group();
   const sameLayer = p.hostLayer>=0 && p.hostLayer===p.modLayer;
   const modOK = p.mod && !sameLayer && p.mod.faces && p.mod.faces.length;
+  if(modOK) _latHostHide(p.hostLayer); else _latHostShow();
   // when a module is chosen we preview the RESULT offset beside the host (so it never overlaps); the bare x-ray of the host stays in place
   if(p.src==="shell"){
     const S=TM.shellCells(p.host,{offset:p.val,dir:p.dir});
     const est=(modOK?p.mod.faces.length:0)*S.count;
     if(modOK && est>0 && est<=30000 && S.count<=2500){
       const mm=TM.shellMorph(p.host,p.mod,{offset:p.val,dir:p.dir,maxInst:2500});
-      _latGrp.add(_ghostMesh(mm)); _latGrp.position.x=_besideDX(TM.meshBBox(mm).min[0]);
-      _latInfoShell(S,mm,p,true);
+      _latGrp.add(_ghostMesh(mm)); _latInfoShell(S,mm,p,true);
     } else {
       const pos=[]; for(const c of S.cells) _pushCellEdges(pos,c);
       _latGrp.add(_lines(pos,0.6)); _latInfoShell(S,null,p,false);
-      if(modOK){ _latGrp.position.x=_besideDX(TM.meshBBox(p.host).min[0]); const el=$("#latInfo"); if(el) el.textContent+=" · (too many to ghost — Bake builds "+S.count+" copies beside ↦)"; }
+      if(modOK){ const el=$("#latInfo"); if(el) el.textContent+=" · (too many to ghost — Bake builds "+S.count+" copies in place)"; }
     }
   } else {
     const L=TM.latticeCells(p.host,{cell:p.val,clip:p.clip});
     const est=(modOK?p.mod.faces.length:0)*L.cells.length;
     if(modOK && est>0 && est<=26000 && L.cells.length<=1800){
       const mm=TM.latticeMorph(p.host,p.mod,{cell:p.val,clip:p.clip,maxInst:1800});
-      _latGrp.add(_ghostMesh(mm)); _latGrp.position.x=_besideDX(TM.meshBBox(mm).min[0]);
-      _latInfo(L,mm,true);
+      _latGrp.add(_ghostMesh(mm)); _latInfo(L,mm,true);
     } else {
       const pos=[]; for(const c0 of L.cells) _pushBoxEdges(pos,c0,L.cs);
       _latGrp.add(_lines(pos,0.55)); _latInfo(L,null,false);
-      if(modOK){ _latGrp.position.x=_besideDX(TM.meshBBox(p.host).min[0]); const el=$("#latInfo"); if(el) el.textContent+=" · (too many to ghost — Bake builds "+L.cells.length+" copies beside ↦)"; }
+      if(modOK){ const el=$("#latInfo"); if(el) el.textContent+=" · (too many to ghost — Bake builds "+L.cells.length+" copies in place)"; }
     }
   }
   scene.add(_latGrp);
+}
+// ---------- Bejewel: gems aligned to host faces / vertices ----------
+let _bejGrp=null;
+function _bejClear(){ if(_bejGrp){ scene.remove(_bejGrp); _bejGrp.traverse(o=>{ o.geometry&&o.geometry.dispose&&o.geometry.dispose(); o.material&&o.material.dispose&&o.material.dispose(); }); _bejGrp=null; } }
+function _bejParams(){
+  const hi=+($("#bejHost")?$("#bejHost").value:activeLayer), gv=$("#bejGem")?$("#bejGem").value:"d:round"; let gem=null, gemLayer=-1;
+  if(gv.indexOf("d:")===0){ const V=id=>+($("#"+id)?$("#"+id).value:0); const a=[V("bejTable")||57,V("bejCrown")||34.5,V("bejPav")||40.8,V("bejGirdle")||3,Math.round(V("bejSym")||8)]; const key=gv+"|"+a.join(",");
+    window.__bejCache=window.__bejCache||{}; try{ gem=window.__bejCache[key]||(window.__bejCache[key]=TM.primitives.diamond(a[0],a[1],a[2],a[3],a[4],1,50,77,gv.slice(2))); }catch(e){} }
+  else { gemLayer=+gv; gem=layers[gemLayer]?layers[gemLayer].mesh:null; }
+  return { host:layers[hi]?layers[hi].mesh:null, hostLayer:hi, gem, gemLayer, where:$("#bejWhere")?$("#bejWhere").value:"faces", size:+($("#bejSize")?$("#bejSize").value:0.75), lift:+($("#bejLift")?$("#bejLift").value:0), cut:gv };
+}
+function refreshBejewel(){
+  _bejClear(); const p=_bejParams(), el=$("#bejInfo");
+  if(!p.host||!p.host.faces.length){ if(el) el.textContent="Pick a host shape with faces."; return; }
+  if(!p.gem||!p.gem.faces.length||p.gemLayer===p.hostLayer){ if(el) el.textContent="Pick a gem (a diamond cut or another layer)."; return; }
+  const mm=TM.bejewel(p.host,p.gem,{size:p.size,lift:p.lift,where:p.where,maxInst:3000});
+  _bejGrp=new THREE.Group(); const gm=_ghostMesh(mm); gm.material.color.set(0xdff6ff); gm.material.opacity=0.95; _bejGrp.add(gm);
+  const eg=new THREE.EdgesGeometry(gm.geometry,20); _bejGrp.add(new THREE.LineSegments(eg,new THREE.LineBasicMaterial({color:0x35c0ff,transparent:true,opacity:0.55})));
+  scene.add(_bejGrp);
+  if(el) el.textContent=mm.bejewel.count+" gem"+(mm.bejewel.count!==1?"s":"")+" · "+mm.faces.length+" facets"+(mm.bejewel.capped?" (preview capped — Bake sets all "+mm.bejewel.sites+")":"");
+}
+function bakeBejewel(){
+  const p=_bejParams();
+  if(!p.host||!p.host.faces.length){ toast&&toast("Pick a host shape with faces",true); return; }
+  if(!p.gem||!p.gem.faces.length||p.gemLayer===p.hostLayer){ toast&&toast("Pick a gem (diamond cut or another layer)",true); return; }
+  const mm=TM.bejewel(p.host,p.gem,{size:p.size,lift:p.lift,where:p.where,maxInst:8000});
+  if(!mm.faces.length){ toast&&toast("No gems placed",true); return; }
+  _bejClear(); addLayer(mm,false);
+  if(layers[activeLayer]) layers[activeLayer].name="Gems · "+(p.cut.indexOf("d:")===0?(TM.GEM_CUTS[p.cut.slice(2)]||"gem"):"layer");
+  renderLayerList&&renderLayerList();
+  toast&&toast("Set "+mm.bejewel.count+" gems on a new layer"+(mm.bejewel.capped?" (capped 8000)":""));
+  closeToolPop(); $("#toolpop").classList.add("hiddenPanel"); $("#optionsToggle")&&$("#optionsToggle").classList.remove("on");
 }
 function _lines(pos,op){ const g=new THREE.BufferGeometry(); g.setAttribute("position",new THREE.Float32BufferAttribute(pos,3)); return new THREE.LineSegments(g,new THREE.LineBasicMaterial({color:0x35c0ff,transparent:true,opacity:op})); }
 function _ghostMesh(mm){
@@ -11341,12 +11410,13 @@ function bakeLattice(){
   else { mm=TM.latticeMorph(p.host,p.mod,{cell:p.val,clip:p.clip,maxInst:4000}); n=mm.lattice.filled; }
   if(!mm.faces.length){ toast&&toast(p.src==="shell"?"Host has no faces to shell":"No cells filled — lower cell size or turn off X-ray clip",true); return; }
   endLatticePreview();
-  const dx=_besideDX(TM.meshBBox(mm).min[0]);            // place the result beside everything (matches the preview), as its own layer
-  const placed=dx>1e-9?TM.translateMesh(mm,dx,0,0):mm;
+  const placed=mm;   /* result stays in place over the host, as its own layer */
+  const _hostL=layers[p.hostLayer];
   addLayer(placed, false);
+  if(_hostL&&_hostL!==layers[activeLayer]){ _hostL.visible=false; delete _hostL._latHid; renderInactiveLayers&&renderInactiveLayers(); }
   if(layers[activeLayer]) layers[activeLayer].name=(p.src==="shell"?"Shell ":"Lattice ")+layers[activeLayer].id;
   renderLayerList&&renderLayerList();
-  toast&&toast("Baked "+n+" copies to a new layer (beside)"+(mm.shell&&mm.shell.capped||mm.lattice&&mm.lattice.capped?" (capped)":""));
+  toast&&toast("Baked "+n+" copies to a new layer"+(mm.shell&&mm.shell.capped||mm.lattice&&mm.lattice.capped?" (capped)":""));
   closeToolPop(); $("#toolpop").classList.add("hiddenPanel"); $("#optionsToggle")&&$("#optionsToggle").classList.remove("on");
 }
 function openToolPop(op,btn){
@@ -11363,7 +11433,7 @@ $("#snapToggle")&&$("#snapToggle").addEventListener("click",()=>{ snapToGrid=!sn
     moved.push({el:param,parent:param.parentNode,next:param.nextSibling});
     body.appendChild(param);
   }
-  tpState={op,btn,moved};
+  tpState={op,btn,moved}; { const _fl=$("#modFlatten"); if(_fl&&(op==="lattice"||op==="bejewel")) _fl.style.display="none"; }
   if(btn) btn.classList.add("on");
   pop.classList.remove("empty");
   $("#tpTitle").textContent=(btn&&btn.title)||TP_TITLES[op]||op;
@@ -11440,20 +11510,47 @@ $("#snapToggle")&&$("#snapToggle").addEventListener("click",()=>{ snapToGrid=!sn
     startLiveNet();
     playUnfoldAnim();
   }
+  if(op==="bejewel"){
+    $("#tpTitle").textContent="Bejewel — gems on faces";
+    const optsHTML=layers.map((L,idx)=>'<option value="'+idx+'">'+(L.name||("Layer "+(idx+1)))+'</option>').join("");
+    const diaOpts=Object.keys(TM.GEM_CUTS||{}).map(c=>'<option value="d:'+c+'">'+TM.GEM_CUTS[c]+'</option>').join("");
+    body.innerHTML=
+      '<div style="padding:8px 12px;color:var(--text-dim);font-size:11px;line-height:1.5">Set a <b>gem</b> on every face of a <b>host</b>.</div>'+
+      '<div class="param"><label>Gem</label><select id="bejGem"><optgroup label="Diamonds">'+diaOpts+'</optgroup><optgroup label="Layers">'+optsHTML+'</optgroup></select></div>'+
+      '<div class="param bejDia"><label>Table %</label><input type="range" id="bejTable" min="45" max="72" step="0.5" value="57"><output id="bejTableV">57</output></div>'+
+      '<div class="param bejDia"><label>Crown angle °</label><input type="range" id="bejCrown" min="22" max="42" step="0.1" value="34.5"><output id="bejCrownV">34.5</output></div>'+
+      '<div class="param bejDia"><label>Pavilion angle °</label><input type="range" id="bejPav" min="37" max="44" step="0.05" value="40.8"><output id="bejPavV">40.8</output></div>'+
+      '<div class="param bejDia"><label>Girdle %</label><input type="range" id="bejGirdle" min="0.5" max="8" step="0.1" value="3"><output id="bejGirdleV">3</output></div>'+
+      '<div class="param bejDia"><label>Facet symmetry</label><input type="range" id="bejSym" min="3" max="16" step="1" value="8"><output id="bejSymV">8</output></div>'+
+      '<div class="param"><label>Placement</label><select id="bejWhere"><option value="faces">Face centroids</option><option value="verts">Vertices</option><option value="both">Faces + vertices</option></select></div>'+
+      '<div class="param"><label>Host shape — layer</label><select id="bejHost">'+optsHTML+'</select></div>'+
+      '<div class="param"><label>Gem size</label><input type="range" id="bejSize" min="0.1" max="1.6" step="0.01" value="0.75"><output id="bejSizeV">0.75</output></div>'+
+      '<div class="param"><label>Lift (seat depth)</label><input type="range" id="bejLift" min="-0.6" max="0.6" step="0.01" value="0"><output id="bejLiftV">0.00</output></div>'+
+      '<div id="bejInfo" style="padding:2px 12px 6px;color:#8fce9b;font-size:11px;line-height:1.4"></div>'+
+      '<div style="padding:4px 12px 10px"><button id="bejBake" class="mkbtn" style="width:100%">Bake gems to new layer</button></div>';
+    $("#bejHost").value=String(activeLayer);
+    ["bejSize","bejLift","bejTable","bejCrown","bejPav","bejGirdle","bejSym"].forEach(id=>$("#"+id).addEventListener("input",()=>{ const v=+$("#"+id).value; $("#"+id+"V").textContent=(id==="bejSym"?String(v):(id==="bejSize"||id==="bejLift"?v.toFixed(2):String(v))); refreshBejewel(); }));
+    const _bejSync=()=>{ const d=$("#bejGem").value.indexOf("d:")===0; $$(".bejDia").forEach(r=>r.style.display=d?"":"none"); }; $("#bejGem").addEventListener("change",_bejSync); _bejSync();
+    ["#bejGem","#bejWhere","#bejHost"].forEach(id=>$(id).addEventListener("change",refreshBejewel));
+    $("#bejBake").addEventListener("click",bakeBejewel);
+    refreshBejewel();
+    $("#hint").textContent="Bejewel: pick a gem and host, scale the gems. Apply bakes them to their own layer.";
+  }
   if(op==="lattice"){
     $("#tpTitle").textContent="Lattice — Cage Morph";
     const optsHTML=layers.map((L,idx)=>'<option value="'+idx+'">'+(L.name||("Layer "+(idx+1)))+'</option>').join("");
     const primOpts=['cube','tetrahedron','octahedron','icosahedron','dodecahedron','cuboctahedron','buckyball','torus','cylinder'].filter(n=>TM.primitives&&TM.primitives[n]).map(n=>'<option value="p:'+n+'">'+n.charAt(0).toUpperCase()+n.slice(1)+'</option>').join("");
+    const diaOpts=Object.keys(TM.GEM_CUTS||{}).map(c=>'<option value="d:'+c+'">'+TM.GEM_CUTS[c]+'</option>').join("");
     body.innerHTML=
       '<div style="padding:8px 12px;color:var(--text-dim);font-size:11px;line-height:1.5">Fill a <b>host</b> with copies of a <b>module</b>.</div>'+
-      '<div class="param"><label>① Module shape</label><select id="latMod"><optgroup label="Layers">'+optsHTML+'</optgroup><optgroup label="Primitives">'+primOpts+'</optgroup></select></div>'+
+      '<div class="param"><label>① Module shape</label><select id="latMod"><optgroup label="Layers">'+optsHTML+'</optgroup><optgroup label="Primitives">'+primOpts+'</optgroup><optgroup label="Diamonds">'+diaOpts+'</optgroup></select></div>'+
       '<div class="param"><label>Cell source</label><select id="latSrc"><option value="shell">Surface shell (offset double layer)</option><option value="voxel">Voxel grid (bounding box)</option></select></div>'+
       '<div class="param"><label>Host shape — layer</label><select id="latHost">'+optsHTML+'</select></div>'+
       '<div class="param" id="latRowOffset"><label>② Offset (shell thickness)</label><input type="range" id="latCell" min="0.02" max="1.5" step="0.01" value="0.3"><output id="latCellV">0.30</output></div>'+
       '<div class="param" id="latRowDir"><label>Offset direction</label><select id="latDir"><option value="out">Outward (grow)</option><option value="both">Both sides</option><option value="in">Inward</option></select></div>'+
       '<div class="param" id="latRowClip"><label class="chk"><input type="checkbox" id="latClip" checked> X-ray clip to host (fill inside only)</label></div>'+
       '<div id="latInfo" style="padding:2px 12px 6px;color:#8fce9b;font-size:11px;line-height:1.4"></div>'+
-      '<div style="padding:4px 12px 10px"><button id="latBake" class="mkbtn" style="width:100%">④ Bake to new layer (beside)</button></div>';
+      '<div style="padding:4px 12px 10px"><button id="latBake" class="mkbtn" style="width:100%">④ Bake to new layer</button></div>';
     if($("#latHost")) $("#latHost").value=String(activeLayer);
     if($("#latMod"))  $("#latMod").value=String(layers.length>1 ? (activeLayer===0?1:0) : activeLayer);
     _latSyncRows();
@@ -11462,7 +11559,7 @@ $("#snapToggle")&&$("#snapToggle").addEventListener("click",()=>{ snapToGrid=!sn
     ["#latHost","#latMod","#latClip","#latDir"].forEach(id=>{ const el=$(id); if(el) el.addEventListener("change",refreshLatticePreview); });
     $("#latBake")&&$("#latBake").addEventListener("click",bakeLattice);
     beginLatticePreview();
-    $("#hint").textContent="Lattice: pick host + module layers, set the offset. Result previews beside the host and bakes to its own layer.";
+    $("#hint").textContent="Lattice: pick host + module layers, set the offset. Result previews in place and bakes to its own layer.";
   }
   if(op==="tfUnion"||op==="tfSubtract"||op==="tfIntersect"||op==="tfInterfere"){ populateBoolB(); $("#hint").textContent="Pick the other layer (B), then Apply."; }
   if(op==="tfSolidify"){ beginVoxPreview(); $("#tpTitle").textContent="Voxel remesh"; $("#hint").textContent="Live re-skin — choose Voxel (blocky) or Marching Cubes (smooth), drag resolution. Apply adds the solid as a new layer."; }
@@ -11517,7 +11614,7 @@ $("#snapToggle")&&$("#snapToggle").addEventListener("click",()=>{ snapToGrid=!sn
   }
 }
 function closeToolPop(){
-  if(!tpState) return;
+  if(!tpState) return; { const _fl=$("#modFlatten"); if(_fl&&(tpState.op==="lattice"||tpState.op==="bejewel")) _fl.style.display=_fl.disabled?"none":""; }
   if(["slab","sliceEdges","laser"].indexOf(tpState.op)>=0){ setTimeout(()=>{ try{ window.__homeView&&window.__homeView(true); }catch(e){} },60); }   // leaving fabrication: come back from the zoomed-out parts view
   if(tpState.op==="scale") endScalePreview();
   if(tpState.op==="greeble") endGreeblePreview(false);
@@ -11526,6 +11623,7 @@ function closeToolPop(){
   if(tpState.op==="tfMeasure"){ measureActive=false; measPts=[]; clearMeasureOverlay(); $("#tpBody").innerHTML=""; }
   if(tpState.op==="tfSolidify") endVoxPreview(false);
   if(tpState.op==="lattice"){ endLatticePreview(); $("#tpBody").innerHTML=""; }
+  if(tpState.op==="bejewel"){ _bejClear(); $("#tpBody").innerHTML=""; }
   if(tpState.op==="offset") endOffsetPreview(false);
   if(tpState.op && OP_PREVIEW[tpState.op]) discardOpPreview();
   if(tpState.op==="array") endArrayPreview(false);
@@ -11560,6 +11658,7 @@ $("#tpApply").addEventListener("click",()=>{
   if(!tpState) return;
   if(tpState.op==="modedit"){ closeToolPop(); $("#toolpop").classList.add("hiddenPanel"); $("#optionsToggle")&&$("#optionsToggle").classList.remove("on"); return; }
   if(tpState.op==="lattice"){ bakeLattice(); return; }
+  if(tpState.op==="bejewel"){ bakeBejewel(); return; }
   if(tpState.op==="sliceEdges"){ for(const k of sel.edges) seamEdges.add(k); clearSel&&clearSel(); buildSeamOverlay(); const c=$("#sliceCount"); if(c)c.textContent=seamEdges.size+" seam edge"+(seamEdges.size!==1?"s":"")+" set."; if(liveNet) refreshLiveNet(); toast&&toast(seamEdges.size+" seam edges"); return; }
   if(tpState.op==="spin"){
     const opts={ dur:(parseFloat(($("#pSpinDur")&&$("#pSpinDur").value)||4.5))*1000, rot:Math.round(parseFloat(($("#pSpinRot")&&$("#pSpinRot").value)||1)), fps:Math.round(parseFloat(($("#pSpinFps")&&$("#pSpinFps").value)||60)), ccw:$("#pSpinCCW")&&$("#pSpinCCW").checked };
@@ -12575,6 +12674,7 @@ function buildToolbarIcons(){
     sierpinski:safe(()=>TM.sierpinski(2)),
     hybrid:safe(()=>TM.hybridSurface()),
     lattice:safe(()=>TM.latticeMorph(cube, TM.scaleMesh(cube,0.34), {cell:1.0,clip:false})),
+    bejewel:safe(()=>TM.mergeMeshes([TM.scaleMesh(cube,0.8), TM.bejewel(TM.scaleMesh(cube,0.8), TM.primitives.diamond(), {size:0.8})])),
     scale:safe(()=>TM.scaleMesh(cube,0.72)),
     crease:safe(()=>{ const cr=new Map(); const f=cube.faces[0]; for(let i=0;i<f.length;i++){ const a=f[i],b=f[(i+1)%f.length]; cr.set(a<b?a+"_"+b:b+"_"+a,3); }
       let r=cube, c=cr, pth=null; for(let i=0;i<3;i++){ r=TM.catmullClarkCrease(r,c,0,pth); c=r._creases; pth=r._creasePath; } return r; }),
