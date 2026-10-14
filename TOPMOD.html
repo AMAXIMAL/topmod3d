@@ -5919,6 +5919,8 @@ function bejewel(host, gem, opts){
     host.faces.forEach((f,fi)=>{ for(let i=0;i<f.length;i++){ const a=f[i], b=f[(i+1)%f.length]; vn[a][0]+=fN[fi][0]; vn[a][1]+=fN[fi][1]; vn[a][2]+=fN[fi][2]; if(nb[a]==null) nb[a]=b; const L=Math.hypot(...sub(H[a],H[b])); if(L<ml[a]) ml[a]=L; if(L<ml[b]) ml[b]=L; } });
     H.forEach((v,i)=>{ if(nb[i]==null) return; sites.push({c:v, n:nz(vn[i]), x:sub(H[nb[i]],v), s:0.5*ml[i]*size}); });
   }
+  if(opts.part==="gems"||opts.part==="studs"){ const nGF=gem.faces.length, sel=opts.part==="gems"?GF.slice(0,nGF):GF.slice(nGF); const mp=new Map(), G2=[];
+    const F2=sel.map(f=>f.map(i=>{ if(!mp.has(i)){ mp.set(i,G2.length); G2.push(G[i]); } return mp.get(i); })); G.length=0; G.push(...G2); GF=F2; }
   const verts=[], faces=[]; let count=0; const capped=sites.length>maxInst;
   for(const S of sites.slice(0,maxInst)){
     const y=S.n; let x=sub(S.x,[y[0]*dot(S.x,y),y[1]*dot(S.x,y),y[2]*dot(S.x,y)]); if(Math.hypot(...x)<1e-9) x=Math.abs(y[0])<0.9?[1,0,0]:[0,1,0], x=sub(x,[y[0]*dot(x,y),y[1]*dot(x,y),y[2]*dot(x,y)]); x=nz(x); const z=cr(x,y);
@@ -7315,6 +7317,17 @@ const MODS={
             apply:(m,p)=>TM.pipes(m,{thickness:p.thickness,sides:Math.round(p.sides)})},
   wireframe:{label:"Wireframe", grp:"Generate", params:[{k:"thickness",l:"Thickness",min:0.5,max:3,step:0.05,def:1},{k:"width",l:"Corner width (0 = smooth)",min:0,max:0.4,step:0.01,def:0}],
             apply:(m,p)=> (p.width>0.005? TM.wireframeWithCorners(m,{thickness:p.thickness,width:p.width}) : TM.wireframeModel(m,{thickness:p.thickness}))},
+  bejewel: {label:"Bejewel", grp:"Generate", params:[{k:"size",l:"Gem size",min:0.1,max:1.6,step:0.01,def:0.75},{k:"lift",l:"Lift (seat depth)",min:-0.6,max:0.6,step:0.01,def:0},
+              {k:"cut",l:"Gem",opts:Object.keys(TM.GEM_CUTS).map(c=>TM.GEM_CUTS[c]),def:0},{k:"where",l:"Placement",opts:["Face centroids","Vertices","Faces + vertices"],def:0},
+              {k:"table",l:"Table %",min:45,max:72,step:0.5,def:57},{k:"crown",l:"Crown angle °",min:22,max:42,step:0.1,def:34.5},{k:"pav",l:"Pavilion angle °",min:37,max:44,step:0.05,def:40.8},{k:"girdle",l:"Girdle %",min:0.5,max:8,step:0.1,def:3},{k:"sym",l:"Facet symmetry",min:3,max:16,step:1,def:8},
+              {k:"studs",l:"Studs (prongs)",bool:true,def:false},{k:"stN",l:"Studs per gem",min:2,max:8,step:1,def:4},{k:"stT",l:"Stud thickness",min:0.02,max:0.2,step:0.005,def:0.07},{k:"stL",l:"Stud length",min:0.1,max:1.5,step:0.01,def:0.7},{k:"stB",l:"Bend around gem",min:0,max:1,step:0.01,def:0.1},
+              {k:"stS",l:"Stud shape",opts:["Round","Hex","Square","Triangle"],def:0},{k:"stD",l:"Dome cap",bool:true,def:true},{k:"keep",l:"Keep base shape",bool:true,def:false}],
+            apply:(m,p)=>{ const cuts=Object.keys(TM.GEM_CUTS), cut=cuts[Math.round(p.cut)||0]||"round";
+              const key=[cut,p.table,p.crown,p.pav,p.girdle,Math.round(p.sym)].join("|"); window.__bejCache=window.__bejCache||{};
+              const gem=window.__bejCache[key]||(window.__bejCache[key]=TM.primitives.diamond(p.table,p.crown,p.pav,p.girdle,Math.round(p.sym),1,50,77,cut));
+              const studs=p.studs?{n:p.stN,thick:p.stT,len:p.stL,bend:p.stB,sides:[12,6,4,3][Math.round(p.stS)||0],dome:!!p.stD}:null;
+              const r=TM.bejewel(m,gem,{size:p.size,lift:p.lift,where:["faces","verts","both"][Math.round(p.where)||0],maxInst:8000,studs});
+              return p.keep?TM.mergeMeshes([m,{verts:r.verts,faces:r.faces}]):{verts:r.verts,faces:r.faces}; }},
   // --- topology (selection-based: the picked faces + the tool's options are captured when the modifier is added) ---
   pinch:   {label:"Pinch Extrude", grp:"Topology", params:[{k:"dist",l:"Distance",min:0.4,max:5,step:0.1,def:2.0},{k:"segments",l:"Segments",min:3,max:40,step:1,def:14},{k:"neck",l:"Neck",min:0.05,max:0.8,step:0.01,def:0.18},{k:"bulge",l:"Bulge",min:0.5,max:1.6,step:0.05,def:1.0}],
             apply:(m,p)=>{ let out=m; const faces=(p.faces||[]).filter(f=>f<out.faces.length).sort((a,b)=>b-a);
@@ -7409,6 +7422,7 @@ function addModifier(type, opts){
     else { const fs=[...sel.faces]; if(fs.length!==2){ toast&&toast("Select exactly 2 faces for a handle",true); return; } params.fa=fs[0]; params.fb=fs[1]; }
     if($("#pPinch")){ params.pinch=P("#pPinch"); params.segments=Math.round(P("#pHSeg")); params.curve=P("#pHCurve"); }
   }
+  if(type==='bejewel'&&opts&&opts.params) Object.assign(params,opts.params);
   if(!layersOn && !(opts&&opts.returnMod)){                 // step-by-step mode: bake the operation into the mesh now
     try{ snapshot(); const r=MODS[type].apply(mesh, params); const err=r&&TM.validate(r); if(!r||!r.faces||!r.faces.length) throw "no result"; if(err&&!/^duplicate directed edge/.test(err)) throw err;
       mesh={verts:r.verts.map(v=>v.slice()),faces:r.faces.map(f=>f.slice())}; L.mesh=mesh; L.steps=(L.steps||[]).concat(MODS[type].label);
@@ -11420,16 +11434,28 @@ function refreshBejewel(){
   scene.add(_bejGrp);
   if(el) el.textContent=mm.bejewel.count+" gem"+(mm.bejewel.count!==1?"s":"")+" · "+mm.faces.length+" facets"+(mm.bejewel.capped?" (preview capped — Bake sets all "+mm.bejewel.sites+")":"");
 }
+function bejewelToModifier(){
+  const p=_bejParams(); if(!p.host||!p.host.faces.length){ toast&&toast("Pick a host shape with faces",true); return; }
+  if(p.cut.indexOf("d:")!==0){ toast&&toast("Modifier uses a diamond cut — pick one from the Gem list (or Bake for a layer gem)",true); return; }
+  const cuts=Object.keys(TM.GEM_CUTS), V=id=>+($("#"+id)?$("#"+id).value:0);
+  const params={size:p.size, lift:p.lift, cut:Math.max(0,cuts.indexOf(p.cut.slice(2))), where:["faces","verts","both"].indexOf(p.where), table:V("bejTable"), crown:V("bejCrown"), pav:V("bejPav"), girdle:V("bejGirdle"), sym:V("bejSym"),
+    studs:!!p.studs, stN:p.studs?p.studs.n:4, stT:p.studs?p.studs.thick:0.07, stL:p.studs?p.studs.len:0.7, stB:p.studs?p.studs.bend:0.55, stS:p.studs?[12,6,4,3].indexOf(p.studs.sides):0, stD:p.studs?!!p.studs.dome:true, keep:!($("#bejHide")&&$("#bejHide").checked)};
+  _bejClear(); if(p.hostLayer!==activeLayer){ try{ setActiveLayer?setActiveLayer(p.hostLayer):(activeLayer=p.hostLayer); }catch(e){} }
+  closeToolPop(); addModifier("bejewel",{params}); toast&&toast("Bejewel added to the modifier stack — edit it there any time");
+}
 function bakeBejewel(){
   const p=_bejParams();
   if(!p.host||!p.host.faces.length){ toast&&toast("Pick a host shape with faces",true); return; }
   if(!p.gem||!p.gem.faces.length||p.gemLayer===p.hostLayer){ toast&&toast("Pick a gem (diamond cut or another layer)",true); return; }
-  const mm=TM.bejewel(p.host,p.gem,{size:p.size,lift:p.lift,where:p.where,maxInst:8000,studs:p.studs});
+  const sep=!!(p.studs&&$("#bejStSep")&&$("#bejStSep").checked);
+  const mm=TM.bejewel(p.host,p.gem,{size:p.size,lift:p.lift,where:p.where,maxInst:8000,studs:p.studs,part:sep?"gems":undefined});
+  const ms=sep?TM.bejewel(p.host,p.gem,{size:p.size,lift:p.lift,where:p.where,maxInst:8000,studs:p.studs,part:"studs"}):null;
   if(!mm.faces.length){ toast&&toast("No gems placed",true); return; }
   const _hostL=layers[p.hostLayer], _hide=$("#bejHide")&&$("#bejHide").checked;
   _bejClear(); addLayer(mm,false);
   if(_hide&&_hostL&&_hostL!==layers[activeLayer]){ _hostL.visible=false; renderInactiveLayers&&renderInactiveLayers(); }
   if(layers[activeLayer]) layers[activeLayer].name="Gems · "+(p.cut.indexOf("d:")===0?(TM.GEM_CUTS[p.cut.slice(2)]||"gem"):"layer");
+  if(ms&&ms.faces.length){ addLayer(ms,false); if(layers[activeLayer]) layers[activeLayer].name="Studs · "+(p.studs.n)+" per gem"; }
   renderLayerList&&renderLayerList();
   toast&&toast("Set "+mm.bejewel.count+" gems on a new layer"+(mm.bejewel.capped?" (capped 8000)":""));
   closeToolPop(); $("#toolpop").classList.add("hiddenPanel"); $("#optionsToggle")&&$("#optionsToggle").classList.remove("on");
@@ -11571,12 +11597,13 @@ $("#snapToggle")&&$("#snapToggle").addEventListener("click",()=>{ snapToGrid=!sn
       '<div class="param bejSt"><label>Studs per gem</label><input type="range" id="bejStN" min="2" max="8" step="1" value="4"><output id="bejStNV">4</output></div>'+
       '<div class="param bejSt"><label>Stud thickness</label><input type="range" id="bejStT" min="0.02" max="0.2" step="0.005" value="0.07"><output id="bejStTV">0.07</output></div>'+
       '<div class="param bejSt"><label>Stud length</label><input type="range" id="bejStL" min="0.1" max="1.5" step="0.01" value="0.7"><output id="bejStLV">0.70</output></div>'+
-      '<div class="param bejSt"><label>Bend around gem</label><input type="range" id="bejStB" min="0" max="1" step="0.01" value="0.55"><output id="bejStBV">0.55</output></div>'+
+      '<div class="param bejSt"><label>Bend around gem</label><input type="range" id="bejStB" min="0" max="1" step="0.01" value="0.1"><output id="bejStBV">0.10</output></div>'+
       '<div class="param bejSt"><label>Stud shape</label><select id="bejStS"><option value="12">Round</option><option value="6">Hex</option><option value="4">Square</option><option value="3">Triangle</option></select></div>'+
       '<div class="param bejSt"><label class="chk"><input type="checkbox" id="bejStD" checked> Dome cap</label></div>'+
+      '<div class="param bejSt"><label class="chk"><input type="checkbox" id="bejStSep" checked> Bake studs to their own layer</label></div>'+
       '<div class="param"><label class="chk"><input type="checkbox" id="bejHide" checked> Hide base shape</label></div>'+
       '<div id="bejInfo" style="padding:2px 12px 6px;color:#8fce9b;font-size:11px;line-height:1.4"></div>'+
-      '<div style="padding:4px 12px 10px"><button id="bejBake" class="mkbtn" style="width:100%">Bake gems to new layer</button></div>';
+      '<div style="padding:4px 12px 10px;display:flex;gap:6px"><button id="bejMod" class="mkbtn" style="flex:1">Add as modifier</button><button id="bejBake" class="mkbtn" style="flex:1">Bake to new layer</button></div>';
     $("#bejHost").value=String(activeLayer);
     const _stSync=()=>{ const on=$("#bejStuds").checked; $$(".bejSt").forEach(r=>r.style.display=on?"":"none"); }; _stSync();
     ["#bejStuds","#bejStS","#bejStD"].forEach(id=>$(id).addEventListener("change",()=>{ _stSync(); refreshBejewel(); }));
@@ -11584,7 +11611,7 @@ $("#snapToggle")&&$("#snapToggle").addEventListener("click",()=>{ snapToGrid=!sn
     ["bejSize","bejLift","bejTable","bejCrown","bejPav","bejGirdle","bejSym"].forEach(id=>$("#"+id).addEventListener("input",()=>{ const v=+$("#"+id).value; $("#"+id+"V").textContent=(id==="bejSym"?String(v):(id==="bejSize"||id==="bejLift"?v.toFixed(2):String(v))); refreshBejewel(); }));
     const _bejSync=()=>{ const d=$("#bejGem").value.indexOf("d:")===0; $$(".bejDia").forEach(r=>r.style.display=d?"":"none"); }; $("#bejGem").addEventListener("change",_bejSync); _bejSync();
     ["#bejGem","#bejWhere","#bejHost","#bejHide"].forEach(id=>$(id).addEventListener("change",refreshBejewel));
-    $("#bejBake").addEventListener("click",bakeBejewel);
+    $("#bejBake").addEventListener("click",bakeBejewel); $("#bejMod").addEventListener("click",bejewelToModifier);
     refreshBejewel();
     $("#hint").textContent="Bejewel: pick a gem and host, scale the gems. Apply bakes them to their own layer.";
   }
@@ -11710,7 +11737,7 @@ $("#tpApply").addEventListener("click",()=>{
   if(!tpState) return;
   if(tpState.op==="modedit"){ closeToolPop(); $("#toolpop").classList.add("hiddenPanel"); $("#optionsToggle")&&$("#optionsToggle").classList.remove("on"); return; }
   if(tpState.op==="lattice"){ bakeLattice(); return; }
-  if(tpState.op==="bejewel"){ bakeBejewel(); return; }
+  if(tpState.op==="bejewel"){ bejewelToModifier(); return; }
   if(tpState.op==="sliceEdges"){ for(const k of sel.edges) seamEdges.add(k); clearSel&&clearSel(); buildSeamOverlay(); const c=$("#sliceCount"); if(c)c.textContent=seamEdges.size+" seam edge"+(seamEdges.size!==1?"s":"")+" set."; if(liveNet) refreshLiveNet(); toast&&toast(seamEdges.size+" seam edges"); return; }
   if(tpState.op==="spin"){
     const opts={ dur:(parseFloat(($("#pSpinDur")&&$("#pSpinDur").value)||4.5))*1000, rot:Math.round(parseFloat(($("#pSpinRot")&&$("#pSpinRot").value)||1)), fps:Math.round(parseFloat(($("#pSpinFps")&&$("#pSpinFps").value)||60)), ccw:$("#pSpinCCW")&&$("#pSpinCCW").checked };
