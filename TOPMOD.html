@@ -15585,7 +15585,8 @@ window.__ek={applyWhole:applyWhole,ops:ops,snapshot:snapshot,rebuild:rebuild,toa
 
 // ---------- Physics: rigid bodies (layers / loose pieces) fall, tumble, collide — grab, drag and throw them ----------
 (function(){
-  const C={gravity:1, bounce:0.35, friction:0.5, split:true, height:0, playing:false};
+  const C={gravity:1, bounce:0.35, friction:0.5, split:true, height:0, playing:false, magnet:-1, mstr:1, align:true};
+  let T=null;   // magnet target: {P:[V3], N:[V3], cell, H:Map}
   let B=[], grp=null, ctl=null, raf=0, floorY=0, hidden=null, grab=null, lastT=0;
   const $=s=>document.querySelector(s);
   const V=THREE.Vector3, tmp=new V(), tmp2=new V();
@@ -15610,27 +15611,44 @@ window.__ek={applyWhole:applyWhole,ops:ops,snapshot:snapshot,rebuild:rebuild,toa
   }
   function build(){
     clearBodies();
-    const src=[]; layers.forEach((L,i)=>{ if(!L||L.visible===false) return; const em=(typeof layerEval==="function")?layerEval(L):L.mesh; if(em&&em.faces&&em.faces.length) src.push({m:em,i}); });
+    const src=[]; T=null; layers.forEach((L,i)=>{ if(!L||L.visible===false||i===C.magnet) return; const em=(typeof layerEval==="function")?layerEval(L):L.mesh; if(em&&em.faces&&em.faces.length) src.push({m:em,i}); });
     if(!src.length){ toast&&toast("Physics: nothing visible to simulate",true); return; }
     grp=new THREE.Group(); scene.add(grp);
     const pal=[0xffa733,0x35c0ff,0xff5d8f,0x9be15d,0xc49bff,0xffd166];
     let n=0;
     for(const s of src){ const parts=C.split?pieces(s.m):[s.m]; for(const p of parts){ if(n>=500) break; if(p.verts.length<3) continue; const b=mkBody(p,s.i===activeLayer&&parts.length===1?0xffa733:pal[(n+s.i)%pal.length]); b.layer=s.i; B.push(b); grp.add(b.ob); n++; } }
+    if(C.magnet>=0&&layers[C.magnet]){ const tm=(typeof layerEval==="function")?layerEval(layers[C.magnet]):layers[C.magnet].mesh; const P=[], N=[];
+      for(const f of tm.faces){ if(f.length<3) continue; let c=[0,0,0], n=[0,0,0]; for(let i=0;i<f.length;i++){ const a=tm.verts[f[i]], q=tm.verts[f[(i+1)%f.length]]; c[0]+=a[0]; c[1]+=a[1]; c[2]+=a[2]; n[0]+=(a[1]-q[1])*(a[2]+q[2]); n[1]+=(a[2]-q[2])*(a[0]+q[0]); n[2]+=(a[0]-q[0])*(a[1]+q[1]); }
+        const nv=new V(n[0],n[1],n[2]); if(nv.lengthSq()<1e-18) continue; nv.normalize(); const cv=new V(c[0]/f.length,c[1]/f.length,c[2]/f.length); P.push(cv); N.push(nv);
+        for(const vi of f){ const a=tm.verts[vi]; P.push(new V((a[0]+cv.x)/2,(a[1]+cv.y)/2,(a[2]+cv.z)/2)); N.push(nv); } }
+      let bb=new THREE.Box3(); P.forEach(p=>bb.expandByPoint(p)); const cell=Math.max(1e-3,bb.getSize(new V()).length()/24), H=new Map();
+      P.forEach((p,i)=>{ const k=Math.floor(p.x/cell)+","+Math.floor(p.y/cell)+","+Math.floor(p.z/cell); if(!H.has(k)) H.set(k,[]); H.get(k).push(i); });
+      T={P,N,cell,H,center:bb.getCenter(new V())}; }
     let mn=Infinity; for(const b of B) for(const l of b.loc) mn=Math.min(mn,l[1]+b.x.y);
     floorY=(typeof grid!=="undefined"&&grid)?Math.min(grid.position.y,mn):mn;
     if(C.height>0) B.forEach(b=>{ b.x.y+=C.height; b.x0.y+=C.height; });
     // hide the originals while simulating
     hidden={layers:layers.map(L=>L&&L.visible)}; [meshObj,edgeObj,pointObj].forEach(o=>{ if(o) o.visible=false; });
-    layers.forEach((L,i)=>{ if(L&&i!==activeLayer) L.visible=false; }); renderInactiveLayers&&renderInactiveLayers();
+    layers.forEach((L,i)=>{ if(L&&i!==activeLayer&&i!==C.magnet) L.visible=false; }); renderInactiveLayers&&renderInactiveLayers();
+    if(C.magnet===activeLayer) [meshObj,edgeObj,pointObj].forEach(o=>{ if(o) o.visible=true; });
     sync(); stats();
   }
   function clearBodies(){ if(grp){ scene.remove(grp); grp.traverse(o=>{ o.geometry&&o.geometry.dispose(); o.material&&o.material.dispose&&o.material.dispose(); }); grp=null; } B=[]; }
   function restore(){ if(!hidden) return; layers.forEach((L,i)=>{ if(L&&hidden.layers[i]!=null) L.visible=hidden.layers[i]; }); hidden=null; [meshObj,edgeObj,pointObj].forEach(o=>{ if(o) o.visible=true; }); renderInactiveLayers&&renderInactiveLayers(); try{ rebuild(); }catch(e){} }
+  function nearT(x){ if(!T) return -1; const c=T.cell, ci=Math.floor(x.x/c), cj=Math.floor(x.y/c), ck=Math.floor(x.z/c); let best=-1, bd=1e30;
+    for(let r=0;r<6&&best<0;r++){ for(let di=-r;di<=r;di++)for(let dj=-r;dj<=r;dj++)for(let dk=-r;dk<=r;dk++){ if(Math.max(Math.abs(di),Math.abs(dj),Math.abs(dk))!==r) continue; const L=T.H.get((ci+di)+","+(cj+dj)+","+(ck+dk)); if(!L) continue;
+        for(const i of L){ const d=T.P[i].distanceToSquared(x); if(d<bd){ bd=d; best=i; } } } }
+    if(best<0){ for(let i=0;i<T.P.length;i++){ const d=T.P[i].distanceToSquared(x); if(d<bd){ bd=d; best=i; } } } return best; }
   function sync(){ for(const b of B){ b.ob.position.copy(b.x); b.ob.quaternion.copy(b.q); } }
   const rW=new V(), vP=new V(), cr=new V();
   function impulse(b,r,J){ b.v.addScaledVector(J,1/b.m); cr.crossVectors(r,J); b.w.addScaledVector(cr,1/b.I); }
   function step(dt){
-    const g=-9.8*C.gravity*0.35, e=C.bounce, mu=C.friction;
+    const g=-9.8*C.gravity*0.35*(T?0.15:1), e=C.bounce, mu=C.friction;
+    if(T){ for(const b of B){ if(grab&&b===grab.b) continue; const near=nearT(b.x); if(near<0) continue; const sp=T.P[near], sn=T.N[near];
+        tmp.subVectors(b.x,sp); const d=tmp.dot(sn), want=b.rc*0.95;
+        tmp2.copy(sp).addScaledVector(sn,want).sub(b.x); b.v.addScaledVector(tmp2,dt*6*C.mstr); b.v.multiplyScalar(1-dt*1.8);
+        if(d<want){ b.x.addScaledVector(sn,want-d); const vn=b.v.dot(sn); if(vn<0) b.v.addScaledVector(sn,-vn*(1+e*0.3)); }
+        if(C.align){ const up=new V(0,1,0).applyQuaternion(b.q); const ax=new V().crossVectors(up,sn); b.w.addScaledVector(ax,dt*8); b.w.multiplyScalar(0.9); } } }
     for(const b of B){ if(b===(grab&&grab.b)) continue; b.v.y+=g*dt; b.v.multiplyScalar(0.999); b.w.multiplyScalar(0.995); }
     if(grab){ const b=grab.b; tmp.copy(grab.local).applyQuaternion(b.q).add(b.x); tmp2.subVectors(grab.target,tmp); b.v.copy(tmp2).multiplyScalar(14); rW.copy(tmp).sub(b.x); b.w.multiplyScalar(0.85); grab.vel.lerp(b.v,0.35); }
     // body-body (spheres, spatial hash)
@@ -15694,11 +15712,16 @@ window.__ek={applyWhole:applyWhole,ops:ops,snapshot:snapshot,rebuild:rebuild,toa
     ctl.innerHTML='<style>#phCtl{font:12px var(--font,system-ui);color:#dbe8f3;display:flex;flex-direction:column;gap:7px}#phCtl .clR{display:grid;grid-template-columns:78px 1fr 34px;align-items:center;gap:6px}#phCtl .clR em{font-style:normal;color:#8fd8ff;text-align:right}#phCtl input[type=range]{width:100%}#phCtl .clB{display:flex;gap:5px;flex-wrap:wrap}#phCtl .clB button{flex:1;min-width:58px;padding:7px 4px;border-radius:7px;border:1px solid #2a4a5a;background:#0f2430;color:#bff3ff;font:600 11.5px var(--font,system-ui);cursor:pointer}#phCtl .clB button.pri{background:#00E5FF;border-color:#00E5FF;color:#04121a}#phCtl .clS{color:#8fa6b8;font-size:11px;line-height:1.4}#phCtl .clC{display:flex;align-items:center;gap:6px}</style>'
       +'<div class="clS">Grab any piece to drag it — let go to throw.</div>'
       +slider("phGrav","Gravity",0,3,0.05,"gravity")+slider("phBounce","Bounce",0,0.95,0.01,"bounce")+slider("phFric","Friction",0,1.2,0.01,"friction")+slider("phH","Drop height",0,6,0.1,"height")
+      +'<label class="clR"><span>Magnet to</span><select id="phMag" style="background:#0a1118;color:#e6fff1;border:1px solid #1f3340;border-radius:5px"></select><em></em></label>'
+      +slider("phMs","Magnet pull",0.1,3,0.05,"mstr")
+      +'<label class="clC"><input type="checkbox" id="phAlign" checked> Align pieces to the surface</label>'
       +'<label class="clC"><input type="checkbox" id="phSplit"> Split layers into loose pieces</label>'
       +'<div class="clB"><button id="phPlay" class="pri">▶ Play</button><button id="phReset">↺ Reset</button></div>'
       +'<div class="clB"><button id="phToss">Toss</button><button id="phBoom">Explode</button><button id="phBake">Bake</button></div><div class="clS" id="phStats"></div>';
     ctl.querySelectorAll("input[type=range]").forEach(r=>r.oninput=()=>{ C[r.dataset.k]=+r.value; ui(); if(r.dataset.k==="height") reset(); });
     ctl.querySelector("#phSplit").onchange=e=>{ C.split=e.target.checked; reset(); };
+    ctl.querySelector("#phMag").onchange=e=>{ C.magnet=+e.target.value; reset(); };
+    ctl.querySelector("#phAlign").onchange=e=>{ C.align=e.target.checked; };
     ctl.querySelector("#phPlay").onclick=()=>C.playing?pause():play();
     ctl.querySelector("#phReset").onclick=reset; ctl.querySelector("#phToss").onclick=toss; ctl.querySelector("#phBoom").onclick=explode; ctl.querySelector("#phBake").onclick=bake;
     return ctl; }
@@ -15709,7 +15732,9 @@ window.__ek={applyWhole:applyWhole,ops:ops,snapshot:snapshot,rebuild:rebuild,toa
     try{ if(tpState&&tpState.op!=="physics") closeToolPop(); }catch(e){}
     body.innerHTML=""; body.appendChild(ctl); $("#tpTitle").textContent="Physics — rigid bodies"; $("#tpApply")&&($("#tpApply").style.display="none");
     const pop=$("#toolpop"); pop.classList.remove("hiddenPanel","empty"); $("#optionsToggle")&&$("#optionsToggle").classList.add("on");
-    tpState={op:"physics",btn:null,moved:[]}; build(); C.playing=true; ui(); if(!raf){ lastT=0; raf=requestAnimationFrame(loop); }
+    tpState={op:"physics",btn:null,moved:[]};
+    { const sm=ctl.querySelector("#phMag"); sm.innerHTML='<option value="-1">— none (fall to the floor) —</option>'+layers.map((L,i)=>'<option value="'+i+'">'+(L.name||("Layer "+(i+1)))+'</option>').join(""); if(C.magnet>=layers.length) C.magnet=-1; sm.value=String(C.magnet); }
+    build(); C.playing=true; ui(); if(!raf){ lastT=0; raf=requestAnimationFrame(loop); }
     $("#hint")&&($("#hint").textContent="Physics: pieces fall and collide. Grab one to drag, release to throw. Bake keeps the frame."); }
   function close(){ C.playing=false; grab=null; cancelAnimationFrame(raf); raf=0; clearBodies(); restore(); }
   new MutationObserver(()=>{ if(ctl&&!ctl.isConnected&&(grp||raf)) { close(); try{ $("#tpApply")&&($("#tpApply").style.display=""); }catch(e){} } }).observe(document.body,{childList:true,subtree:true});
