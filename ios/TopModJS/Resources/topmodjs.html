@@ -935,6 +935,10 @@ html body.phone #ncHome{left:-28px!important;top:2px!important}
 html body.phone #ncSpin{left:-28px!important;top:28px!important}
 html body.phone #ncFocus{right:-28px!important;top:2px!important}
 html body.phone #ncFull{right:-28px!important;top:28px!important}
+/* Midnight: navy chrome, sky-blue accent — complements the orange models best */
+body.uiNavy #menubar,body.uiNavy #toolbar,body.uiNavy #toolpop,body.uiNavy #layersPanel,body.uiNavy #modPanel,body.uiNavy #status,body.uiNavy .mlist,body.uiNavy #fabNode,body.uiNavy #console,body.uiNavy #tourCard,body.uiNavy #creditCard,body.uiNavy #handPrim,body.uiNavy #toast,body.uiNavy #amxDemo,body.uiNavy #navcube>button,body.uiNavy #tbScroll,body.uiNavy #mbScroll{filter:hue-rotate(18deg) saturate(1.35) brightness(1.18)}
+body.uiNavy #toolbar img.ticon,body.uiNavy #toolbar svg,body.uiNavy #status #lightBtn{filter:brightness(.85) saturate(.75) hue-rotate(-18deg)}
+body.uiNavy,body.uiNavy #frame,body.uiNavy #main{background:#0c1830!important}
 /* Layers + Modifiers rows: one compact style — small, bold, white, no decorative icons */
 #layerList .layerRow,#modList .modRow,#fabNode.added{min-height:0!important;padding:3px 6px!important;font:700 11px/1.25 var(--font,system-ui)!important;color:#fff!important;border-radius:6px!important}
 #layerList .layerRow .layerName,#modList .modRow .modName,#fabNode .modName{font:700 11px/1.25 var(--font,system-ui)!important;color:#fff!important;font-style:normal!important}
@@ -1085,6 +1089,7 @@ html.inApp [data-act="fullscreen"],html.inApp [data-act="shortcuts"],html.inApp 
       <div class="mi" data-ui="dark">Dark mode (default · cyan)</div>
       <div class="mi" data-ui="grey">Grey mode (lime)</div>
       <div class="mi" data-ui="light">White mode (orange)</div>
+      <div class="mi" data-ui="navy">Midnight (navy · sky blue) — suggested</div>
       <div class="msep"></div>
       <div class="mi" data-act="tgB">Toggle Bounding Box</div>
       <div class="mi" data-act="tgSec">Toggle Section Plane</div>
@@ -7607,9 +7612,15 @@ function updateViewLights(){
 }
 
 const GROUND_Y=-2.6;
-const grid=new THREE.GridHelper(10,10,0x7fd8ef,0x4699b3);   // 10 x 10 ground, 1-inch cells
-window.__setSceneBg=function(m){ if(m===true) m="light"; if(!m) m="dark"; try{ const C={dark:[0x080a12,0x7fd8ef,0x4699b3],grey:[0x3b3f45,0xb8f04a,0x7d8a6a],light:[0xeef1f5,0xe07a1f,0xb9a48c]}[m]||[0x080a12,0x7fd8ef,0x4699b3];
-  scene.background=new THREE.Color(C[0]); const ms=Array.isArray(grid.material)?grid.material:[grid.material]; ms.forEach((mt,i)=>{ mt.color&&mt.color.set(i?C[2]:C[1]); }); }catch(e){} };
+// ground grid built from 1-unit segments (long lines that pass behind the camera clip badly on some GPUs) — 60 × 60 fills the view
+function makeGroundGrid(size,c1,c2){ const h=size/2, pos=[], col=[], A=new THREE.Color(c1), B=new THREE.Color(c2);
+  for(let i=-h;i<=h;i++){ const C=(i===0)?A:B; for(let j=-h;j<h;j++){ pos.push(i,0,j, i,0,j+1, j,0,i, j+1,0,i); for(let k=0;k<4;k++) col.push(C.r,C.g,C.b); } }
+  const g=new THREE.BufferGeometry(); g.setAttribute("position",new THREE.Float32BufferAttribute(pos,3)); g.setAttribute("color",new THREE.Float32BufferAttribute(col,3));
+  const L=new THREE.LineSegments(g,new THREE.LineBasicMaterial({vertexColors:true})); L.userData.size=size; return L; }
+const grid=makeGroundGrid(60,0x7fd8ef,0x4699b3);   // 60 x 60 ground, 1-inch cells
+window.__setSceneBg=function(m){ if(m===true) m="light"; if(!m) m="dark"; try{ const C={dark:[0x080a12,0x7fd8ef,0x4699b3],grey:[0x3b3f45,0xb8f04a,0x7d8a6a],light:[0xeef1f5,0xe07a1f,0xb9a48c],navy:[0x0c1830,0x6fb6ff,0x2e5a94]}[m]||[0x080a12,0x7fd8ef,0x4699b3];
+  scene.background=new THREE.Color(C[0]); const ca=grid.geometry.attributes.color, pa=grid.geometry.attributes.position, A=new THREE.Color(C[1]), B=new THREE.Color(C[2]);
+  for(let v=0;v<pa.count;v+=4){ const x0=pa.getX(v), x1=pa.getX(v+1), z0=pa.getZ(v), cen=(x0===0&&x1===0); const K=cen?A:B; for(let k=0;k<4;k++){ const isB=(k>=2); const c=(isB? (pa.getZ(v+2)===0&&pa.getZ(v+3)===0) : cen)?A:B; ca.setXYZ(v+k,c.r,c.g,c.b); } } ca.needsUpdate=true; }catch(e){} };
 grid.material.transparent=true; grid.material.opacity=0.33;
 grid.position.y=GROUND_Y; scene.add(grid);
 // 10 x 10 x 10 inch build-volume reference (child of grid -> toggles & moves with it)
@@ -18326,7 +18337,7 @@ void main(){
  setTimeout(upd,300); setTimeout(upd,1500); }
  if(document.readyState==="loading") document.addEventListener("DOMContentLoaded",init); else init();})();</script>
 <script>/* View ▸ Interface: Dark (default) / White mode — remembered per device */
-(function(){ function apply(m){ if(["dark","grey","light"].indexOf(m)<0) m="dark"; document.body.classList.toggle("uiLight",m==="light"); document.body.classList.toggle("uiGrey",m==="grey");
+(function(){ function apply(m){ if(["dark","grey","light","navy"].indexOf(m)<0) m="dark"; document.body.classList.toggle("uiLight",m==="light"); document.body.classList.toggle("uiGrey",m==="grey"); document.body.classList.toggle("uiNavy",m==="navy");
    try{ if(window.__setSceneBg) window.__setSceneBg(m); }catch(e){}
    document.querySelectorAll("[data-ui]").forEach(function(el){ el.classList.toggle("on",el.dataset.ui===m); }); }
  function init(){ var m="dark"; try{ m=localStorage.getItem("tmUI")||"dark"; }catch(e){} apply(m);
