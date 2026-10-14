@@ -40,6 +40,7 @@ body:has(#amxDemo) #eqPanel{bottom:112px}
 @keyframes amxRipple{0%{transform:scale(.6);opacity:.9}100%{transform:scale(2.2);opacity:0}}
 
 body.tbDock #toolbar .tgrp[data-label="TrueForm"],#toolbar .tgrp[data-label="TrueForm"]{display:none!important}
+#loopChk{display:inline-flex;align-items:center;gap:5px;cursor:pointer;user-select:none;font-weight:600;white-space:nowrap}#loopChk input{accent-color:#00E5FF;margin:0;width:13px;height:13px}#loopChk.on{color:#00E5FF}
 </style>
 <!--
   HTML5 reimplementation of TopMod (Akleman et al., Texas A&M).
@@ -2114,6 +2115,7 @@ html.inApp [data-act="fullscreen"],html.inApp [data-act="shortcuts"],html.inApp 
 
   <div id="dock"><div id="dockInner"></div></div>
   <div id="status">
+    <label class="cell" id="loopChk" title="Loop select — click a face (loop runs across the edge nearest the click) or an edge to select its whole loop"><input type="checkbox" id="loopTgl"> Loop</label>
     <span class="cell" id="hint"></span>
     <span class="cell" id="topo">V <b id="tV">8</b> &minus; E <b id="tE">12</b> + F <b id="tF">6</b> = &chi; <b id="tChi">2</b></span>
     <span class="cell" id="genusBadge">genus <b id="tG">0</b></span>
@@ -11113,6 +11115,7 @@ window.__tmLoops={faceLoopFromPair:(a,b)=>faceLoopFromPair(selMesh(),a,b), edgeL
 function handleClick(x,y,shift){
   if(!(tpState&&["handle","bridge","insertEdge","cut","orient"].includes(tpState.op)) && loopDoubleTap(pickAt(x,y))) return;
   if(loopPick && selMode==="face" && !(tpState&&["handle","bridge"].includes(tpState.op))){ if(loopPickClick(x,y,shift)) return; }
+  if(loopPick && selMode==="edge" && !(tpState&&["handle","bridge","sliceEdges","insertEdge","cut"].includes(tpState.op))){ if(loopEdgeClick(x,y)) return; }
   // a click on empty space closes a passive param tool (not the interactive ones)
   const INTERACTIVE=["handle","bridge","insertEdge","orient","cut","scale","array","move","lineart","gemview"];
   if(tpState && !INTERACTIVE.includes(tpState.op) && !crustPairs){
@@ -11778,7 +11781,21 @@ function quadLoop(m, f0, k0){
   const closed=walk(f0,k0); if(!closed) walk(f0,(k0+2)%4);
   return out;
 }
-ops.loopPick=()=>{ loopPick=!loopPick; document.querySelectorAll('[data-op="loopPick"]').forEach(b=>b.classList.toggle("on",loopPick));
+function loopEdgeClick(x,y){
+  const h=pickAt(x,y); if(!h||h.type!=="edge") return false;
+  const M=selMesh(), E=TM.edges(M), K=new Map(), vE=new Map();
+  E.forEach(e=>{ e.k=e.a+"_"+e.b; K.set(e.a+"_"+e.b,e); K.set(e.b+"_"+e.a,e); for(const v of [e.a,e.b]){ let L=vE.get(v); if(!L){ L=[]; vE.set(v,L); } L.push(e); } });
+  const e0=K.get(h.id); if(!e0) return false;
+  const share=(p,q)=>p.faces.some(f=>q.faces.includes(f)), out=[e0], seen=new Set([e0.k]);
+  const walk=(e,at)=>{ for(let g=0;g<4000;g++){ const L=vE.get(at)||[]; if(L.length!==4) return; const n=L.find(q=>q!==e&&!share(q,e)); if(!n||seen.has(n.k)) return; seen.add(n.k); out.push(n); at=(n.a===at)?n.b:n.a; e=n; } };
+  walk(e0,e0.a); walk(e0,e0.b);
+  const keys=out.map(e=>e.k), allIn=keys.every(k=>sel.edges.has(k)); keys.forEach(k=>allIn?sel.edges.delete(k):sel.edges.add(k));
+  rebuildOverlay(); updateHint&&updateHint(); try{ window.__eq&&window.__eq.op("loops"); }catch(e){}
+  toast((allIn?"Deselected":"Selected")+" an edge loop of "+keys.length+" · "+sel.edges.size+" selected"); return true;
+}
+function syncLoopUI(){ document.querySelectorAll('[data-op="loopPick"]').forEach(b=>b.classList.toggle("on",loopPick)); const c=document.getElementById("loopTgl"); if(c) c.checked=loopPick; const l=document.getElementById("loopChk"); if(l) l.classList.toggle("on",loopPick); }
+document.getElementById("loopTgl")&&document.getElementById("loopTgl").addEventListener("change",e=>{ loopPick=e.target.checked; syncLoopUI(); if(loopPick){ if(selMode==="vert") setMode("face"); toast("Loop select on — click a face or an edge to select its whole loop"); } });
+ops.loopPick=()=>{ loopPick=!loopPick; syncLoopUI();
   if(loopPick){ if(selMode!=="face") setMode("face"); toast("Face Loops on — click a face; the loop runs across the edge nearest your click. Click again to toggle off"); }
   else toast("Face Loops off"); };
 ops.rindSel=()=>{ if(!sel.faces.size){ toast("Select faces first (Face Loops picks whole loops)",true); return; }
