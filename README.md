@@ -1,48 +1,38 @@
-# TopMod 3D — MASTER
+# TopMod 3D
 
-**Current: v3.9 — App Store: build 8 uploaded (v3.8); next upload = build 9** · bundle `com.amaximal.topmodjs` · team 7VP47VH46A
+**Topological mesh modeling for 3D printing, fabrication and simulation — in one HTML file, on the web and on iPhone/iPad.**
 
-Every update starts here.
+[▶ Open the web app](https://amaximal.com/software/topmod) · [Product page](https://amaximal.com/topmod3d) · App Store: *TopMod 3D: Design Software* · by [AMAXIMAL](https://amaximal.com)
+
+TopMod 3D is a modern reimagining of TopMod, the topological mesh modeler by Ergun Akleman, Vinod Srinivasan and Jianer Chen (Texas A&M; [TopModLab/TopMod](https://github.com/TopModLab/TopMod)). It keeps TopMod's genus-changing tools — handles, crusts, rinds, wireframes, Doo-Sabin and Catmull-Clark — and adds a live modifier stack, fabrication outputs and simulation.
+
+## Highlights (v3.9)
+
+- **Topology** — twisted handles, bridges, crust and rind modeling, wireframe, pipes, offsets
+- **Subdivision** — Catmull-Clark (with creases), Doo-Sabin, Loop, √3, honeycomb, pentagonalize, dual, truncate
+- **Live modifier stack and layers** — non-destructive deform, generate and topology modifiers
+- **Generate** — Cage (box-morph lattice), TPMS infill, gyroid, Voronoi, metaballs, differential growth, mazes, text
+- **Gems** — 11 parametric diamond cuts with ray-traced stone views; **Bejewel** sets gems with prongs on every face
+- **Simulate** — XPBD cloth, rigid-body physics (grab and throw), melt, wind-tunnel aero (streamlines + pressure), FEA stress and deflection
+- **Fabricate** — papercraft unfold, plywood slab, laser, waffle, 3D-print prep with tree supports
+- **Hand tracking** — pinch, extrude and orbit with your hands (Help ▸ Hand controls)
+- **Import / export** — OBJ, STL, PLY, OFF, glTF/GLB, 3MF; native `.topmod` projects
+
+## Run it
+
+The whole app is [`TOPMOD.html`](TOPMOD.html). Open it in a modern browser — no build step, no server.
+
+## Repository layout
 
 | Path | What |
 |---|---|
-| `TOPMOD.html` | **THE master.** The only file you edit. Single-file app (three.js r128 inlined). |
-| `ios/` | Xcode project (`TOPMOD 3D.xcodeproj`). `Resources/topmodjs.html` is a copy made by ship.py; don't edit it. |
-| `tools/ship.py` | One command that carries the master everywhere. |
-| `dist/` | Shipped builds: `TopModJS-Xcode_v<ver>_b<build>.zip` + HTML snapshot. Not in git. |
-| `tests/` | Test matrices and reports. |
-| `archive/` | Older versions, read-only history. |
+| `TOPMOD.html` | The app (single file; three.js inlined) |
+| `ios/` | Xcode project for the iPhone/iPad app (wraps the same HTML) |
+| `site/` | Copy of the amaximal.com TopMod 3D pages |
+| `guides/`, `tests/` | Step guides and test matrices |
+| `tools/` | Release scripts |
+| `docs/WORKFLOW.md` | Internal build and release notes |
 
-## Update loop
-```
-cd ~/AMAXiMAL/projects/topmod
-# 1. edit TOPMOD.html  (bump the wordmark  <span class="ver">v3.8</span>  when it's a new version)
-# 2. ship
-python3 tools/ship.py            # copies into Xcode, zips dist/TopModJS-Xcode_v<ver>.zip, git commit (build NOT bumped)
-python3 tools/ship.py --site     # same, plus updates amaximal.com's TopMod page
-python3 tools/ship.py --version 3.8   # new version without hand-editing the wordmark
-# 3. App Store (only when ION says so): python3 tools/ship.py --push  → build = last uploaded + 1, archive, upload, tag
-# 4. Site live: cd ~/AMAXiMAL/website/portfolio && python3 tools/build_site.py --deploy
-```
+## Credits
 
-## History
-- 2026-10-07 (working copy): Render materials — glass (6), metals (chrome, gold, copper, brushed steel, bronze, blue titanium), ceramic/stone (white, black, celadon, terracotta, marble, concrete), wood (oak, walnut, bamboo ply), plastic, rubber, carbon fibre; procedural textures projected triplanar (no UVs needed); per-material exposure/bloom; Edges toggle on the live bar; View > Render (live) after X-Ray.
-- 2026-10-07 (working copy): Render tool / Render menu now toggle Live Render by default; high-res PNG via the live bar camera button or Render > Save High-Res Render.
-- 2026-10-07 (working copy, not uploaded): Live Render — the glass / studio-light / bloom render runs in the viewport while you work (L, Render menu, or Live on screen in the Render dialog); floating bar for glass colour, glow, background, snapshot.
-- 2026-10-07 (working copy, not uploaded): Lattice Fill (TPMS infill) live modifier — gyroid / Schwarz P / diamond / Neovius / I-WP, sheet walls or solid struts, cell size, wall thickness / solid fraction, density grading (bottom→top, skin→core), optional outer skin, detail + smoothing; watertight marching-tet output; relative density + Gibson–Ashby stiffness estimate in the panel. Modifier panels support dropdowns; typed values are undoable.
-- 2026-10-06: build numbers now bump ONLY on an App Store upload (tools/appstore_build.txt = last uploaded, 8). Working builds b9–b13 were never uploaded; their files moved to dist/never_uploaded/.
-- **v3.9 b13 (2026-10-06)**: Ctrl/Cmd+Z works after touching a slider (keyboard handler ignored keys while a slider/checkbox had focus); Ctrl/Cmd+Shift+Z and Ctrl+Y redo; layout-independent.
-- **v3.9 b12 (2026-10-06)**: File > Export Wireframe (edges only) as OBJ curves, DXF 3D lines (inches, Z-up) or SVG of the current view. Export OBJ now exports what is on screen (base + live modifiers).
-- **v3.9 b11 (2026-10-06)**: File > New always starts a fresh Cube layer (the confirm() dialog was swallowed by the iOS web view so New did nothing; New also stops a running demo). iOS shell now shows JS alert/confirm/prompt (layer rename, save-as). Includes the typeable on-screen slider boxes (b10 shipped without the HTML change).
-- **v3.9 b10 (2026-10-06)**: on-screen (floating, hand-sized) sliders get typeable number boxes — Enter to apply; exact values beyond the slider range are honoured on modifier params.
-- **v3.9 b9 (2026-10-06)**: Extrude is a live modifier with a Taper (end size) slider plus distance/twist/segments; works on a mesh that already has modifiers. Every mesh tool now lands in the modifier stack (live, reorderable, undoable) instead of being blocked; hand push/pull extrude also becomes a live Extrude modifier. Modifier stack moved to its own narrow, draggable, resizable window. Smaller tool icons. Topology readout shows the on-screen (modified) mesh.
-- **v3.8 b8 (2026-10-01)**: fresh start from the unified v3.7 master; first App Store Connect upload from ~/AMAXiMAL.
-- **v3.7 b7 (2026-10-01)**: unified release. Sep 30 master (v3.1 + Demo mode, boolean/greeble/metaballs/voxel/
-  differential growth/measure/printer/hands) merged with the Sep 26 App Store work (topmodjs_210: Full Screen
-  Shift+F, G = wide zoom-to-fit, in-app Render (orange glass, studio env, bloom) + MagicaCSG hand-off, floating
-  hand-sized parameter panel + Apply/Cancel, hand palettes (primitives / remesh / modifiers), slider-ball pinch,
-  fab replay, video edge compensation, LiDAR depth refinement). iOS shell from "TopModJS 10" (loopback server so
-  camera/hand-tracking works, media-capture permission), corrected bundle ID. Fixed: Demo button threw in the
-  menubar dropdown code (no dropdown list).
-- v3.3 b6 (2026-09-26): App Store submission shell (Downloads/TopModJS 10).
-- v3.1 (2026-09-30): Demo mode (auto-starts; add `#nodemo` to the URL to skip).
+TopMod: Ergun Akleman, Vinod Srinivasan, Jianer Chen. TopMod 3D: John Briscella / AMAXIMAL.
