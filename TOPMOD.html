@@ -16406,7 +16406,8 @@ window.__ek={applyWhole:applyWhole,ops:ops,snapshot:snapshot,rebuild:rebuild,toa
   let w=null; try{ const v=+localStorage.getItem("tmTbW2"); if(v) w=v; }catch(e){}
   function cells(){ const ph=phone(); root.setProperty("--tbCell",ph?"34px":"40px"); root.setProperty("--tbCellH",ph?"36px":"42px"); root.setProperty("--tbIcon",ph?"18px":"21px"); }
   function defaultW(){ const f=document.querySelector("#menubar .menu .mtitle"); const fx=f?f.getBoundingClientRect().left:0;
-    const ph=phone(), two=2*(ph?34:40)+1*3+8+10+12;            // default = TWO tool icons wide (+ gap, group padding/border, column padding, scrollbar slack)
+    const ph=phone(), duo=document.body.classList.contains("duo")||document.body.classList.contains("duoBottom"), n=duo?4:2;
+    const two=n*(ph?34:40)+(n-1)*3+8+10+12;            // default = TWO tool icons wide (FOUR in the Duo layout) + gap, group padding/border, column padding, scrollbar slack
     return Math.round(two); }
   function layout(){
     const mb=document.getElementById("menubar"), st=document.getElementById("status");
