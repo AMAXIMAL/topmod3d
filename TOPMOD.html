@@ -1050,7 +1050,7 @@ body.opDock #tpBody select,body.opDock #tpBody input[type=text]:not(.numbox):not
 body.opDock #tpBody button{max-width:100%;white-space:normal}
 body.opDock #tpApply{width:auto!important;max-width:calc(100% - 20px)}
 /* collapsible Layers / Modifiers sections */
-.secChev{background:rgba(0,229,255,.1);border:1px solid rgba(0,229,255,.35);border-radius:6px;color:#00E5FF;width:28px;height:24px;padding:0;margin-right:8px;cursor:pointer;line-height:0;flex:0 0 auto;display:inline-flex;align-items:center;justify-content:center}.secChev svg{width:14px;height:14px;transition:transform .15s}.secChev.shut svg{transform:rotate(-90deg)}
+.secChev{background:rgba(0,229,255,.1);border:1px solid rgba(0,229,255,.35);border-radius:6px;color:#00E5FF;width:20px;height:18px;padding:0;margin-right:6px;cursor:pointer;line-height:0;flex:0 0 auto;display:inline-flex;align-items:center;justify-content:center}.secChev svg{width:10px;height:10px;transition:transform .15s}.secChev.shut svg{transform:rotate(-90deg)}
 body.layCol #layerList,body.layCol #layerAdd,body.modCol #modList,body.modCol #fabNode,body.modCol #modBar,body.modCol #modPanel>*:not(#modHead){display:none!important}
 body.layCol #layersPanel,body.modCol #modPanel{overflow:hidden!important}
 /* no Math · Live window */
@@ -1058,7 +1058,11 @@ body.layCol #layersPanel,body.modCol #modPanel{overflow:hidden!important}
 [data-act="liveEq"]{display:none!important}
 </style>
 
-<style id="bootCloak">html{background:#080a12}html.tmBoot body>*:not(#tmSplash){opacity:0!important}html.tmBooted body>*{transition:opacity .28s ease}</style>
+<style id="bootCloak">html{background:#080a12}html.tmBoot body>*:not(#tmSplash){opacity:0!important}html.tmBooted body>*{transition:opacity .28s ease}
+/* right column runs to the screen edge (under the landscape safe area); its content keeps clear of the notch with inner padding */
+body.opDock.opOpen #layersPanel,body.opDock.opOpen #modPanel{right:0!important;width:calc(var(--opw,280px) + env(safe-area-inset-right))!important;padding-right:env(safe-area-inset-right)!important;box-sizing:border-box!important}
+body.opDock.opOpen #rTabs,body.opDock.opOpen #rSplit,body.opDock.opOpen.rStack .rSp{right:0!important;width:calc(var(--opw,280px) + env(safe-area-inset-right))!important}
+</style>
 <script>document.documentElement.classList.add("tmBoot");setTimeout(function(){var h=document.documentElement;if(h.classList.contains("tmBoot")){h.classList.remove("tmBoot");h.classList.add("tmBooted");}},5000);</script>
 </head>
 <body>
@@ -11372,7 +11376,7 @@ function refreshLatticePreview(){
 }
 // ---------- Bejewel: gems aligned to host faces / vertices ----------
 let _bejGrp=null;
-function _bejClear(){ if(_bejGrp){ scene.remove(_bejGrp); _bejGrp.traverse(o=>{ o.geometry&&o.geometry.dispose&&o.geometry.dispose(); o.material&&o.material.dispose&&o.material.dispose(); }); _bejGrp=null; } }
+function _bejClear(){ try{ _latHostShow(); }catch(e){} if(_bejGrp){ scene.remove(_bejGrp); _bejGrp.traverse(o=>{ o.geometry&&o.geometry.dispose&&o.geometry.dispose(); o.material&&o.material.dispose&&o.material.dispose(); }); _bejGrp=null; } }
 function _bejParams(){
   const hi=+($("#bejHost")?$("#bejHost").value:activeLayer), gv=$("#bejGem")?$("#bejGem").value:"d:round"; let gem=null, gemLayer=-1;
   if(gv.indexOf("d:")===0){ const V=id=>+($("#"+id)?$("#"+id).value:0); const a=[V("bejTable")||57,V("bejCrown")||34.5,V("bejPav")||40.8,V("bejGirdle")||3,Math.round(V("bejSym")||8)]; const key=gv+"|"+a.join(",");
@@ -11387,7 +11391,7 @@ function refreshBejewel(){
   const mm=TM.bejewel(p.host,p.gem,{size:p.size,lift:p.lift,where:p.where,maxInst:3000});
   _bejGrp=new THREE.Group(); const gm=_ghostMesh(mm); gm.material.color.set(0xdff6ff); gm.material.opacity=0.95; _bejGrp.add(gm);
   const eg=new THREE.EdgesGeometry(gm.geometry,20); _bejGrp.add(new THREE.LineSegments(eg,new THREE.LineBasicMaterial({color:0x35c0ff,transparent:true,opacity:0.55})));
-  scene.add(_bejGrp);
+  scene.add(_bejGrp); if($("#bejHide")&&$("#bejHide").checked) _latHostHide(p.hostLayer);
   if(el) el.textContent=mm.bejewel.count+" gem"+(mm.bejewel.count!==1?"s":"")+" · "+mm.faces.length+" facets"+(mm.bejewel.capped?" (preview capped — Bake sets all "+mm.bejewel.sites+")":"");
 }
 function bakeBejewel(){
@@ -11396,7 +11400,9 @@ function bakeBejewel(){
   if(!p.gem||!p.gem.faces.length||p.gemLayer===p.hostLayer){ toast&&toast("Pick a gem (diamond cut or another layer)",true); return; }
   const mm=TM.bejewel(p.host,p.gem,{size:p.size,lift:p.lift,where:p.where,maxInst:8000});
   if(!mm.faces.length){ toast&&toast("No gems placed",true); return; }
+  const _hostL=layers[p.hostLayer], _hide=$("#bejHide")&&$("#bejHide").checked;
   _bejClear(); addLayer(mm,false);
+  if(_hide&&_hostL&&_hostL!==layers[activeLayer]){ _hostL.visible=false; renderInactiveLayers&&renderInactiveLayers(); }
   if(layers[activeLayer]) layers[activeLayer].name="Gems · "+(p.cut.indexOf("d:")===0?(TM.GEM_CUTS[p.cut.slice(2)]||"gem"):"layer");
   renderLayerList&&renderLayerList();
   toast&&toast("Set "+mm.bejewel.count+" gems on a new layer"+(mm.bejewel.capped?" (capped 8000)":""));
@@ -11535,12 +11541,13 @@ $("#snapToggle")&&$("#snapToggle").addEventListener("click",()=>{ snapToGrid=!sn
       '<div class="param"><label>Host shape — layer</label><select id="bejHost">'+optsHTML+'</select></div>'+
       '<div class="param"><label>Gem size</label><input type="range" id="bejSize" min="0.1" max="1.6" step="0.01" value="0.75"><output id="bejSizeV">0.75</output></div>'+
       '<div class="param"><label>Lift (seat depth)</label><input type="range" id="bejLift" min="-0.6" max="0.6" step="0.01" value="0"><output id="bejLiftV">0.00</output></div>'+
+      '<div class="param"><label class="chk"><input type="checkbox" id="bejHide" checked> Hide base shape</label></div>'+
       '<div id="bejInfo" style="padding:2px 12px 6px;color:#8fce9b;font-size:11px;line-height:1.4"></div>'+
       '<div style="padding:4px 12px 10px"><button id="bejBake" class="mkbtn" style="width:100%">Bake gems to new layer</button></div>';
     $("#bejHost").value=String(activeLayer);
     ["bejSize","bejLift","bejTable","bejCrown","bejPav","bejGirdle","bejSym"].forEach(id=>$("#"+id).addEventListener("input",()=>{ const v=+$("#"+id).value; $("#"+id+"V").textContent=(id==="bejSym"?String(v):(id==="bejSize"||id==="bejLift"?v.toFixed(2):String(v))); refreshBejewel(); }));
     const _bejSync=()=>{ const d=$("#bejGem").value.indexOf("d:")===0; $$(".bejDia").forEach(r=>r.style.display=d?"":"none"); }; $("#bejGem").addEventListener("change",_bejSync); _bejSync();
-    ["#bejGem","#bejWhere","#bejHost"].forEach(id=>$(id).addEventListener("change",refreshBejewel));
+    ["#bejGem","#bejWhere","#bejHost","#bejHide"].forEach(id=>$(id).addEventListener("change",refreshBejewel));
     $("#bejBake").addEventListener("click",bakeBejewel);
     refreshBejewel();
     $("#hint").textContent="Bejewel: pick a gem and host, scale the gems. Apply bakes them to their own layer.";
@@ -16039,8 +16046,12 @@ window.__shot={ load(m){ mesh={verts:m.verts.map(v=>v.slice()),faces:m.faces.map
   function chev(headId,get,set,key,cls){ const h=document.getElementById(headId); if(!h) return;
     const c=document.createElement("button"); c.className="secChev"; c.type="button"; c.title="Collapse / expand"; h.insertBefore(c,h.firstChild);
     c.innerHTML='<svg viewBox="0 0 14 14"><path d="M2 4.5h10L7 10.5Z" fill="currentColor"/></svg>'; const paint=()=>{ c.classList.toggle("shut",get()); B.classList.toggle(cls,get()); };
-    const flip=e=>{ if(e.target.closest("button")&&e.target!==c) return; e.stopPropagation(); set(!get()); try{ localStorage.setItem(key,get()?"1":"0"); }catch(_){} paint(); place(); };
-    h.addEventListener("click",flip); h.style.cursor="pointer"; paint(); }
+    const flip=e=>{ const bt=e.target.closest("button"); if(bt&&bt!==c) return; e.stopPropagation(); set(!get()); try{ localStorage.setItem(key,get()?"1":"0"); }catch(_){} paint(); place(); };
+    let dn=null, last=0; const go=e=>{ const n=Date.now(); if(n-last<350) return; last=n; flip(e); };
+    h.addEventListener("pointerdown",e=>{ dn={x:e.clientX,y:e.clientY,t:Date.now()}; if(e.target.closest(".secChev")) e.stopPropagation(); },true);
+    h.addEventListener("pointerup",e=>{ if(!dn) return; const ok=Math.hypot(e.clientX-dn.x,e.clientY-dn.y)<10&&Date.now()-dn.t<600; dn=null; if(ok) go(e); },true);
+    h.addEventListener("click",e=>{ if(e.target.closest(".secChev")||e.target===h||e.target.tagName==="SPAN") go(e); });   /* keyboard / fallback */
+    h.style.cursor="pointer"; paint(); }
   chev("layersHead",()=>cA,v=>cA=v,"tmColA","layCol"); chev("modHead",()=>cB,v=>cB=v,"tmColB","modCol");
   let pend=0; const re=()=>{ if(pend) return; pend=requestAnimationFrame(()=>{ pend=0; place(); }); };
   ["layerList","modList"].forEach(id=>{ const e=document.getElementById(id); if(e) new MutationObserver(re).observe(e,{childList:true,subtree:true}); });
