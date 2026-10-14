@@ -39,6 +39,7 @@ body:has(#amxDemo) #eqPanel{bottom:112px}
 #amxCursor.click::after{animation:amxRipple .45s ease-out}
 @keyframes amxRipple{0%{transform:scale(.6);opacity:.9}100%{transform:scale(2.2);opacity:0}}
 
+body.tbDock #toolbar .tgrp[data-label="TrueForm"],#toolbar .tgrp[data-label="TrueForm"]{display:none!important}
 </style>
 <!--
   HTML5 reimplementation of TopMod (Akleman et al., Texas A&M).
@@ -1153,6 +1154,10 @@ html.inApp [data-act="fullscreen"],html.inApp [data-act="shortcuts"],html.inApp 
       <div class="mi" data-op="loopPick">Face Loops — click faces to select their loops</div>
       <div class="mi" data-op="rindSel">Rind — remove selected faces (crust with slots)</div>
       <div class="mi" data-act="cloth">Cloth — inflate · drape · hang in the wind (XPBD)</div>
+      <div class="mi" data-act="physics">Physics — fall · collide · grab &amp; throw</div>
+      <div class="mi" data-act="melt">Melt — slump · drip · pool</div>
+      <div class="mi" data-act="aero">Aero — wind tunnel streamlines &amp; pressure</div>
+      <div class="mi" data-act="fea">FEA — stress &amp; deflection</div>
     </div></div>
     <div class="menu"><span class="mtitle">Tools</span><div class="mlist">
       <div class="mi" data-op="insertEdge">Insert Edge</div>
@@ -1273,6 +1278,10 @@ html.inApp [data-act="fullscreen"],html.inApp [data-act="shortcuts"],html.inApp 
         <button class="tb" data-op="loopPick" title="Face Loops — click a face to select its whole quad loop (TopMod “Select Face Loop”); the loop runs across the edge nearest your click. Then Rind removes them"><img class="ticon" alt="Loops"><span class="tlbl">Loops</span></button>
         <button class="tb" data-op="rindSel" title="Rind — thicken into a crust and remove the selected faces (slots), like the TopMod look demo"><img class="ticon" alt="Rind"><span class="tlbl">Rind</span></button>
         <button class="tb" data-act="cloth" title="Cloth — XPBD fabric: Inflate the form like a pillow, Drape a sheet over it, or Hang it from pinned points in the wind. Bake keeps the frame; Record exports an OBJ sequence"><svg width="22" height="22" viewBox="0 0 22 22"><path d="M3 5c3 2 5-1 8 0s5 2 8 0v9c-3 2-5-1-8 0s-5 2-8 0Z" fill="rgba(143,183,255,.35)" stroke="#00E5FF" stroke-width="1.3"/><path d="M7 6v9M11 5v10M15 6v9" stroke="#8fb7ff" stroke-width=".8"/></svg><span class="tlbl">Cloth</span></button>
+        <button class="tb" data-act="physics" title="Physics — rigid bodies: layers (or their loose pieces) fall, tumble and collide on the ground; grab any piece to drag it and let go to throw; Bake keeps the frame"><svg width="22" height="22" viewBox="0 0 22 22"><path d="M2 19h18" stroke="#8fb7ff" stroke-width="1.2"/><rect x="4" y="12" width="6" height="6" rx="1" fill="rgba(143,183,255,.35)" stroke="#00E5FF" stroke-width="1.2" transform="rotate(-12 7 15)"/><circle cx="15" cy="7" r="3.2" fill="rgba(143,183,255,.35)" stroke="#00E5FF" stroke-width="1.2"/><path d="M15 12v3M13.5 13.5l1.5 1.5 1.5-1.5" stroke="#8fb7ff" stroke-width=".9" fill="none"/></svg><span class="tlbl">Physics</span></button>
+        <button class="tb" data-act="melt" title="Melt — the form softens, slumps under gravity, drips and pools out on the ground; Bake keeps the frame"><svg width="22" height="22" viewBox="0 0 22 22"><path d="M5 4h12v6c0 2-1 3-1 5s1 3 0 3-1-2-2-2-1 3-3 3-1-3-2-3-1 2-2 2 0-2 0-4-2-2-2-4Z" fill="rgba(255,167,51,.35)" stroke="#00E5FF" stroke-width="1.2"/><path d="M2 20h18" stroke="#8fb7ff" stroke-width="1.2"/></svg><span class="tlbl">Melt</span></button>
+        <button class="tb" data-act="aero" title="Aero — wind tunnel: streamlines coloured by speed and surface pressure (potential flow on a voxel grid with a wake model)"><svg width="22" height="22" viewBox="0 0 22 22"><path d="M2 6c5 0 7 3 11 3s5-2 7-2M2 11c6 0 8 2 12 2s4-1 6-1M2 16c5 0 7-2 11-2s5 2 7 2" stroke="#00E5FF" stroke-width="1.2" fill="none"/><path d="M9 9.5c1.5-2 4-2 5.5 0s-1 3.5-2.8 3.5S7.5 11.5 9 9.5Z" fill="rgba(255,167,51,.45)" stroke="#8fb7ff" stroke-width=".9"/></svg><span class="tlbl">Aero</span></button>
+        <button class="tb" data-act="fea" title="FEA — finite-element stress analysis: von Mises stress colours and exaggerated deflection, with material, load and safety factor"><svg width="22" height="22" viewBox="0 0 22 22"><path d="M3 18h16M5 18V8l6-4 6 4v10" stroke="#00E5FF" stroke-width="1.2" fill="rgba(143,183,255,.18)"/><path d="M5 12l6-3 6 3M5 15l6-3 6 3" stroke="#ff6b6b" stroke-width=".9" fill="none"/><path d="M11 1v3M9.6 2.6 11 4l1.4-1.4" stroke="#ffd166" stroke-width="1" fill="none"/></svg><span class="tlbl">FEA</span></button>
         <button class="tb" data-op="crease" title="Crease — OpenSubdiv semi-sharp creases: edit the control cage (pick edges, set sharpness 0–10, drag cage points) while seeing the subdivided surface"><img class="ticon" alt="Crease"><span class="tlbl">Crease</span></button>
         <button class="tb" data-op="doosabin" title="Doo-Sabin"><img class="ticon" alt="Doo-Sabin"><span class="tlbl">DooSabin</span></button>
         <button class="tb" data-op="loop" title="Loop subdivision"><img class="ticon" alt="Loop"><span class="tlbl">Loop</span></button>
@@ -15485,6 +15494,424 @@ window.__ek={applyWhole:applyWhole,ops:ops,snapshot:snapshot,rebuild:rebuild,toa
   document.querySelectorAll('[data-act="cloth"]').forEach(el=>el.addEventListener("click",e=>{ e.stopPropagation(); document.querySelectorAll("#menubar .menu.open").forEach(m=>m.classList.remove("open")); open(); }));
 })();
 
+// ---------- Physics: rigid bodies (layers / loose pieces) fall, tumble, collide — grab, drag and throw them ----------
+(function(){
+  const C={gravity:1, bounce:0.35, friction:0.5, split:true, height:0, playing:false};
+  let B=[], grp=null, ctl=null, raf=0, floorY=0, hidden=null, grab=null, lastT=0;
+  const $=s=>document.querySelector(s);
+  const V=THREE.Vector3, tmp=new V(), tmp2=new V();
+  function pieces(m){ // connected components by shared vertices
+    const n=m.verts.length, par=new Int32Array(n).map((_,i)=>i), f=i=>{ while(par[i]!==i){ par[i]=par[par[i]]; i=par[i]; } return i; };
+    for(const F of m.faces) for(let k=1;k<F.length;k++){ const a=f(F[0]), b=f(F[k]); if(a!==b) par[a]=b; }
+    const G=new Map(); m.faces.forEach(F=>{ if(!F.length) return; const r=f(F[0]); if(!G.has(r)) G.set(r,[]); G.get(r).push(F); });
+    return [...G.values()].map(fs=>{ const map=new Map(), verts=[], faces=fs.map(F=>F.map(i=>{ if(!map.has(i)){ map.set(i,verts.length); verts.push(m.verts[i].slice()); } return map.get(i); })); return {verts,faces}; });
+  }
+  function mkBody(m,color){
+    let c=[0,0,0]; for(const v of m.verts){ c[0]+=v[0]; c[1]+=v[1]; c[2]+=v[2]; } c=c.map(x=>x/m.verts.length);
+    const loc=m.verts.map(v=>[v[0]-c[0],v[1]-c[1],v[2]-c[2]]); let r=1e-4; for(const l of loc) r=Math.max(r,Math.hypot(l[0],l[1],l[2]));
+    // contact samples: up to 80 hull-ish points (farthest along many directions)
+    const S=[]; if(loc.length<=80) S.push(...loc); else { const seen=new Set(); for(let i=0;i<120;i++){ const z=1-2*(i+0.5)/120, a=i*2.39996, q=Math.sqrt(1-z*z), d=[q*Math.cos(a),z,q*Math.sin(a)]; let bi=0,bd=-1e30; loc.forEach((l,j)=>{ const t=l[0]*d[0]+l[1]*d[1]+l[2]*d[2]; if(t>bd){bd=t;bi=j;} }); if(!seen.has(bi)){ seen.add(bi); S.push(loc[bi]); } } }
+    const g=new THREE.BufferGeometry(), pos=[]; for(const F of m.faces) for(let k=1;k<F.length-1;k++) for(const vi of [F[0],F[k],F[k+1]]){ const l=loc[vi]; pos.push(l[0],l[1],l[2]); }
+    g.setAttribute("position",new THREE.Float32BufferAttribute(pos,3)); g.computeVertexNormals();
+    const mat=new THREE.MeshStandardMaterial({color,metalness:0.15,roughness:0.55,flatShading:true});
+    const ob=new THREE.Mesh(g,mat); const eg=new THREE.LineSegments(new THREE.EdgesGeometry(g,25),new THREE.LineBasicMaterial({color:0x061018,transparent:true,opacity:0.6})); ob.add(eg);
+    ob.position.set(c[0],c[1],c[2]);
+    const mass=Math.max(1e-3,r*r*r);
+    return {ob, loc, S:S.map(s=>new V(s[0],s[1],s[2])), r, rc:r*0.72, m:mass, I:0.4*mass*r*r, x:new V(c[0],c[1],c[2]), v:new V(), w:new V(), q:new THREE.Quaternion(), x0:new V(c[0],c[1],c[2]), sleep:0, faces:m.faces};
+  }
+  function build(){
+    clearBodies();
+    const src=[]; layers.forEach((L,i)=>{ if(!L||L.visible===false) return; const em=(typeof layerEval==="function")?layerEval(L):L.mesh; if(em&&em.faces&&em.faces.length) src.push({m:em,i}); });
+    if(!src.length){ toast&&toast("Physics: nothing visible to simulate",true); return; }
+    grp=new THREE.Group(); scene.add(grp);
+    const pal=[0xffa733,0x35c0ff,0xff5d8f,0x9be15d,0xc49bff,0xffd166];
+    let n=0;
+    for(const s of src){ const parts=C.split?pieces(s.m):[s.m]; for(const p of parts){ if(n>=500) break; if(p.verts.length<3) continue; const b=mkBody(p,s.i===activeLayer&&parts.length===1?0xffa733:pal[(n+s.i)%pal.length]); b.layer=s.i; B.push(b); grp.add(b.ob); n++; } }
+    let mn=Infinity; for(const b of B) for(const l of b.loc) mn=Math.min(mn,l[1]+b.x.y);
+    floorY=(typeof grid!=="undefined"&&grid)?Math.min(grid.position.y,mn):mn;
+    if(C.height>0) B.forEach(b=>{ b.x.y+=C.height; b.x0.y+=C.height; });
+    // hide the originals while simulating
+    hidden={layers:layers.map(L=>L&&L.visible)}; [meshObj,edgeObj,pointObj].forEach(o=>{ if(o) o.visible=false; });
+    layers.forEach((L,i)=>{ if(L&&i!==activeLayer) L.visible=false; }); renderInactiveLayers&&renderInactiveLayers();
+    sync(); stats();
+  }
+  function clearBodies(){ if(grp){ scene.remove(grp); grp.traverse(o=>{ o.geometry&&o.geometry.dispose(); o.material&&o.material.dispose&&o.material.dispose(); }); grp=null; } B=[]; }
+  function restore(){ if(!hidden) return; layers.forEach((L,i)=>{ if(L&&hidden.layers[i]!=null) L.visible=hidden.layers[i]; }); hidden=null; [meshObj,edgeObj,pointObj].forEach(o=>{ if(o) o.visible=true; }); renderInactiveLayers&&renderInactiveLayers(); try{ rebuild(); }catch(e){} }
+  function sync(){ for(const b of B){ b.ob.position.copy(b.x); b.ob.quaternion.copy(b.q); } }
+  const rW=new V(), vP=new V(), cr=new V();
+  function impulse(b,r,J){ b.v.addScaledVector(J,1/b.m); cr.crossVectors(r,J); b.w.addScaledVector(cr,1/b.I); }
+  function step(dt){
+    const g=-9.8*C.gravity*0.35, e=C.bounce, mu=C.friction;
+    for(const b of B){ if(b===(grab&&grab.b)) continue; b.v.y+=g*dt; b.v.multiplyScalar(0.999); b.w.multiplyScalar(0.995); }
+    if(grab){ const b=grab.b; tmp.copy(grab.local).applyQuaternion(b.q).add(b.x); tmp2.subVectors(grab.target,tmp); b.v.copy(tmp2).multiplyScalar(14); rW.copy(tmp).sub(b.x); b.w.multiplyScalar(0.85); grab.vel.lerp(b.v,0.35); }
+    // body-body (spheres, spatial hash)
+    const cell=Math.max(0.2,...B.map(b=>b.rc))*2, H=new Map(), key=(i,j,k)=>i+","+j+","+k;
+    B.forEach((b,idx)=>{ const k=key(Math.floor(b.x.x/cell),Math.floor(b.x.y/cell),Math.floor(b.x.z/cell)); if(!H.has(k)) H.set(k,[]); H.get(k).push(idx); });
+    B.forEach((a,ia)=>{ const ci=Math.floor(a.x.x/cell), cj=Math.floor(a.x.y/cell), ck=Math.floor(a.x.z/cell);
+      for(let di=-1;di<=1;di++)for(let dj=-1;dj<=1;dj++)for(let dk=-1;dk<=1;dk++){ const L=H.get(key(ci+di,cj+dj,ck+dk)); if(!L) continue;
+        for(const ib of L){ if(ib<=ia) continue; const b=B[ib]; tmp.subVectors(b.x,a.x); const d=tmp.length(), R=a.rc+b.rc; if(d>=R||d<1e-6) continue;
+          const n=tmp.multiplyScalar(1/d), pen=R-d, ia_=1/a.m, ib_=1/b.m, sum=ia_+ib_;
+          a.x.addScaledVector(n,-pen*ia_/sum); b.x.addScaledVector(n,pen*ib_/sum);
+          const vn=tmp2.subVectors(b.v,a.v).dot(n); if(vn<0){ const j=-(1+e)*vn/sum; a.v.addScaledVector(n,-j*ia_); b.v.addScaledVector(n,j*ib_);
+            const sp=(a.r+b.r)*0.05; a.w.x+=(Math.random()-0.5)*j*sp; b.w.z+=(Math.random()-0.5)*j*sp; } } } });
+    // ground contacts (sample points)
+    for(const b of B){
+      for(let it=0;it<2;it++){ let deep=0, hit=null;
+        for(const s of b.S){ rW.copy(s).applyQuaternion(b.q); const py=b.x.y+rW.y; if(py<floorY){ const d=floorY-py; if(d>deep){ deep=d; hit=rW.clone(); } } }
+        if(!hit) break;
+        b.x.y+=deep;
+        vP.crossVectors(b.w,hit).add(b.v); const vn=vP.y;
+        if(vn<0){ const rn=new V().crossVectors(hit,new V(0,1,0)); const jn=-(1+(Math.abs(vn)<0.4?0:e))*vn/(1/b.m+rn.lengthSq()/b.I);
+          impulse(b,hit,new V(0,jn,0));
+          vP.crossVectors(b.w,hit).add(b.v); const vt=new V(vP.x,0,vP.z), vtl=vt.length();
+          if(vtl>1e-6){ const t=vt.multiplyScalar(1/vtl); const rt=new V().crossVectors(hit,t); const jt=Math.min(mu*jn, vtl/(1/b.m+rt.lengthSq()/b.I)); impulse(b,hit,t.multiplyScalar(-jt)); } }
+      }
+    }
+    for(const b of B){ b.x.addScaledVector(b.v,dt); const wl=b.w.length(); if(wl>1e-8){ const dq=new THREE.Quaternion().setFromAxisAngle(tmp.copy(b.w).multiplyScalar(1/wl),wl*dt); b.q.premultiply(dq).normalize(); }
+      if(b.x.y<floorY-50){ b.x.copy(b.x0); b.v.set(0,0,0); b.w.set(0,0,0); } }
+  }
+  function loop(t){ raf=requestAnimationFrame(loop); const dt=Math.min(0.033,lastT?(t-lastT)/1000:0.016); lastT=t; if(C.playing||grab){ const n=4; for(let i=0;i<n;i++) step(dt/n); sync(); } }
+  function play(){ if(!B.length) build(); C.playing=true; ui(); }
+  function pause(){ C.playing=false; ui(); }
+  function reset(){ const was=C.playing; C.playing=false; restore(); build(); C.playing=was; ui(); }
+  function explode(){ if(!B.length) build(); let c=new V(); B.forEach(b=>c.add(b.x)); c.multiplyScalar(1/B.length); B.forEach(b=>{ tmp.subVectors(b.x,c); if(tmp.lengthSq()<1e-6) tmp.set(Math.random()-0.5,0.5,Math.random()-0.5); tmp.normalize(); b.v.addScaledVector(tmp,4).y+=3; b.w.set((Math.random()-0.5)*8,(Math.random()-0.5)*8,(Math.random()-0.5)*8); }); play(); }
+  function toss(){ if(!B.length) build(); B.forEach(b=>{ b.v.y+=5+Math.random()*2; b.w.set((Math.random()-0.5)*6,(Math.random()-0.5)*6,(Math.random()-0.5)*6); }); play(); }
+  function bake(){
+    if(!B.length){ toast&&toast("Physics: press Play first",true); return; }
+    const verts=[], faces=[]; for(const b of B){ const o=verts.length; for(const l of b.loc){ tmp.set(l[0],l[1],l[2]).applyQuaternion(b.q).add(b.x); verts.push([tmp.x,tmp.y,tmp.z]); } for(const F of b.faces) faces.push(F.map(i=>i+o)); }
+    C.playing=false; clearBodies(); restore();
+    addLayer({verts,faces},false); if(layers[activeLayer]) layers[activeLayer].name="Physics "+layers[activeLayer].id; renderLayerList&&renderLayerList();
+    toast&&toast("Baked the current frame to a new layer"); build(); ui();
+  }
+  // ---- grab / drag / throw ----
+  const ray=new THREE.Raycaster(), ndc=new THREE.Vector2();
+  function pick(cx,cy){ if(!grp) return null; const r=canvas.getBoundingClientRect(); ndc.set((cx-r.left)/r.width*2-1,-(cy-r.top)/r.height*2+1); ray.setFromCamera(ndc,camera);
+    const hits=ray.intersectObjects(B.map(b=>b.ob),false); if(!hits.length) return null; const h=hits[0], b=B.find(x=>x.ob===h.object);
+    const n=new V(); camera.getWorldDirection(n); const plane=new THREE.Plane().setFromNormalAndCoplanarPoint(n,h.point);
+    const local=h.point.clone().sub(b.x).applyQuaternion(b.q.clone().invert());
+    return {b, plane, local, target:h.point.clone(), vel:new V()}; }
+  function move(cx,cy){ if(!grab) return; const r=canvas.getBoundingClientRect(); ndc.set((cx-r.left)/r.width*2-1,-(cy-r.top)/r.height*2+1); ray.setFromCamera(ndc,camera); const p=new V(); if(ray.ray.intersectPlane(grab.plane,p)){ if(p.y<floorY+0.05) p.y=floorY+0.05; grab.target.copy(p); } }
+  function release(){ if(!grab) return; const b=grab.b; b.v.copy(grab.vel).clampLength(0,30); grab=null; if(!C.playing){ C.playing=true; ui(); } }
+  const active=()=>!!(ctl&&ctl.isConnected&&grp);
+  addEventListener("pointerdown",e=>{ if(e.pointerType==="touch"||e.target!==canvas||!active()||e.button!==0) return; const g=pick(e.clientX,e.clientY); if(!g) return; grab=g; e.stopImmediatePropagation(); e.preventDefault(); },true);
+  addEventListener("pointermove",e=>{ if(grab&&e.pointerType!=="touch"){ move(e.clientX,e.clientY); e.stopImmediatePropagation(); } },true);
+  addEventListener("pointerup",e=>{ if(grab&&e.pointerType!=="touch"){ release(); e.stopImmediatePropagation(); } },true);
+  addEventListener("touchstart",e=>{ if(e.target!==canvas||!active()||e.touches.length!==1) return; const t=e.touches[0], g=pick(t.clientX,t.clientY); if(!g) return; grab=g; e.stopImmediatePropagation(); e.preventDefault(); },{capture:true,passive:false});
+  addEventListener("touchmove",e=>{ if(!grab) return; const t=e.touches[0]; if(t) move(t.clientX,t.clientY); e.stopImmediatePropagation(); e.preventDefault(); },{capture:true,passive:false});
+  addEventListener("touchend",e=>{ if(!grab) return; release(); e.stopImmediatePropagation(); },{capture:true});
+  // ---- UI ----
+  function slider(id,label,min,max,st,key){ return '<label class="clR"><span>'+label+'</span><input type="range" id="'+id+'" min="'+min+'" max="'+max+'" step="'+st+'" data-k="'+key+'"><em id="'+id+'V"></em></label>'; }
+  function buildUI(){ if(ctl) return ctl; ctl=document.createElement("div"); ctl.id="phCtl";
+    ctl.innerHTML='<style>#phCtl{font:12px var(--font,system-ui);color:#dbe8f3;display:flex;flex-direction:column;gap:7px}#phCtl .clR{display:grid;grid-template-columns:78px 1fr 34px;align-items:center;gap:6px}#phCtl .clR em{font-style:normal;color:#8fd8ff;text-align:right}#phCtl input[type=range]{width:100%}#phCtl .clB{display:flex;gap:5px;flex-wrap:wrap}#phCtl .clB button{flex:1;min-width:58px;padding:7px 4px;border-radius:7px;border:1px solid #2a4a5a;background:#0f2430;color:#bff3ff;font:600 11.5px var(--font,system-ui);cursor:pointer}#phCtl .clB button.pri{background:#00E5FF;border-color:#00E5FF;color:#04121a}#phCtl .clS{color:#8fa6b8;font-size:11px;line-height:1.4}#phCtl .clC{display:flex;align-items:center;gap:6px}</style>'
+      +'<div class="clS">Grab any piece to drag it — let go to throw.</div>'
+      +slider("phGrav","Gravity",0,3,0.05,"gravity")+slider("phBounce","Bounce",0,0.95,0.01,"bounce")+slider("phFric","Friction",0,1.2,0.01,"friction")+slider("phH","Drop height",0,6,0.1,"height")
+      +'<label class="clC"><input type="checkbox" id="phSplit"> Split layers into loose pieces</label>'
+      +'<div class="clB"><button id="phPlay" class="pri">▶ Play</button><button id="phReset">↺ Reset</button></div>'
+      +'<div class="clB"><button id="phToss">Toss</button><button id="phBoom">Explode</button><button id="phBake">Bake</button></div><div class="clS" id="phStats"></div>';
+    ctl.querySelectorAll("input[type=range]").forEach(r=>r.oninput=()=>{ C[r.dataset.k]=+r.value; ui(); if(r.dataset.k==="height") reset(); });
+    ctl.querySelector("#phSplit").onchange=e=>{ C.split=e.target.checked; reset(); };
+    ctl.querySelector("#phPlay").onclick=()=>C.playing?pause():play();
+    ctl.querySelector("#phReset").onclick=reset; ctl.querySelector("#phToss").onclick=toss; ctl.querySelector("#phBoom").onclick=explode; ctl.querySelector("#phBake").onclick=bake;
+    return ctl; }
+  function ui(){ if(!ctl) return; ctl.querySelectorAll("input[type=range]").forEach(r=>{ r.value=C[r.dataset.k]; const e=ctl.querySelector("#"+r.id+"V"); if(e) e.textContent=(+C[r.dataset.k]).toFixed(2).replace(/\.?0+$/,"")||"0"; });
+    ctl.querySelector("#phSplit").checked=C.split; ctl.querySelector("#phPlay").textContent=C.playing?"❚❚ Pause":"▶ Play"; stats(); }
+  function stats(){ const el=ctl&&ctl.querySelector("#phStats"); if(el) el.textContent=B.length+" bod"+(B.length===1?"y":"ies")+" · floor y "+floorY.toFixed(2); }
+  function open(){ buildUI(); const body=$("#tpBody"); if(!body) return;
+    try{ if(tpState&&tpState.op!=="physics") closeToolPop(); }catch(e){}
+    body.innerHTML=""; body.appendChild(ctl); $("#tpTitle").textContent="Physics — rigid bodies"; $("#tpApply")&&($("#tpApply").style.display="none");
+    const pop=$("#toolpop"); pop.classList.remove("hiddenPanel","empty"); $("#optionsToggle")&&$("#optionsToggle").classList.add("on");
+    tpState={op:"physics",btn:null,moved:[]}; build(); C.playing=true; ui(); if(!raf){ lastT=0; raf=requestAnimationFrame(loop); }
+    $("#hint")&&($("#hint").textContent="Physics: pieces fall and collide. Grab one to drag, release to throw. Bake keeps the frame."); }
+  function close(){ C.playing=false; grab=null; cancelAnimationFrame(raf); raf=0; clearBodies(); restore(); }
+  new MutationObserver(()=>{ if(ctl&&!ctl.isConnected&&(grp||raf)) { close(); try{ $("#tpApply")&&($("#tpApply").style.display=""); }catch(e){} } }).observe(document.body,{childList:true,subtree:true});
+  window.__physics={open,close,play,pause,reset,bake,explode,toss,cfg:C,get bodies(){ return B; },_step:step};
+  document.querySelectorAll('[data-act="physics"]').forEach(el=>el.addEventListener("click",e=>{ e.stopPropagation(); document.querySelectorAll("#menubar .menu.open").forEach(m=>m.classList.remove("open")); open(); }));
+})();
+
+// ---------- Melt: the form softens, slumps under gravity, drips and pools out on the ground ----------
+(function(){
+  const C={heat:1, visc:0.35, spread:0.6, drips:0.5, detail:1, playing:false};
+  let S=null, obj=null, ctl=null, raf=0, lastT=0, hid=false;
+  const $=s=>document.querySelector(s);
+  function src(){ const base=(typeof dispMesh==="function")?dispMesh():mesh; return base&&base.verts.length?base:null; }
+  function build(){
+    stopObj(); const b=src(); if(!b){ toast&&toast("Melt: nothing to melt",true); return; }
+    let m={verts:b.verts.map(v=>v.slice()),faces:b.faces.map(f=>f.slice())};
+    const lin=M=>{ const V=M.verts.map(v=>v.slice()), E=new Map(), F=[]; const mid=(a,b)=>{ const k=a<b?a+"_"+b:b+"_"+a; if(!E.has(k)){ E.set(k,V.length); V.push([(V[a][0]+V[b][0])/2,(V[a][1]+V[b][1])/2,(V[a][2]+V[b][2])/2]); } return E.get(k); };
+      for(const f of M.faces){ const c=[0,0,0]; for(const i of f){ c[0]+=M.verts[i][0]/f.length; c[1]+=M.verts[i][1]/f.length; c[2]+=M.verts[i][2]/f.length; } const ci=V.length; V.push(c);
+        for(let k=0;k<f.length;k++){ const a=f[k], pr=f[(k+f.length-1)%f.length], nx=f[(k+1)%f.length]; F.push([a,mid(a,nx),ci,mid(pr,a)]); } } return {verts:V,faces:F}; };   /* shape-preserving split */
+    for(let i=0;(i<C.detail||m.verts.length<1500) && m.verts.length<7000 && i<7;i++) m=lin(m);
+    const n=m.verts.length, P=new Float32Array(n*3), V=new Float32Array(n*3), F=new Float32Array(n), nb=Array.from({length:n},()=>new Set());
+    m.verts.forEach((v,i)=>{ P[i*3]=v[0]; P[i*3+1]=v[1]; P[i*3+2]=v[2]; });
+    for(const f of m.faces) for(let k=0;k<f.length;k++){ const a=f[k], c=f[(k+1)%f.length]; nb[a].add(c); nb[c].add(a); }
+    let mnY=Infinity,mxY=-Infinity,cx=0,cz=0; for(let i=0;i<n;i++){ mnY=Math.min(mnY,P[i*3+1]); mxY=Math.max(mxY,P[i*3+1]); cx+=P[i*3]; cz+=P[i*3+2]; }
+    const floor=(typeof grid!=="undefined"&&grid)?Math.min(grid.position.y,mnY):mnY, H=Math.max(1e-3,mxY-floor);
+    const sn=(x,z)=>Math.sin(x*3.1+Math.sin(z*1.7)*2)*Math.sin(z*2.3+Math.cos(x*1.3)*2);   // smooth streak noise → coherent drips
+    const L0=new Float32Array(n); for(let i=0;i<n;i++){ const h0=(P[i*3+1]-mnY)/Math.max(1e-6,mxY-mnY); L0[i]=h0; F[i]=0.6+C.drips*1.6*Math.max(0,sn(P[i*3]*2/H,P[i*3+2]*2/H))+0.15*Math.random(); }
+    const tris=[]; for(const f of m.faces) for(let k=1;k<f.length-1;k++) tris.push(f[0],f[k],f[k+1]);
+    S={n, P, V, F, L0, nb:nb.map(s=>[...s]), floor, H, cx:cx/n, cz:cz/n, t:0, faces:m.faces, P0:P.slice()};
+    const g=new THREE.BufferGeometry(); g.setAttribute("position",new THREE.BufferAttribute(P,3)); g.setIndex(tris); g.computeVertexNormals();
+    obj=new THREE.Mesh(g,new THREE.MeshStandardMaterial({color:0xffa733,metalness:0.1,roughness:0.35,side:THREE.DoubleSide})); scene.add(obj);
+    [meshObj,edgeObj,pointObj].forEach(o=>{ if(o) o.visible=false; }); hid=true; stats();
+  }
+  function stopObj(){ if(obj){ scene.remove(obj); obj.geometry.dispose(); obj.material.dispose(); obj=null; } S=null; }
+  function restore(){ if(!hid) return; hid=false; [meshObj,edgeObj,pointObj].forEach(o=>{ if(o) o.visible=true; }); }
+  function step(dt){
+    const {n,P,V,F,L0,nb,floor,H}=S; S.t+=dt; const ramp=Math.min(1,S.t*0.35*C.heat), g=-1.1*C.heat*ramp, T=0.16*H/(0.6+C.spread*0.5);
+    const decay=Math.exp(-S.t*0.25);   // the puddle slows and sets
+    for(let i=0;i<n;i++){ const soft=Math.min(1,Math.max(0,(ramp*1.25-(1-L0[i])*0.6)));    // top softens first
+      V[i*3+1]+=g*F[i]*soft*dt; V[i*3]*=0.92; V[i*3+2]*=0.92; V[i*3+1]*=0.97; }
+    for(let i=0;i<n;i++){ P[i*3]+=V[i*3]*dt; P[i*3+1]+=V[i*3+1]*dt; P[i*3+2]+=V[i*3+2]*dt; }
+    const k=Math.min(0.5,0.05+C.visc*0.35);
+    const lap=(w,wy)=>{ const Q=P.slice(); for(let i=0;i<n;i++){ const N=nb[i]; if(!N.length) continue; let ax=0,ay=0,az=0; for(const j of N){ ax+=Q[j*3]; ay+=Q[j*3+1]; az+=Q[j*3+2]; } const l=N.length;
+      P[i*3]+=(ax/l-Q[i*3])*w; P[i*3+1]+=(ay/l-Q[i*3+1])*w*wy; P[i*3+2]+=(az/l-Q[i*3+2])*w; } };
+    lap(k,0.6); lap(-(k+0.02),0.6);   /* Taubin λ|μ: smooths the skin without shrinking it */
+    for(let i=0;i<n;i++){ const lim=floor+0.002+T*L0[i];          // stacked rest height keeps a puddle with thickness
+      if(P[i*3+1]<lim){ const sp=Math.max(0,-V[i*3+1]); P[i*3+1]=lim; V[i*3+1]=0; let dx=P[i*3]-S.cx, dz=P[i*3+2]-S.cz; const d=Math.hypot(dx,dz)||1;
+        const push=(sp*0.6+0.3*decay*C.heat)*C.spread*dt*H*(1.3-L0[i]*0.7); P[i*3]+=dx/d*push; P[i*3+2]+=dz/d*push; } }
+  }
+  function loop(t){ raf=requestAnimationFrame(loop); const dt=Math.min(0.033,lastT?(t-lastT)/1000:0.016); lastT=t; if(!C.playing||!S) return;
+    for(let i=0;i<3;i++) step(dt/3); obj.geometry.attributes.position.needsUpdate=true; obj.geometry.computeVertexNormals(); }
+  function play(){ if(!S) build(); C.playing=true; ui(); }
+  function pause(){ C.playing=false; ui(); }
+  function reset(){ const was=C.playing; C.playing=false; build(); C.playing=was; ui(); }
+  function bake(){ if(!S){ toast&&toast("Melt: press Play first",true); return; }
+    const verts=[]; for(let i=0;i<S.n;i++) verts.push([S.P[i*3],S.P[i*3+1],S.P[i*3+2]]); const faces=S.faces.map(f=>f.slice());
+    C.playing=false; stopObj(); restore(); addLayer({verts,faces},false); if(layers[activeLayer]) layers[activeLayer].name="Melt "+layers[activeLayer].id; renderLayerList&&renderLayerList();
+    toast&&toast("Baked the melted frame to a new layer"); ui(); }
+  function slider(id,label,min,max,st,key){ return '<label class="clR"><span>'+label+'</span><input type="range" id="'+id+'" min="'+min+'" max="'+max+'" step="'+st+'" data-k="'+key+'"><em id="'+id+'V"></em></label>'; }
+  function buildUI(){ if(ctl) return ctl; ctl=document.createElement("div"); ctl.id="mtCtl";
+    ctl.innerHTML='<style>#mtCtl{font:12px var(--font,system-ui);color:#dbe8f3;display:flex;flex-direction:column;gap:7px}#mtCtl .clR{display:grid;grid-template-columns:78px 1fr 34px;align-items:center;gap:6px}#mtCtl .clR em{font-style:normal;color:#8fd8ff;text-align:right}#mtCtl input[type=range]{width:100%}#mtCtl .clB{display:flex;gap:5px}#mtCtl .clB button{flex:1;padding:7px 4px;border-radius:7px;border:1px solid #2a4a5a;background:#0f2430;color:#bff3ff;font:600 11.5px var(--font,system-ui);cursor:pointer}#mtCtl .clB button.pri{background:#00E5FF;border-color:#00E5FF;color:#04121a}#mtCtl .clS{color:#8fa6b8;font-size:11px;line-height:1.4}</style>'
+      +slider("mtHeat","Heat",0.1,3,0.05,"heat")+slider("mtVisc","Viscosity",0,1,0.01,"visc")+slider("mtSpread","Spread",0,2,0.05,"spread")+slider("mtDrip","Drips",0,1,0.01,"drips")+slider("mtDet","Detail ×",0,3,1,"detail")
+      +'<div class="clB"><button id="mtPlay" class="pri">▶ Play</button><button id="mtReset">↺ Reset</button><button id="mtBake">Bake</button></div><div class="clS" id="mtStats"></div>';
+    ctl.querySelectorAll("input[type=range]").forEach(r=>r.oninput=()=>{ C[r.dataset.k]=+r.value; ui(); if(r.dataset.k==="detail"||r.dataset.k==="drips") reset(); });
+    ctl.querySelector("#mtPlay").onclick=()=>C.playing?pause():play(); ctl.querySelector("#mtReset").onclick=reset; ctl.querySelector("#mtBake").onclick=bake; return ctl; }
+  function ui(){ if(!ctl) return; ctl.querySelectorAll("input[type=range]").forEach(r=>{ r.value=C[r.dataset.k]; const e=ctl.querySelector("#"+r.id+"V"); if(e) e.textContent=(+C[r.dataset.k]).toFixed(2).replace(/\.?0+$/,"")||"0"; });
+    ctl.querySelector("#mtPlay").textContent=C.playing?"❚❚ Pause":"▶ Play"; stats(); }
+  function stats(){ const el=ctl&&ctl.querySelector("#mtStats"); if(el) el.textContent=S?S.n.toLocaleString()+" vertices · Bake keeps the current frame":"Press Play to melt the form."; }
+  function open(){ buildUI(); const body=$("#tpBody"); if(!body) return;
+    try{ if(tpState&&tpState.op!=="melt") closeToolPop(); }catch(e){}
+    body.innerHTML=""; body.appendChild(ctl); $("#tpTitle").textContent="Melt"; $("#tpApply")&&($("#tpApply").style.display="none");
+    const pop=$("#toolpop"); pop.classList.remove("hiddenPanel","empty"); $("#optionsToggle")&&$("#optionsToggle").classList.add("on");
+    tpState={op:"melt",btn:null,moved:[]}; build(); C.playing=true; ui(); if(!raf){ lastT=0; raf=requestAnimationFrame(loop); }
+    $("#hint")&&($("#hint").textContent="Melt: the form slumps, drips and pools. Pause on the frame you like and Bake."); }
+  function close(){ C.playing=false; cancelAnimationFrame(raf); raf=0; stopObj(); restore(); }
+  new MutationObserver(()=>{ if(ctl&&!ctl.isConnected&&(S||raf)){ close(); try{ $("#tpApply")&&($("#tpApply").style.display=""); }catch(e){} } }).observe(document.body,{childList:true,subtree:true});
+  window.__melt={open,close,play,pause,reset,bake,cfg:C,get sim(){ return S; }};
+  document.querySelectorAll('[data-act="melt"]').forEach(el=>el.addEventListener("click",e=>{ e.stopPropagation(); document.querySelectorAll("#menubar .menu.open").forEach(m=>m.classList.remove("open")); open(); }));
+})();
+
+// ---------- Aero + FEA (Simulate). In-browser solvers: potential flow on a voxel grid with a wake model (Aero),
+//            and linear-elastic 8-node hexahedral finite elements on a voxelized solid (FEA). Approximations for design feedback.
+(function(){
+  const $=s=>document.querySelector(s);
+  function srcMesh(){ const vis=layers.filter(L=>L&&L.visible!==false).map(L=>(typeof layerEval==="function")?layerEval(L):L.mesh).filter(m=>m&&m.faces&&m.faces.length); return vis.length===1?vis[0]:(vis.length?TM.mergeMeshes(vis):null); }
+  function bbox(m){ const mn=[1e30,1e30,1e30], mx=[-1e30,-1e30,-1e30]; for(const v of m.verts) for(let i=0;i<3;i++){ if(v[i]<mn[i]) mn[i]=v[i]; if(v[i]>mx[i]) mx[i]=v[i]; } return {mn,mx}; }
+  // column ray-parity voxelizer: solid[i + nx*(j + ny*k)], cell centres at o + (i+.5)*cs
+  function voxelize(m,o,cs,nx,ny,nz){
+    const S=new Uint8Array(nx*ny*nz), cols=Array.from({length:nx*nz},()=>[]), T=[];
+    for(const f of m.faces) for(let k=1;k<f.length-1;k++) T.push([m.verts[f[0]],m.verts[f[k]],m.verts[f[k+1]]]);
+    T.forEach((t,ti)=>{ const x0=Math.min(t[0][0],t[1][0],t[2][0]), x1=Math.max(t[0][0],t[1][0],t[2][0]), z0=Math.min(t[0][2],t[1][2],t[2][2]), z1=Math.max(t[0][2],t[1][2],t[2][2]);
+      const i0=Math.max(0,Math.floor((x0-o[0])/cs-0.5)), i1=Math.min(nx-1,Math.ceil((x1-o[0])/cs-0.5)), k0=Math.max(0,Math.floor((z0-o[2])/cs-0.5)), k1=Math.min(nz-1,Math.ceil((z1-o[2])/cs-0.5));
+      for(let i=i0;i<=i1;i++) for(let k=k0;k<=k1;k++) cols[i+nx*k].push(ti); });
+    for(let i=0;i<nx;i++) for(let k=0;k<nz;k++){ const px=o[0]+(i+0.5)*cs+1e-5, pz=o[2]+(k+0.5)*cs+1.3e-5, hits=[];
+      for(const ti of cols[i+nx*k]){ const [a,b,c]=T[ti]; const d=(b[2]-c[2])*(a[0]-c[0])+(c[0]-b[0])*(a[2]-c[2]); if(Math.abs(d)<1e-14) continue;
+        const l1=((b[2]-c[2])*(px-c[0])+(c[0]-b[0])*(pz-c[2]))/d, l2=((c[2]-a[2])*(px-c[0])+(a[0]-c[0])*(pz-c[2]))/d, l3=1-l1-l2; if(l1<0||l2<0||l3<0) continue; hits.push(l1*a[1]+l2*b[1]+l3*c[1]); }
+      hits.sort((p,q)=>p-q); for(let h=0;h+1<hits.length;h+=2){ const j0=Math.max(0,Math.ceil((hits[h]-o[1])/cs-0.5)), j1=Math.min(ny-1,Math.floor((hits[h+1]-o[1])/cs-0.5)); for(let j=j0;j<=j1;j++) S[i+nx*(j+ny*k)]=1; } }
+    return S;
+  }
+  function hideModel(on){ [meshObj,edgeObj,pointObj].forEach(o=>{ if(o) o.visible=!on; }); }
+  const css='<style>.smCtl{font:12px var(--font,system-ui);color:#dbe8f3;display:flex;flex-direction:column;gap:7px}.smCtl .clR{display:grid;grid-template-columns:84px 1fr 40px;align-items:center;gap:6px}.smCtl .clR em{font-style:normal;color:#8fd8ff;text-align:right}.smCtl input[type=range]{width:100%}.smCtl select{background:#0a1118;color:#e6fff1;border:1px solid #1f3340;border-radius:5px;padding:3px}.smCtl .clB{display:flex;gap:5px}.smCtl .clB button{flex:1;padding:7px 4px;border-radius:7px;border:1px solid #2a4a5a;background:#0f2430;color:#bff3ff;font:600 11.5px var(--font,system-ui);cursor:pointer}.smCtl .clB button.pri{background:#00E5FF;border-color:#00E5FF;color:#04121a}.smCtl .clS{color:#8fa6b8;font-size:11px;line-height:1.45}.smCtl .clC{display:flex;align-items:center;gap:6px}.smCtl .leg{height:9px;border-radius:4px}</style>';
+  const sl=(id,label,min,max,st,v)=>'<label class="clR"><span>'+label+'</span><input type="range" id="'+id+'" min="'+min+'" max="'+max+'" step="'+st+'" value="'+v+'"><em id="'+id+'V">'+v+'</em></label>';
+  function openPanel(op,title,html,onClose){
+    const body=$("#tpBody"); if(!body) return null; try{ if(tpState&&tpState.op!==op) closeToolPop(); }catch(e){}
+    const ctl=document.createElement("div"); ctl.className="smCtl"; ctl.innerHTML=css+html; body.innerHTML=""; body.appendChild(ctl);
+    $("#tpTitle").textContent=title; $("#tpApply")&&($("#tpApply").style.display="none");
+    const pop=$("#toolpop"); pop.classList.remove("hiddenPanel","empty"); $("#optionsToggle")&&$("#optionsToggle").classList.add("on");
+    tpState={op,btn:null,moved:[]};
+    ctl.querySelectorAll("input[type=range]").forEach(r=>r.addEventListener("input",()=>{ const e=ctl.querySelector("#"+r.id+"V"); if(e) e.textContent=r.value; }));
+    const mo=new MutationObserver(()=>{ if(!ctl.isConnected){ mo.disconnect(); try{ $("#tpApply")&&($("#tpApply").style.display=""); }catch(e){} onClose(); } }); mo.observe(document.body,{childList:true,subtree:true});
+    return ctl;
+  }
+  const rainbow=(t,c)=>{ t=Math.max(0,Math.min(1,t)); c.setHSL(t*0.78,0.95,0.55); return c; };   // red (slow) → yellow → green → blue → violet (fast)
+  const heat=(t,c)=>{ t=Math.max(0,Math.min(1,t)); c.setHSL((1-t)*0.66,0.95,0.5); return c; };   // blue (low) → red (high)
+
+  // =====================================================================  AERO
+  const A={grp:null,ctl:null,raf:0,busy:false,mat:null,t0:0};
+  function aeroClear(){ if(A.grp){ scene.remove(A.grp); A.grp.traverse(o=>{ o.geometry&&o.geometry.dispose(); o.material&&o.material.dispose&&o.material.dispose(); }); A.grp=null; } cancelAnimationFrame(A.raf); A.raf=0; hideModel(false); }
+  function aeroRun(){
+    if(A.busy) return; const m0=srcMesh(); if(!m0){ toast&&toast("Aero: nothing visible",true); return; }
+    const ctl=A.ctl, dir=ctl.querySelector("#aeDir").value, res=+ctl.querySelector("#aeRes").value, nLines=+ctl.querySelector("#aeLines").value, turb=+ctl.querySelector("#aeTurb").value;
+    // rotate the model so the wind blows along +x
+    const R={"+x":v=>[v[0],v[1],v[2]], "-x":v=>[-v[0],v[1],-v[2]], "+z":v=>[v[2],v[1],-v[0]], "-z":v=>[-v[2],v[1],v[0]]}[dir], Ri={"+x":v=>[v[0],v[1],v[2]], "-x":v=>[-v[0],v[1],-v[2]], "+z":v=>[-v[2],v[1],v[0]], "-z":v=>[v[2],v[1],-v[0]]}[dir];
+    const m={verts:m0.verts.map(R),faces:m0.faces}; const b=bbox(m), L=Math.max(b.mx[0]-b.mn[0],b.mx[1]-b.mn[1],b.mx[2]-b.mn[2],1e-3);
+    const floorY=(typeof grid!=="undefined"&&grid)?Math.min(grid.position.y,b.mn[1]):b.mn[1];
+    const o=[b.mn[0]-0.9*L, floorY, b.mn[2]-0.8*L], ext=[(b.mx[0]-b.mn[0])+3.2*L, (b.mx[1]-floorY)+0.9*L, (b.mx[2]-b.mn[2])+1.6*L];
+    const cs=ext[0]/res, nx=res, ny=Math.max(8,Math.ceil(ext[1]/cs)), nz=Math.max(8,Math.ceil(ext[2]/cs)), N=nx*ny*nz, id=(i,j,k)=>i+nx*(j+ny*k);
+    A.busy=true; const st=ctl.querySelector("#aeStats"); st.textContent="Voxelizing "+nx+"×"+ny+"×"+nz+"…";
+    setTimeout(()=>{
+      const S=voxelize(m,o,cs,nx,ny,nz); let solid=0; for(let i=0;i<N;i++) solid+=S[i];
+      // potential φ: Dirichlet φ=x at inlet/outlet, Neumann on solid, ground and side walls
+      const P=new Float32Array(N); for(let k=0;k<nz;k++) for(let j=0;j<ny;j++) for(let i=0;i<nx;i++) P[id(i,j,k)]=(i+0.5)*cs;
+      let it=0; const ITER=Math.round(220+res*3);
+      const sweep=()=>{ const w=1.85; for(let n=0;n<12;n++,it++){ for(let c=0;c<2;c++) for(let k=0;k<nz;k++) for(let j=0;j<ny;j++) for(let i=1+((j+k+c)&1);i<nx-1;i+=2){ const q=id(i,j,k); if(S[q]) continue;
+          const p=P[q]; let s=0,cnt=0; const nb=(ii,jj,kk)=>{ if(jj<0||jj>=ny||kk<0||kk>=nz){ s+=p; cnt++; return; } const r=id(ii,jj,kk); s+=S[r]?p:P[r]; cnt++; };
+          nb(i-1,j,k); nb(i+1,j,k); nb(i,j-1,k); nb(i,j+1,k); nb(i,j,k-1); nb(i,j,k+1); P[q]=p+w*(s/cnt-p); } }
+        st.textContent="Solving flow… "+Math.min(100,Math.round(it/ITER*100))+"%"; if(it<ITER) setTimeout(sweep,0); else finish(); };
+      const finish=()=>{
+        // velocity on cell centres
+        const VX=new Float32Array(N), VY=new Float32Array(N), VZ=new Float32Array(N); const g=(i,j,k,q)=>{ i=Math.max(0,Math.min(nx-1,i)); j=Math.max(0,Math.min(ny-1,j)); k=Math.max(0,Math.min(nz-1,k)); const r=id(i,j,k); return S[r]?P[q]:P[r]; };
+        for(let k=0;k<nz;k++) for(let j=0;j<ny;j++) for(let i=0;i<nx;i++){ const q=id(i,j,k); if(S[q]) continue; VX[q]=(g(i+1,j,k,q)-g(i-1,j,k,q))/(2*cs); VY[q]=(g(i,j+1,k,q)-g(i,j-1,k,q))/(2*cs); VZ[q]=(g(i,j,k+1,q)-g(i,j,k-1,q))/(2*cs); }
+        // wake: behind the last solid cell of each (j,k) column the flow slows and swirls
+        const xe=new Float32Array(ny*nz).fill(-1); for(let k=0;k<nz;k++) for(let j=0;j<ny;j++) for(let i=nx-1;i>=0;i--) if(S[id(i,j,k)]){ xe[j+ny*k]=i; break; }
+        const xb=new Float32Array(ny*nz); for(let k=0;k<nz;k++) for(let j=0;j<ny;j++){ let best=-1, wsum=0, acc=0; for(let dk=-2;dk<=2;dk++) for(let dj=-2;dj<=2;dj++){ const jj=j+dj, kk=k+dk; if(jj<0||jj>=ny||kk<0||kk>=nz) continue; const e=xe[jj+ny*kk]; const w=1/(1+dj*dj+dk*dk); if(e>=0){ acc+=w; best=Math.max(best,e); } wsum+=w; } xb[j+ny*k]=best>=0?best+acc/wsum:-1; }
+        const samp=(x,y,z,out)=>{ const fi=(x-o[0])/cs-0.5, fj=(y-o[1])/cs-0.5, fk=(z-o[2])/cs-0.5; let i=Math.floor(fi), j=Math.floor(fj), k=Math.floor(fk); const tx=fi-i, ty=fj-j, tz=fk-k; let vx=0,vy=0,vz=0,ws=0;
+          for(let c=0;c<8;c++){ const ii=i+(c&1), jj=j+((c>>1)&1), kk=k+((c>>2)&1); if(ii<0||jj<0||kk<0||ii>=nx||jj>=ny||kk>=nz) continue; const q=id(ii,jj,kk); if(S[q]) continue; const w=((c&1)?tx:1-tx)*((c&2)?ty:1-ty)*((c&4)?tz:1-tz); vx+=VX[q]*w; vy+=VY[q]*w; vz+=VZ[q]*w; ws+=w; }
+          if(ws<1e-6){ out[0]=out[1]=out[2]=0; return 0; } vx/=ws; vy/=ws; vz/=ws;
+          const jc=Math.max(0,Math.min(ny-1,Math.round(fj))), kc=Math.max(0,Math.min(nz-1,Math.round(fk))), e=xb[jc+ny*kc];
+          if(e>=0 && fi>e-1){ const d=(fi-e)*cs/L, f=Math.exp(-d*1.1)*(0.55+0.45*Math.min(1,e/nx*3)); vx*=1-0.7*f;
+            const ph=x*5.3/L, s=turb*f; vy+=s*Math.sin(ph+z*7/L)*0.6+s*0.25*(y>b.mx[1]-0.3*L?-1:0.5); vz+=s*Math.cos(ph*1.3+y*6/L)*0.6; }
+          out[0]=vx; out[1]=vy; out[2]=vz; return ws; };
+        // streamlines from an inlet rake
+        const grpT=new THREE.Group(), pos=[], col=[], arc=[], c=new THREE.Color(), v=[0,0,0];
+        const cy0=floorY+0.03*L, cy1=b.mx[1]+0.35*L, cz0=b.mn[2]-0.35*L, cz1=b.mx[2]+0.35*L, rows=Math.max(3,Math.round(Math.sqrt(nLines*(cy1-cy0)/(cz1-cz0)))), cols_=Math.max(3,Math.round(nLines/rows));
+        let maxS=0; const lines=[];
+        for(let r=0;r<rows;r++) for(let q=0;q<cols_;q++){ let p=[o[0]+cs*1.5, cy0+(cy1-cy0)*(r+0.5+0.3*(Math.random()-0.5))/rows, cz0+(cz1-cz0)*(q+0.5+0.3*(Math.random()-0.5))/cols_]; const pts=[p.slice()], sp=[]; let s=0;
+          for(let n=0;n<900;n++){ if(!samp(p[0],p[1],p[2],v)) break; const h=cs*0.6/Math.max(0.15,Math.hypot(v[0],v[1],v[2])); const mid=[p[0]+v[0]*h/2,p[1]+v[1]*h/2,p[2]+v[2]*h/2], v2=[0,0,0]; if(!samp(mid[0],mid[1],mid[2],v2)) break;
+            p=[p[0]+v2[0]*h,p[1]+v2[1]*h,p[2]+v2[2]*h]; if(p[1]<floorY+0.005) p[1]=floorY+0.005; const spd=Math.hypot(v2[0],v2[1],v2[2]); maxS=Math.max(maxS,spd); sp.push(spd); pts.push(p.slice()); if(p[0]>o[0]+ext[0]-cs*1.5) break; }
+          lines.push({pts,sp}); }
+        for(const ln of lines){ let s=0; for(let n=1;n<ln.pts.length;n++){ const a=Ri(ln.pts[n-1]), bb=Ri(ln.pts[n]); const t=ln.sp[n-1]/1.35; rainbow(t,c); pos.push(a[0],a[1],a[2],bb[0],bb[1],bb[2]); col.push(c.r,c.g,c.b,c.r,c.g,c.b); const dl=Math.hypot(bb[0]-a[0],bb[1]-a[1],bb[2]-a[2]); arc.push(s/L,(s+dl)/L); s+=dl; } }
+        const gl=new THREE.BufferGeometry(); gl.setAttribute("position",new THREE.Float32BufferAttribute(pos,3)); gl.setAttribute("color",new THREE.Float32BufferAttribute(col,3)); gl.setAttribute("arc",new THREE.Float32BufferAttribute(arc,1));
+        A.mat=new THREE.ShaderMaterial({transparent:true,depthWrite:false,uniforms:{uT:{value:0},uA:{value:ctl.querySelector("#aeAnim").checked?1:0}},
+          vertexShader:"attribute float arc; varying float vA; varying vec3 vC; void main(){ vA=arc; vC=color; gl_Position=projectionMatrix*modelViewMatrix*vec4(position,1.0); }",
+          fragmentShader:"uniform float uT; uniform float uA; varying float vA; varying vec3 vC; void main(){ float p=fract(vA*1.6-uT*0.55); float a=mix(0.85, 0.25+0.75*smoothstep(0.0,0.08,p)*(1.0-smoothstep(0.35,1.0,p)), uA); gl_FragColor=vec4(vC*(0.75+0.5*a),a); }",
+          vertexColors:true});
+        grpT.add(new THREE.LineSegments(gl,A.mat));
+        // surface pressure: Cp = 1 - |v|²/U², sampled just outside each vertex
+        if(ctl.querySelector("#aeCp").checked){ const vn=m.verts.map(()=>[0,0,0]); for(const f of m.faces){ let n=[0,0,0]; for(let i=0;i<f.length;i++){ const a=m.verts[f[i]], q=m.verts[f[(i+1)%f.length]]; n[0]+=(a[1]-q[1])*(a[2]+q[2]); n[1]+=(a[2]-q[2])*(a[0]+q[0]); n[2]+=(a[0]-q[0])*(a[1]+q[1]); } for(const i of f){ vn[i][0]+=n[0]; vn[i][1]+=n[1]; vn[i][2]+=n[2]; } }
+          const gm=new THREE.BufferGeometry(), pp=[], cc=[]; const cpv=m.verts.map((p,i)=>{ const n=vn[i], l=Math.hypot(n[0],n[1],n[2])||1; const q=[p[0]+n[0]/l*cs*1.1,p[1]+n[1]/l*cs*1.1,p[2]+n[2]/l*cs*1.1]; samp(q[0],q[1],q[2],v); return 1-(v[0]*v[0]+v[1]*v[1]+v[2]*v[2]); });
+          for(const f of m.faces) for(let k=1;k<f.length-1;k++) for(const i of [f[0],f[k],f[k+1]]){ const w=Ri(m.verts[i]); pp.push(w[0],w[1],w[2]); heat((cpv[i]+1)/2,c); cc.push(c.r,c.g,c.b); }
+          gm.setAttribute("position",new THREE.Float32BufferAttribute(pp,3)); gm.setAttribute("color",new THREE.Float32BufferAttribute(cc,3)); gm.computeVertexNormals();
+          grpT.add(new THREE.Mesh(gm,new THREE.MeshLambertMaterial({vertexColors:true,side:THREE.DoubleSide}))); hideModel(true); }
+        aeroClear(); if(ctl.querySelector("#aeCp").checked) hideModel(true); A.grp=grpT; scene.add(grpT);
+        let fa=0; { const seen=new Set(); for(let k=0;k<nz;k++) for(let j=0;j<ny;j++) for(let i=0;i<nx;i++) if(S[id(i,j,k)]){ seen.add(j+ny*k); break; } fa=seen.size*cs*cs; }
+        st.innerHTML=lines.length+" streamlines · grid "+nx+"×"+ny+"×"+nz+" ("+solid+" solid cells)<br>Frontal area ≈ "+fa.toFixed(2)+" in² · peak speed "+maxS.toFixed(2)+"× wind<div class=\"leg\" style=\"background:linear-gradient(90deg,hsl(0,95%,55%),hsl(60,95%,55%),hsl(120,95%,55%),hsl(200,95%,55%),hsl(280,95%,55%))\"></div><span>slow · wake</span><span style=\"float:right\">fast</span>"+(ctl.querySelector("#aeCp").checked?"<div class=\"leg\" style=\"margin-top:5px;background:linear-gradient(90deg,hsl(238,95%,50%),hsl(120,95%,50%),hsl(0,95%,50%))\"></div><span>suction</span><span style=\"float:right\">pressure</span>":"");
+        A.busy=false; A.t0=performance.now(); const tick=t=>{ A.raf=requestAnimationFrame(tick); if(A.mat) A.mat.uniforms.uT.value=(t-A.t0)/1000; }; A.raf=requestAnimationFrame(tick);
+      };
+      sweep();
+    },30);
+  }
+  function aeroOpen(){
+    A.ctl=openPanel("aero","Aero — wind tunnel",
+      '<div class="clS">Potential-flow solve on a voxel grid with a wake model — quick design feedback, not a CFD certification.</div>'
+      +'<label class="clR"><span>Wind from</span><select id="aeDir"><option value="+x">−X → +X</option><option value="-x">+X → −X</option><option value="+z">−Z → +Z</option><option value="-z">+Z → −Z</option></select><em></em></label>'
+      +sl("aeRes","Resolution",32,110,2,64)+sl("aeLines","Streamlines",40,600,10,220)+sl("aeTurb","Wake swirl",0,1,0.01,0.45)
+      +'<label class="clC"><input type="checkbox" id="aeCp" checked> Surface pressure (Cp)</label><label class="clC"><input type="checkbox" id="aeAnim" checked> Animate flow</label>'
+      +'<div class="clB"><button id="aeRun" class="pri">▶ Run</button><button id="aeClr">Clear</button></div><div class="clS" id="aeStats"></div>', ()=>{ aeroClear(); A.ctl=null; });
+    if(!A.ctl) return;
+    A.ctl.querySelector("#aeRun").onclick=aeroRun; A.ctl.querySelector("#aeClr").onclick=aeroClear;
+    A.ctl.querySelector("#aeAnim").onchange=e=>{ if(A.mat) A.mat.uniforms.uA.value=e.target.checked?1:0; };
+    ["#aeDir","#aeCp"].forEach(s=>A.ctl.querySelector(s).addEventListener("change",aeroRun));
+    $("#hint")&&($("#hint").textContent="Aero: streamlines show the air around your model — colour = speed. Surface colour = pressure.");
+    aeroRun();
+  }
+
+  // =====================================================================  FEA
+  const MAT={pla:{n:"PLA",E:3.5e9,nu:0.36,rho:1240,Y:50e6}, abs:{n:"ABS",E:2.1e9,nu:0.35,rho:1050,Y:40e6}, petg:{n:"PETG",E:2.1e9,nu:0.38,rho:1270,Y:50e6},
+    al:{n:"Aluminum 6061",E:69e9,nu:0.33,rho:2700,Y:276e6}, steel:{n:"Steel (mild)",E:200e9,nu:0.3,rho:7850,Y:250e6}, ply:{n:"Plywood",E:9e9,nu:0.3,rho:600,Y:30e6}, oak:{n:"Oak",E:11e9,nu:0.3,rho:750,Y:40e6}, conc:{n:"Concrete",E:30e9,nu:0.2,rho:2400,Y:3e6}};
+  function hexKE(nu){ // unit cube, E=1 — 2×2×2 Gauss
+    const D=[[1-nu,nu,nu,0,0,0],[nu,1-nu,nu,0,0,0],[nu,nu,1-nu,0,0,0],[0,0,0,(1-2*nu)/2,0,0],[0,0,0,0,(1-2*nu)/2,0],[0,0,0,0,0,(1-2*nu)/2]].map(r=>r.map(x=>x/((1+nu)*(1-2*nu))));
+    const sg=[[-1,-1,-1],[1,-1,-1],[1,1,-1],[-1,1,-1],[-1,-1,1],[1,-1,1],[1,1,1],[-1,1,1]], g=1/Math.sqrt(3), K=Array.from({length:24},()=>new Float64Array(24));
+    const Bat=(x,y,z)=>{ const B=Array.from({length:6},()=>new Float64Array(24)); for(let a=0;a<8;a++){ const [sx,sy,sz]=sg[a]; const dx=sx*(1+sy*y)*(1+sz*z)/8*2, dy=sy*(1+sx*x)*(1+sz*z)/8*2, dz=sz*(1+sx*x)*(1+sy*y)/8*2;   // ∂N/∂x with J = ½ I (unit cube)
+        B[0][a*3]=dx; B[1][a*3+1]=dy; B[2][a*3+2]=dz; B[3][a*3]=dy; B[3][a*3+1]=dx; B[4][a*3+1]=dz; B[4][a*3+2]=dy; B[5][a*3]=dz; B[5][a*3+2]=dx; } return B; };
+    for(const x of [-g,g]) for(const y of [-g,g]) for(const z of [-g,g]){ const B=Bat(x,y,z), DB=D.map(r=>{ const o=new Float64Array(24); for(let c=0;c<24;c++){ let s=0; for(let k=0;k<6;k++) s+=r[k]*B[k][c]; o[c]=s; } return o; });
+      for(let r=0;r<24;r++) for(let c=0;c<24;c++){ let s=0; for(let k=0;k<6;k++) s+=B[k][r]*DB[k][c]; K[r][c]+=s/8; } }   // det J = 1/8, weights 1
+    return {K, D, B0:Bat(0,0,0), sg};
+  }
+  const F={grp:null,ctl:null,busy:false,res:null};
+  function feaClear(){ if(F.grp){ scene.remove(F.grp); F.grp.traverse(o=>{ o.geometry&&o.geometry.dispose(); o.material&&o.material.dispose&&o.material.dispose(); }); F.grp=null; } hideModel(false); }
+  function feaRun(){
+    if(F.busy) return; const m=srcMesh(); if(!m){ toast&&toast("FEA: nothing visible",true); return; }
+    const ctl=F.ctl, mat=MAT[ctl.querySelector("#feMat").value], res=+ctl.querySelector("#feRes").value, loadKg=+ctl.querySelector("#feLoad").value, ltype=ctl.querySelector("#feLtype").value, unit=+ctl.querySelector("#feUnit").value;
+    const b=bbox(m), size=[b.mx[0]-b.mn[0],b.mx[1]-b.mn[1],b.mx[2]-b.mn[2]], Lm=Math.max(...size,1e-3), cs=Lm/res;
+    const nx=Math.max(1,Math.ceil(size[0]/cs)), ny=Math.max(1,Math.ceil(size[1]/cs)), nz=Math.max(1,Math.ceil(size[2]/cs)), o=[b.mn[0]-(nx*cs-size[0])/2, b.mn[1], b.mn[2]-(nz*cs-size[2])/2];
+    F.busy=true; const st=ctl.querySelector("#feStats"); st.textContent="Voxelizing…";
+    setTimeout(()=>{
+      const S=voxelize(m,o,cs,nx,ny,nz), eid=(i,j,k)=>i+nx*(j+ny*k), NX=nx+1, NY=ny+1, NZ=nz+1, nid=(i,j,k)=>i+NX*(j+NY*k), nN=NX*NY*NZ;
+      const E=[]; for(let k=0;k<nz;k++) for(let j=0;j<ny;j++) for(let i=0;i<nx;i++) if(S[eid(i,j,k)]) E.push([i,j,k]);
+      if(!E.length){ st.textContent="No solid found — is the mesh closed?"; F.busy=false; return; }
+      const {K,D,B0,sg}=hexKE(mat.nu), h=cs*unit*0.0254, kScale=mat.E*h;   // metres
+      const conn=E.map(([i,j,k])=>sg.map(([sx,sy,sz])=>nid(i+(sx>0),j+(sy>0),k+(sz>0))));
+      const used=new Uint8Array(nN); conn.forEach(c=>c.forEach(n=>used[n]=1));
+      // supports: nodes on the lowest solid layer
+      let jmin=1e9; for(const e of E) jmin=Math.min(jmin,e[1]); const fixed=new Uint8Array(nN*3); for(const [i,j,k] of E) if(j===jmin) for(const [sx,,sz] of sg) { const n=nid(i+(sx>0),j,k+(sz>0)); fixed[n*3]=fixed[n*3+1]=fixed[n*3+2]=1; }
+      // loads (N): self-weight + chosen load
+      const Fv=new Float64Array(nN*3), g=9.81, wE=mat.rho*h*h*h*g; for(const c of conn) for(const n of c) Fv[n*3+1]-=wE/8;
+      if(loadKg>0){ const W=loadKg*g; const top=new Set(), side=new Set(); const colTop=new Map(); for(const [i,j,k] of E){ const key=i+","+k; if(!colTop.has(key)||colTop.get(key)<j) colTop.set(key,j); }
+        if(ltype==="top"){ for(const [key,j] of colTop){ const [i,k]=key.split(",").map(Number); for(const [sx,,sz] of sg) top.add(nid(i+(sx>0),j+1,k+(sz>0))); } const w=W/top.size; top.forEach(n=>Fv[n*3+1]-=w); }
+        else if(ltype==="side"){ for(const [i,j,k] of E){ if(j<=jmin) continue; if(i===0||!S[eid(i-1,j,k)]) for(const [,sy,sz] of sg) side.add(nid(i,j+(sy>0),k+(sz>0))); } const w=W/Math.max(1,side.size); side.forEach(n=>Fv[n*3]+=w); }
+        else if(ltype==="tip"){ let best=null; for(const [i,j,k] of E) if(!best||j>best[1]||(j===best[1]&&i>best[0])) best=[i,j,k]; const n=nid(best[0]+1,best[1]+1,best[2]); Fv[n*3+1]-=W; } }
+      const nd=nN*3, U=new Float64Array(nd), Rr=new Float64Array(nd), Z=new Float64Array(nd), Pp=new Float64Array(nd), Ap=new Float64Array(nd), Dg=new Float64Array(nd);
+      for(const c of conn) for(let a=0;a<8;a++) for(let d=0;d<3;d++) Dg[c[a]*3+d]+=K[a*3+d][a*3+d]*kScale;
+      const mul=(x,y)=>{ y.fill(0); const ue=new Float64Array(24); for(const c of conn){ for(let a=0;a<8;a++){ ue[a*3]=x[c[a]*3]; ue[a*3+1]=x[c[a]*3+1]; ue[a*3+2]=x[c[a]*3+2]; }
+          for(let r=0;r<24;r++){ const Kr=K[r]; let s=0; for(let q=0;q<24;q++) s+=Kr[q]*ue[q]; y[c[r/3|0]*3+r%3]+=s*kScale; } } for(let i=0;i<nd;i++) if(fixed[i]||!used[i/3|0]) y[i]=0; };
+      for(let i=0;i<nd;i++){ Rr[i]=(fixed[i]||!used[i/3|0])?0:Fv[i]; Z[i]=Dg[i]>0?Rr[i]/Dg[i]:0; Pp[i]=Z[i]; }
+      let rz=0, r0=0; for(let i=0;i<nd;i++){ rz+=Rr[i]*Z[i]; r0+=Rr[i]*Rr[i]; } r0=Math.sqrt(r0)||1; let it=0; const MAXI=Math.min(4000,40*res);
+      const chunk=()=>{ const t0=performance.now(); while(performance.now()-t0<40 && it<MAXI){ mul(Pp,Ap); let pAp=0; for(let i=0;i<nd;i++) pAp+=Pp[i]*Ap[i]; const al=rz/(pAp||1e-30); let rn=0;
+          for(let i=0;i<nd;i++){ U[i]+=al*Pp[i]; Rr[i]-=al*Ap[i]; rn+=Rr[i]*Rr[i]; } it++; if(Math.sqrt(rn)/r0<1e-6){ it=MAXI; break; }
+          let rz2=0; for(let i=0;i<nd;i++){ Z[i]=Dg[i]>0?Rr[i]/Dg[i]:0; rz2+=Rr[i]*Z[i]; } const be=rz2/(rz||1e-30); rz=rz2; for(let i=0;i<nd;i++) Pp[i]=Z[i]+be*Pp[i]; }
+        st.textContent="Solving "+E.length+" elements · "+(nd/1000).toFixed(1)+"k DOF… "+Math.min(100,Math.round(it/MAXI*100))+"%"; if(it<MAXI) setTimeout(chunk,0); else post(); };
+      const post=()=>{
+        // von Mises at element centres
+        const vm=new Float32Array(E.length); let vmax=0; const ue=new Float64Array(24);
+        conn.forEach((c,ei)=>{ for(let a=0;a<8;a++) for(let d=0;d<3;d++) ue[a*3+d]=U[c[a]*3+d]; const eps=B0.map(r=>{ let s=0; for(let q=0;q<24;q++) s+=r[q]*ue[q]; return s/h; }); const sg_=D.map(r=>mat.E*(r[0]*eps[0]+r[1]*eps[1]+r[2]*eps[2]+r[3]*eps[3]+r[4]*eps[4]+r[5]*eps[5]));
+          const v=Math.sqrt(0.5*((sg_[0]-sg_[1])**2+(sg_[1]-sg_[2])**2+(sg_[2]-sg_[0])**2)+3*(sg_[3]**2+sg_[4]**2+sg_[5]**2)); vm[ei]=v; if(v>vmax) vmax=v; });
+        let umax=0; for(let n=0;n<nN;n++) if(used[n]) umax=Math.max(umax,Math.hypot(U[n*3],U[n*3+1],U[n*3+2]));
+        const sorted=Array.from(vm).sort((p,q)=>p-q), v98=sorted[Math.floor(sorted.length*0.98)]||vmax||1;
+        F.res={S,E,vm,U,o,cs,nx,ny,nz,NX,NY,eid,nid,umax,vmax,v98,mat,h,unit}; F.busy=false; feaDraw();
+        const sf=mat.Y/(vmax||1), fP=x=>x>=1e6?(x/1e6).toFixed(2)+" MPa":x>=1e3?(x/1e3).toFixed(2)+" kPa":x.toFixed(1)+" Pa", fD=x=>x>=1e-3?(x*1000).toFixed(2)+" mm":(x*1e6).toFixed(1)+" µm";
+        st.innerHTML=mat.n+" · "+E.length+" elements · "+it+" CG iterations<br>Max von Mises <b>"+fP(vmax)+"</b> · max deflection <b>"+fD(umax)+"</b><br>Safety factor vs yield ("+(mat.Y/1e6)+" MPa): <b style=\"color:"+(sf<1?"#ff5d5d":sf<2?"#ffd166":"#8fce9b")+"\">"+(sf>999?">999":sf.toFixed(sf<10?2:0))+"</b>"
+          +'<div class="leg" style="margin-top:6px;background:linear-gradient(90deg,hsl(238,95%,50%),hsl(120,95%,50%),hsl(60,95%,50%),hsl(0,95%,50%))"></div><span>0</span><span style="float:right">'+fP(v98)+'</span>';
+      };
+      chunk();
+    },30);
+  }
+  function feaDraw(){
+    const R=F.res; if(!R||!F.ctl) return; const m=srcMesh(); if(!m) return; const ex=+F.ctl.querySelector("#feExag").value, c=new THREE.Color();
+    const nodeU=(x,y,z,out)=>{ const fi=(x-R.o[0])/R.cs, fj=(y-R.o[1])/R.cs, fk=(z-R.o[2])/R.cs; const i=Math.max(0,Math.min(R.nx-1,Math.floor(fi))), j=Math.max(0,Math.min(R.ny-1,Math.floor(fj))), k=Math.max(0,Math.min(R.nz-1,Math.floor(fk))); const tx=Math.max(0,Math.min(1,fi-i)), ty=Math.max(0,Math.min(1,fj-j)), tz=Math.max(0,Math.min(1,fk-k));
+      out[0]=out[1]=out[2]=0; for(let q=0;q<8;q++){ const n=R.nid(i+(q&1),j+((q>>1)&1),k+((q>>2)&1)), w=((q&1)?tx:1-tx)*((q&2)?ty:1-ty)*((q&4)?tz:1-tz); out[0]+=R.U[n*3]*w; out[1]+=R.U[n*3+1]*w; out[2]+=R.U[n*3+2]*w; } };
+    const eIndex=new Int32Array(R.nx*R.ny*R.nz).fill(-1); R.E.forEach(([i,j,k],ei)=>eIndex[R.eid(i,j,k)]=ei);
+    const stressAt=(x,y,z)=>{ const i=Math.floor((x-R.o[0])/R.cs), j=Math.floor((y-R.o[1])/R.cs), k=Math.floor((z-R.o[2])/R.cs); let best=0, bw=0;
+      for(let dk=-1;dk<=1;dk++) for(let dj=-1;dj<=1;dj++) for(let di=-1;di<=1;di++){ const ii=i+di, jj=j+dj, kk=k+dk; if(ii<0||jj<0||kk<0||ii>=R.nx||jj>=R.ny||kk>=R.nz) continue; const e=eIndex[R.eid(ii,jj,kk)]; if(e<0) continue; const w=1/(1+di*di+dj*dj+dk*dk); best+=R.vm[e]*w; bw+=w; } return bw?best/bw:0; };
+    const auto=R.umax>0?(0.08*Math.max(R.nx,R.ny,R.nz)*R.h/R.umax):0, sc=auto*ex/R.h*R.cs;   // display units per metre of displacement
+    const pos=[], col=[], u=[0,0,0];
+    for(const f of m.faces) for(let k=1;k<f.length-1;k++) for(const i of [f[0],f[k],f[k+1]]){ const p=m.verts[i]; nodeU(p[0],p[1],p[2],u); pos.push(p[0]+u[0]*sc,p[1]+u[1]*sc,p[2]+u[2]*sc); heat(stressAt(p[0],p[1],p[2])/R.v98,c); col.push(c.r,c.g,c.b); }
+    if(F.grp){ scene.remove(F.grp); F.grp.traverse(o=>{ o.geometry&&o.geometry.dispose(); o.material&&o.material.dispose&&o.material.dispose(); }); }
+    const g=new THREE.BufferGeometry(); g.setAttribute("position",new THREE.Float32BufferAttribute(pos,3)); g.setAttribute("color",new THREE.Float32BufferAttribute(col,3)); g.computeVertexNormals();
+    F.grp=new THREE.Group(); F.grp.add(new THREE.Mesh(g,new THREE.MeshLambertMaterial({vertexColors:true,side:THREE.DoubleSide})));
+    // fixed-support marker
+    const sup=new THREE.Mesh(new THREE.BoxGeometry(R.nx*R.cs*1.05,R.cs*0.25,R.nz*R.cs*1.05),new THREE.MeshBasicMaterial({color:0x8fb7ff,transparent:true,opacity:0.25})); sup.position.set(R.o[0]+R.nx*R.cs/2,R.o[1]-R.cs*0.12,R.o[2]+R.nz*R.cs/2); F.grp.add(sup);
+    scene.add(F.grp); hideModel(true);
+  }
+  function feaOpen(){
+    F.ctl=openPanel("fea","FEA — stress analysis",
+      '<div class="clS">Linear-elastic finite elements on a voxelized solid (8-node hexahedra). Base is fixed; units are inches.</div>'
+      +'<label class="clR"><span>Material</span><select id="feMat">'+Object.keys(MAT).map(k=>'<option value="'+k+'">'+MAT[k].n+'</option>').join("")+'</select><em></em></label>'
+      +'<label class="clR"><span>Load</span><select id="feLtype"><option value="top">Weight on top</option><option value="self">Self-weight only</option><option value="side">Side push</option><option value="tip">Point load at tip</option></select><em></em></label>'
+      +sl("feLoad","Load (kg)",0,500,1,20)+sl("feUnit","Scale (in/unit)",0.1,24,0.1,1)+sl("feRes","Resolution",8,32,1,16)+sl("feExag","Deform ×",0,3,0.05,1)
+      +'<div class="clB"><button id="feRun" class="pri">▶ Analyze</button><button id="feClr">Clear</button></div><div class="clS" id="feStats"></div>', ()=>{ feaClear(); F.ctl=null; F.res=null; });
+    if(!F.ctl) return;
+    F.ctl.querySelector("#feRun").onclick=feaRun; F.ctl.querySelector("#feClr").onclick=()=>{ feaClear(); F.res=null; };
+    F.ctl.querySelector("#feExag").addEventListener("input",feaDraw);
+    ["#feMat","#feLtype"].forEach(s=>F.ctl.querySelector(s).addEventListener("change",feaRun));
+    $("#hint")&&($("#hint").textContent="FEA: colours show von Mises stress, shape shows exaggerated deflection. The base touching the ground is fixed.");
+    feaRun();
+  }
+  window.__aero={open:aeroOpen,run:aeroRun,clear:aeroClear}; window.__fea={open:feaOpen,run:feaRun,clear:feaClear,get result(){ return F.res; }};
+  const wire=(act,fn)=>document.querySelectorAll('[data-act="'+act+'"]').forEach(el=>el.addEventListener("click",e=>{ e.stopPropagation(); document.querySelectorAll("#menubar .menu.open").forEach(m=>m.classList.remove("open")); fn(); }));
+  wire("aero",aeroOpen); wire("fea",feaOpen);
+})();
+
 // ---------- Docked tools column: width = up to the File menu (3 tools wide on iPhone), drag bar to resize ----------
 (function(){
   const tb=document.getElementById("toolbar"); if(!tb) return;
@@ -18421,16 +18848,16 @@ void main(){
   ["Subdivide",["Catmull","DooSabin","Loop","√3 Subd","Honey","Pentagon","Dual","Truncate"]],
   ["Edit",["Move","Scale","Array","Mirror","Ins Edge","Delete"]],
   ["Extrude",["Extrude","Dome","Pinch","Stellate","DblStell","Greeble"]],
-  ["Deform",["Twist","Bend","Taper","Bulge","Spherify","Noise","Parametric/Lattice"]],
+  ["Deform",["Twist","Bend","Taper","Bulge","Spherify","Noise"]],
+  ["Generate",["Parametric/Lattice","Blobs","Growth","Sponge","Gyroid","TPMS","Generate/Lattice","Sierp","Hybrid","Rössler","Wave","Cymatics","K=−1","Weave","Chain","Voronoi","Tree","Maze","Maze 3D","Breeze","Text"]],
+  ["Simulate",["Cloth","Physics","Melt","Aero","FEA"]],
   ["Boolean",["Union","Diff","Intersect","Split","Drill","Hull","Cut"]],
   ["Clean-up",["Edit/Heal","Fill Holes","Flip","Crease","Triangle","Quad","Simplify","Planarize","Orient","Voxel"]],
-  ["Generate",["Blobs","Growth","Sponge","Gyroid","TPMS","Generate/Lattice","Sierp","Hybrid","Rössler","Wave","Cymatics","K=−1","Weave","Chain","Voronoi","Tree","Maze","Maze 3D","Breeze","Text"]],
-  ["Gems",["Gem Cut","GEM"]],
-  ["Simulate",["Cloth"]],
+  ["Gems",["Gem Cut","GEM","Bejewel"]],
   ["Analyze",["Diagnose","Curvature","Section","Interfere","Thickness","Measure","Overhang"]],
   ["Fabricate",["Seam","Paper","Plywood","Faces","Laser","Waffle","Print","Tree Sup"]],
   ["Render",["Render"]]];
- var HIDE=["TrueForm/Heal"], RENAME={"Parametric/Lattice":"Cage"};
+ var HIDE=["TrueForm/Heal"], RENAME={"Parametric/Lattice":"Cage","Generate/Lattice":"Infill"};
  function run(){ var tb=document.getElementById("toolbar"); if(!tb) return; var row=tb.querySelector(".trow"); if(!row) return;
   var map={}; [].slice.call(tb.querySelectorAll("button.tb")).forEach(function(b){ var g=b.closest(".tgrp"), gl=g?g.getAttribute("data-label"):"", l=b.querySelector(".tlbl"), t=l?l.textContent.trim():"";
     if(!t) return; var q=gl+"/"+t; map[q]=b; if(!map[t]) map[t]=b; });
@@ -18442,6 +18869,7 @@ void main(){
   [].slice.call(row.querySelectorAll(".tgrp")).forEach(function(g){ g.removeAttribute("id"); });
   row.insertBefore(frag,row.firstChild);
   // leftovers (tools added later by other modules) stay in their old groups, after the ordered ones; empty old groups go
+  [].slice.call(row.querySelectorAll('.tgrp[data-label="TrueForm"]')).forEach(function(g){ [].slice.call(g.querySelectorAll("button.tb")).forEach(function(b){ b.style.display="none"; b.dataset.tbHidden="1"; }); g.style.display="none"; });
   [].slice.call(row.querySelectorAll(".tgrp")).forEach(function(g){ if(!g.querySelector("button.tb:not([data-tb-hidden])")) { if(g.querySelector("button.tb")){ g.style.display="none"; } else g.remove(); } });
  }
  window.__tbReorder=run;
