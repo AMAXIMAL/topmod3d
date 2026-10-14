@@ -1000,8 +1000,8 @@ html body.fullscreen.fullscreen.fullscreen.fullscreen.fullscreen.fullscreen.full
 html body.fullscreen.fullscreen.fullscreen.fullscreen.fullscreen.fullscreen.fullscreen #main{padding:0!important}
 html body.fullscreen.fullscreen.fullscreen.fullscreen.fullscreen.fullscreen.fullscreen #status{display:flex!important}
 /* the 3D view runs right up to the columns — the resize bars float over its edges instead of taking space */
-body.tbDock #main{padding-left:calc(var(--tbw,150px) + env(safe-area-inset-left))!important}
-body.opCol.opDock.opOpen #main{padding-right:calc(var(--opw,280px) + var(--ocw,260px) + 6px + env(safe-area-inset-right))!important}
+body.tbDock #main{padding-left:var(--tbw,150px)!important}   /* #frame already pads the iPhone safe areas — adding them again left a dead band beside the view */
+body.opCol.opDock.opOpen #main{padding-right:calc(var(--opw,280px) + var(--ocw,260px) + 6px)!important}
 #tbDockBar{z-index:41}
 /* iPhone: smaller nav cube — Home and Auto-rotate buttons keep their size */
 body.phone #navcube{width:54px!important;height:54px!important;top:8px!important;right:10px!important}
