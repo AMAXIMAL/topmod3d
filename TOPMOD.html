@@ -63,7 +63,7 @@ body.tbDock #toolbar .tgrp[data-label="TrueForm"],#toolbar .tgrp[data-label="Tru
 html,body{height:100%;overflow:hidden}
 body{font:13px/1.35 var(--font);color:var(--text);background:var(--bg-solid);user-select:none;-webkit-user-select:none}
 #frame{height:100%;display:grid;grid-template-rows:auto 1fr auto;grid-template-columns:minmax(0,1fr);
-  padding-left:env(safe-area-inset-left);padding-right:env(safe-area-inset-right)}
+  padding-left:var(--sal,env(safe-area-inset-left));padding-right:var(--sar,env(safe-area-inset-right))}
 
 /* ---- title bar hidden; wordmark lives in the menu bar ---- */
 #titlebar{display:none}
@@ -759,7 +759,7 @@ canvas#view{width:100%;height:100%;display:block;touch-action:none;outline:none;
 </style>
 <style id="tbDockCss">
 /* ---- Tools docked as a left column (not floating): under the TOPMOD wordmark, from the menu bar down to the bottom bar; drag the bar to resize ---- */
-body.tbDock #toolbar{position:fixed!important;left:env(safe-area-inset-left)!important;top:var(--tbTop,52px)!important;bottom:var(--tbBot,44px)!important;right:auto!important;
+body.tbDock #toolbar{position:fixed!important;left:var(--sal,env(safe-area-inset-left))!important;top:var(--tbTop,52px)!important;bottom:var(--tbBot,44px)!important;right:auto!important;
   width:var(--tbw,150px)!important;max-width:none!important;height:auto!important;max-height:none!important;transform:none!important;
   border-radius:0!important;border:0!important;border-right:1px solid rgba(0,229,255,.18)!important;box-shadow:none!important;background:#06080e!important;z-index:40}
 body.tbDock #tbHead,body.tbDock #tbTab,body.tbDock #tbResize{display:none!important}
@@ -771,25 +771,25 @@ body.tbDock button.tb{width:auto!important;height:var(--tbCellH,40px)!important;
 body.tbDock button.tb img.ticon{width:var(--tbIcon,20px)!important;height:var(--tbIcon,20px)!important}
 body.tbDock button.tb svg{width:calc(var(--tbIcon,20px) - 3px)!important;height:calc(var(--tbIcon,20px) - 3px)!important}
 body.tbDock button.tb .tlbl{display:block!important;font-size:6.5px!important;letter-spacing:.1px!important;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;max-width:100%}
-body.tbDock #main{padding-left:calc(var(--tbw,150px) + 6px + env(safe-area-inset-left))}
+body.tbDock #main{padding-left:calc(var(--tbw,150px) + 6px + var(--sal,env(safe-area-inset-left)))}
 #tbDockBar{display:none}
-body.tbDock #tbDockBar{display:block;position:fixed;top:var(--tbTop,52px);bottom:var(--tbBot,44px);left:calc(var(--tbw,150px) + env(safe-area-inset-left));width:6px;z-index:41;cursor:ew-resize;touch-action:none;
+body.tbDock #tbDockBar{display:block;position:fixed;top:var(--tbTop,52px);bottom:var(--tbBot,44px);left:calc(var(--tbw,150px) + var(--sal,env(safe-area-inset-left)));width:6px;z-index:41;cursor:ew-resize;touch-action:none;
   background:#0b0f18;border-right:1px solid rgba(0,229,255,.12)}
 body.tbDock #tbDockBar::after{content:"";position:absolute;left:1px;top:50%;width:3px;height:34px;margin-top:-17px;border-radius:2px;background:rgba(0,229,255,.45)}
 body.tbDock #tbDockBar:hover,body.tbDock #tbDockBar.drag{background:rgba(0,229,255,.18)}
 body.tbDock.fullscreen #toolbar,body.tbDock.fullscreen #tbDockBar{display:none!important}
 body.tbDock.fullscreen #main{padding-left:0}
 /* ---- Options docked as a right column, same as the tools: menu bar down to the bottom bar, drag bar on its left edge ---- */
-body.opDock #toolpop{position:fixed!important;right:env(safe-area-inset-right)!important;left:auto!important;top:var(--tbTop,52px)!important;bottom:var(--tbBot,44px)!important;
+body.opDock #toolpop{position:fixed!important;right:var(--sar,env(safe-area-inset-right))!important;left:auto!important;top:var(--tbTop,52px)!important;bottom:var(--tbBot,44px)!important;
   width:var(--opw,280px)!important;max-width:none!important;height:auto!important;max-height:none!important;transform:none!important;
   border-radius:0!important;border:0!important;border-left:1px solid rgba(0,229,255,.18)!important;box-shadow:none!important;background:#06080e!important;z-index:40;display:flex!important}
 body.opDock:not(.opOpen) #toolpop{display:none!important}
 body.opDock #tpTab,body.opDock #tpGrip,body.opDock #tpResize{display:none!important}
 body.opDock #tpHead{cursor:default!important}
 body.opDock #tpBody{gap:12px!important;padding:10px!important}
-body.opDock.opOpen #main{padding-right:calc(var(--opw,280px) + 6px + env(safe-area-inset-right))}
+body.opDock.opOpen #main{padding-right:calc(var(--opw,280px) + 6px + var(--sar,env(safe-area-inset-right)))}
 #opDockBar{display:none}
-body.opDock.opOpen #opDockBar{display:block;position:fixed;top:var(--tbTop,52px);bottom:var(--tbBot,44px);right:calc(var(--opw,280px) + env(safe-area-inset-right));width:6px;z-index:41;cursor:ew-resize;touch-action:none;
+body.opDock.opOpen #opDockBar{display:block;position:fixed;top:var(--tbTop,52px);bottom:var(--tbBot,44px);right:calc(var(--opw,280px) + var(--sar,env(safe-area-inset-right)));width:6px;z-index:41;cursor:ew-resize;touch-action:none;
   background:#0b0f18;border-left:1px solid rgba(0,229,255,.12)}
 body.opDock #opDockBar::after{content:"";position:absolute;left:1px;top:50%;width:3px;height:34px;margin-top:-17px;border-radius:2px;background:rgba(0,229,255,.45)}
 body.opDock #opDockBar:hover,body.opDock #opDockBar.drag{background:rgba(0,229,255,.18)}
@@ -797,14 +797,14 @@ body.opDock.fullscreen #toolpop,body.opDock.fullscreen #opDockBar{display:none!i
 body.opDock.fullscreen #main{padding-right:0}
 /* ---- the right column is shared: Options · Layers · Modifiers tabs ---- */
 #rTabs{display:none}
-body.opDock.opOpen #rTabs{display:flex;position:fixed;top:var(--tbTop,52px);right:env(safe-area-inset-right);width:var(--opw,280px);height:28px;z-index:42;background:#06080e;
+body.opDock.opOpen #rTabs{display:flex;position:fixed;top:var(--tbTop,52px);right:var(--sar,env(safe-area-inset-right));width:var(--opw,280px);height:28px;z-index:42;background:#06080e;
   border-left:1px solid rgba(0,229,255,.18);border-bottom:1px solid rgba(0,229,255,.18);align-items:stretch}
 #rTabs button{flex:1;min-width:0;background:transparent;border:0;border-right:1px solid rgba(255,255,255,.06);color:#8fa6b8;font:700 9.5px var(--font,system-ui);letter-spacing:.8px;text-transform:uppercase;cursor:pointer;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;padding:0 4px}
 #rTabs button.on{color:#00E5FF;background:rgba(0,229,255,.10);box-shadow:inset 0 -2px 0 #00E5FF}
 #rTabs button.x{flex:0 0 26px;color:#9fb4c8;font-size:14px;letter-spacing:0}
 body.opDock.opOpen #layersPanel,body.opDock.opOpen #modPanel{top:calc(var(--tbTop,52px) + 28px)!important;height:calc(var(--rTop,40vh) - 28px)!important;bottom:auto!important}
 body.opDock #toolpop{top:calc(var(--tbTop,52px) + var(--rTop,40vh) + 6px)!important}
-body.opDock.opOpen #layersPanel,body.opDock.opOpen #modPanel{position:fixed!important;right:env(safe-area-inset-right)!important;left:auto!important;
+body.opDock.opOpen #layersPanel,body.opDock.opOpen #modPanel{position:fixed!important;right:var(--sar,env(safe-area-inset-right))!important;left:auto!important;
   width:var(--opw,280px)!important;max-width:none!important;height:auto!important;max-height:none!important;transform:none!important;border-radius:0!important;border:0!important;
   border-left:1px solid rgba(0,229,255,.18)!important;box-shadow:none!important;background:#06080e!important;z-index:40;flex-direction:column}
 body.opDock.opOpen.rt-lay #layersPanel{display:flex!important}
@@ -814,7 +814,7 @@ body.opDock.opOpen:not(.rt-lay) #layersPanel{display:none!important}
 body.opDock.opOpen:not(.rt-mod) #modPanel{display:none!important}
 body.opDock #layersHead,body.opDock #modHead #modClose,body.opDock #layersClose,body.opDock #modGrip,body.opDock #tpClose{display:none!important}
 #rSplit{display:none}
-body.opDock.opOpen #rSplit{display:block;position:fixed;right:env(safe-area-inset-right);width:var(--opw,280px);top:calc(var(--tbTop,52px) + var(--rTop,40vh));height:6px;z-index:43;cursor:ns-resize;touch-action:none;background:#0b0f18;border-top:1px solid rgba(0,229,255,.18);border-bottom:1px solid rgba(0,229,255,.18)}
+body.opDock.opOpen #rSplit{display:block;position:fixed;right:var(--sar,env(safe-area-inset-right));width:var(--opw,280px);top:calc(var(--tbTop,52px) + var(--rTop,40vh));height:6px;z-index:43;cursor:ns-resize;touch-action:none;background:#0b0f18;border-top:1px solid rgba(0,229,255,.18);border-bottom:1px solid rgba(0,229,255,.18)}
 body.opDock #rSplit::after{content:"";position:absolute;top:1px;left:50%;width:34px;height:2px;margin-left:-17px;border-radius:2px;background:rgba(0,229,255,.5)}
 body.opDock #rSplit:hover,body.opDock #rSplit.drag{background:rgba(0,229,255,.18)}
 body.opDock #tpHead{border-top:0!important}
@@ -836,13 +836,13 @@ body.opDock.rStack #toolpop{top:calc(var(--tbTop,52px) + var(--rA,26vh) + var(--
 body.opDock.rStack #layersHead{display:flex!important;cursor:default!important;padding:5px 10px!important}
 body.opDock.rStack #layersHead #layersGrip,body.opDock.rStack #layersHead #layersClose{display:none!important}
 .rSp{display:none}
-body.opDock.opOpen.rStack .rSp{display:block;position:fixed;right:env(safe-area-inset-right);width:var(--opw,280px);height:6px;z-index:43;cursor:ns-resize;touch-action:none;background:#0b0f18;border-top:1px solid rgba(0,229,255,.18);border-bottom:1px solid rgba(0,229,255,.18)}
+body.opDock.opOpen.rStack .rSp{display:block;position:fixed;right:var(--sar,env(safe-area-inset-right));width:var(--opw,280px);height:6px;z-index:43;cursor:ns-resize;touch-action:none;background:#0b0f18;border-top:1px solid rgba(0,229,255,.18);border-bottom:1px solid rgba(0,229,255,.18)}
 body.opDock.rStack .rSp::after{content:"";position:absolute;top:1px;left:50%;width:34px;height:2px;margin-left:-17px;border-radius:2px;background:rgba(0,229,255,.5)}
 body.opDock.rStack .rSp:hover,body.opDock.rStack .rSp.drag{background:rgba(0,229,255,.18)}
 body.opDock.opOpen.rStack #rSpA{top:calc(var(--tbTop,52px) + var(--rA,26vh))}
 body.opDock.opOpen.rStack #rSpB{top:calc(var(--tbTop,52px) + var(--rA,26vh) + 6px + var(--rB,22vh))}
 /* Fabrication "Start over": centred on the 3D view, just above the bottom bar */
-#fabReplay{right:auto!important;left:calc(env(safe-area-inset-left) + var(--tbw,150px) + 6px + (100vw - var(--tbw,150px) - 6px - var(--rw,0px)) / 2)!important;transform:translateX(-50%)!important;bottom:calc(var(--tbBot,44px) + 18px)!important}
+#fabReplay{right:auto!important;left:calc(var(--sal,env(safe-area-inset-left)) + var(--tbw,150px) + 6px + (100vw - var(--tbw,150px) - 6px - var(--rw,0px)) / 2)!important;transform:translateX(-50%)!important;bottom:calc(var(--tbBot,44px) + 18px)!important}
 #fabReplay:hover,#fabReplay.handHover{transform:translateX(-50%) scale(1.04)!important}
 body.opDock.opOpen{--rw:calc(var(--opw,280px) + 6px)}
 /* navigation cube: auto-rotate button, opposite the Home button */
@@ -859,12 +859,12 @@ body.rStack #modList{flex:0 1 auto!important}
 .rightTucked #toolpop,.rightTucked #layersPanel,.rightTucked #modPanel{transform:none!important}
 /* ---- Options = its own column (between the 3D view and the Layers · Modifiers column), own width bar ---- */
 body.opCol{--rw:calc(var(--opw,280px) + var(--ocw,260px) + 12px)}
-body.opCol.opDock #toolpop{right:calc(var(--opw,280px) + 6px + env(safe-area-inset-right))!important;width:var(--ocw,260px)!important;top:var(--tbTop,52px)!important;bottom:var(--tbBot,44px)!important;display:flex!important;border-right:0!important}
-body.opCol.opDock.opOpen #main{padding-right:calc(var(--opw,280px) + var(--ocw,260px) + 12px + env(safe-area-inset-right))}
+body.opCol.opDock #toolpop{right:calc(var(--opw,280px) + 6px + var(--sar,env(safe-area-inset-right)))!important;width:var(--ocw,260px)!important;top:var(--tbTop,52px)!important;bottom:var(--tbBot,44px)!important;display:flex!important;border-right:0!important}
+body.opCol.opDock.opOpen #main{padding-right:calc(var(--opw,280px) + var(--ocw,260px) + 12px + var(--sar,env(safe-area-inset-right)))}
 body.opCol #rSpB{display:none!important}
 body.opCol.opDock.opOpen.rStack #modPanel{height:auto!important;bottom:var(--tbBot,44px)!important}
 #ocBar{display:none}
-body.opCol.opDock.opOpen #ocBar{display:block;position:fixed;top:var(--tbTop,52px);bottom:var(--tbBot,44px);right:calc(var(--opw,280px) + var(--ocw,260px) + 6px + env(safe-area-inset-right));width:6px;z-index:41;cursor:ew-resize;touch-action:none;background:#0b0f18;border-left:1px solid rgba(0,229,255,.12)}
+body.opCol.opDock.opOpen #ocBar{display:block;position:fixed;top:var(--tbTop,52px);bottom:var(--tbBot,44px);right:calc(var(--opw,280px) + var(--ocw,260px) + 6px + var(--sar,env(safe-area-inset-right)));width:6px;z-index:41;cursor:ew-resize;touch-action:none;background:#0b0f18;border-left:1px solid rgba(0,229,255,.12)}
 body.opCol #ocBar::after{content:"";position:absolute;left:1px;top:50%;width:3px;height:34px;margin-top:-17px;border-radius:2px;background:rgba(0,229,255,.45)}
 body.opCol #ocBar:hover,body.opCol #ocBar.drag{background:rgba(0,229,255,.18)}
 body.opCol.fullscreen #ocBar{display:none!important}
@@ -1061,8 +1061,8 @@ body.layCol #layersPanel,body.modCol #modPanel{overflow:hidden!important}
 
 <style id="bootCloak">html{background:#080a12}html.tmBoot body>*:not(#tmSplash){opacity:0!important}html.tmBooted body>*{transition:opacity .28s ease}
 /* right column runs to the screen edge (under the landscape safe area); its content keeps clear of the notch with inner padding */
-body.opDock.opOpen #layersPanel,body.opDock.opOpen #modPanel{right:0!important;width:calc(var(--opw,280px) + env(safe-area-inset-right))!important;padding-right:env(safe-area-inset-right)!important;box-sizing:border-box!important}
-body.opDock.opOpen #rTabs,body.opDock.opOpen #rSplit,body.opDock.opOpen.rStack .rSp{right:0!important;width:calc(var(--opw,280px) + env(safe-area-inset-right))!important}
+body.opDock.opOpen #layersPanel,body.opDock.opOpen #modPanel{right:0!important;width:calc(var(--opw,280px) + var(--sar,env(safe-area-inset-right)))!important;padding-right:var(--sar,env(safe-area-inset-right))!important;box-sizing:border-box!important}
+body.opDock.opOpen #rTabs,body.opDock.opOpen #rSplit,body.opDock.opOpen.rStack .rSp{right:0!important;width:calc(var(--opw,280px) + var(--sar,env(safe-area-inset-right)))!important}
 
 /* Options-window slider fit: every simulate/tool panel stacks label over a full-width slider + value */
 #clCtl .clR,#phCtl .clR,#mtCtl .clR,.smCtl .clR,.smCtl2 .clR{grid-template-columns:minmax(0,1fr) auto!important;row-gap:2px!important;column-gap:8px!important}
@@ -5942,12 +5942,12 @@ function bejewel(host, gem, opts){
   if(where!=="verts"){
     host.faces.forEach((f,fi)=>{ if(f.length<3) return; const c=[0,0,0]; for(const vi of f){ c[0]+=H[vi][0]; c[1]+=H[vi][1]; c[2]+=H[vi][2]; } c[0]/=f.length; c[1]/=f.length; c[2]/=f.length;
       let md=1e30; for(let i=0;i<f.length;i++){ const a=H[f[i]],b=H[f[(i+1)%f.length]], e=sub(b,a), t=Math.max(0,Math.min(1,dot(sub(c,a),e)/(dot(e,e)||1))); const q=[a[0]+e[0]*t,a[1]+e[1]*t,a[2]+e[2]*t]; md=Math.min(md,Math.hypot(c[0]-q[0],c[1]-q[1],c[2]-q[2])); }
-      sites.push({c, n:fN[fi], x:sub(H[f[1]],H[f[0]]), s:2*md*size}); });
+      sites.push({c, n:fN[fi], x:sub(H[f[1]],H[f[0]]), s:opts.abs?opts.abs:2*md*size}); });
   }
   if(where!=="faces"){
     const vn=H.map(()=>[0,0,0]), nb=H.map(()=>null), ml=H.map(()=>1e30);
     host.faces.forEach((f,fi)=>{ for(let i=0;i<f.length;i++){ const a=f[i], b=f[(i+1)%f.length]; vn[a][0]+=fN[fi][0]; vn[a][1]+=fN[fi][1]; vn[a][2]+=fN[fi][2]; if(nb[a]==null) nb[a]=b; const L=Math.hypot(...sub(H[a],H[b])); if(L<ml[a]) ml[a]=L; if(L<ml[b]) ml[b]=L; } });
-    H.forEach((v,i)=>{ if(nb[i]==null) return; sites.push({c:v, n:nz(vn[i]), x:sub(H[nb[i]],v), s:0.5*ml[i]*size}); });
+    H.forEach((v,i)=>{ if(nb[i]==null) return; sites.push({c:v, n:nz(vn[i]), x:sub(H[nb[i]],v), s:opts.abs?opts.abs:0.5*ml[i]*size}); });
   }
   if(opts.part==="gems"||opts.part==="studs"){ const nGF=gem.faces.length, sel=opts.part==="gems"?GF.slice(0,nGF):GF.slice(nGF); const mp=new Map(), G2=[];
     const F2=sel.map(f=>f.map(i=>{ if(!mp.has(i)){ mp.set(i,G2.length); G2.push(G[i]); } return mp.get(i); })); G.length=0; G.push(...G2); GF=F2; }
@@ -7351,12 +7351,12 @@ const MODS={
               {k:"cut",l:"Gem",opts:Object.keys(TM.GEM_CUTS).map(c=>TM.GEM_CUTS[c]),def:0},{k:"where",l:"Placement",opts:["Face centroids","Vertices","Faces + vertices"],def:0},
               {k:"table",l:"Table %",min:45,max:72,step:0.5,def:57},{k:"crown",l:"Crown angle °",min:22,max:42,step:0.1,def:34.5},{k:"pav",l:"Pavilion angle °",min:37,max:44,step:0.05,def:40.8},{k:"girdle",l:"Girdle %",min:0.5,max:8,step:0.1,def:3},{k:"sym",l:"Facet symmetry",min:3,max:16,step:1,def:8},
               {k:"studs",l:"Studs (prongs)",bool:true,def:false},{k:"stN",l:"Studs per gem",min:2,max:8,step:1,def:4},{k:"stT",l:"Stud thickness",min:0.02,max:0.2,step:0.005,def:0.07},{k:"stL",l:"Stud length",min:0.1,max:1.5,step:0.01,def:0.7},{k:"stB",l:"Bend around gem",min:0,max:1,step:0.01,def:0.1},
-              {k:"stS",l:"Stud shape",opts:["Round","Hex","Square","Triangle"],def:0},{k:"stD",l:"Dome cap",bool:true,def:true},{k:"keep",l:"Keep base shape",bool:true,def:false}],
+              {k:"stS",l:"Stud shape",opts:["Round","Hex","Square","Triangle"],def:0},{k:"stD",l:"Dome cap",bool:true,def:true},{k:"keep",l:"Keep base shape",bool:true,def:false},{k:"absOn",l:"Same size for every gem",bool:true,def:false},{k:"dia",l:"Gem diameter (in)",min:0.02,max:3,step:0.01,def:0.25}],
             apply:(m,p)=>{ const cuts=Object.keys(TM.GEM_CUTS), cut=cuts[Math.round(p.cut)||0]||"round";
               const key=[cut,p.table,p.crown,p.pav,p.girdle,Math.round(p.sym)].join("|"); window.__bejCache=window.__bejCache||{};
               const gem=window.__bejCache[key]||(window.__bejCache[key]=TM.primitives.diamond(p.table,p.crown,p.pav,p.girdle,Math.round(p.sym),1,50,77,cut));
               const studs=p.studs?{n:p.stN,thick:p.stT,len:p.stL,bend:p.stB,sides:[12,6,4,3][Math.round(p.stS)||0],dome:!!p.stD}:null;
-              const r=TM.bejewel(m,gem,{size:p.size,lift:p.lift,where:["faces","verts","both"][Math.round(p.where)||0],maxInst:8000,studs});
+              const r=TM.bejewel(m,gem,{size:p.size,abs:p.absOn?p.dia:0,lift:p.lift,where:["faces","verts","both"][Math.round(p.where)||0],maxInst:8000,studs});
               return p.keep?TM.mergeMeshes([m,{verts:r.verts,faces:r.faces}]):{verts:r.verts,faces:r.faces}; }},
   // --- topology (selection-based: the picked faces + the tool's options are captured when the modifier is added) ---
   pinch:   {label:"Pinch Extrude", grp:"Topology", params:[{k:"dist",l:"Distance",min:0.4,max:5,step:0.1,def:2.0},{k:"segments",l:"Segments",min:3,max:40,step:1,def:14},{k:"neck",l:"Neck",min:0.05,max:0.8,step:0.01,def:0.18},{k:"bulge",l:"Bulge",min:0.5,max:1.6,step:0.05,def:1.0}],
@@ -11450,13 +11450,14 @@ function _bejParams(){
     window.__bejCache=window.__bejCache||{}; try{ gem=window.__bejCache[key]||(window.__bejCache[key]=TM.primitives.diamond(a[0],a[1],a[2],a[3],a[4],1,50,77,gv.slice(2))); }catch(e){} }
   else { gemLayer=+gv; gem=layers[gemLayer]?layers[gemLayer].mesh:null; }
   const studs=$("#bejStuds")&&$("#bejStuds").checked?{n:+$("#bejStN").value, thick:+$("#bejStT").value, len:+$("#bejStL").value, bend:+$("#bejStB").value, sides:+$("#bejStS").value, dome:$("#bejStD").checked}:null;
-  return { studs, host:layers[hi]?layers[hi].mesh:null, hostLayer:hi, gem, gemLayer, where:$("#bejWhere")?$("#bejWhere").value:"faces", size:+($("#bejSize")?$("#bejSize").value:0.75), lift:+($("#bejLift")?$("#bejLift").value:0), cut:gv };
+  const abs=$("#bejAbs")&&$("#bejAbs").checked?+$("#bejDia").value:0;
+  return { abs, studs, host:layers[hi]?layers[hi].mesh:null, hostLayer:hi, gem, gemLayer, where:$("#bejWhere")?$("#bejWhere").value:"faces", size:+($("#bejSize")?$("#bejSize").value:0.75), lift:+($("#bejLift")?$("#bejLift").value:0), cut:gv };
 }
 function refreshBejewel(){
   _bejClear(); const p=_bejParams(), el=$("#bejInfo");
   if(!p.host||!p.host.faces.length){ if(el) el.textContent="Pick a host shape with faces."; return; }
   if(!p.gem||!p.gem.faces.length||p.gemLayer===p.hostLayer){ if(el) el.textContent="Pick a gem (a diamond cut or another layer)."; return; }
-  const mm=TM.bejewel(p.host,p.gem,{size:p.size,lift:p.lift,where:p.where,maxInst:3000,studs:p.studs});
+  const mm=TM.bejewel(p.host,p.gem,{size:p.size,abs:p.abs,lift:p.lift,where:p.where,maxInst:3000,studs:p.studs});
   _bejGrp=new THREE.Group(); const gm=_ghostMesh(mm); gm.material=new THREE.MeshStandardMaterial({color:0xe8f7ff,metalness:0.35,roughness:0.18,flatShading:true,side:THREE.DoubleSide}); _bejGrp.add(gm);
   const eg=new THREE.EdgesGeometry(gm.geometry,20); _bejGrp.add(new THREE.LineSegments(eg,new THREE.LineBasicMaterial({color:0x35c0ff,transparent:true,opacity:0.55})));
   if($("#bejHide")&&$("#bejHide").checked){ _latHostHide(p.hostLayer);   /* base stays readable as a faint x-ray */
@@ -11470,7 +11471,7 @@ function bejewelToModifier(){
   if(p.cut.indexOf("d:")!==0){ toast&&toast("Modifier uses a diamond cut — pick one from the Gem list (or Bake for a layer gem)",true); return; }
   const cuts=Object.keys(TM.GEM_CUTS), V=id=>+($("#"+id)?$("#"+id).value:0);
   const params={size:p.size, lift:p.lift, cut:Math.max(0,cuts.indexOf(p.cut.slice(2))), where:["faces","verts","both"].indexOf(p.where), table:V("bejTable"), crown:V("bejCrown"), pav:V("bejPav"), girdle:V("bejGirdle"), sym:V("bejSym"),
-    studs:!!p.studs, stN:p.studs?p.studs.n:4, stT:p.studs?p.studs.thick:0.07, stL:p.studs?p.studs.len:0.7, stB:p.studs?p.studs.bend:0.55, stS:p.studs?[12,6,4,3].indexOf(p.studs.sides):0, stD:p.studs?!!p.studs.dome:true, keep:!($("#bejHide")&&$("#bejHide").checked)};
+    studs:!!p.studs, stN:p.studs?p.studs.n:4, stT:p.studs?p.studs.thick:0.07, stL:p.studs?p.studs.len:0.7, stB:p.studs?p.studs.bend:0.55, stS:p.studs?[12,6,4,3].indexOf(p.studs.sides):0, stD:p.studs?!!p.studs.dome:true, absOn:!!p.abs, dia:p.abs||0.25, keep:!($("#bejHide")&&$("#bejHide").checked)};
   _bejClear(); if(p.hostLayer!==activeLayer){ try{ setActiveLayer?setActiveLayer(p.hostLayer):(activeLayer=p.hostLayer); }catch(e){} }
   closeToolPop(); addModifier("bejewel",{params}); toast&&toast("Bejewel added to the modifier stack — edit it there any time");
 }
@@ -11479,8 +11480,8 @@ function bakeBejewel(){
   if(!p.host||!p.host.faces.length){ toast&&toast("Pick a host shape with faces",true); return; }
   if(!p.gem||!p.gem.faces.length||p.gemLayer===p.hostLayer){ toast&&toast("Pick a gem (diamond cut or another layer)",true); return; }
   const sep=!!(p.studs&&$("#bejStSep")&&$("#bejStSep").checked);
-  const mm=TM.bejewel(p.host,p.gem,{size:p.size,lift:p.lift,where:p.where,maxInst:8000,studs:p.studs,part:sep?"gems":undefined});
-  const ms=sep?TM.bejewel(p.host,p.gem,{size:p.size,lift:p.lift,where:p.where,maxInst:8000,studs:p.studs,part:"studs"}):null;
+  const mm=TM.bejewel(p.host,p.gem,{size:p.size,abs:p.abs,lift:p.lift,where:p.where,maxInst:8000,studs:p.studs,part:sep?"gems":undefined});
+  const ms=sep?TM.bejewel(p.host,p.gem,{size:p.size,abs:p.abs,lift:p.lift,where:p.where,maxInst:8000,studs:p.studs,part:"studs"}):null;
   if(!mm.faces.length){ toast&&toast("No gems placed",true); return; }
   const _hostL=layers[p.hostLayer], _hide=$("#bejHide")&&$("#bejHide").checked;
   _bejClear(); addLayer(mm,false);
@@ -11616,6 +11617,8 @@ $("#snapToggle")&&$("#snapToggle").addEventListener("click",()=>{ snapToGrid=!sn
       '<div style="padding:8px 12px;color:var(--text-dim);font-size:11px;line-height:1.5">Set a <b>gem</b> on every face of a <b>host</b>.</div>'+
       '<div class="param"><label>Gem size</label><input type="range" id="bejSize" min="0.1" max="1.6" step="0.01" value="0.75"><output id="bejSizeV">0.75</output></div>'+
       '<div class="param"><label>Lift (seat depth)</label><input type="range" id="bejLift" min="-0.6" max="0.6" step="0.01" value="0"><output id="bejLiftV">0.00</output></div>'+
+      '<div class="param"><label class="chk"><input type="checkbox" id="bejAbs"> Same size for every gem (absolute)</label></div>'+
+      '<div class="param" id="bejAbsRow" style="display:none!important"><label>Gem diameter (in)</label><input type="range" id="bejDia" min="0.02" max="3" step="0.01" value="0.25"><output id="bejDiaV">0.25</output></div>'+
       '<div class="param"><label>Gem</label><select id="bejGem"><optgroup label="Diamonds">'+diaOpts+'</optgroup><optgroup label="Layers">'+optsHTML+'</optgroup></select></div>'+
       '<div class="param bejDia"><label>Table %</label><input type="range" id="bejTable" min="45" max="72" step="0.5" value="57"><output id="bejTableV">57</output></div>'+
       '<div class="param bejDia"><label>Crown angle °</label><input type="range" id="bejCrown" min="22" max="42" step="0.1" value="34.5"><output id="bejCrownV">34.5</output></div>'+
@@ -11636,11 +11639,14 @@ $("#snapToggle")&&$("#snapToggle").addEventListener("click",()=>{ snapToGrid=!sn
       '<div id="bejInfo" style="padding:2px 12px 6px;color:#8fce9b;font-size:11px;line-height:1.4"></div>'+
       '<div style="padding:4px 12px 10px;display:flex;gap:6px"><button id="bejMod" class="mkbtn" style="flex:1">Add as modifier</button><button id="bejBake" class="mkbtn" style="flex:1">Bake to new layer</button></div>';
     $("#bejHost").value=String(activeLayer);
-    const _stSync=()=>{ const on=$("#bejStuds").checked; $$(".bejSt").forEach(r=>r.style.display=on?"":"none"); }; _stSync();
+    const _absSync=()=>{ const on=$("#bejAbs").checked; $("#bejAbsRow").style.setProperty("display",on?"":"none",on?"":"important"); };
+    $("#bejAbs").addEventListener("change",()=>{ if($("#bejAbs").checked){ try{ const H=layers[+$("#bejHost").value].mesh, b=TM.meshBBox(H), d=Math.max(...b.size); const v=Math.max(0.02,Math.min(3,+(d*0.12).toFixed(2))); $("#bejDia").value=v; $("#bejDiaV").textContent=v.toFixed(2); }catch(e){} } _absSync(); refreshBejewel(); });
+    $("#bejDia").addEventListener("input",()=>{ $("#bejDiaV").textContent=(+$("#bejDia").value).toFixed(2); refreshBejewel(); });
+    const _stSync=()=>{ const on=$("#bejStuds").checked; $$(".bejSt").forEach(r=>r.style.setProperty("display",on?"":"none",on?"":"important")); }; _stSync();
     ["#bejStuds","#bejStS","#bejStD"].forEach(id=>$(id).addEventListener("change",()=>{ _stSync(); refreshBejewel(); }));
     ["bejStN","bejStT","bejStL","bejStB"].forEach(id=>$("#"+id).addEventListener("input",()=>{ const v=+$("#"+id).value; $("#"+id+"V").textContent=id==="bejStN"?String(v):v.toFixed(2); refreshBejewel(); }));
     ["bejSize","bejLift","bejTable","bejCrown","bejPav","bejGirdle","bejSym"].forEach(id=>$("#"+id).addEventListener("input",()=>{ const v=+$("#"+id).value; $("#"+id+"V").textContent=(id==="bejSym"?String(v):(id==="bejSize"||id==="bejLift"?v.toFixed(2):String(v))); refreshBejewel(); }));
-    const _bejSync=()=>{ const d=$("#bejGem").value.indexOf("d:")===0; $$(".bejDia").forEach(r=>r.style.display=d?"":"none"); }; $("#bejGem").addEventListener("change",_bejSync); _bejSync();
+    const _bejSync=()=>{ const d=$("#bejGem").value.indexOf("d:")===0; $$(".bejDia").forEach(r=>r.style.setProperty("display",d?"":"none",d?"":"important")); }; $("#bejGem").addEventListener("change",_bejSync); _bejSync();
     ["#bejGem","#bejWhere","#bejHost","#bejHide"].forEach(id=>$(id).addEventListener("change",refreshBejewel));
     $("#bejBake").addEventListener("click",bakeBejewel); $("#bejMod").addEventListener("click",bejewelToModifier);
     refreshBejewel();
@@ -16170,7 +16176,7 @@ window.__ek={applyWhole:applyWhole,ops:ops,snapshot:snapshot,rebuild:rebuild,toa
   function ttSlide(id,to){ const el=O.ctl&&O.ctl.querySelector("#"+id); if(!el) return; const from=+el.value, t0=performance.now(); const f=()=>{ const k=Math.min(1,(performance.now()-t0)/700); el.value=from+(to-from)*k; el.dispatchEvent(new Event("input",{bubbles:true})); if(k<1) requestAnimationFrame(f); }; f(); }
   function tutorial(){ if(!O.ctl) toOpen(); const X=12, Y=3.6, Z=2.4, q=s=>O.ctl&&O.ctl.querySelector(s);
     const STEPS=[
-      {t:"1 · The design space",d:"Topology optimisation starts from a block of material — the most you could ever use. Here: a 12 × 3.6 × 2.4 in beam. The solver will decide which parts of it to keep.",go:()=>{ O.run=false; O.res=null; toClear(); hideModel(false); O.sup=[]; O.load=[]; toMarkers(); loadDesign("Cantilever",X,Y,Z); q("#toEx").value=""; q("#toSel").textContent="No faces assigned yet."; ttPulse(null); }},
+      {t:"1 · The design space",d:"Topology optimisation starts from a block of material — the most you could ever use. Here: a 12 × 3.6 × 2.4 in beam. The solver will decide which parts of it to keep.",go:()=>{ O.run=false; O.res=null; toClear(); hideModel(false); O.sup=[]; O.load=[]; toMarkers(); loadDesign("Cantilever",X,Y,Z); _toS=1; q("#toScale").value=1; q("#toScaleV").textContent="1"; q("#toEx").value=""; q("#toSel").textContent="No faces assigned yet."; ttPulse(null); }},
       {t:"2 · Pick the supports",d:"Supports are where the part is held — bolted to a wall here. Select the faces of the left end (press 3 for Faces and tap them). They highlight in blue.",go:()=>{ selectFacesWhere(c=>c[0]<-X/2+0.01); ttPulse(document.querySelector('.selBtn[data-m="face"]')); }},
       {t:"3 · Supports from selection",d:"Press <b>Supports from selection</b>. The blue blocks show the fixed faces — they will never move and the solver keeps material there.",go:()=>{ ttPulse(q("#toSupB")); setTimeout(()=>{ q("#toSupB").click(); toMarkers(); },600); }},
       {t:"4 · Pick the load",d:"The load is where force pushes on the part. Select the faces at the free right end, along the bottom — a weight hanging off the tip.",go:()=>{ selectFacesWhere(c=>c[0]>X/2-0.01&&c[1]<Y*0.34); ttPulse(document.querySelector('.selBtn[data-m="face"]')); }},
@@ -16188,17 +16194,27 @@ window.__ek={applyWhole:applyWhole,ops:ops,snapshot:snapshot,rebuild:rebuild,toa
       c.querySelector(".ttX").onclick=close; c.querySelector("#ttP").disabled=TT.i===0; c.querySelector("#ttP").onclick=()=>show(TT.i-1); c.querySelector("#ttNx").onclick=()=>{ if(TT.i===STEPS.length-1) close(); else show(TT.i+1); };
       try{ S.go(); }catch(e){ console.warn(e); } };
     show(0); }
+  // ---- Size ×: scales the design space (and assigned supports / loads) about its base centre
+  let _toS=1;
+  function toScaleTo(f){ if(!O.ctl) return; const k=f/_toS; if(Math.abs(k-1)<1e-6) return; _toS=f; O.run=false;
+    const M=(typeof dispMesh==="function")?dispMesh():mesh; if(!M||!M.verts.length) return; const b=bbox(M), c=[(b.mn[0]+b.mx[0])/2,b.mn[1],(b.mn[2]+b.mx[2])/2];
+    const sc=v=>[c[0]+(v[0]-c[0])*k,c[1]+(v[1]-c[1])*k,c[2]+(v[2]-c[2])*k];
+    mesh={verts:mesh.verts.map(sc),faces:mesh.faces.map(f=>f.slice())}; const L=layers[activeLayer]; if(L){ L.mesh=mesh; L._ev=null; L._evKey=null; }
+    O.sup=O.sup.map(p=>({c:sc(p.c),n:p.n})); O.load=O.load.map(p=>({c:sc(p.c),n:p.n})); O.res=null; toClear(); hideModel(false); rebuild(); toMarkers();
+    try{ window.__tm&&window.__tm.frameAll&&window.__tm.frameAll(1.35); }catch(e){}
+    const b2=bbox(mesh), st=O.ctl.querySelector("#toStats"); if(st) st.textContent="Design space "+(b2.mx[0]-b2.mn[0]).toFixed(1)+" × "+(b2.mx[1]-b2.mn[1]).toFixed(1)+" × "+(b2.mx[2]-b2.mn[2]).toFixed(1)+" in — press Optimise"; }
   function toExample(key){ const E=TO_EX[key]; if(!E||!O.ctl) return; O.run=false; const [X,Y,Z]=E.box;
-    loadDesign(E.lab,X,Y,Z);
+    loadDesign(E.lab,X,Y,Z); _toS=1;
     const sh=p=>({c:[p.c[0],p.c[1]+Y/2,p.c[2]],n:p.n}); O.sup=E.sup(E.box).map(sh); O.load=E.load(E.box).map(sh);
     const q=s=>O.ctl.querySelector(s); q("#toSup").value="sel"; q("#toLd").value="down"; q("#toRes").value=E.res; q("#toVf").value=E.vf; q("#toIt").value=E.it;
     ["toRes","toVf","toIt"].forEach(id=>{ const e=q("#"+id+"V"); if(e) e.textContent=q("#"+id).value; });
-    q("#toSel").textContent=E.note+" · blue blocks = supports, red arrows = loads"; O.res=null; toClear(); hideModel(false); toMarkers(); setTimeout(toRun,900); }
+    q("#toSel").textContent=E.note+" · blue blocks = supports, red arrows = loads"; O.res=null; toClear(); hideModel(false); toScaleTo(+q("#toScale").value); toMarkers(); setTimeout(toRun,900); }
   function toOpen(){
     O.ctl=openPanel("topopt","Topology optimisation",
       '<div class="clS">Carves away material that carries little load (SIMP, minimum compliance). Select faces on the model, then use them as supports or loads.</div>'
       +'<div class="clB"><button id="toTutB" class="pri">▶ Step-by-step tutorial</button></div>'
       +'<label class="clR"><span>Example</span><select id="toEx"><option value="">— pick a worked example —</option>'+Object.keys(TO_EX).map(k=>'<option value="'+k+'">'+TO_EX[k].lab+'</option>').join("")+'</select><em></em></label>'
+      +sl("toScale","Size ×",0.25,5,0.05,1)
       +sl("toVf","Keep volume",0.08,0.8,0.01,0.3)+sl("toRes","Resolution",10,34,1,18)+sl("toIt","Iterations",5,80,1,30)
       +'<label class="clR"><span>Supports</span><select id="toSup"><option value="base">Base (on the ground)</option><option value="sel">Selected faces</option></select><em></em></label>'
       +'<label class="clR"><span>Load</span><select id="toLd"><option value="down">Selected faces · push down</option><option value="push">Selected faces · press in</option><option value="side">Selected faces · push sideways</option><option value="top">Top surface · down</option></select><em></em></label>'
@@ -16210,7 +16226,8 @@ window.__ek={applyWhole:applyWhole,ops:ops,snapshot:snapshot,rebuild:rebuild,toa
     O.ctl.querySelector("#toSupB").onclick=()=>{ O.sup=selFacePts(); if(O.sup.length) O.ctl.querySelector("#toSup").value="sel"; else toast&&toast("Select faces first (press 3)",true); upd(); };
     O.ctl.querySelector("#toLdB").onclick=()=>{ O.load=selFacePts(); if(!O.load.length) toast&&toast("Select faces first (press 3)",true); else if(O.ctl.querySelector("#toLd").value==="top") O.ctl.querySelector("#toLd").value="down"; upd(); };
     O.ctl.querySelector("#toEx").onchange=e=>{ if(e.target.value) toExample(e.target.value); };
-    O.ctl.querySelector("#toLd").addEventListener("change",toMarkers); O.ctl.querySelector("#toTutB").onclick=tutorial;
+    O.ctl.querySelector("#toLd").addEventListener("change",toMarkers);
+    O.ctl.querySelector("#toScale").addEventListener("change",e=>toScaleTo(+e.target.value)); _toS=+O.ctl.querySelector("#toScale").value||1; O.ctl.querySelector("#toTutB").onclick=tutorial;
     O.ctl.querySelector("#toRun").onclick=toRun; O.ctl.querySelector("#toBake").onclick=toBake; O.ctl.querySelector("#toClr").onclick=()=>{ O.run=false; O.res=null; toClear(); hideModel(false); O.sup=[]; O.load=[]; toMarkers(); O.ctl.querySelector("#toSel").textContent="No faces assigned — select faces (press 3) and assign them."; };
     ["toThr","toSm"].forEach(id=>O.ctl.querySelector("#"+id).addEventListener("input",()=>{ if(O.res&&!O.run) toDraw(); }));
     if(O.sup.length||O.load.length) upd();
@@ -19668,6 +19685,19 @@ window.__floatCard=function(card,handleSel,key){ if(!card||card._fc) return; car
   g.addEventListener("pointermove",e=>{ if(!rz) return; card.style.width=Math.max(240,Math.min(innerWidth-10,rz.w+e.clientX-rz.x))+"px"; card.style.height=Math.max(140,Math.min(innerHeight-10,rz.h+e.clientY-rz.y))+"px"; card.style.maxHeight="none"; });
   const up2=()=>{ if(rz){ rz=null; save(); } }; g.addEventListener("pointerup",up2); g.addEventListener("pointercancel",up2);
 };
+</script>
+<script>/* Landscape safe area: keep the full inset only on the notch side; the other side just clears the rounded corner */
+(function(){ var R=document.documentElement, probe=document.createElement("div"); probe.style.cssText="position:fixed;left:0;top:0;width:0;height:0;padding-left:env(safe-area-inset-left);padding-right:env(safe-area-inset-right);visibility:hidden;pointer-events:none";
+ function upd(){ if(!probe.isConnected) document.body.appendChild(probe); var cs=getComputedStyle(probe), L=parseFloat(cs.paddingLeft)||0, Rr=parseFloat(cs.paddingRight)||0;
+  var a=(window.screen&&screen.orientation&&typeof screen.orientation.angle==="number")?screen.orientation.angle:(typeof window.orientation==="number"?window.orientation:0); if(a===-90) a=270;
+  R.style.removeProperty("--sal"); R.style.removeProperty("--sar");
+  if(Math.max(L,Rr)<20||innerWidth<innerHeight) return;            /* no notch / portrait: leave env() as is */
+  if(a===90){ R.style.setProperty("--sar","10px"); }                 /* notch on the left → right side free */
+  else if(a===270){ R.style.setProperty("--sal","10px"); }           /* notch on the right → left side free */
+  try{ dispatchEvent(new Event("tmLayout")); }catch(e){} }
+ addEventListener("orientationchange",function(){ setTimeout(upd,150); setTimeout(upd,600); }); addEventListener("resize",function(){ setTimeout(upd,60); });
+ if(screen.orientation&&screen.orientation.addEventListener) screen.orientation.addEventListener("change",function(){ setTimeout(upd,150); });
+ if(document.readyState==="loading") document.addEventListener("DOMContentLoaded",upd); else upd(); })();
 </script>
 </body>
 </html>
