@@ -18413,44 +18413,80 @@ void main(){
  window.__credits={open:open,close:close};
  function init(){ var b=document.getElementById("creditsBtn"); if(b) b.addEventListener("click",function(e){ e.stopPropagation(); open(); }); addEventListener("keydown",function(e){ if(e.key==="Escape") close(); }); }
  if(document.readyState==="loading") document.addEventListener("DOMContentLoaded",init); else init(); })();</script>
-<script>/* Splash motion graphic: "TOPMOD 3D" as faceted 3D polygon text — triangular prisms fly in and lock into the letters, the word turns, then fades into the app */
+<script>/* Splash motion graphic: small points swirl in → "TOPMOD 3D" assembles from extruded Voronoi shards (per letter, left → right) → it shatters and the shards fall to the floor with physics → fade into the app */
 (function(){ var sp=document.getElementById("tmSplash"), cv=document.getElementById("tmSplashCv"); if(!sp||!cv||!window.THREE) return;
  try{
  var W=innerWidth,H=innerHeight, R=new THREE.WebGLRenderer({canvas:cv,antialias:true,alpha:true}); R.setPixelRatio(Math.min(2,devicePixelRatio||1)); R.setSize(W,H,false);
- var S=new THREE.Scene(), C=new THREE.PerspectiveCamera(35,W/H,0.1,100); C.position.set(0,0,14);
- S.add(new THREE.AmbientLight(0x6688aa,0.55)); var k=new THREE.DirectionalLight(0xffffff,1.1); k.position.set(4,6,8); S.add(k); var r2=new THREE.DirectionalLight(0x00e5ff,0.7); r2.position.set(-6,-2,4); S.add(r2);
- // rasterise the word, then turn every filled cell into two triangular prisms (alternating diagonals = faceted look)
- var tc=document.createElement("canvas"), tw=460, th=120; tc.width=tw; tc.height=th; var g=tc.getContext("2d"); g.fillStyle="#fff"; g.textBaseline="middle"; g.font="900 70px -apple-system,Helvetica,Arial,sans-serif";
- var parts=[["TOP",0],["MOD",1],[" 3D",0]], x=0, ws=parts.map(function(p){ return g.measureText(p[0]).width; }), tot=ws.reduce(function(a,b){return a+b;},0), x0=(tw-tot)/2, spans=[];
- parts.forEach(function(p,i){ spans.push([x0+x, x0+x+ws[i], p[1]]); g.fillText(p[0], x0+x, th/2+3); x+=ws[i]; });
- var D=g.getImageData(0,0,tw,th).data, step=4, cells=[];
- for(var yy=0;yy<th;yy+=step) for(var xx=0;xx<tw;xx+=step){ if(D[((yy+step/2|0)*tw+(xx+step/2|0))*4+3]>128){ var cyan=spans.some(function(sp){ return sp[2]&&xx>=sp[0]&&xx<sp[1]; }); cells.push([xx,yy,cyan]); } }
- var u=10/tw*step*1.0, sc=Math.min(1, (W/H)*0.95);
- function prism(flip){ var sh=new THREE.Shape(); if(!flip){ sh.moveTo(0,0); sh.lineTo(u,0); sh.lineTo(0,u); } else { sh.moveTo(u,u); sh.lineTo(0,u); sh.lineTo(u,0); } sh.closePath();
-   var ge=new THREE.ExtrudeGeometry(sh,{depth:u*1.6,bevelEnabled:false}); ge.translate(-u/2,-u/2,-u*0.8); return ge.toNonIndexed(); }
- var mats=[new THREE.MeshStandardMaterial({color:0xf2f6fa,metalness:0.25,roughness:0.35,flatShading:true}), new THREE.MeshStandardMaterial({color:0x00e5ff,metalness:0.2,roughness:0.3,flatShading:true,emissive:0x003a44})];
- var groups=[[],[],[],[]]; cells.forEach(function(c,i){ var f=((c[0]/step+c[1]/step)%2)|0; groups[(c[2]?2:0)+0].push([c,0]); groups[(c[2]?2:0)+1].push([c,1]); });
- var root=new THREE.Group(); S.add(root); root.scale.setScalar(sc);
- var IM=[], items=[];
- groups.forEach(function(arr,gi){ if(!arr.length) return; var im=new THREE.InstancedMesh(prism(gi%2===1), mats[gi>=2?1:0], arr.length); im.instanceMatrix.setUsage(THREE.DynamicDrawUsage); root.add(im); IM.push(im);
-   arr.forEach(function(a,j){ var c=a[0], tx=(c[0]-tw/2)/tw*10+u/2, ty=-(c[1]-th/2)/tw*10-u/2, tz=(Math.random()-0.5)*u*0.5;
-     var ang=Math.random()*Math.PI*2, rad=6+Math.random()*7; items.push({im:im,j:j,tx:tx,ty:ty,tz:tz, sx:Math.cos(ang)*rad, sy:Math.sin(ang)*rad*0.6, sz:-8+Math.random()*16, rx:(Math.random()-0.5)*8, ry:(Math.random()-0.5)*8, d:(c[0]/tw)*0.55+Math.random()*0.18}); }); });
- // glowing edge outline of the finished word
- var M4=new THREE.Matrix4(), Q=new THREE.Quaternion(), E=new THREE.Euler(), P=new THREE.Vector3(), Sv=new THREE.Vector3(1,1,1);
- var T0=performance.now(), FLY=1500, HOLD=1500, done=false;
- function ease(t){ return 1-Math.pow(1-t,3); }
- (function frame(){ if(done) return; var t=(performance.now()-T0)/1000;
-   for(var i=0;i<items.length;i++){ var it=items[i], q=Math.min(1,Math.max(0,(t*1000/FLY - it.d)/(1-0.55))), e=ease(q);
-     P.set(it.sx+(it.tx-it.sx)*e, it.sy+(it.ty-it.sy)*e, it.sz+(it.tz-it.sz)*e); E.set(it.rx*(1-e), it.ry*(1-e), 0); Q.setFromEuler(E); Sv.setScalar(0.2+0.8*e); M4.compose(P,Q,Sv); it.im.setMatrixAt(it.j,M4); }
-   IM.forEach(function(im){ im.instanceMatrix.needsUpdate=true; });
-   root.rotation.y=0.55*Math.sin(t*0.9)*(1-Math.min(1,t/3.2))+ (t>1.4? 0.18*Math.sin((t-1.4)*1.6):0); root.rotation.x=0.12*Math.sin(t*0.7);
-   k.position.x=4+6*Math.sin(t*1.2);
+ var S=new THREE.Scene(), C=new THREE.PerspectiveCamera(34,W/H,0.1,100); C.position.set(0,1.1,14); C.lookAt(0,-0.4,0);
+ S.add(new THREE.AmbientLight(0x6a86a6,0.55)); var K=new THREE.DirectionalLight(0xffffff,1.15); K.position.set(4,7,8); S.add(K); var Rm=new THREE.DirectionalLight(0x00e5ff,0.75); Rm.position.set(-6,-1,5); S.add(Rm);
+ var root=new THREE.Group(); S.add(root); var fit=Math.min(1,(W/H)/1.7); root.scale.setScalar(fit);
+ var FLOOR=-2.3;
+ var fg=new THREE.GridHelper(40,40,0x1d5f70,0x10303a); fg.position.y=FLOOR*fit; fg.material.transparent=true; fg.material.opacity=0.0; S.add(fg);
+ // ---- rasterise the word per glyph ----
+ var tc=document.createElement("canvas"), tw=900, th=230; tc.width=tw; tc.height=th; var g=tc.getContext("2d"); g.textBaseline="middle"; g.font="900 150px -apple-system,Helvetica,Arial,sans-serif";
+ var word="TOPMOD 3D", cyan=[0,0,0,1,1,1,0,0,0], ws=[], tot=0; for(var i=0;i<word.length;i++){ ws.push(g.measureText(word[i]).width); tot+=ws[i]; }
+ var step=3, GW=Math.ceil(tw/step), GH=Math.ceil(th/step), owner=new Int16Array(GW*GH).fill(-1), x=(tw-tot)/2, glyphs=[];
+ for(var i=0;i<word.length;i++){ if(word[i]===" "){ x+=ws[i]; continue; } g.clearRect(0,0,tw,th); g.fillStyle="#fff"; g.fillText(word[i],x,th/2+6); var D=g.getImageData(0,0,tw,th).data, px=[];
+   for(var gy=0;gy<GH;gy++) for(var gx=0;gx<GW;gx++){ var X=gx*step+1, Y=gy*step+1; if(X<tw&&Y<th&&D[(Y*tw+X)*4+3]>128){ px.push(gy*GW+gx); } }
+   glyphs.push({ch:word[i],cyan:cyan[i],px:px,x0:x,x1:x+ws[i]}); x+=ws[i]; }
+ // ---- Voronoi shards: random seeds inside each glyph, every glyph pixel joins its nearest seed ----
+ var shards=[];
+ glyphs.forEach(function(G,gi){ var n=Math.max(6,Math.round(G.px.length/230)), seeds=[];
+   for(var k=0;k<n;k++){ var c=G.px[(Math.random()*G.px.length)|0]; seeds.push([c%GW,(c/GW)|0]); }
+   var sets=seeds.map(function(){ return []; });
+   G.px.forEach(function(c){ var cx=c%GW, cy=(c/GW)|0, bi=0, bd=1e9; for(var k=0;k<n;k++){ var dx=cx-seeds[k][0], dy=cy-seeds[k][1], d=dx*dx+dy*dy; if(d<bd){bd=d;bi=k;} } sets[bi].push(c); });
+   sets.forEach(function(set){ if(set.length>3) shards.push({gi:gi,cyan:G.cyan,set:set}); }); });
+ // contour-trace a pixel set into polygon loops (outer + holes) and extrude it
+ var U=10/tw*step;
+ function geomFor(set){ var M=new Set(set), E=new Map(), add=function(a,b,c,d){ var k=a+","+b; (E.get(k)||E.set(k,[]).get(k)).push([c,d]); };
+   set.forEach(function(c){ var x=c%GW, y=(c/GW)|0;
+     if(!M.has(c-GW)) add(x,y,x+1,y); if(!M.has(c+1)||x===GW-1) add(x+1,y,x+1,y+1); if(!M.has(c+GW)) add(x+1,y+1,x,y+1); if(!M.has(c-1)||x===0) add(x,y+1,x,y); });
+   var loops=[];
+   E.forEach(function(lst,k){ while(lst.length){ var p0=k.split(",").map(Number), loop=[p0], cur=lst.shift(), guard=0;
+       while(guard++<100000){ loop.push(cur); var kk=cur[0]+","+cur[1]; if(cur[0]===p0[0]&&cur[1]===p0[1]) break; var nx=E.get(kk); if(!nx||!nx.length) break; cur=nx.shift(); }
+       loop.pop(); var sm=[]; for(var i=0;i<loop.length;i++){ var a=loop[(i-1+loop.length)%loop.length], b=loop[i], c2=loop[(i+1)%loop.length]; if((b[0]-a[0])*(c2[1]-b[1])-(b[1]-a[1])*(c2[0]-b[0])!==0) sm.push(b); }
+       if(sm.length>=3) loops.push(sm.map(function(p){ return new THREE.Vector2(p[0]*U,-p[1]*U); })); } });
+   var area=function(L){ var a=0; for(var i=0;i<L.length;i++){ var p=L[i],q=L[(i+1)%L.length]; a+=p.x*q.y-q.x*p.y; } return a/2; };
+   var outs=loops.filter(function(L){ return area(L)>0; }), holes=loops.filter(function(L){ return area(L)<0; });
+   if(!outs.length){ outs=holes.map(function(L){ return L.slice().reverse(); }); holes=[]; }
+   var inside=function(pt,L){ var c=false; for(var i=0,j=L.length-1;i<L.length;j=i++){ if(((L[i].y>pt.y)!==(L[j].y>pt.y))&&(pt.x<(L[j].x-L[i].x)*(pt.y-L[i].y)/(L[j].y-L[i].y)+L[i].x)) c=!c; } return c; };
+   var shapes=outs.map(function(L){ return new THREE.Shape(L); });
+   holes.forEach(function(Hh){ var sh=shapes.find(function(s2,i){ return inside(Hh[0],outs[i]); }); if(sh) sh.holes.push(new THREE.Path(Hh.slice().reverse())); });
+   var ge=new THREE.ExtrudeGeometry(shapes,{depth:U*10,bevelEnabled:true,bevelThickness:U*0.6,bevelSize:U*0.5,bevelSegments:1});
+   ge.computeBoundingBox(); var c=new THREE.Vector3(); ge.boundingBox.getCenter(c); ge.translate(-c.x,-c.y,-c.z); return {ge:ge,c:c}; }
+ var mats=[new THREE.MeshStandardMaterial({color:0xeef3f8,metalness:0.3,roughness:0.32,flatShading:true}), new THREE.MeshStandardMaterial({color:0x00e5ff,metalness:0.22,roughness:0.28,flatShading:true,emissive:0x00323b})];
+ var ox=-(GW*U)/2, oy=(GH*U)/2;
+ shards.forEach(function(s,i){ var r=geomFor(s.set); s.mesh=new THREE.Mesh(r.ge, mats[s.cyan]); s.home=new THREE.Vector3(r.c.x+ox, r.c.y+oy, r.c.z); 
+   var a=Math.random()*Math.PI*2, rad=7+Math.random()*6; s.from=new THREE.Vector3(Math.cos(a)*rad, Math.sin(a)*rad*0.55, -6+Math.random()*12); s.rot=new THREE.Vector3((Math.random()-.5)*7,(Math.random()-.5)*7,(Math.random()-.5)*7);
+   s.delay=(s.home.x-ox)/(GW*U)*0.6+Math.random()*0.12; r.ge.computeBoundingSphere(); s.rad=r.ge.boundingSphere.radius; s.mesh.visible=false; root.add(s.mesh); });
+ // ---- small swirling points that collapse into the letters ----
+ var NP=1600, pg=new THREE.BufferGeometry(), pp=new Float32Array(NP*3), pf=[], pt=[];
+ for(var i=0;i<NP;i++){ var a=Math.random()*Math.PI*2, r0=4+Math.random()*9, y0=(Math.random()-0.5)*6; pf.push([a,r0,y0]); var s=shards[(Math.random()*shards.length)|0]; pt.push([s.home.x+(Math.random()-.5)*s.rad, s.home.y+(Math.random()-.5)*s.rad, s.home.z]); }
+ pg.setAttribute("position",new THREE.BufferAttribute(pp,3)); var pm=new THREE.PointsMaterial({color:0x7fe9ff,size:0.035,transparent:true,opacity:0.95,depthWrite:false}); var pts=new THREE.Points(pg,pm); root.add(pts);
+ var e3=function(t){ return 1-Math.pow(1-t,3); }, T0=performance.now(), done=false, phys=false, last=0;
+ var A0=0.55, A1=1.75, HOLD=2.45, FALL=2.6;
+ (function frame(){ if(done) return; var t=(performance.now()-T0)/1000, dt=Math.min(0.033,last?t-last:0.016); last=t;
+   // points: swirl, then pull into the letters, then fade
+   var pc=Math.min(1,t/1.1); for(var i=0;i<NP;i++){ var f=pf[i], ang=f[0]+t*(1.8-1.2*pc), sx=Math.cos(ang)*f[1]*(1-pc*0.25), sz=Math.sin(ang)*f[1]*0.5, sy=f[2]*(1-pc*0.5), e=e3(Math.max(0,(t-0.25)/0.95));
+     pp[i*3]=sx+(pt[i][0]-sx)*e; pp[i*3+1]=sy+(pt[i][1]-sy)*e; pp[i*3+2]=sz+(pt[i][2]-sz)*e; } pg.attributes.position.needsUpdate=true; pm.opacity=Math.max(0,0.95-Math.max(0,t-1.0)*1.2);
+   if(!phys){
+     shards.forEach(function(s){ var q=Math.min(1,Math.max(0,(t-A0-s.delay)/(A1-A0-0.6))); if(q<=0){ s.mesh.visible=false; return; } s.mesh.visible=true; var e=e3(q);
+       s.mesh.position.lerpVectors(s.from,s.home,e); s.mesh.rotation.set(s.rot.x*(1-e),s.rot.y*(1-e),s.rot.z*(1-e)); s.mesh.scale.setScalar(0.3+0.7*e); });
+     root.rotation.y=0.22*Math.sin(t*1.1)*Math.max(0,1-(t/HOLD)); K.position.x=4+7*Math.sin(t*1.3);
+     if(t>FALL){ phys=true; root.rotation.y=0; shards.forEach(function(s){ s.mesh.position.copy(s.home); s.mesh.rotation.set(0,0,0); s.mesh.scale.setScalar(1);
+         s.v=new THREE.Vector3((s.home.x)*0.25+(Math.random()-.5)*1.6, 1.2+Math.random()*2.2, (Math.random()-.2)*2.4); s.w=new THREE.Vector3((Math.random()-.5)*6,(Math.random()-.5)*6,(Math.random()-.5)*6); }); }
+   } else {
+     fg.material.opacity=Math.min(0.35,(t-FALL)*0.6);
+     var floorL=FLOOR;   // local units (root scale applies)
+     shards.forEach(function(s){ s.v.y-=16*dt; s.mesh.position.addScaledVector(s.v,dt); s.mesh.rotation.x+=s.w.x*dt; s.mesh.rotation.y+=s.w.y*dt; s.mesh.rotation.z+=s.w.z*dt;
+       var bottom=s.mesh.position.y-s.rad*0.55; if(bottom<floorL){ s.mesh.position.y+=floorL-bottom; if(s.v.y<0) s.v.y*=-0.32; s.v.x*=0.82; s.v.z*=0.82; s.w.multiplyScalar(0.7); if(Math.abs(s.v.y)<0.4) s.v.y=0; } });
+   }
    R.render(S,C); requestAnimationFrame(frame); })();
- window.__splashEnd=function(){ done=true; try{ R.dispose(); IM.forEach(function(im){ im.geometry.dispose(); }); mats.forEach(function(m){m.dispose();}); }catch(e){} };
- }catch(e){ sp.innerHTML='<div class="lg">TOP<b>MOD</b> 3D</div>'; }
+ window.__splashEnd=function(){ done=true; try{ shards.forEach(function(s){ s.mesh.geometry.dispose(); }); mats.forEach(function(m){m.dispose();}); pg.dispose(); pm.dispose(); R.dispose(); }catch(e){} };
+ }catch(e){ console.warn(e); sp.innerHTML='<div class="lg">TOP<b>MOD</b> 3D</div>'; }
 })();</script>
 <script>/* reveal only once every layout pass (docks, stacked panels, phone sizing, restored widths) has run — no flash of the old UI */
-(function(){function reveal(){requestAnimationFrame(function(){requestAnimationFrame(function(){setTimeout(function(){var h=document.documentElement;h.classList.remove("tmBoot");h.classList.add("tmBooted");try{dispatchEvent(new Event("resize"))}catch(e){} var sp=document.getElementById("tmSplash"); if(sp){ setTimeout(function(){ sp.classList.add("out"); setTimeout(function(){ try{ window.__splashEnd&&window.__splashEnd(); }catch(e){} sp.remove(); },700); },3300); } },120);});});}
+(function(){function reveal(){requestAnimationFrame(function(){requestAnimationFrame(function(){setTimeout(function(){var h=document.documentElement;h.classList.remove("tmBoot");h.classList.add("tmBooted");try{dispatchEvent(new Event("resize"))}catch(e){} var sp=document.getElementById("tmSplash"); if(sp){ setTimeout(function(){ sp.classList.add("out"); setTimeout(function(){ try{ window.__splashEnd&&window.__splashEnd(); }catch(e){} sp.remove(); },700); },4300); } },120);});});}
  if(document.readyState==="complete") reveal(); else addEventListener("load",reveal);})();</script>
 </body>
 </html>
