@@ -1063,6 +1063,16 @@ body.layCol #layersPanel,body.modCol #modPanel{overflow:hidden!important}
 /* right column runs to the screen edge (under the landscape safe area); its content keeps clear of the notch with inner padding */
 body.opDock.opOpen #layersPanel,body.opDock.opOpen #modPanel{right:0!important;width:calc(var(--opw,280px) + env(safe-area-inset-right))!important;padding-right:env(safe-area-inset-right)!important;box-sizing:border-box!important}
 body.opDock.opOpen #rTabs,body.opDock.opOpen #rSplit,body.opDock.opOpen.rStack .rSp{right:0!important;width:calc(var(--opw,280px) + env(safe-area-inset-right))!important}
+
+/* Options-window slider fit: every simulate/tool panel stacks label over a full-width slider + value */
+#clCtl .clR,#phCtl .clR,#mtCtl .clR,.smCtl .clR,.smCtl2 .clR{grid-template-columns:minmax(0,1fr) auto!important;row-gap:2px!important;column-gap:8px!important}
+#clCtl .clR>span,#phCtl .clR>span,#mtCtl .clR>span,.smCtl .clR>span,.smCtl2 .clR>span{grid-column:1/-1!important;font-size:11px;color:#9fb3c8;line-height:1.2}
+#clCtl .clR>select,#phCtl .clR>select,#mtCtl .clR>select,.smCtl .clR>select,.smCtl2 .clR>select{grid-column:1/-1!important;width:100%!important;min-width:0}
+#clCtl .clR>em,#phCtl .clR>em,#mtCtl .clR>em,.smCtl .clR>em,.smCtl2 .clR>em{min-width:30px;text-align:right}
+#clCtl .clR>em:empty,#phCtl .clR>em:empty,#mtCtl .clR>em:empty,.smCtl .clR>em:empty,.smCtl2 .clR>em:empty{display:none}
+#clCtl .clR input[type=range],#phCtl .clR input[type=range],#mtCtl .clR input[type=range],.smCtl .clR input[type=range],.smCtl2 .clR input[type=range]{min-width:0;width:100%}
+#tpBody button,#tpBody .mkbtn{max-width:100%;box-sizing:border-box}
+#tpBody .clB,#tpBody .clModes{flex-wrap:wrap}
 </style>
 <script>document.documentElement.classList.add("tmBoot");setTimeout(function(){var h=document.documentElement;if(h.classList.contains("tmBoot")){h.classList.remove("tmBoot");h.classList.add("tmBooted");}},5000);</script>
 </head>
@@ -15628,8 +15638,8 @@ window.__ek={applyWhole:applyWhole,ops:ops,snapshot:snapshot,rebuild:rebuild,toa
         const nv=new V(n[0],n[1],n[2]); if(nv.lengthSq()<1e-18) continue; nv.normalize(); const cv=new V(c[0]/f.length,c[1]/f.length,c[2]/f.length); P.push(cv); N.push(nv);
         for(const vi of f){ const a=tm.verts[vi]; P.push(new V((a[0]+cv.x)/2,(a[1]+cv.y)/2,(a[2]+cv.z)/2)); N.push(nv); } }
       let bb=new THREE.Box3(); P.forEach(p=>bb.expandByPoint(p)); const cell=Math.max(1e-3,bb.getSize(new V()).length()/24), H=new Map();
-      P.forEach((p,i)=>{ const k=Math.floor(p.x/cell)+","+Math.floor(p.y/cell)+","+Math.floor(p.z/cell); if(!H.has(k)) H.set(k,[]); H.get(k).push(i); });
-      T={P,N,cell,H,center:bb.getCenter(new V())}; }
+      P.forEach((p,i)=>{ const k=(Math.floor(p.x/cell)*73856093)^(Math.floor(p.y/cell)*19349663)^(Math.floor(p.z/cell)*83492791); if(!H.has(k)) H.set(k,[]); H.get(k).push(i); });
+      const CO=[]; { const st=Math.max(1,Math.floor(P.length/300)); for(let i=0;i<P.length;i+=st) CO.push(i); } T={P,N,cell,H,CO,center:bb.getCenter(new V())}; }
     let mn=Infinity; for(const b of B) for(const l of b.loc) mn=Math.min(mn,l[1]+b.x.y);
     floorY=(typeof grid!=="undefined"&&grid)?Math.min(grid.position.y,mn):mn;
     if(C.height>0) B.forEach(b=>{ b.x.y+=C.height; b.x0.y+=C.height; });
@@ -15642,9 +15652,9 @@ window.__ek={applyWhole:applyWhole,ops:ops,snapshot:snapshot,rebuild:rebuild,toa
   function clearBodies(){ if(grp){ scene.remove(grp); grp.traverse(o=>{ o.geometry&&o.geometry.dispose(); o.material&&o.material.dispose&&o.material.dispose(); }); grp=null; } B=[]; }
   function restore(){ if(!hidden) return; layers.forEach((L,i)=>{ if(L&&hidden.layers[i]!=null) L.visible=hidden.layers[i]; }); hidden=null; [meshObj,edgeObj,pointObj].forEach(o=>{ if(o) o.visible=true; }); renderInactiveLayers&&renderInactiveLayers(); try{ rebuild(); }catch(e){} }
   function nearT(x){ if(!T) return -1; const c=T.cell, ci=Math.floor(x.x/c), cj=Math.floor(x.y/c), ck=Math.floor(x.z/c); let best=-1, bd=1e30;
-    for(let r=0;r<6&&best<0;r++){ for(let di=-r;di<=r;di++)for(let dj=-r;dj<=r;dj++)for(let dk=-r;dk<=r;dk++){ if(Math.max(Math.abs(di),Math.abs(dj),Math.abs(dk))!==r) continue; const L=T.H.get((ci+di)+","+(cj+dj)+","+(ck+dk)); if(!L) continue;
+    for(let r=0;r<3&&best<0;r++){ for(let di=-r;di<=r;di++)for(let dj=-r;dj<=r;dj++)for(let dk=-r;dk<=r;dk++){ if(Math.max(Math.abs(di),Math.abs(dj),Math.abs(dk))!==r) continue; const L=T.H.get(((ci+di)*73856093)^((cj+dj)*19349663)^((ck+dk)*83492791)); if(!L) continue;
         for(const i of L){ const d=T.P[i].distanceToSquared(x); if(d<bd){ bd=d; best=i; } } } }
-    if(best<0){ for(let i=0;i<T.P.length;i++){ const d=T.P[i].distanceToSquared(x); if(d<bd){ bd=d; best=i; } } } return best; }
+    if(best<0){ for(const i of T.CO){ const d=T.P[i].distanceToSquared(x); if(d<bd){ bd=d; best=i; } } } return best; }
   function sync(){ for(const b of B){ b.ob.position.copy(b.x); b.ob.quaternion.copy(b.q); } }
   const rW=new V(), vP=new V(), cr=new V();
   function impulse(b,r,J){ b.v.addScaledVector(J,1/b.m); cr.crossVectors(r,J); b.w.addScaledVector(cr,1/b.I); }
@@ -15658,7 +15668,7 @@ window.__ek={applyWhole:applyWhole,ops:ops,snapshot:snapshot,rebuild:rebuild,toa
     for(const b of B){ if(b===(grab&&grab.b)) continue; b.v.y+=g*dt; b.v.multiplyScalar(0.999); b.w.multiplyScalar(0.995); }
     if(grab){ const b=grab.b; tmp.copy(grab.local).applyQuaternion(b.q).add(b.x); tmp2.subVectors(grab.target,tmp); b.v.copy(tmp2).multiplyScalar(14); rW.copy(tmp).sub(b.x); b.w.multiplyScalar(0.85); grab.vel.lerp(b.v,0.35); }
     // body-body (spheres, spatial hash)
-    const cell=Math.max(0.2,...B.map(b=>b.rc))*2, H=new Map(), key=(i,j,k)=>i+","+j+","+k;
+    let mxr=0.1; for(const b of B) if(b.rc>mxr) mxr=b.rc; const cell=Math.max(0.2,mxr)*2, H=new Map(), key=(i,j,k)=>(i*73856093)^(j*19349663)^(k*83492791);
     B.forEach((b,idx)=>{ const k=key(Math.floor(b.x.x/cell),Math.floor(b.x.y/cell),Math.floor(b.x.z/cell)); if(!H.has(k)) H.set(k,[]); H.get(k).push(idx); });
     B.forEach((a,ia)=>{ const ci=Math.floor(a.x.x/cell), cj=Math.floor(a.x.y/cell), ck=Math.floor(a.x.z/cell);
       for(let di=-1;di<=1;di++)for(let dj=-1;dj<=1;dj++)for(let dk=-1;dk<=1;dk++){ const L=H.get(key(ci+di,cj+dj,ck+dk)); if(!L) continue;
@@ -15750,7 +15760,12 @@ window.__ek={applyWhole:applyWhole,ops:ops,snapshot:snapshot,rebuild:rebuild,toa
 
 // ---------- Melt: the form softens, slumps under gravity, drips and pools out on the ground ----------
 (function(){
-  const C={heat:1, visc:0.35, spread:0.6, drips:0.5, detail:1, playing:false};
+  const C={heat:1, visc:0.35, spread:0.6, drips:0.5, detail:1, spring:0, playing:false, preset:"plastic"};
+  const MP={ ice:{heat:0.9,visc:0.12,spread:1.7,drips:0.15,spring:0,col:0xcfeeff,op:0.62,rough:0.05,metal:0.0,lab:"Ice"},
+             jelly:{heat:1.2,visc:0.55,spread:0.25,drips:0,spring:0.9,col:0xff3d6e,op:0.78,rough:0.12,metal:0.0,lab:"Jelly"},
+             plastic:{heat:1,visc:0.4,spread:0.55,drips:0.65,spring:0.04,col:0xffa733,op:1,rough:0.35,metal:0.1,lab:"Plastic"},
+             wax:{heat:0.7,visc:0.7,spread:0.35,drips:0.9,spring:0.02,col:0xf3e6c4,op:1,rough:0.55,metal:0,lab:"Wax"},
+             chocolate:{heat:1.1,visc:0.5,spread:0.9,drips:0.45,spring:0,col:0x5a2e17,op:1,rough:0.3,metal:0.05,lab:"Chocolate"} };
   let S=null, obj=null, ctl=null, raf=0, lastT=0, hid=false;
   const $=s=>document.querySelector(s);
   function src(){ const base=(typeof dispMesh==="function")?dispMesh():mesh; return base&&base.verts.length?base:null; }
@@ -15771,7 +15786,7 @@ window.__ek={applyWhole:applyWhole,ops:ops,snapshot:snapshot,rebuild:rebuild,toa
     const tris=[]; for(const f of m.faces) for(let k=1;k<f.length-1;k++) tris.push(f[0],f[k],f[k+1]);
     S={n, P, V, F, L0, nb:nb.map(s=>[...s]), floor, H, cx:cx/n, cz:cz/n, t:0, faces:m.faces, P0:P.slice()};
     const g=new THREE.BufferGeometry(); g.setAttribute("position",new THREE.BufferAttribute(P,3)); g.setIndex(tris); g.computeVertexNormals();
-    obj=new THREE.Mesh(g,new THREE.MeshStandardMaterial({color:0xffa733,metalness:0.1,roughness:0.35,side:THREE.DoubleSide})); scene.add(obj);
+    const pm=MP[C.preset]||MP.plastic; obj=new THREE.Mesh(g,new THREE.MeshStandardMaterial({color:pm.col,metalness:pm.metal,roughness:pm.rough,transparent:pm.op<1,opacity:pm.op,side:THREE.DoubleSide})); scene.add(obj);
     [meshObj,edgeObj,pointObj].forEach(o=>{ if(o) o.visible=false; }); hid=true; stats();
   }
   function stopObj(){ if(obj){ scene.remove(obj); obj.geometry.dispose(); obj.material.dispose(); obj=null; } S=null; }
@@ -15780,7 +15795,9 @@ window.__ek={applyWhole:applyWhole,ops:ops,snapshot:snapshot,rebuild:rebuild,toa
     const {n,P,V,F,L0,nb,floor,H}=S; S.t+=dt; const ramp=Math.min(1,S.t*0.35*C.heat), g=-1.1*C.heat*ramp, T=0.16*H/(0.6+C.spread*0.5);
     const decay=Math.exp(-S.t*0.25);   // the puddle slows and sets
     for(let i=0;i<n;i++){ const soft=Math.min(1,Math.max(0,(ramp*1.25-(1-L0[i])*0.6)));    // top softens first
-      V[i*3+1]+=g*F[i]*soft*dt; V[i*3]*=0.92; V[i*3+2]*=0.92; V[i*3+1]*=0.97; }
+      V[i*3+1]+=g*F[i]*soft*dt*(1-C.spring*0.75);
+      if(C.spring>0){ const P0=S.P0, kk=C.spring*26*dt; V[i*3]+=(P0[i*3]-P[i*3])*kk; V[i*3+1]+=(P0[i*3+1]-P[i*3+1])*kk*(1-0.5*soft*ramp); V[i*3+2]+=(P0[i*3+2]-P[i*3+2])*kk; }   /* jelly: springs back and wobbles */
+      const dmp=C.spring>0?0.985:0.92; V[i*3]*=dmp; V[i*3+2]*=dmp; V[i*3+1]*=C.spring>0?0.985:0.97; }
     for(let i=0;i<n;i++){ P[i*3]+=V[i*3]*dt; P[i*3+1]+=V[i*3+1]*dt; P[i*3+2]+=V[i*3+2]*dt; }
     const k=Math.min(0.5,0.05+C.visc*0.35);
     const lap=(w,wy)=>{ const Q=P.slice(); for(let i=0;i<n;i++){ const N=nb[i]; if(!N.length) continue; let ax=0,ay=0,az=0; for(const j of N){ ax+=Q[j*3]; ay+=Q[j*3+1]; az+=Q[j*3+2]; } const l=N.length;
@@ -15802,18 +15819,20 @@ window.__ek={applyWhole:applyWhole,ops:ops,snapshot:snapshot,rebuild:rebuild,toa
   function slider(id,label,min,max,st,key){ return '<label class="clR"><span>'+label+'</span><input type="range" id="'+id+'" min="'+min+'" max="'+max+'" step="'+st+'" data-k="'+key+'"><em id="'+id+'V"></em></label>'; }
   function buildUI(){ if(ctl) return ctl; ctl=document.createElement("div"); ctl.id="mtCtl";
     ctl.innerHTML='<style>#mtCtl{font:12px var(--font,system-ui);color:#dbe8f3;display:flex;flex-direction:column;gap:7px}#mtCtl .clR{display:grid;grid-template-columns:78px 1fr 34px;align-items:center;gap:6px}#mtCtl .clR em{font-style:normal;color:#8fd8ff;text-align:right}#mtCtl input[type=range]{width:100%}#mtCtl .clB{display:flex;gap:5px}#mtCtl .clB button{flex:1;padding:7px 4px;border-radius:7px;border:1px solid #2a4a5a;background:#0f2430;color:#bff3ff;font:600 11.5px var(--font,system-ui);cursor:pointer}#mtCtl .clB button.pri{background:#00E5FF;border-color:#00E5FF;color:#04121a}#mtCtl .clS{color:#8fa6b8;font-size:11px;line-height:1.4}</style>'
+      +'<div class="clB" id="mtPre">'+Object.keys(MP).map(k=>'<button data-pre="'+k+'">'+MP[k].lab+'</button>').join("")+'</div>'
       +slider("mtHeat","Heat",0.1,3,0.05,"heat")+slider("mtVisc","Viscosity",0,1,0.01,"visc")+slider("mtSpread","Spread",0,2,0.05,"spread")+slider("mtDrip","Drips",0,1,0.01,"drips")+slider("mtDet","Detail ×",0,3,1,"detail")
       +'<div class="clB"><button id="mtPlay" class="pri">▶ Play</button><button id="mtReset">↺ Reset</button><button id="mtBake">Bake</button></div><div class="clS" id="mtStats"></div>';
     ctl.querySelectorAll("input[type=range]").forEach(r=>r.oninput=()=>{ C[r.dataset.k]=+r.value; ui(); if(r.dataset.k==="detail"||r.dataset.k==="drips") reset(); });
+    ctl.querySelectorAll("#mtPre button").forEach(b=>b.onclick=()=>{ const m=MP[b.dataset.pre]; C.preset=b.dataset.pre; ["heat","visc","spread","drips","spring"].forEach(k=>C[k]=m[k]); reset(); C.playing=true; ui(); });
     ctl.querySelector("#mtPlay").onclick=()=>C.playing?pause():play(); ctl.querySelector("#mtReset").onclick=reset; ctl.querySelector("#mtBake").onclick=bake; return ctl; }
   function ui(){ if(!ctl) return; ctl.querySelectorAll("input[type=range]").forEach(r=>{ r.value=C[r.dataset.k]; const e=ctl.querySelector("#"+r.id+"V"); if(e) e.textContent=(+C[r.dataset.k]).toFixed(2).replace(/\.?0+$/,"")||"0"; });
-    ctl.querySelector("#mtPlay").textContent=C.playing?"❚❚ Pause":"▶ Play"; stats(); }
+    ctl.querySelector("#mtPlay").textContent=C.playing?"❚❚ Pause":"▶ Play"; ctl.querySelectorAll("#mtPre button").forEach(b=>b.classList.toggle("pri",b.dataset.pre===C.preset)); stats(); }
   function stats(){ const el=ctl&&ctl.querySelector("#mtStats"); if(el) el.textContent=S?S.n.toLocaleString()+" vertices · Bake keeps the current frame":"Press Play to melt the form."; }
   function open(){ buildUI(); const body=$("#tpBody"); if(!body) return;
     try{ if(tpState&&tpState.op!=="melt") closeToolPop(); }catch(e){}
     body.innerHTML=""; body.appendChild(ctl); $("#tpTitle").textContent="Melt"; $("#tpApply")&&($("#tpApply").style.display="none");
     const pop=$("#toolpop"); pop.classList.remove("hiddenPanel","empty"); $("#optionsToggle")&&$("#optionsToggle").classList.add("on");
-    tpState={op:"melt",btn:null,moved:[]}; build(); C.playing=true; ui(); if(!raf){ lastT=0; raf=requestAnimationFrame(loop); }
+    tpState={op:"melt",btn:null,moved:[]}; { const m=MP[C.preset]||MP.plastic; ["heat","visc","spread","drips","spring"].forEach(k=>C[k]=m[k]); } build(); C.playing=true; ui(); if(!raf){ lastT=0; raf=requestAnimationFrame(loop); }
     $("#hint")&&($("#hint").textContent="Melt: the form slumps, drips and pools. Pause on the frame you like and Bake."); }
   function close(){ C.playing=false; cancelAnimationFrame(raf); raf=0; stopObj(); restore(); }
   new MutationObserver(()=>{ if(ctl&&!ctl.isConnected&&(S||raf)){ close(); try{ $("#tpApply")&&($("#tpApply").style.display=""); }catch(e){} } }).observe(document.body,{childList:true,subtree:true});
@@ -16104,9 +16123,30 @@ window.__ek={applyWhole:applyWhole,ops:ops,snapshot:snapshot,rebuild:rebuild,toa
   }
   function toBake(){ if(!O.res){ toast&&toast("Run the optimisation first",true); return; } const m=voxSurface(O.res,+O.ctl.querySelector("#toThr").value); if(!m.faces.length){ toast&&toast("Nothing above the threshold",true); return; }
     toClear(); hideModel(false); addLayer(m,false); if(layers[activeLayer]) layers[activeLayer].name="TopOpt "+layers[activeLayer].id; renderLayerList&&renderLayerList(); toast&&toast("Optimised shape baked to a new layer"); toDraw(); }
+  const TO_EX={
+    cantilever:{lab:"Cantilever beam",box:[4,1.25,0.8],sup:b=>grid2(b,"x0",4,4),load:b=>line(b,[b[0]/2,-b[1]/2+0.08,0],2),res:30,vf:0.3,it:40,note:"Wall on the left, weight hanging off the right tip."},
+    bridge:{lab:"Bridge",box:[6,1.6,1],sup:b=>[...pts(b,[-b[0]/2+0.1,-b[1]/2+0.05],3),...pts(b,[b[0]/2-0.1,-b[1]/2+0.05],3)],load:b=>strip(b,b[1]/2-0.05,24),res:36,vf:0.3,it:50,note:"Two piers at the ends, traffic across the top."},
+    bracket:{lab:"Wall bracket",box:[3,2.4,0.7],sup:b=>[...pts2(b,[-b[0]/2+0.05,b[1]/2-0.3]),...pts2(b,[-b[0]/2+0.05,-b[1]/2+0.3])],load:b=>line(b,[b[0]/2-0.05,b[1]/2-0.08,0],2),res:28,vf:0.25,it:40,note:"Two bolts in the wall, shelf load at the outer top corner."},
+    table:{lab:"Table",box:[3,1.8,3],sup:b=>[[-1,-1],[1,-1],[-1,1],[1,1]].flatMap(([sx,sz])=>[{c:[sx*(b[0]/2-0.15),-b[1]/2+0.04,sz*(b[2]/2-0.15)],n:[0,-1,0]}]),load:b=>{ const o=[]; for(let i=0;i<5;i++) for(let k=0;k<5;k++) o.push({c:[(i/4-0.5)*b[0]*0.9,b[1]/2-0.04,(k/4-0.5)*b[2]*0.9],n:[0,1,0]}); return o; },res:24,vf:0.2,it:35,note:"Four feet on the ground, load spread across the top."}
+  };
+  function pts(b,xy,n){ const o=[]; for(let k=0;k<n;k++) o.push({c:[xy[0],xy[1],(k/(Math.max(1,n-1))-0.5)*b[2]*0.8],n:[0,-1,0]}); return o; }
+  function pts2(b,xy){ return [-0.25,0,0.25].map(z=>({c:[xy[0],xy[1],z*b[2]],n:[-1,0,0]})); }
+  function grid2(b,face,nu,nv){ const o=[]; for(let i=0;i<nu;i++) for(let j=0;j<nv;j++) o.push({c:[-b[0]/2+0.05,(i/(nu-1)-0.5)*b[1]*0.9,(j/(nv-1)-0.5)*b[2]*0.9],n:[-1,0,0]}); return o; }
+  function line(b,c,n){ const o=[]; for(let k=0;k<n+1;k++) o.push({c:[c[0],c[1],(k/n-0.5)*b[2]*0.7],n:[0,1,0]}); return o; }
+  function strip(b,y,n){ const o=[]; for(let i=0;i<n;i++) for(let k=0;k<5;k++) o.push({c:[(i/(n-1)-0.5)*b[0]*0.97,y,(k/4-0.5)*b[2]*0.9],n:[0,1,0]}); return o; }
+  function toExample(key){ const E=TO_EX[key]; if(!E||!O.ctl) return; O.run=false; const [X,Y,Z]=E.box, y0=0;
+    const v=[[-X/2,y0,-Z/2],[X/2,y0,-Z/2],[X/2,y0+Y,-Z/2],[-X/2,y0+Y,-Z/2],[-X/2,y0,Z/2],[X/2,y0,Z/2],[X/2,y0+Y,Z/2],[-X/2,y0+Y,Z/2]];
+    const m={verts:v,faces:[[0,3,2,1],[4,5,6,7],[0,1,5,4],[1,2,6,5],[2,3,7,6],[3,0,4,7]]};
+    try{ snapshot&&snapshot(); }catch(e){} mesh={verts:m.verts.map(a=>a.slice()),faces:m.faces.map(f=>f.slice())}; const L=layers[activeLayer]; if(L){ L.mesh=mesh; L.name=E.lab+" (design space)"; L.modifiers=[]; L._ev=null; L._evKey=null; L.steps=[]; } clearSel&&clearSel(false); rebuild(); renderLayerList&&renderLayerList(); renderModStack&&renderModStack();
+    try{ window.__tm&&window.__tm.frameAll&&window.__tm.frameAll(1.4); }catch(e){}
+    const sh=p=>({c:[p.c[0],p.c[1]+Y/2,p.c[2]],n:p.n}); O.sup=E.sup(E.box).map(sh); O.load=E.load(E.box).map(sh);
+    const q=s=>O.ctl.querySelector(s); q("#toSup").value="sel"; q("#toLd").value="down"; q("#toRes").value=E.res; q("#toVf").value=E.vf; q("#toIt").value=E.it;
+    ["toRes","toVf","toIt"].forEach(id=>{ const e=q("#"+id+"V"); if(e) e.textContent=q("#"+id).value; });
+    q("#toSel").textContent=E.note+" · blue = supports, red = loads"; O.res=null; toClear(); hideModel(false); setTimeout(toRun,120); }
   function toOpen(){
     O.ctl=openPanel("topopt","Topology optimisation",
       '<div class="clS">Carves away material that carries little load (SIMP, minimum compliance). Select faces on the model, then use them as supports or loads.</div>'
+      +'<label class="clR"><span>Example</span><select id="toEx"><option value="">— pick a worked example —</option>'+Object.keys(TO_EX).map(k=>'<option value="'+k+'">'+TO_EX[k].lab+'</option>').join("")+'</select><em></em></label>'
       +sl("toVf","Keep volume",0.08,0.8,0.01,0.3)+sl("toRes","Resolution",10,34,1,18)+sl("toIt","Iterations",5,80,1,30)
       +'<label class="clR"><span>Supports</span><select id="toSup"><option value="base">Base (on the ground)</option><option value="sel">Selected faces</option></select><em></em></label>'
       +'<label class="clR"><span>Load</span><select id="toLd"><option value="down">Selected faces · push down</option><option value="push">Selected faces · press in</option><option value="side">Selected faces · push sideways</option><option value="top">Top surface · down</option></select><em></em></label>'
@@ -16117,9 +16157,11 @@ window.__ek={applyWhole:applyWhole,ops:ops,snapshot:snapshot,rebuild:rebuild,toa
     const upd=()=>{ O.ctl.querySelector("#toSel").textContent="Supports: "+(O.sup.length?Math.round(O.sup.length/5)+" face(s)":"base")+" · Loads: "+(O.load.length?Math.round(O.load.length/5)+" face(s)":"top surface"); if(O.res) toDraw(); };
     O.ctl.querySelector("#toSupB").onclick=()=>{ O.sup=selFacePts(); if(O.sup.length) O.ctl.querySelector("#toSup").value="sel"; else toast&&toast("Select faces first (press 3)",true); upd(); };
     O.ctl.querySelector("#toLdB").onclick=()=>{ O.load=selFacePts(); if(!O.load.length) toast&&toast("Select faces first (press 3)",true); else if(O.ctl.querySelector("#toLd").value==="top") O.ctl.querySelector("#toLd").value="down"; upd(); };
+    O.ctl.querySelector("#toEx").onchange=e=>{ if(e.target.value) toExample(e.target.value); };
     O.ctl.querySelector("#toRun").onclick=toRun; O.ctl.querySelector("#toBake").onclick=toBake; O.ctl.querySelector("#toClr").onclick=()=>{ O.run=false; O.res=null; toClear(); hideModel(false); };
     ["toThr","toSm"].forEach(id=>O.ctl.querySelector("#"+id).addEventListener("input",()=>{ if(O.res&&!O.run) toDraw(); }));
     if(O.sup.length||O.load.length) upd();
+    { const M=(typeof dispMesh==="function")?dispMesh():mesh; if(M&&M.faces.length<=6&&!O.sup.length&&!O.load.length){ O.ctl.querySelector("#toEx").value="cantilever"; toExample("cantilever"); } }
     $("#hint")&&($("#hint").textContent="Topology optimisation: select faces → Supports / Loads from selection → Optimise → Bake.");
   }
   window.__topopt={open:toOpen,run:toRun};
@@ -16179,11 +16221,14 @@ window.__ek={applyWhole:applyWhole,ops:ops,snapshot:snapshot,rebuild:rebuild,toa
       const l=Math.hypot(...n); if(l<1e-12) continue; n=n.map(x=>x/l); c=c.map(x=>x/f.length); P.push(c); N.push(n);
       for(let i=0;i<f.length;i++){ const a=m.verts[f[i]], q=m.verts[f[(i+1)%f.length]]; P.push([(a[0]+q[0]+2*c[0])/4,(a[1]+q[1]+2*c[1])/4,(a[2]+q[2]+2*c[2])/4]); N.push(n); P.push([(a[0]*2+c[0])/3,(a[1]*2+c[1])/3,(a[2]*2+c[2])/3]); N.push(n); } }
     let mn=[1e30,1e30,1e30], mx=[-1e30,-1e30,-1e30]; for(const v of m.verts) for(let i=0;i<3;i++){ mn[i]=Math.min(mn[i],v[i]); mx[i]=Math.max(mx[i],v[i]); }
-    const L=Math.hypot(mx[0]-mn[0],mx[1]-mn[1],mx[2]-mn[2])||1, cell=L/30, H=new Map(), key=(i,j,k)=>i+","+j+","+k;
+    const L=Math.hypot(mx[0]-mn[0],mx[1]-mn[1],mx[2]-mn[2])||1, cell=L/30, H=new Map(), key=(i,j,k)=>(i*73856093)^(j*19349663)^(k*83492791);
     P.forEach((p,i)=>{ const k=key(Math.floor(p[0]/cell),Math.floor(p[1]/cell),Math.floor(p[2]/cell)); if(!H.has(k)) H.set(k,[]); H.get(k).push(i); });
+    const CO=[]; { const step=Math.max(1,Math.floor(P.length/400)); for(let i=0;i<P.length;i+=step) CO.push(i); }
     const near=(x,y,z)=>{ const ci=Math.floor(x/cell), cj=Math.floor(y/cell), ck=Math.floor(z/cell); let best=-1, bd=1e30;
-      for(let r=0;r<40&&(best<0||r<2);r++){ for(let di=-r;di<=r;di++)for(let dj=-r;dj<=r;dj++)for(let dk=-r;dk<=r;dk++){ if(Math.max(Math.abs(di),Math.abs(dj),Math.abs(dk))!==r) continue; const Lq=H.get(key(ci+di,cj+dj,ck+dk)); if(!Lq) continue;
-          for(const i of Lq){ const p=P[i], d=(p[0]-x)**2+(p[1]-y)**2+(p[2]-z)**2; if(d<bd){ bd=d; best=i; } } } if(best>=0&&r>=1) break; } return best; };
+      if(x<mn[0]-cell*4||y<mn[1]-cell*4||z<mn[2]-cell*4||x>mx[0]+cell*4||y>mx[1]+cell*4||z>mx[2]+cell*4){ for(const i of CO){ const p=P[i], d=(p[0]-x)**2+(p[1]-y)**2+(p[2]-z)**2; if(d<bd){ bd=d; best=i; } } return best; }
+      for(let r=0;r<5&&(best<0||r<2);r++){ for(let di=-r;di<=r;di++)for(let dj=-r;dj<=r;dj++)for(let dk=-r;dk<=r;dk++){ if(Math.max(Math.abs(di),Math.abs(dj),Math.abs(dk))!==r) continue; const Lq=H.get(key(ci+di,cj+dj,ck+dk)); if(!Lq) continue;
+          for(const i of Lq){ const p=P[i], d=(p[0]-x)**2+(p[1]-y)**2+(p[2]-z)**2; if(d<bd){ bd=d; best=i; } } } if(best>=0&&r>=1) break; }
+      if(best<0) for(const i of CO){ const p=P[i], d=(p[0]-x)**2+(p[1]-y)**2+(p[2]-z)**2; if(d<bd){ bd=d; best=i; } } return best; };
     return {P,N,near,mn,mx,L}; }
   const css='<style>.smCtl2{font:12px var(--font,system-ui);color:#dbe8f3;display:flex;flex-direction:column;gap:7px}.smCtl2 .clR{display:grid;grid-template-columns:84px 1fr 40px;align-items:center;gap:6px}.smCtl2 .clR em{font-style:normal;color:#8fd8ff;text-align:right}.smCtl2 input[type=range]{width:100%}.smCtl2 select{background:#0a1118;color:#e6fff1;border:1px solid #1f3340;border-radius:5px;padding:3px}.smCtl2 .clB{display:flex;gap:5px}.smCtl2 .clB button{flex:1;padding:7px 4px;border-radius:7px;border:1px solid #2a4a5a;background:#0f2430;color:#bff3ff;font:600 11.5px var(--font,system-ui);cursor:pointer}.smCtl2 .clB button.pri{background:#00E5FF;border-color:#00E5FF;color:#04121a}.smCtl2 .clS{color:#8fa6b8;font-size:11px;line-height:1.45}</style>';
   const sl=(id,label,min,max,st,v)=>'<label class="clR"><span>'+label+'</span><input type="range" id="'+id+'" min="'+min+'" max="'+max+'" step="'+st+'" value="'+v+'"><em id="'+id+'V">'+v+'</em></label>';
@@ -16220,7 +16265,7 @@ window.__ek={applyWhole:applyWhole,ops:ops,snapshot:snapshot,rebuild:rebuild,toa
     // tension: Laplacian (keeps the skin taut — bridges gaps, resists deep narrow pockets)
     const Q=V.map(v=>v.slice()); for(let i=0;i<V.length;i++){ const L=S.nb[i]; if(!L.length) continue; let a=[0,0,0]; L.forEach(j=>{ a[0]+=Q[j][0]; a[1]+=Q[j][1]; a[2]+=Q[j][2]; }); const w=ten*0.5*(S.mode==="vac"&&S.stuck[i]?0.15:1);
       for(let d=0;d<3;d++) V[i][d]+=(a[d]/L.length-Q[i][d])*w; if(S.mode==="vac"&&V[i][1]<S.floor) V[i][1]=S.floor; } }
-  function wLoop(){ W.raf=requestAnimationFrame(wLoop); if(!W.run||!W.S||!W.obj) return; for(let r=0;r<3;r++) wStep(); const P=W.obj.geometry.attributes.position; W.S.verts.forEach((v,i)=>P.setXYZ(i,v[0],v[1],v[2])); P.needsUpdate=true; W.obj.geometry.computeVertexNormals();
+  function wLoop(){ W.raf=requestAnimationFrame(wLoop); if(!W.run||!W.S||!W.obj) return; for(let r=0;r<2;r++) wStep(); const P=W.obj.geometry.attributes.position; W.S.verts.forEach((v,i)=>P.setXYZ(i,v[0],v[1],v[2])); P.needsUpdate=true; W.obj.geometry.computeVertexNormals();
     const st=W.ctl&&W.ctl.querySelector("#wStats"); if(st) st.textContent=W.S.verts.length.toLocaleString()+" points · step "+W.S.t+(W.S.t>260?" · settled — Bake when ready":""); if(W.S.t>400) W.run=false; }
   function wStop(){ W.run=false; dispose(W.obj); W.obj=null; W.S=null; }
   function wBake(){ if(!W.S){ toast&&toast("Run the wrap first",true); return; } let m={verts:W.S.verts.map(v=>v.slice()),faces:W.S.faces.map(f=>f.slice())};
@@ -16245,7 +16290,7 @@ window.__ek={applyWhole:applyWhole,ops:ops,snapshot:snapshot,rebuild:rebuild,toa
   function gStep(dt){ const S=G.S, {X,V,r,n}=S, g=-9.8*0.6, D=2*r;
     const rate=Math.max(1,Math.round(n/240)); for(let k=0;k<rate&&S.born<n;k++){ const i=S.born++; const a=Math.random()*Math.PI*2, rr=Math.sqrt(Math.random())*S.spread; X[i*3]=S.c[0]+Math.cos(a)*rr; X[i*3+1]=S.top+Math.random()*r*4; X[i*3+2]=S.c[2]+Math.sin(a)*rr; V[i*3]=V[i*3+2]=0; V[i*3+1]=-1; }
     const m=S.born; for(let i=0;i<m;i++){ V[i*3+1]+=g*dt; X[i*3]+=V[i*3]*dt; X[i*3+1]+=V[i*3+1]*dt; X[i*3+2]+=V[i*3+2]*dt; }
-    for(let it=0;it<2;it++){ const H=new Map(), key=(a,b,c)=>a+","+b+","+c;
+    for(let it=0;it<1;it++){ const H=new Map(), key=(a,b,c)=>(a*73856093)^(b*19349663)^(c*83492791);
       for(let i=0;i<m;i++){ const k=key(Math.floor(X[i*3]/D),Math.floor(X[i*3+1]/D),Math.floor(X[i*3+2]/D)); let L=H.get(k); if(!L){ L=[]; H.set(k,L); } L.push(i); }
       for(let i=0;i<m;i++){ const ci=Math.floor(X[i*3]/D), cj=Math.floor(X[i*3+1]/D), ck=Math.floor(X[i*3+2]/D);
         for(let a=-1;a<=1;a++)for(let b=-1;b<=1;b++)for(let c=-1;c<=1;c++){ const L=H.get(key(ci+a,cj+b,ck+c)); if(!L) continue;
@@ -16253,11 +16298,11 @@ window.__ek={applyWhole:applyWhole,ops:ops,snapshot:snapshot,rebuild:rebuild,toa
             X[i*3]-=dx*p; X[i*3+1]-=dy*p; X[i*3+2]-=dz*p; X[j*3]+=dx*p; X[j*3+1]+=dy*p; X[j*3+2]+=dz*p;
             const rv=((V[j*3]-V[i*3])*dx+(V[j*3+1]-V[i*3+1])*dy+(V[j*3+2]-V[i*3+2])*dz)/d; if(rv<0){ const q=rv*0.5/d; V[i*3]+=dx*q; V[i*3+1]+=dy*q; V[i*3+2]+=dz*q; V[j*3]-=dx*q; V[j*3+1]-=dy*q; V[j*3+2]-=dz*q; } } } }
       for(let i=0;i<m;i++){ if(X[i*3+1]<S.floor+r){ X[i*3+1]=S.floor+r; if(V[i*3+1]<0) V[i*3+1]=0; V[i*3]*=1-S.fr*0.3; V[i*3+2]*=1-S.fr*0.3; }
-        if(S.smp){ const k=S.smp.near(X[i*3],X[i*3+1],X[i*3+2]); if(k>=0){ const p=S.smp.P[k], nn=S.smp.N[k], d=(X[i*3]-p[0])*nn[0]+(X[i*3+1]-p[1])*nn[1]+(X[i*3+2]-p[2])*nn[2];
+        if(S.smp&&X[i*3]>S.smp.mn[0]-r*2&&X[i*3]<S.smp.mx[0]+r*2&&X[i*3+1]>S.smp.mn[1]-r*2&&X[i*3+1]<S.smp.mx[1]+r*2&&X[i*3+2]>S.smp.mn[2]-r*2&&X[i*3+2]<S.smp.mx[2]+r*2){ const k=S.smp.near(X[i*3],X[i*3+1],X[i*3+2]); if(k>=0){ const p=S.smp.P[k], nn=S.smp.N[k], d=(X[i*3]-p[0])*nn[0]+(X[i*3+1]-p[1])*nn[1]+(X[i*3+2]-p[2])*nn[2];
             const dist=Math.hypot(X[i*3]-p[0],X[i*3+1]-p[1],X[i*3+2]-p[2]); if(d<r&&dist<r*3){ X[i*3]+=nn[0]*(r-d); X[i*3+1]+=nn[1]*(r-d); X[i*3+2]+=nn[2]*(r-d); const vn=V[i*3]*nn[0]+V[i*3+1]*nn[1]+V[i*3+2]*nn[2]; if(vn<0){ V[i*3]-=nn[0]*vn; V[i*3+1]-=nn[1]*vn; V[i*3+2]-=nn[2]*vn; } V[i*3]*=1-S.fr*0.25; V[i*3+1]*=1-S.fr*0.1; V[i*3+2]*=1-S.fr*0.25; } } } } }
     for(let i=0;i<m;i++){ V[i*3]*=0.995; V[i*3+2]*=0.995; } }
   const _M=new THREE.Matrix4();
-  function gLoop(){ G.raf=requestAnimationFrame(gLoop); if(!G.run||!G.S||!G.inst) return; for(let k=0;k<3;k++) gStep(0.012); const S=G.S; for(let i=0;i<S.n;i++){ _M.makeScale(S.r,S.r,S.r); _M.setPosition(S.X[i*3],S.X[i*3+1],S.X[i*3+2]); G.inst.setMatrixAt(i,_M); } G.inst.instanceMatrix.needsUpdate=true; G.inst.count=S.born;
+  function gLoop(){ G.raf=requestAnimationFrame(gLoop); if(!G.run||!G.S||!G.inst) return; for(let k=0;k<2;k++) gStep(0.018); const S=G.S; for(let i=0;i<S.n;i++){ _M.makeScale(S.r,S.r,S.r); _M.setPosition(S.X[i*3],S.X[i*3+1],S.X[i*3+2]); G.inst.setMatrixAt(i,_M); } G.inst.instanceMatrix.needsUpdate=true; G.inst.count=S.born;
     const st=G.ctl&&G.ctl.querySelector("#gStats"); if(st) st.textContent=S.born.toLocaleString()+" / "+S.n.toLocaleString()+" beads poured"; }
   function gStop(){ G.run=false; if(G.inst){ scene.remove(G.inst); G.inst.geometry.dispose(); G.inst.material.dispose(); G.inst=null; } G.S=null; }
   function gBake(){ const S=G.S; if(!S||!S.born){ toast&&toast("Pour first",true); return; } const ico=TM.primitives.icosahedron(), verts=[], faces=[]; let bl=1e-9; ico.verts.forEach(v=>bl=Math.max(bl,Math.hypot(...v)));
