@@ -11389,9 +11389,12 @@ function refreshBejewel(){
   if(!p.host||!p.host.faces.length){ if(el) el.textContent="Pick a host shape with faces."; return; }
   if(!p.gem||!p.gem.faces.length||p.gemLayer===p.hostLayer){ if(el) el.textContent="Pick a gem (a diamond cut or another layer)."; return; }
   const mm=TM.bejewel(p.host,p.gem,{size:p.size,lift:p.lift,where:p.where,maxInst:3000});
-  _bejGrp=new THREE.Group(); const gm=_ghostMesh(mm); gm.material.color.set(0xdff6ff); gm.material.opacity=0.95; _bejGrp.add(gm);
+  _bejGrp=new THREE.Group(); const gm=_ghostMesh(mm); gm.material=new THREE.MeshStandardMaterial({color:0xe8f7ff,metalness:0.35,roughness:0.18,flatShading:true,side:THREE.DoubleSide}); _bejGrp.add(gm);
   const eg=new THREE.EdgesGeometry(gm.geometry,20); _bejGrp.add(new THREE.LineSegments(eg,new THREE.LineBasicMaterial({color:0x35c0ff,transparent:true,opacity:0.55})));
-  scene.add(_bejGrp); if($("#bejHide")&&$("#bejHide").checked) _latHostHide(p.hostLayer);
+  if($("#bejHide")&&$("#bejHide").checked){ _latHostHide(p.hostLayer);   /* base stays readable as a faint x-ray */
+    const hg=_ghostMesh(p.host); hg.material.color.set(0x35c0ff); hg.material.opacity=0.12; hg.material.depthWrite=false; _bejGrp.add(hg);
+    _bejGrp.add(new THREE.LineSegments(new THREE.EdgesGeometry(hg.geometry,20),new THREE.LineBasicMaterial({color:0x35c0ff,transparent:true,opacity:0.45}))); }
+  scene.add(_bejGrp);
   if(el) el.textContent=mm.bejewel.count+" gem"+(mm.bejewel.count!==1?"s":"")+" · "+mm.faces.length+" facets"+(mm.bejewel.capped?" (preview capped — Bake sets all "+mm.bejewel.sites+")":"");
 }
 function bakeBejewel(){
@@ -11531,6 +11534,8 @@ $("#snapToggle")&&$("#snapToggle").addEventListener("click",()=>{ snapToGrid=!sn
     const diaOpts=Object.keys(TM.GEM_CUTS||{}).map(c=>'<option value="d:'+c+'">'+TM.GEM_CUTS[c]+'</option>').join("");
     body.innerHTML=
       '<div style="padding:8px 12px;color:var(--text-dim);font-size:11px;line-height:1.5">Set a <b>gem</b> on every face of a <b>host</b>.</div>'+
+      '<div class="param"><label>Gem size</label><input type="range" id="bejSize" min="0.1" max="1.6" step="0.01" value="0.75"><output id="bejSizeV">0.75</output></div>'+
+      '<div class="param"><label>Lift (seat depth)</label><input type="range" id="bejLift" min="-0.6" max="0.6" step="0.01" value="0"><output id="bejLiftV">0.00</output></div>'+
       '<div class="param"><label>Gem</label><select id="bejGem"><optgroup label="Diamonds">'+diaOpts+'</optgroup><optgroup label="Layers">'+optsHTML+'</optgroup></select></div>'+
       '<div class="param bejDia"><label>Table %</label><input type="range" id="bejTable" min="45" max="72" step="0.5" value="57"><output id="bejTableV">57</output></div>'+
       '<div class="param bejDia"><label>Crown angle °</label><input type="range" id="bejCrown" min="22" max="42" step="0.1" value="34.5"><output id="bejCrownV">34.5</output></div>'+
@@ -11539,8 +11544,6 @@ $("#snapToggle")&&$("#snapToggle").addEventListener("click",()=>{ snapToGrid=!sn
       '<div class="param bejDia"><label>Facet symmetry</label><input type="range" id="bejSym" min="3" max="16" step="1" value="8"><output id="bejSymV">8</output></div>'+
       '<div class="param"><label>Placement</label><select id="bejWhere"><option value="faces">Face centroids</option><option value="verts">Vertices</option><option value="both">Faces + vertices</option></select></div>'+
       '<div class="param"><label>Host shape — layer</label><select id="bejHost">'+optsHTML+'</select></div>'+
-      '<div class="param"><label>Gem size</label><input type="range" id="bejSize" min="0.1" max="1.6" step="0.01" value="0.75"><output id="bejSizeV">0.75</output></div>'+
-      '<div class="param"><label>Lift (seat depth)</label><input type="range" id="bejLift" min="-0.6" max="0.6" step="0.01" value="0"><output id="bejLiftV">0.00</output></div>'+
       '<div class="param"><label class="chk"><input type="checkbox" id="bejHide" checked> Hide base shape</label></div>'+
       '<div id="bejInfo" style="padding:2px 12px 6px;color:#8fce9b;font-size:11px;line-height:1.4"></div>'+
       '<div style="padding:4px 12px 10px"><button id="bejBake" class="mkbtn" style="width:100%">Bake gems to new layer</button></div>';
