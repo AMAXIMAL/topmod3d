@@ -1236,6 +1236,7 @@ html.inApp [data-act="fullscreen"],html.inApp [data-act="shortcuts"],html.inApp 
     <div class="menu"><span class="mtitle">Help</span><div class="mlist">
       <div class="mi" id="miDemo">&#9654; Demo &mdash; watch TopMod build models</div>
       <div class="mi" id="miExplain">&#10067; Explain the interface &mdash; guided tour</div>
+      <div class="mi" id="miHandGuide">&#9995; Hand controls &mdash; visual guide</div>
       <div class="mi" data-act="controls">Controls &amp; Gestures</div>
       <div class="mi" data-act="shortcuts">Keyboard Shortcuts</div>
       <div class="mi" data-act="about">About TopMod 3D</div>
@@ -19147,5 +19148,124 @@ void main(){
 <script>/* reveal only once every layout pass (docks, stacked panels, phone sizing, restored widths) has run — no flash of the old UI */
 (function(){function reveal(){requestAnimationFrame(function(){requestAnimationFrame(function(){setTimeout(function(){var h=document.documentElement;h.classList.remove("tmBoot");h.classList.add("tmBooted");try{dispatchEvent(new Event("resize"))}catch(e){} var sp=document.getElementById("tmSplash"); if(sp){ setTimeout(function(){ sp.classList.add("out"); setTimeout(function(){ try{ window.__splashEnd&&window.__splashEnd(); }catch(e){} sp.remove(); },800); },7000); } },120);});});}
  if(document.readyState==="complete") reveal(); else addEventListener("load",reveal);})();</script>
+<script>/* Hand controls — visual tutorial: animated hands + a live mini model for every gesture (Help ▸ Hand controls) */
+(function(){
+ var L="#ff4f96", R="#2ee88a", INK="#dff6ff", CY="#00E5FF";
+ var STEPS=[
+  {t:"Turn on Hands",d:"Tap <b>✋ Hands</b> in the bottom bar. The camera tracks both hands — your <b style='color:"+L+"'>left hand is pink</b>, your <b style='color:"+R+"'>right hand is green</b>. Keep your palms facing the screen, about an arm's length away.",hands:"both",g:{},fx:"idle"},
+  {t:"Pinch to select",d:"Touch your <b>index finger to your thumb</b> (either hand) over a face to select it — or over any button to click it. Pinch on empty space to clear the selection.",hands:"R",g:{R:["i"]},fx:"select"},
+  {t:"Pan the camera",d:"<b>Left hand ✌</b> — index <i>and</i> middle finger to thumb — then move your hand. The view slides with it. Three fingers to thumb pans with either hand.",hands:"L",g:{L:["i","m"]},move:{L:[1,0]},fx:"pan"},
+  {t:"Extrude: pull & push",d:"Select a face, then <b>right hand ✌</b> (index + middle to thumb) and pull toward you to extrude, push away to press in. The face follows the extrude direction.",hands:"R",g:{R:["i","m"]},move:{R:[0,-1]},fx:"extrude"},
+  {t:"Orbit",d:"<b>Both hands ✌</b> and move them together. Hands move right → the model turns right; up and down tilts it.",hands:"both",g:{L:["i","m"],R:["i","m"]},move:{L:[1,0],R:[1,0]},fx:"orbit"},
+  {t:"Zoom",d:"<b>Both hands index pinch</b>, then spread them apart to zoom in, bring them together to zoom out.",hands:"both",g:{L:["i"],R:["i"]},move:{L:[-1,0],R:[1,0]},fx:"zoom"},
+  {t:"Undo & redo",d:"<b style='color:"+L+"'>Left pinky</b> to thumb = <b>Undo</b>. <b style='color:"+R+"'>Right pinky</b> to thumb = <b>Redo</b>. Each tap steps once.",hands:"both",g:{L:["p"],R:["p"]},alt:true,fx:"undo"},
+  {t:"Topology shortcuts",d:"<b style='color:"+L+"'>Left middle finger</b> to thumb opens the Topology menu — Wire, Handle, Pinch, Catmull… Pinch an item to run it; tap again to close.",hands:"L",g:{L:["m"]},fx:"menuT"},
+  {t:"Primitives & Modifiers",d:"<b style='color:"+L+"'>Left ring finger</b> to thumb opens <b>Primitives</b>. <b style='color:"+R+"'>Right ring finger</b> to thumb opens <b>Modifiers</b>.",hands:"both",g:{L:["r"],R:["r"]},alt:true,fx:"menuP"},
+  {t:"Sliders",d:"Lay a bare <b>pointer finger</b> on a slider's ball and move it left or right. Lift the finger off to let go.",hands:"R",g:{},point:"R",move:{R:[1,0]},fx:"slider"}
+ ];
+ var card=null, sv=null, i=0, raf=0, t0=0;
+ var FING={i:{x:-18,len:46,a:-8},m:{x:-6,len:52,a:-2},r:{x:6,len:48,a:4},p:{x:17,len:36,a:11}};
+ function css(){ if(document.getElementById("hcCss")) return; var s=document.createElement("style"); s.id="hcCss"; s.textContent=
+  "#hcCard{position:fixed;left:50%;top:50%;transform:translate(-50%,-50%);z-index:100030;width:min(620px,calc(100vw - 24px));max-height:calc(100vh - 24px);overflow:auto;background:#0b0f18;border:1px solid rgba(0,229,255,.45);border-radius:14px;box-shadow:0 18px 60px rgba(0,0,0,.6);color:#dff6ff;font:13px/1.5 var(--font,system-ui)}"+
+  "#hcCard .hcTop{display:flex;align-items:center;gap:8px;padding:10px 14px 0}#hcCard .hcTop b{font:700 10px var(--font,system-ui);letter-spacing:1.4px;color:#00E5FF;flex:1}"+
+  "#hcCard .hcX{background:transparent;border:0;color:#9fb3c8;font-size:20px;line-height:1;cursor:pointer;padding:2px 4px}"+
+  "#hcCard svg{display:block;width:100%;height:auto;background:radial-gradient(ellipse at 50% 60%,#0f1d2b,#070a10 70%);border-top:1px solid rgba(0,229,255,.12);border-bottom:1px solid rgba(0,229,255,.12);margin-top:8px}"+
+  "#hcCard .hcBody{padding:10px 16px 6px}#hcCard h3{margin:0 0 4px;font:700 17px var(--font,system-ui);color:#fff}#hcCard p{margin:0;color:#c5d6e4;min-height:58px}"+
+  "#hcCard .hcNav{display:flex;align-items:center;gap:8px;padding:8px 14px 12px}#hcCard .hcDots{flex:1;display:flex;gap:5px;justify-content:center}#hcCard .hcDots i{width:7px;height:7px;border-radius:50%;background:#26394a;cursor:pointer}#hcCard .hcDots i.on{background:#00E5FF}"+
+  "#hcCard .hcB{background:rgba(0,229,255,.12);border:1px solid rgba(0,229,255,.4);color:#bff3ff;border-radius:8px;padding:7px 14px;font:600 12px var(--font,system-ui);cursor:pointer}#hcCard .hcB.pri{background:#00E5FF;color:#04121a;border-color:#00E5FF}#hcCard .hcB:disabled{opacity:.3}"+
+  "#hcShade{position:fixed;inset:0;background:rgba(2,4,8,.55);z-index:100029}";
+  document.head.appendChild(s); }
+ function el(n,a,p){ var e=document.createElementNS("http://www.w3.org/2000/svg",n); for(var k in a) e.setAttribute(k,a[k]); if(p) p.appendChild(e); return e; }
+ // one hand = palm + 4 fingers + thumb (+ joint dots), mirrored for the left hand
+ function mkHand(g,col){ var h={g:el("g",{},g),f:{}}; h.palm=el("path",{fill:col,"fill-opacity":".16",stroke:col,"stroke-width":"2.5","stroke-linejoin":"round"},h.g);
+  ["i","m","r","p","t"].forEach(function(k){ h.f[k]=el("path",{fill:"none",stroke:col,"stroke-width":"8","stroke-linecap":"round"},h.g); h.f[k+"d"]=el("circle",{r:"4.2",fill:"#0b0f18",stroke:col,"stroke-width":"2"},h.g); });
+  h.glow=el("circle",{r:"9",fill:"#fff","fill-opacity":"0",stroke:"#fff","stroke-width":"2","stroke-opacity":"0"},h.g); return h; }
+ function poseHand(h,side,pinch,amt,pointing,dx,dy,dim){
+  var s=side==="L"?-1:1, X=function(x){return x*s;}, C=[-36,-80], K=1.55;
+  h.g.setAttribute("transform","translate("+dx+","+dy+") scale("+K+")"); h.g.setAttribute("opacity",dim?".28":"1");
+  h.palm.setAttribute("d","M"+X(-26)+",-4 Q"+X(-30)+",-40 "+X(-24)+",-62 L"+X(24)+",-60 Q"+X(30)+",-36 "+X(24)+",-4 Z");
+  var near=null, nn=0;
+  ["i","m","r","p"].forEach(function(k,ix){ var F=FING[k], bx=F.x, by=(k==="p"?-58:-62), a=F.a*Math.PI/180, ex=bx+Math.sin(a)*F.len, ey=by-Math.cos(a)*F.len;
+   var on=pinch.indexOf(k)>=0, ext=pointing&&k==="i"?1.12:1, p=on?amt:0, cx=C[0]+ix*3, cy=C[1]+ix*2;
+   if(pointing&&k!=="i"){ ex=bx+Math.sin(a)*F.len*0.35; ey=by+6; }  // curled
+   var tx=ex*(1-p)+cx*p, ty=(by-(by-ey)*ext)*(1-p)+cy*p, qx=bx+Math.sin(a)*F.len*0.55*(1-p*0.2), qy=by-Math.cos(a)*F.len*0.62;
+   h.f[k].setAttribute("d","M"+X(bx)+","+by+" Q"+X(qx)+","+qy+" "+X(tx)+","+ty); h.f[k+"d"].setAttribute("cx",X(tx)); h.f[k+"d"].setAttribute("cy",ty);
+   h.f[k].setAttribute("stroke-width",on?"9":"8"); if(on){ nn++; near=[tx,ty]; } });
+  var tp=pinch.length?amt:0, ttx=-56*(1-tp)+(C[0]-2)*tp, tty=-50*(1-tp)+(C[1]+5)*tp;
+  h.f.t.setAttribute("d","M"+X(-24)+",-14 Q"+X(-50)+",-28 "+X(ttx)+","+tty); h.f.td.setAttribute("cx",X(ttx)); h.f.td.setAttribute("cy",tty);
+  var gl=nn&&amt>0.82?(amt-0.82)/0.18:0; h.glow.setAttribute("cx",X(C[0]+2)); h.glow.setAttribute("cy",C[1]+2); h.glow.setAttribute("fill-opacity",(gl*0.35).toFixed(2)); h.glow.setAttribute("stroke-opacity",gl.toFixed(2)); h.glow.setAttribute("r",(8+gl*6).toFixed(1));
+ }
+ // mini model: an isometric cube with a selectable / extrudable top face
+ function cubeFaces(yaw,pitch,sc,ext,ox,oy){ var V=[[-1,-1,-1],[1,-1,-1],[1,1,-1],[-1,1,-1],[-1,-1,1],[1,-1,1],[1,1,1],[-1,1,1]], E=1+ext;
+  V=V.map(function(v){ return [v[0],v[1]>0?E:v[1],v[2]]; });
+  var cy=Math.cos(yaw), sy=Math.sin(yaw), cp=Math.cos(pitch), sp=Math.sin(pitch);
+  var P=V.map(function(v){ var x=v[0]*cy-v[2]*sy, z=v[0]*sy+v[2]*cy, y=v[1]*cp-z*sp, z2=v[1]*sp+z*cp; return [ox+x*sc, oy-y*sc, z2]; });
+  var F=[[0,1,2,3,"b"],[4,7,6,5,"f"],[0,4,5,1,"bt"],[3,2,6,7,"top"],[0,3,7,4,"l"],[1,5,6,2,"r"]];
+  return F.map(function(f){ var z=(P[f[0]][2]+P[f[1]][2]+P[f[2]][2]+P[f[3]][2])/4; var a=P[f[0]],b=P[f[1]],c=P[f[2]]; var cr=(b[0]-a[0])*(c[1]-a[1])-(b[1]-a[1])*(c[0]-a[0]);
+   return {d:"M"+[0,1,2,3].map(function(k){return P[f[k]][0].toFixed(1)+","+P[f[k]][1].toFixed(1);}).join(" L")+" Z",z:z,n:f[4],vis:cr<0}; }).sort(function(a,b){return a.z-b.z;}); }
+ function build(){
+  css(); var shade=document.createElement("div"); shade.id="hcShade"; shade.onclick=close; document.body.appendChild(shade);
+  card=document.createElement("div"); card.id="hcCard"; card.setAttribute("role","dialog");
+  card.innerHTML='<div class="hcTop"><b>HAND CONTROLS — VISUAL GUIDE</b><span id="hcN" style="color:#7f93a6;font-size:11px"></span><button class="hcX" aria-label="Close">×</button></div>'
+   +'<svg id="hcSvg" viewBox="0 0 600 270"></svg><div class="hcBody"><h3 id="hcT"></h3><p id="hcD"></p></div>'
+   +'<div class="hcNav"><button class="hcB" id="hcPrev">‹ Back</button><div class="hcDots" id="hcDots"></div><button class="hcB pri" id="hcNext">Next ›</button></div>';
+  document.body.appendChild(card); card.querySelector(".hcX").onclick=close;
+  card.querySelector("#hcPrev").onclick=function(){ go(i-1); }; card.querySelector("#hcNext").onclick=function(){ if(i<STEPS.length-1) go(i+1); else { close(); var b=document.getElementById("handFab"); if(b&&!document.body.classList.contains("handsOn")) b.click(); } };
+  var dots=card.querySelector("#hcDots"); STEPS.forEach(function(_,k){ var d=document.createElement("i"); d.onclick=function(){ go(k); }; dots.appendChild(d); });
+  sv=card.querySelector("#hcSvg");
+  el("path",{d:"M0,232 L600,232",stroke:"rgba(0,229,255,.15)","stroke-width":"1"},sv);
+  sv._model=el("g",{},sv); sv._ui=el("g",{},sv); sv._lh=mkHand(el("g",{},sv),L); sv._rh=mkHand(el("g",{},sv),R);
+  sv._lab=el("text",{x:"300",y:"258","text-anchor":"middle",fill:"#7f93a6","font-size":"12","font-family":"system-ui"},sv);
+  addEventListener("keydown",key,true);
+ }
+ function key(e){ if(!card) return; if(e.key==="Escape"){ close(); e.preventDefault(); } else if(e.key==="ArrowRight") go(i+1); else if(e.key==="ArrowLeft") go(i-1); }
+ function go(k){ i=Math.max(0,Math.min(STEPS.length-1,k)); t0=performance.now(); var S=STEPS[i];
+  card.querySelector("#hcT").textContent=(i+1)+". "+S.t; card.querySelector("#hcD").innerHTML=S.d; card.querySelector("#hcN").textContent=(i+1)+" / "+STEPS.length;
+  card.querySelector("#hcPrev").disabled=i===0; card.querySelector("#hcNext").textContent=i===STEPS.length-1?"Turn on Hands ✋":"Next ›";
+  [].forEach.call(card.querySelectorAll("#hcDots i"),function(d,j){ d.classList.toggle("on",j===i); }); }
+ function frame(now){ raf=requestAnimationFrame(frame); if(!card) return; var S=STEPS[i], t=(now-t0)/1000, cyc=t%3.2;
+  // pinch: close 0→0.6s, hold & move 0.6→2.4s, release 2.4→3s
+  var amt=cyc<0.6?cyc/0.6:cyc<2.4?1:cyc<3?1-(cyc-2.4)/0.6:0; amt=amt*amt*(3-2*amt);
+  var mv=cyc<0.6?0:cyc<2.4?Math.sin((cyc-0.6)/1.8*Math.PI):0, hold=cyc>=0.6&&cyc<2.4;
+  if(S.fx==="idle"){ amt=0; }
+  var alt=S.alt?(Math.floor(t/3.2)%2):-1;   // alternate L / R gestures (undo vs redo, primitives vs modifiers)
+  var lm=(S.move&&S.move.L)||[0,0], rm=(S.move&&S.move.R)||[0,0], A=34;
+  var wob=S.fx==="idle"?Math.sin(t*1.6)*6:0;
+  var lOn=S.hands!=="R", rOn=S.hands!=="L";
+  poseHand(sv._lh,"L",(S.g.L||[]),alt===1?0:amt,false,150+lm[0]*mv*A+wob,215+lm[1]*mv*A+Math.cos(t*1.3)*(S.fx==="idle"?5:0),!lOn||alt===1);
+  poseHand(sv._rh,"R",(S.g.R||[]),alt===0?0:amt,S.point==="R",450+rm[0]*mv*A-wob,215+rm[1]*mv*A+Math.sin(t*1.1)*(S.fx==="idle"?5:0),!rOn||alt===0);
+  // mini model + effect
+  var yaw=0.62, pitch=0.42, sc=34, ext=0, ox=300, oy=118, sel=false, M=sv._model, U=sv._ui; M.innerHTML=""; U.innerHTML="";
+  var lab="";
+  if(S.fx==="idle"){ yaw+=t*0.4; lab="left = pink · right = green"; }
+  if(S.fx==="select"){ sel=amt>0.8||(cyc>0.6&&cyc<3); lab=sel?"face selected":"index → thumb"; }
+  if(S.fx==="pan"){ ox+=mv*46; lab=hold?"panning":"left ✌"; }
+  if(S.fx==="extrude"){ sel=true; ext=mv*0.9; lab=hold?"extruding":"right ✌ on the selected face"; }
+  if(S.fx==="orbit"){ yaw+=mv*0.9; lab=hold?"orbiting →":"both ✌"; }
+  if(S.fx==="zoom"){ sc=34*(1+mv*0.55); lab=hold?"zooming in":"both index pinch"; }
+  if(S.fx==="undo"){ ext=alt===0?(amt>0.5?0:0.6):(amt>0.5?0.6:0); sel=true; lab=alt===0?"left pinky — undo":"right pinky — redo"; }
+  if(S.fx==="slider"){ lab="pointer finger on the ball"; }
+  var showModel=S.fx!=="menuT"&&S.fx!=="menuP"&&S.fx!=="slider";
+  if(showModel) cubeFaces(yaw,pitch,sc,ext,ox,oy).forEach(function(f){ var top=f.n==="top", s=top&&sel;
+   el("path",{d:f.d,fill:s?"#ff9a1f":"#1d3446","fill-opacity":s?".9":".85",stroke:s?"#ffd166":CY,"stroke-width":s?"2":"1.2","stroke-linejoin":"round"},M); });
+  if(S.fx==="undo"){ var x0=alt===0?236:364; el("path",{d:alt===0?"M"+(x0+18)+",40 a18,18 0 1,0 -2,26 M"+(x0+18)+",40 l-9,-6 M"+(x0+18)+",40 l-2,10":"M"+(x0-18)+",40 a18,18 0 1,1 2,26 M"+(x0-18)+",40 l9,-6 M"+(x0-18)+",40 l2,10",stroke:alt===0?L:R,"stroke-width":"3",fill:"none","stroke-linecap":"round",opacity:amt.toFixed(2)},U); }
+  if(S.fx==="menuT"||S.fx==="menuP"){ var items=S.fx==="menuT"?["Wire","Handle","Pinch","Catmull","Crust"]:(alt===1?["Subdivide","Twist","Wireframe","Bejewel","Noise"]:["Cube","Octa","Torus","Bucky","Cylinder"]);
+   var title=S.fx==="menuT"?"TOPOLOGY":(alt===1?"MODIFIERS":"PRIMITIVES"), op=Math.min(1,amt*1.4), col=S.fx==="menuP"&&alt===1?R:L;
+   var g=el("g",{opacity:op.toFixed(2),transform:"translate(232,26)"},U); el("rect",{x:0,y:0,width:136,height:24+items.length*26,rx:9,fill:"#0b1520",stroke:col,"stroke-width":"1.5"},g);
+   el("text",{x:12,y:17,fill:col,"font-size":"10","font-weight":"700","letter-spacing":"1.4","font-family":"system-ui"},g).textContent=title;
+   items.forEach(function(it,k){ var hi=hold&&k===Math.floor((cyc-0.6)/0.45)%items.length; el("rect",{x:6,y:24+k*26,width:124,height:22,rx:6,fill:hi?col:"rgba(255,255,255,.04)","fill-opacity":hi?".3":"1"},g); el("text",{x:16,y:39+k*26,fill:"#dff6ff","font-size":"12","font-family":"system-ui"},g).textContent=it; });
+   lab=S.fx==="menuT"?"left middle → thumb":(alt===1?"right ring → thumb":"left ring → thumb"); }
+  if(S.fx==="slider"){ var g2=el("g",{transform:"translate(190,92)"},U); el("text",{x:0,y:-14,fill:"#9fb3c8","font-size":"12","font-family":"system-ui"},g2).textContent="Gem size";
+   el("rect",{x:0,y:-3,width:220,height:6,rx:3,fill:"#203243"},g2); var bx=40+mv*120; el("rect",{x:0,y:-3,width:bx,height:6,rx:3,fill:CY},g2); el("circle",{cx:bx,cy:0,r:hold?11:9,fill:CY,stroke:"#fff","stroke-width":hold?"2.5":"0"},g2);
+   el("text",{x:236,y:5,fill:CY,"font-size":"13","font-family":"ui-monospace,monospace"},g2).textContent=(0.3+mv*0.9).toFixed(2); }
+  sv._lab.textContent=lab;
+ }
+ function open(k){ if(card) return; build(); go(k||0); t0=performance.now(); raf=requestAnimationFrame(frame); }
+ function close(){ cancelAnimationFrame(raf); raf=0; if(card){ card.remove(); card=null; } var s=document.getElementById("hcShade"); if(s) s.remove(); removeEventListener("keydown",key,true); }
+ window.__handGuide={open:open,close:close,steps:STEPS};
+ function init(){ var m=document.getElementById("miHandGuide"); if(m) m.addEventListener("click",function(e){ e.stopPropagation(); document.querySelectorAll("#menubar .menu.open").forEach(function(x){x.classList.remove("open");}); open(0); }); }
+ if(document.readyState==="loading") document.addEventListener("DOMContentLoaded",init); else init();
+})();</script>
+
 </body>
 </html>
