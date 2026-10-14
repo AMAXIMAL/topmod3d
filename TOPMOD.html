@@ -1138,6 +1138,7 @@ html.inApp [data-act="fullscreen"],html.inApp [data-act="shortcuts"],html.inApp 
     <div class="menu"><span class="mtitle">View</span><div class="mlist">
       <div class="mi" data-act="frameAll">Zoom to Fit<span class="kbd">F</span></div>
       <div class="mi" data-act="fullscreen">Full Screen<span class="kbd">&#8679;F</span></div>
+      <div class="mi" id="miDuo">Duo layout &mdash; viewport top, tools bottom</div>
       <div class="msep"></div>
       <div class="mi" data-act="tgE">Toggle Edges</div>
       <div class="mi" data-act="tgV">Toggle Vertices</div>
@@ -10033,6 +10034,14 @@ canvas.addEventListener("pointerup",e=>{
   drag=null;
 });
 canvas.addEventListener("contextmenu",e=>e.preventDefault());
+/* Duo layout: the empty viewport area on the bottom half is a touch pad for the camera on the top half */
+(function(){ const vw=$("#viewWrap"); let pad=null;
+  vw.addEventListener("pointerdown",e=>{ if(!document.body.classList.contains("duo")||e.target!==vw) return; try{ vw.setPointerCapture(e.pointerId); }catch(_){} pad={x:e.clientX,y:e.clientY,shift:e.shiftKey}; });
+  vw.addEventListener("pointermove",e=>{ if(!pad) return; const dx=e.clientX-pad.x, dy=e.clientY-pad.y;
+    if(pad.shift||e.ctrlKey||e.metaKey) panCamera(dx,dy); else { yaw-=dx*0.008; pitch=Math.max(-1.45,Math.min(1.45,pitch+dy*0.008)); }
+    pad.x=e.clientX; pad.y=e.clientY; applyCam(); });
+  const end=()=>{ pad=null; }; vw.addEventListener("pointerup",end); vw.addEventListener("pointercancel",end);
+})();
 canvas.addEventListener("wheel",e=>{
   e.preventDefault();
   dist=Math.max(0.02,Math.min(60,dist*(1+e.deltaY*0.0012)));
@@ -11916,7 +11925,7 @@ $("#tgBBox")&&$("#tgBBox").addEventListener("change",rebuildBBox);
 
 // ---------- resize & loop ----------
 function resize(){
-  const r=canvas.parentElement.getBoundingClientRect();
+  const r=(document.body.classList.contains("duo")?canvas:canvas.parentElement).getBoundingClientRect();   /* Duo: canvas lives in the top half */
   if(!(r.width>0&&r.height>0)) return;
   renderer.setPixelRatio(Math.min(devicePixelRatio||1,2));   // re-read: fullscreen may land on a different (Retina / 4K) monitor
   renderer.setSize(r.width,r.height,false);                   // drawing buffer = container px × pixel ratio; CSS stays 100%
@@ -12183,19 +12192,7 @@ function rhinoPush(){
     .then(()=>{ const b=$("#rhinoLink"); if(b) b.style.borderColor=""; })
     .catch(()=>{ const b=$("#rhinoLink"); if(b) b.style.borderColor="#ff5a5a"; toast&&toast("Rhino link: can't reach "+rhinoURL+" — start the receiver in Rhino",true); });
 }
-function maybeRhinoPush(){ if(!rhinoLink) return; clearTimeout(_rhinoT); _rhinoT=setTimeout(rhinoPush,window.__tmPushDelay||250); }
-/* Rhino plug-in bridge: the app runs inside a closure, so expose what the in-process link needs */
-window.__tmBridge={ get mesh(){return mesh}, set mesh(v){mesh=v}, get layers(){return layers}, get activeLayer(){return activeLayer},
-  get rhinoLink(){return rhinoLink}, get TM(){return TM}, fabMesh:function(){return fabMesh()}, rebuild:function(o){return rebuild(o)},
-  snapshot:function(){return snapshot()}, addLayer:function(m,b){return addLayer(m,b)}, clearSel:function(r){return clearSel(r)},
-  updateCrustUI:function(){return updateCrustUI()}, renderLayerList:function(){return renderLayerList()}, renderModStack:function(){return renderModStack()},
-  setRhinoLink:function(on){return setRhinoLink(on)}, setRhinoPush:function(f){rhinoPush=f}, clearCrust:function(){crustPairs=null}, toast:function(m,b){return toast(m,b)},
-  cam:function(){return {p:[camera.position.x,camera.position.y,camera.position.z],t:[target.x,target.y,target.z],fov:camera.fov}},
-  get fabActive(){return !!fabActive},
-  get fabLive(){try{return !!((slabData&&slabData.count)||liveNet)}catch(e){return false}},
-  fabMode:function(){try{return plyMode()}catch(e){return null}},
-  slabPairs:function(){try{return slabFlattenPairs()}catch(e){return []}},
-  netMesh:function(){try{ if(!liveNet) return null; const L=layers.find(x=>x.id===liveNet.netId); return (L&&L.mesh)?TM.toOBJ(L.mesh,"net"):null; }catch(e){return null}} };
+function maybeRhinoPush(){ if(!rhinoLink) return; clearTimeout(_rhinoT); _rhinoT=setTimeout(rhinoPush,250); }
 function setRhinoLink(on){
   rhinoLink=!!on; const b=$("#rhinoLink"); if(b) b.classList.toggle("on",rhinoLink);
   if(rhinoLink){ toast&&toast("Rhino link ON \u2192 pushing to "+rhinoURL); rhinoPush(); }
@@ -19729,6 +19726,7 @@ window.__floatCard=function(card,handleSel,key){ if(!card||card._fc) return; car
   ["AR","Bottom bar","View your model in your room (AR Quick Look on iPhone). Replaces the Credits button; Credits moved to Help."],
   ["Loop","Bottom bar","Face/edge loop selection toggle, bottom left."],
   ["Hand controls guide","Help","Animated walkthrough of every hand gesture."],
+  ["Duo layout","View","For the iPhone Duo: half-fold it like a Game Boy and the viewport moves to the top half while the toolbar, Layers and Modifiers stay on the bottom half. The empty space below becomes a touch pad. Turns on by itself when the phone is half-folded, or from View ▸ Duo layout."],
   ["Interface","","Grey/orange and white/lime themes, collapsed layers with small single-tap arrows, panels reach the screen edge, landscape safe-area fix, and roomier sliders in the Options window."]
  ];
  var card=null;
@@ -19757,6 +19755,36 @@ window.__floatCard=function(card,handleSel,key){ if(!card||card._fc) return; car
   if(m) m.addEventListener("click",function(e){ e.stopPropagation(); document.querySelectorAll("#menubar .menu.open").forEach(function(x){x.classList.remove("open");}); open(); });
   if(!seen()){ if(m) m.insertAdjacentHTML("beforeend",'<i class="wnDot"></i>'); var t=m&&m.closest(".menu"); t=t&&t.querySelector(".mtitle"); if(t) t.insertAdjacentHTML("beforeend",'<i class="wnDot"></i>'); } }
  window.__whatsNew={open:open,close:close,items:ITEMS};
+ if(document.readyState==="loading") document.addEventListener("DOMContentLoaded",init); else init();
+})();
+</script>
+<style>
+/* ---- Duo layout (iPhone Duo half-folded): viewport on the top half, the whole UI on the bottom half ---- */
+body.duo{--duoH:50vh}
+body.duo #view{position:fixed!important;left:0!important;top:0!important;width:100vw!important;height:var(--duoH)!important;z-index:40;border-bottom:1px solid rgba(0,229,255,.25)}
+body.duo #frame{position:fixed!important;left:0;right:0;bottom:0;top:var(--duoH);height:auto!important;max-height:none!important}
+body.duo #menubar{padding-top:3px!important}
+body.duo #toolpop{top:calc(var(--duoH) + 34px)!important;max-height:calc(100vh - var(--duoH) - 80px)!important}
+body.duo #viewWrap{background:radial-gradient(ellipse at 50% 40%,rgba(0,229,255,.05),transparent 70%)}
+body.duo #viewWrap::after{content:"TOUCH PAD";position:absolute;left:50%;top:50%;transform:translate(-50%,-50%);font:600 10px/1 var(--font,system-ui);letter-spacing:.2em;color:rgba(0,229,255,.22);pointer-events:none}
+</style>
+<script>
+/* Duo layout: auto on a half-folded foldable (viewport segments / Device Posture), or View ▸ Duo layout */
+(function(){
+ var KEY="tm_duo";
+ function set(on,save){ document.body.classList.toggle("duo",!!on); var m=document.getElementById("miDuo"); if(m) m.classList.toggle("on",!!on);
+   if(save){ try{ localStorage.setItem(KEY,on?"1":"0"); }catch(e){} }
+   setTimeout(function(){ dispatchEvent(new Event("resize")); },30); }
+ function auto(){ var seg=false; try{ seg=matchMedia("(vertical-viewport-segments: 2)").matches; }catch(e){}
+   var fold=false; try{ fold=navigator.devicePosture&&navigator.devicePosture.type==="folded"&&innerHeight>innerWidth; }catch(e){}
+   return seg||fold; }
+ function saved(){ try{ return localStorage.getItem(KEY); }catch(e){ return null; } }
+ function init(){ var m=document.getElementById("miDuo");
+   if(m) m.addEventListener("click",function(e){ e.stopPropagation(); document.querySelectorAll("#menubar .menu.open").forEach(function(x){x.classList.remove("open");}); set(!document.body.classList.contains("duo"),true); });
+   var sv=saved(); set(sv==="1"||(sv===null&&auto()),false);
+   try{ matchMedia("(vertical-viewport-segments: 2)").addEventListener("change",function(){ if(saved()===null) set(auto(),false); }); }catch(e){}
+   try{ navigator.devicePosture&&navigator.devicePosture.addEventListener("change",function(){ if(saved()===null) set(auto(),false); }); }catch(e){}
+   window.__duo={set:function(on){ set(on,true); },auto:auto}; }
  if(document.readyState==="loading") document.addEventListener("DOMContentLoaded",init); else init();
 })();
 </script>
