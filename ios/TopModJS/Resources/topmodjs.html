@@ -18423,15 +18423,15 @@ void main(){
  var FLOOR=-2.3;
  var fg=new THREE.GridHelper(40,40,0x1d5f70,0x10303a); fg.position.y=FLOOR*fit; fg.material.transparent=true; fg.material.opacity=0.0; S.add(fg);
  // ---- rasterise the word per glyph ----
- var tc=document.createElement("canvas"), tw=900, th=230; tc.width=tw; tc.height=th; var g=tc.getContext("2d"); g.textBaseline="middle"; g.font="900 150px -apple-system,Helvetica,Arial,sans-serif";
- var word="TOPMOD 3D", cyan=[0,0,0,1,1,1,0,0,0], ws=[], tot=0; for(var i=0;i<word.length;i++){ ws.push(g.measureText(word[i]).width); tot+=ws[i]; }
+ var tc=document.createElement("canvas"), tw=900, th=300; tc.width=tw; tc.height=th; var g=tc.getContext("2d"); g.textBaseline="middle"; g.font="900 150px -apple-system,Helvetica,Arial,sans-serif";
+ var word="TOPMOD 3D", cyan=[0,0,0,1,1,1,0,0,0], ws=[], tot=0, KERN=0.86, TALL=1.42; for(var i=0;i<word.length;i++){ ws.push(g.measureText(word[i]).width*(word[i]===" "?0.55:KERN)); tot+=ws[i]; }
  var step=3, GW=Math.ceil(tw/step), GH=Math.ceil(th/step), owner=new Int16Array(GW*GH).fill(-1), x=(tw-tot)/2, glyphs=[];
- for(var i=0;i<word.length;i++){ if(word[i]===" "){ x+=ws[i]; continue; } g.clearRect(0,0,tw,th); g.fillStyle="#fff"; g.fillText(word[i],x,th/2+6); var D=g.getImageData(0,0,tw,th).data, px=[];
+ for(var i=0;i<word.length;i++){ if(word[i]===" "){ x+=ws[i]; continue; } g.setTransform(1,0,0,1,0,0); g.clearRect(0,0,tw,th); g.fillStyle="#fff"; g.setTransform(KERN*1.02,0,0,TALL,x*(1-KERN*1.02),th/2*(1-TALL)); g.fillText(word[i],x,th/2+6); g.setTransform(1,0,0,1,0,0); var D=g.getImageData(0,0,tw,th).data, px=[];
    for(var gy=0;gy<GH;gy++) for(var gx=0;gx<GW;gx++){ var X=gx*step+1, Y=gy*step+1; if(X<tw&&Y<th&&D[(Y*tw+X)*4+3]>128){ px.push(gy*GW+gx); } }
    glyphs.push({ch:word[i],cyan:cyan[i],px:px,x0:x,x1:x+ws[i]}); x+=ws[i]; }
  // ---- Voronoi shards: random seeds inside each glyph, every glyph pixel joins its nearest seed ----
  var shards=[];
- glyphs.forEach(function(G,gi){ var n=Math.max(6,Math.round(G.px.length/230)), seeds=[];
+ glyphs.forEach(function(G,gi){ var n=Math.max(11,Math.round(G.px.length/105)), seeds=[];
    for(var k=0;k<n;k++){ var c=G.px[(Math.random()*G.px.length)|0]; seeds.push([c%GW,(c/GW)|0]); }
    var sets=seeds.map(function(){ return []; });
    G.px.forEach(function(c){ var cx=c%GW, cy=(c/GW)|0, bi=0, bd=1e9; for(var k=0;k<n;k++){ var dx=cx-seeds[k][0], dy=cy-seeds[k][1], d=dx*dx+dy*dy; if(d<bd){bd=d;bi=k;} } sets[bi].push(c); });
@@ -18464,25 +18464,31 @@ void main(){
  var mats=[new THREE.MeshStandardMaterial({color:0xff9a1f,metalness:0.05,roughness:0.55,flatShading:true,polygonOffset:true,polygonOffsetFactor:1,polygonOffsetUnits:1}), new THREE.MeshStandardMaterial({color:0xffc83a,metalness:0.05,roughness:0.5,flatShading:true,polygonOffset:true,polygonOffsetFactor:1,polygonOffsetUnits:1})];
  var edgeMat=new THREE.LineBasicMaterial({color:0x140a02}), vMat=new THREE.PointsMaterial({color:0x00e5ff,size:0.12,sizeAttenuation:true});
  var ox=-(GW*U)/2, oy=(GH*U)/2;
- shards.forEach(function(s,i){ var r=geomFor(s.set); s.mesh=new THREE.Mesh(r.ge, mats[s.cyan]);
+ shards.forEach(function(s,i){ var r=geomFor(s.set); var mt=mats[s.cyan].clone(); var hc=new THREE.Color(); mt.color.getHSL(hc); mt.color.setHSL(hc.h+(Math.random()-0.5)*0.05, Math.min(1,hc.s*(0.8+Math.random()*0.3)), Math.min(0.75,Math.max(0.28,hc.l*(0.72+Math.random()*0.5)))); s.mat=mt; s.mesh=new THREE.Mesh(r.ge, mt);
    var eg=new THREE.EdgesGeometry(r.ge,20); s.mesh.add(new THREE.LineSegments(eg,edgeMat));
    var vp=eg.attributes.position, seen={}, va=[]; for(var q=0;q<vp.count;q++){ var kx=vp.getX(q).toFixed(3)+","+vp.getY(q).toFixed(3)+","+vp.getZ(q).toFixed(3); if(!seen[kx]){ seen[kx]=1; va.push(vp.getX(q),vp.getY(q),vp.getZ(q)); } }
-   var vg=new THREE.BufferGeometry(); vg.setAttribute("position",new THREE.Float32BufferAttribute(va,3)); s.mesh.add(new THREE.Points(vg,vMat)); s.home=new THREE.Vector3(r.c.x+ox, r.c.y+oy, r.c.z); 
+   var vg=new THREE.BufferGeometry(); vg.setAttribute("position",new THREE.Float32BufferAttribute(va,3)); s.vdots=new THREE.Points(vg,vMat); s.mesh.add(s.vdots); s.va=va; s.depth=r.ge.boundingBox?(r.ge.boundingBox.max.z-r.ge.boundingBox.min.z):U*10; s.home=new THREE.Vector3(r.c.x+ox, r.c.y+oy, r.c.z); 
    var a=Math.random()*Math.PI*2, rad=7+Math.random()*6; s.from=new THREE.Vector3(Math.cos(a)*rad, Math.sin(a)*rad*0.55, -6+Math.random()*12); s.rot=new THREE.Vector3((Math.random()-.5)*7,(Math.random()-.5)*7,(Math.random()-.5)*7);
    s.delay=(s.home.x-ox)/(GW*U)*0.6+Math.random()*0.12; r.ge.computeBoundingSphere(); s.rad=r.ge.boundingSphere.radius; s.mesh.visible=false; root.add(s.mesh); });
- // ---- small swirling points that collapse into the letters ----
- var NP=1600, pg=new THREE.BufferGeometry(), pp=new Float32Array(NP*3), pf=[], pt=[];
- for(var i=0;i<NP;i++){ var a=Math.random()*Math.PI*2, r0=4+Math.random()*9, y0=(Math.random()-0.5)*6; pf.push([a,r0,y0]); var s=shards[(Math.random()*shards.length)|0]; pt.push([s.home.x+(Math.random()-.5)*s.rad, s.home.y+(Math.random()-.5)*s.rad, s.home.z]); }
- pg.setAttribute("position",new THREE.BufferAttribute(pp,3)); var pm=new THREE.PointsMaterial({color:0x7fe9ff,size:0.035,transparent:true,opacity:0.95,depthWrite:false}); var pts=new THREE.Points(pg,pm); root.add(pts);
+ // ---- swirling points: cyan ones land on every shard VERTEX, pink ones on every face CENTROID — then the surfaces build between them ----
+ var VT=[], CT=[];
+ shards.forEach(function(s){ for(var q=0;q<s.va.length;q+=3) VT.push([s.home.x+s.va[q], s.home.y+s.va[q+1], s.home.z+s.va[q+2]]);
+   var gp=s.mesh.geometry.attributes.position; for(var f=0;f<gp.count;f+=3){ var cx=(gp.getX(f)+gp.getX(f+1)+gp.getX(f+2))/3, cy=(gp.getY(f)+gp.getY(f+1)+gp.getY(f+2))/3, cz=(gp.getZ(f)+gp.getZ(f+1)+gp.getZ(f+2))/3; if(Math.abs(cz)>s.depth*0.45 && Math.random()<0.35) CT.push([s.home.x+cx, s.home.y+cy, s.home.z+cz]); }
+   CT.push([s.home.x, s.home.y, s.home.z+s.depth/2]); });
+ function swarm(T,col,size){ var n=T.length, g2=new THREE.BufferGeometry(), arr=new Float32Array(n*3), F=[]; for(var i=0;i<n;i++) F.push([Math.random()*Math.PI*2, 4+Math.random()*9, (Math.random()-0.5)*6, Math.random()*0.35]);
+   g2.setAttribute("position",new THREE.BufferAttribute(arr,3)); var m2=new THREE.PointsMaterial({color:col,size:size,transparent:true,opacity:0.95,depthWrite:false}); var P2=new THREE.Points(g2,m2); root.add(P2); return {T:T,F:F,arr:arr,g:g2,m:m2,P:P2}; }
+ var SW=[swarm(VT,0x00e5ff,0.06), swarm(CT,0xff3d8b,0.07)];
+ var pg={dispose:function(){ SW.forEach(function(w){ w.g.dispose(); }); }}, pm={dispose:function(){ SW.forEach(function(w){ w.m.dispose(); }); }};
  var e3=function(t){ return 1-Math.pow(1-t,3); }, T0=performance.now(), done=false, phys=false, last=0;
- var A0=0.55, A1=1.75, HOLD=2.45, FALL=2.6;
+ var A0=1.05, A1=2.0, HOLD=2.8, FALL=3.0;
  (function frame(){ if(done) return; var t=(performance.now()-T0)/1000, dt=Math.min(0.033,last?t-last:0.016); last=t;
-   // points: swirl, then pull into the letters, then fade
-   var pc=Math.min(1,t/1.1); for(var i=0;i<NP;i++){ var f=pf[i], ang=f[0]+t*(1.8-1.2*pc), sx=Math.cos(ang)*f[1]*(1-pc*0.25), sz=Math.sin(ang)*f[1]*0.5, sy=f[2]*(1-pc*0.5), e=e3(Math.max(0,(t-0.25)/0.95));
-     pp[i*3]=sx+(pt[i][0]-sx)*e; pp[i*3+1]=sy+(pt[i][1]-sy)*e; pp[i*3+2]=sz+(pt[i][2]-sz)*e; } pg.attributes.position.needsUpdate=true; pm.opacity=Math.max(0,0.95-Math.max(0,t-1.0)*1.2);
+   // points: swirl, then land exactly on the vertices (cyan) and face centroids (pink); centroids fade as surfaces fill in
+   SW.forEach(function(w,wi){ for(var i=0;i<w.T.length;i++){ var f=w.F[i], ang=f[0]+t*2.2, sx=Math.cos(ang)*f[1], sz=Math.sin(ang)*f[1]*0.5, sy=f[2], e=e3(Math.min(1,Math.max(0,(t-0.15-f[3])/0.85)));
+       w.arr[i*3]=sx+(w.T[i][0]-sx)*e; w.arr[i*3+1]=sy+(w.T[i][1]-sy)*e; w.arr[i*3+2]=sz+(w.T[i][2]-sz)*e; } w.g.attributes.position.needsUpdate=true;
+     w.m.opacity = wi===0 ? Math.max(0,0.95-Math.max(0,t-A1-0.1)*3) : Math.max(0,0.95-Math.max(0,t-A0-0.3)*1.4); });
    if(!phys){
-     shards.forEach(function(s){ var q=Math.min(1,Math.max(0,(t-A0-s.delay)/(A1-A0-0.6))); if(q<=0){ s.mesh.visible=false; return; } s.mesh.visible=true; var e=e3(q);
-       s.mesh.position.lerpVectors(s.from,s.home,e); s.mesh.rotation.set(s.rot.x*(1-e),s.rot.y*(1-e),s.rot.z*(1-e)); s.mesh.scale.setScalar(0.3+0.7*e); });
+     shards.forEach(function(s){ var q=Math.min(1,Math.max(0,(t-A0-s.delay*0.9)/0.38)); if(q<=0){ s.mesh.visible=false; return; } s.mesh.visible=true;
+       var e=q<1? 1+0.12*Math.sin(q*Math.PI)-(1-e3(q)) : 1; s.mesh.position.copy(s.home); s.mesh.rotation.set(0,0,0); s.mesh.scale.setScalar(Math.max(0.02,e)); s.vdots.visible=q>0.6; });
      root.rotation.y=0.22*Math.sin(t*1.1)*Math.max(0,1-(t/HOLD)); K.position.x=4+7*Math.sin(t*1.3);
      if(t>FALL){ phys=true; root.rotation.y=0; shards.forEach(function(s){ s.mesh.position.copy(s.home); s.mesh.rotation.set(0,0,0); s.mesh.scale.setScalar(1);
          s.v=new THREE.Vector3((s.home.x)*0.25+(Math.random()-.5)*1.6, 1.2+Math.random()*2.2, (Math.random()-.2)*2.4); s.w=new THREE.Vector3((Math.random()-.5)*6,(Math.random()-.5)*6,(Math.random()-.5)*6); }); }
@@ -18493,11 +18499,11 @@ void main(){
        var bottom=s.mesh.position.y-s.rad*0.55; if(bottom<floorL){ s.mesh.position.y+=floorL-bottom; if(s.v.y<0) s.v.y*=-0.32; s.v.x*=0.82; s.v.z*=0.82; s.w.multiplyScalar(0.7); if(Math.abs(s.v.y)<0.4) s.v.y=0; } });
    }
    R.render(S,C); requestAnimationFrame(frame); })();
- window.__splashEnd=function(){ done=true; try{ shards.forEach(function(s){ s.mesh.geometry.dispose(); s.mesh.children.forEach(function(c){ c.geometry.dispose(); }); }); mats.forEach(function(m){m.dispose();}); edgeMat.dispose(); vMat.dispose(); pg.dispose(); pm.dispose(); R.dispose(); }catch(e){} };
+ window.__splashEnd=function(){ done=true; try{ shards.forEach(function(s){ s.mesh.geometry.dispose(); s.mesh.children.forEach(function(c){ c.geometry.dispose(); }); s.mat&&s.mat.dispose(); }); mats.forEach(function(m){m.dispose();}); edgeMat.dispose(); vMat.dispose(); pg.dispose(); pm.dispose(); R.dispose(); }catch(e){} };
  }catch(e){ console.warn(e); sp.innerHTML='<div class="lg">TOP<b>MOD</b> 3D</div>'; }
 })();</script>
 <script>/* reveal only once every layout pass (docks, stacked panels, phone sizing, restored widths) has run — no flash of the old UI */
-(function(){function reveal(){requestAnimationFrame(function(){requestAnimationFrame(function(){setTimeout(function(){var h=document.documentElement;h.classList.remove("tmBoot");h.classList.add("tmBooted");try{dispatchEvent(new Event("resize"))}catch(e){} var sp=document.getElementById("tmSplash"); if(sp){ setTimeout(function(){ sp.classList.add("out"); setTimeout(function(){ try{ window.__splashEnd&&window.__splashEnd(); }catch(e){} sp.remove(); },700); },4300); } },120);});});}
+(function(){function reveal(){requestAnimationFrame(function(){requestAnimationFrame(function(){setTimeout(function(){var h=document.documentElement;h.classList.remove("tmBoot");h.classList.add("tmBooted");try{dispatchEvent(new Event("resize"))}catch(e){} var sp=document.getElementById("tmSplash"); if(sp){ setTimeout(function(){ sp.classList.add("out"); setTimeout(function(){ try{ window.__splashEnd&&window.__splashEnd(); }catch(e){} sp.remove(); },700); },4700); } },120);});});}
  if(document.readyState==="complete") reveal(); else addEventListener("load",reveal);})();</script>
 </body>
 </html>
