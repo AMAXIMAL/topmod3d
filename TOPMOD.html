@@ -19937,6 +19937,14 @@ body.duo #claudePanel,body.duoBottom #claudePanel{top:calc(var(--duoH,50vh) + 8p
     pick.forEach(i=>C.sel.faces.add(i)); C.rebuildOverlay(); C.updateHint&&C.updateHint();
     return pick.length;
   }
+  /* option params are stored as indices; Claude names the option — map label → index, clamp numbers */
+  function modParams(type,p){ const defs=(C.MODS[type]&&C.MODS[type].params)||[], o={};
+    for(const [k,v0] of Object.entries(p||{})){ const d=defs.find(x=>x.k===k); let v=v0;
+      if(d&&d.opts&&typeof v==="string"){ const L=d.opts.map(x=>String(Array.isArray(x)?x[1]||x[0]:x).toLowerCase()), t=v.toLowerCase();
+        let i=L.indexOf(t); if(i<0) i=L.findIndex(x=>x.includes(t)||t.includes(x)); if(i<0) continue; v=i; }
+      else if(d&&typeof d.min==="number"&&typeof v==="number") v=Math.max(d.min,Math.min(d.max,v));
+      o[k]=v; }
+    return o; }
   async function step(s,say){
     if(s.new){ C.newProject(); await wait(120); return "New scene"; }
     if(s.prim){ const name=s.prim; C.closeToolPop(); C.primClick(name,document.querySelector('#toolbar [data-p="'+name+'"]'));
@@ -19945,9 +19953,9 @@ body.duo #claudePanel,body.duoBottom #claudePanel{top:calc(var(--duoH,50vh) + 8p
     if(s.select){ const n=selectFaces(s.select); return "Selected "+n+" faces"; }
     if(s.mod){ if(!C.MODS[s.mod]) throw new Error("unknown modifier "+s.mod);
       const md=C.addModifier(s.mod,{returnMod:true}); if(!md) throw new Error(s.mod+" could not be added");
-      Object.assign(md.params,s.params||{}); C.rebuild(); C.renderModStack&&C.renderModStack(); return (C.MODS[s.mod].label||s.mod); }
+      Object.assign(md.params,modParams(s.mod,s.params)); C.rebuild(); C.renderModStack&&C.renderModStack(); return (C.MODS[s.mod].label||s.mod); }
     if(s.op){ const op=s.op;
-      if(C.OP_AS_MOD[op]){ const md=C.addModifier(C.OP_AS_MOD[op],{returnMod:true}); if(md){ Object.assign(md.params,s.params||{}); C.rebuild(); C.renderModStack&&C.renderModStack(); } return op; }
+      if(C.OP_AS_MOD[op]){ const md=C.addModifier(C.OP_AS_MOD[op],{returnMod:true}); if(md){ Object.assign(md.params,modParams(C.OP_AS_MOD[op],s.params)); C.rebuild(); C.renderModStack&&C.renderModStack(); } return op; }
       const btn=document.querySelector('#toolbar [data-op="'+op+'"]');
       if(C.OP_PARAMS[op]&&btn){ C.closeToolPop(); C.openToolPop(op,btn); await wait(80);
         for(const [k,v] of Object.entries(s.params||{})) setInput(k,v); await wait(150);
@@ -19962,6 +19970,7 @@ body.duo #claudePanel,body.duoBottom #claudePanel{top:calc(var(--duoH,50vh) + 8p
   }
   async function run(plan,onStep){
     const steps=(plan&&plan.steps)||[]; const done=[];
+    try{ window.__demo&&window.__demo.on&&window.__demo.on()&&window.__demo.stop(); }catch(e){}   // a build always wins over a running demo
     C.snapshot&&C.snapshot();                    // one ⌘Z undoes the whole build
     for(const s of steps){
       try{ const r=await step(s); done.push(r); onStep&&onStep(r,true); }
