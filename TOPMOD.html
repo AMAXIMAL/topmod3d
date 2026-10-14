@@ -18078,6 +18078,11 @@ void main(){
 })();
 </script>
 <style id="mbScrollCss">
+/* visible scroll bars on iPhone (iOS hides native ones): top menu (horizontal) + tools column (vertical) */
+#mbScroll{height:6px!important;background:rgba(127,216,239,.16)!important}
+#tbScroll{position:fixed;width:5px;border-radius:3px;background:rgba(127,216,239,.14);z-index:42;display:none;touch-action:none}
+#tbScroll i{position:absolute;left:0;width:100%;border-radius:3px;background:rgba(0,229,255,.75);box-shadow:0 0 6px rgba(0,229,255,.5)}
+#tbScroll.on{display:block}
 #mbScroll{position:fixed;height:4px;border-radius:3px;background:rgba(127,216,239,.12);z-index:31;display:none;touch-action:none}
 #mbScroll i{position:absolute;top:0;height:100%;border-radius:3px;background:rgba(0,229,255,.75);box-shadow:0 0 6px rgba(0,229,255,.5)}
 #mbScroll.on{display:block}
@@ -18202,6 +18207,23 @@ void main(){
   ["tbDock","opDock","rStack","opOpen","opCol"].forEach(function(c){ if(!B.classList.contains(c)) B.classList.add(c); });
   var tb=document.getElementById("toolbar"); if(tb){ tb.classList.remove("tucked","collapsed"); } }
  function init(){ g(); new MutationObserver(g).observe(document.body,{attributes:true,attributeFilter:["class"]}); var tb=document.getElementById("toolbar"); if(tb) new MutationObserver(g).observe(tb,{attributes:true,attributeFilter:["class"]}); }
+ if(document.readyState==="loading") document.addEventListener("DOMContentLoaded",init); else init();})();</script>
+<script>/* tools column scroll bar: always visible when the tools overflow — drag the thumb or swipe the column */
+(function(){function init(){ var tb=document.getElementById("toolbar"), row=tb&&tb.querySelector(".trow"); if(!row) return;
+ var bar=document.createElement("div"); bar.id="tbScroll"; var th=document.createElement("i"); bar.appendChild(th); document.body.appendChild(bar);
+ function upd(){ var r=row.getBoundingClientRect(), over=row.scrollHeight-row.clientHeight>4, vis=r.width>0&&!document.body.classList.contains("fullscreen");
+  bar.classList.toggle("on",over&&vis); if(!(over&&vis)) return;
+  var T=r.top+4, H=r.height-8; bar.style.top=T+"px"; bar.style.height=H+"px"; bar.style.left=(r.right-6)+"px";
+  var hh=Math.max(28,H*row.clientHeight/row.scrollHeight); th.style.height=hh+"px"; th.style.top=((H-hh)*row.scrollTop/(row.scrollHeight-row.clientHeight))+"px"; }
+ var dg=null;
+ bar.addEventListener("pointerdown",function(e){ e.preventDefault(); bar.setPointerCapture(e.pointerId); var r=bar.getBoundingClientRect(), hh=th.offsetHeight, y=e.clientY-r.top, tt=th.offsetTop;
+   if(y<tt||y>tt+hh) row.scrollTop=(y-hh/2)/(r.height-hh)*(row.scrollHeight-row.clientHeight);
+   dg={y:e.clientY,s:row.scrollTop,k:(row.scrollHeight-row.clientHeight)/Math.max(1,r.height-hh)}; });
+ bar.addEventListener("pointermove",function(e){ if(dg) row.scrollTop=dg.s+(e.clientY-dg.y)*dg.k; });
+ bar.addEventListener("pointerup",function(){dg=null;}); bar.addEventListener("pointercancel",function(){dg=null;});
+ row.addEventListener("scroll",upd,{passive:true}); addEventListener("resize",upd);
+ try{ new ResizeObserver(upd).observe(row); new ResizeObserver(upd).observe(tb); }catch(e){}
+ setTimeout(upd,300); setTimeout(upd,1500); }
  if(document.readyState==="loading") document.addEventListener("DOMContentLoaded",init); else init();})();</script>
 <script>/* reveal only once every layout pass (docks, stacked panels, phone sizing, restored widths) has run — no flash of the old UI */
 (function(){function reveal(){requestAnimationFrame(function(){requestAnimationFrame(function(){setTimeout(function(){var h=document.documentElement;h.classList.remove("tmBoot");h.classList.add("tmBooted");try{dispatchEvent(new Event("resize"))}catch(e){}},120);});});}
