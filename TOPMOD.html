@@ -904,6 +904,7 @@ body.uiLight #tbDockBar,body.uiLight #opDockBar,body.uiLight #ocBar{background:#
 /* Layers / Modifiers / Options section labels: short header bars */
 html body #layersHead,html body #modHead,html body.opDock.rStack #layersHead,html body #tpHead{min-height:0!important;height:auto!important;padding:2px 8px!important;font-size:9.5px!important;line-height:16px!important}
 html body #tpHead #tpTitle{font-size:9.5px!important;line-height:16px!important}
+html body #layersHead,html body #layersHead span,html body #modHead{font:800 9.5px/16px var(--mono,monospace)!important;letter-spacing:1.6px!important;color:#00E5FF!important;text-transform:uppercase}
 html body #layersHead .secChev,html body #modHead .secChev{font-size:9px!important}
 /* Layers + Modifiers rows: one compact style — small, bold, white, no decorative icons */
 #layerList .layerRow,#modList .modRow,#fabNode.added{min-height:0!important;padding:3px 6px!important;font:700 11px/1.25 var(--font,system-ui)!important;color:#fff!important;border-radius:6px!important}
@@ -1143,10 +1144,7 @@ html.inApp [data-act="fullscreen"],html.inApp [data-act="shortcuts"],html.inApp 
       <div class="mi" data-rm="galaxy">Galaxy</div>
       <div class="mi" data-rm="matrix">Matrix</div>
       <div class="mi" data-rm="water">Water</div>
-      <div class="mi" data-rm="moonwater">Moonwater</div>
       <div class="mi" data-rm="carbon">Carbon Fiber</div>
-      <div class="mi" data-rm="carpet">Red Carpet</div>
-      <div class="mi" data-rm="flower">Flower</div>
       <div class="mi" data-rm="laser">Laser</div>
       <div class="mi" data-rm="patent">Patent / Halftone</div>
       <div class="mi" data-rm="patent3d">3D Glasses · Halftone</div>
@@ -11704,7 +11702,7 @@ function setLayersOn(on){
 $("#layersToggle")&&$("#layersToggle").addEventListener("click",()=>{ document.body.classList.toggle("rightTucked"); document.body.classList.add("rtForce"); $("#layersToggle").classList.toggle("on",!document.body.classList.contains("rightTucked")); });
 // View-style dropdown under the navigation cube
 (function(){ const vs=document.getElementById("viewStyleSel"); if(!vs) return;
-  const groups=[["Shading",["solid","normals","xray","galaxy","matrix","water","moonwater","carbon","carpet","flower","laser","patent","patent3d"]],["Gems (ray-traced)",["diamond","reddiamond","ruby","sapphire","emerald"]]];
+  const groups=[["Shading",["solid","normals","xray","galaxy","matrix","water","carbon","laser","patent","patent3d"]],["Gems (ray-traced)",["diamond","reddiamond","ruby","sapphire","emerald"]]];
   vs.innerHTML=groups.map(([g,ks])=>'<optgroup label="'+g+'">'+ks.filter(k=>RMODES[k]).map(k=>'<option value="'+k+'">'+RMODES[k].label+'</option>').join("")+'</optgroup>').join("")+'<optgroup label="Drawing"><option value="__lineart">Line Art</option></optgroup>';
   vs.value=renderMode;
   vs.addEventListener("change",()=>{ const v=vs.value; if(v==="__lineart"){ if(window.__lineart) window.__lineart.open(); } else setRenderMode(v); });
