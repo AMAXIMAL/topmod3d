@@ -935,10 +935,13 @@ html body.phone #ncHome{left:-28px!important;top:2px!important}
 html body.phone #ncSpin{left:-28px!important;top:28px!important}
 html body.phone #ncFocus{right:-28px!important;top:2px!important}
 html body.phone #ncFull{right:-28px!important;top:28px!important}
-/* Midnight: navy chrome, sky-blue accent — complements the orange models best */
-body.uiNavy #menubar,body.uiNavy #toolbar,body.uiNavy #toolpop,body.uiNavy #layersPanel,body.uiNavy #modPanel,body.uiNavy #status,body.uiNavy .mlist,body.uiNavy #fabNode,body.uiNavy #console,body.uiNavy #tourCard,body.uiNavy #creditCard,body.uiNavy #handPrim,body.uiNavy #toast,body.uiNavy #amxDemo,body.uiNavy #navcube>button,body.uiNavy #tbScroll,body.uiNavy #mbScroll{filter:hue-rotate(18deg) saturate(1.35) brightness(1.18)}
-body.uiNavy #toolbar img.ticon,body.uiNavy #toolbar svg,body.uiNavy #status #lightBtn{filter:brightness(.85) saturate(.75) hue-rotate(-18deg)}
-body.uiNavy,body.uiNavy #frame,body.uiNavy #main{background:#0c1830!important}
+/* Neon: near-black violet chrome, hot-magenta accent (cyan → magenta), lime grid lines */
+body.uiNavy #menubar,body.uiNavy #toolbar,body.uiNavy #toolpop,body.uiNavy #layersPanel,body.uiNavy #modPanel,body.uiNavy #status,body.uiNavy .mlist,body.uiNavy #fabNode,body.uiNavy #console,body.uiNavy #tourCard,body.uiNavy #creditCard,body.uiNavy #handPrim,body.uiNavy #toast,body.uiNavy #amxDemo,body.uiNavy #navcube>button,body.uiNavy #tbScroll,body.uiNavy #mbScroll,body.uiNavy #ncCanvas{filter:hue-rotate(128deg) saturate(2.1) brightness(1.12)}
+body.uiNavy #toolbar img.ticon,body.uiNavy #toolbar svg,body.uiNavy #status #lightBtn{filter:brightness(.9) saturate(.48) hue-rotate(-128deg)}
+body.uiNavy,body.uiNavy #frame,body.uiNavy #main{background:#0b0614!important}
+/* nav cube follows the theme too */
+body.uiLight #ncCanvas{filter:invert(1) hue-rotate(25deg)}
+body.uiGrey #ncCanvas{filter:invert(.2) hue-rotate(-100deg) saturate(1.15)}
 /* Layers + Modifiers rows: one compact style — small, bold, white, no decorative icons */
 #layerList .layerRow,#modList .modRow,#fabNode.added{min-height:0!important;padding:3px 6px!important;font:700 11px/1.25 var(--font,system-ui)!important;color:#fff!important;border-radius:6px!important}
 #layerList .layerRow .layerName,#modList .modRow .modName,#fabNode .modName{font:700 11px/1.25 var(--font,system-ui)!important;color:#fff!important;font-style:normal!important}
@@ -1089,7 +1092,7 @@ html.inApp [data-act="fullscreen"],html.inApp [data-act="shortcuts"],html.inApp 
       <div class="mi" data-ui="dark">Dark mode (default · cyan)</div>
       <div class="mi" data-ui="grey">Grey mode (lime)</div>
       <div class="mi" data-ui="light">White mode (orange)</div>
-      <div class="mi" data-ui="navy">Midnight (navy · sky blue) — suggested</div>
+      <div class="mi" data-ui="navy">Neon (magenta · lime) — suggested</div>
       <div class="msep"></div>
       <div class="mi" data-act="tgB">Toggle Bounding Box</div>
       <div class="mi" data-act="tgSec">Toggle Section Plane</div>
@@ -7618,7 +7621,7 @@ function makeGroundGrid(size,c1,c2){ const h=size/2, pos=[], col=[], A=new THREE
   const g=new THREE.BufferGeometry(); g.setAttribute("position",new THREE.Float32BufferAttribute(pos,3)); g.setAttribute("color",new THREE.Float32BufferAttribute(col,3));
   const L=new THREE.LineSegments(g,new THREE.LineBasicMaterial({vertexColors:true})); L.userData.size=size; return L; }
 const grid=makeGroundGrid(60,0x7fd8ef,0x4699b3);   // 60 x 60 ground, 1-inch cells
-window.__setSceneBg=function(m){ if(m===true) m="light"; if(!m) m="dark"; try{ const C={dark:[0x080a12,0x7fd8ef,0x4699b3],grey:[0x3b3f45,0xb8f04a,0x7d8a6a],light:[0xeef1f5,0xe07a1f,0xb9a48c],navy:[0x0c1830,0x6fb6ff,0x2e5a94]}[m]||[0x080a12,0x7fd8ef,0x4699b3];
+window.__setSceneBg=function(m){ if(m===true) m="light"; if(!m) m="dark"; try{ const C={dark:[0x080a12,0x7fd8ef,0x4699b3],grey:[0x3b3f45,0xb8f04a,0x7d8a6a],light:[0xeef1f5,0xe07a1f,0xb9a48c],navy:[0x0b0614,0x39ff14,0xff2bd6]}[m]||[0x080a12,0x7fd8ef,0x4699b3];
   scene.background=new THREE.Color(C[0]); const ca=grid.geometry.attributes.color, pa=grid.geometry.attributes.position, A=new THREE.Color(C[1]), B=new THREE.Color(C[2]);
   for(let v=0;v<pa.count;v+=4){ const x0=pa.getX(v), x1=pa.getX(v+1), z0=pa.getZ(v), cen=(x0===0&&x1===0); const K=cen?A:B; for(let k=0;k<4;k++){ const isB=(k>=2); const c=(isB? (pa.getZ(v+2)===0&&pa.getZ(v+3)===0) : cen)?A:B; ca.setXYZ(v+k,c.r,c.g,c.b); } } ca.needsUpdate=true; }catch(e){} };
 grid.material.transparent=true; grid.material.opacity=0.33;
@@ -11482,6 +11485,7 @@ $("#snapToggle")&&$("#snapToggle").addEventListener("click",()=>{ snapToGrid=!sn
 }
 function closeToolPop(){
   if(!tpState) return;
+  if(["slab","sliceEdges","laser"].indexOf(tpState.op)>=0){ setTimeout(()=>{ try{ window.__homeView&&window.__homeView(true); }catch(e){} },60); }   // leaving fabrication: come back from the zoomed-out parts view
   if(tpState.op==="scale") endScalePreview();
   if(tpState.op==="greeble") endGreeblePreview(false);
   if(tpState.op==="metaballs") endMetaPreview(false);
@@ -11949,6 +11953,7 @@ function setFabActive(on){
   if(fabActive){ if(typeof openToolPop==="function") openToolPop("slab",null); if(typeof previewFab==="function") previewFab(); }
   else { if(typeof clearSlabOverlay==="function") clearSlabOverlay(); if(typeof clearSlabStack==="function") clearSlabStack(); }
   if(typeof rebuild==="function") rebuild();   // show the temporary flattened tree (on) or restore the layers (off)
+  if(!fabActive) setTimeout(()=>{ try{ window.__homeView&&window.__homeView(true); }catch(e){} },60);
   renderFabNode(); if(typeof renderLayerList==="function") renderLayerList();
 }
 $("#fabToggle")&&$("#fabToggle").addEventListener("click",(e)=>{ e.stopPropagation(); setFabActive(!fabActive); });
@@ -12255,6 +12260,7 @@ Examples:
   cv.addEventListener("mouseleave",()=>{ if(hoverFi>=0){matList[hoverFi].color.set(faces[hoverFi].length>=4?0x2c3d52:0x223044);hoverFi=-1;} });
 
   // home + pan arrows
+  window.__homeView=(quiet)=>{ const hb=$("#ncHome"); if(!hb) return; hb.dataset.quiet=quiet?"1":""; hb.click(); hb.dataset.quiet=""; };
   $("#ncHome").addEventListener("click",()=>{
     // Home = refocus on everything visible (all layers, evaluated) and zoom to fit, from the home angle
     try{ let mn=[1e9,1e9,1e9],mx=[-1e9,-1e9,-1e9]; const add=v=>{ for(let i=0;i<3;i++){ if(v[i]<mn[i])mn[i]=v[i]; if(v[i]>mx[i])mx[i]=v[i]; } };
@@ -12264,7 +12270,7 @@ Examples:
         (function st(){ const t=Math.min(1,(performance.now()-T0)/450), k=t<.5?2*t*t:1-Math.pow(-2*t+2,2)/2; target.set(a.x+(c[0]-a.x)*k,a.y+(c[1]-a.y)*k,a.z+(c[2]-a.z)*k); dist=d0+(d1-d0)*k; applyCam(); if(t<1) requestAnimationFrame(st); })(); }
       else if(window.__tm&&window.__tm.frameAll) window.__tm.frameAll();
     }catch(e){ if(window.__tm&&window.__tm.frameAll) window.__tm.frameAll(); }
-    tweenTo(0.7,0.45); toast&&toast("Home — refocused and zoomed to fit"); });
+    tweenTo(0.7,0.45); if(!$("#ncHome").dataset.quiet) toast&&toast("Home — refocused and zoomed to fit"); });
   $("#ncFull")&&$("#ncFull").addEventListener("click",e=>{ e.stopPropagation(); toggleFullscreen(); });
   new MutationObserver(()=>{ const f=$("#ncFull"); if(f) f.classList.toggle("on",document.body.classList.contains("fullscreen")); }).observe(document.body,{attributes:true,attributeFilter:["class"]});
 /* Nav cube ◎ Focus: tap it, then tap the model — the view now orbits around that point. ⌂ Home recenters. */
@@ -16978,7 +16984,7 @@ void main(){
   }
   function clearSelection(){ try { clearSel(); } catch(e){} }
   // Demo-only "new file": start every primitive from a clean slate so modifiers never pile up
-  function fresh(){
+  function fresh(){ try{ cancelAnimationFrame(_fabZoomRAF); target.set(0,0,0); }catch(e){} 
     // demo-only "new file": same as File → New, plus drop undo history so heavy meshes are released
     window.__demoFresh=true; try { newProject(); } catch(e){ console.warn("demo fresh() failed", e); } finally { window.__demoFresh=false; }
     try { undoStack.length = 0; redoStack.length = 0; } catch(e){}
@@ -17122,8 +17128,10 @@ void main(){
         await pinch(450); try{ sel.faces.clear(); sel.faces.add(fi); rebuildOverlay(); updateHint&&updateHint(); }catch(e){} await wait(700);
         // 2 · right two-finger pinch on the face, pull along its normal = live extrude; release commits
         say("Two-finger pinch · pull the face out"); H1.follow=false; H1.mode="two"; H1.col=RING.ex; H1.tx=fp.x; H1.ty=fp.y; await wait(600); force=1; await wait(350);
-        if(beginExtrudePreview()){ const dir=faceNormalScreenDir(fi), span=150;
-          await animate(2200,t=>{ const d=1.25*t; H1.tx=fp.x+dir.x*span*t; H1.ty=fp.y+dir.y*span*t; updateExtrudePreview(d); });
+        if(beginExtrudePreview()){ const c0=TM.faceCentroid(mesh,mesh.faces[fi]), n0=TM.faceNormal(mesh,mesh.faces[fi]);
+          const scr=d=>{ const v=new THREE.Vector3(c0[0]+n0[0]*d,c0[1]+n0[1]*d,c0[2]+n0[2]*d).project(camera), r=renderer.domElement.getBoundingClientRect(); return {x:r.left+(v.x+1)/2*r.width, y:r.top+(1-(v.y+1)/2)*r.height}; };
+          // the hand rides the face as it pulls out along its normal — the pull follows the extrude direction exactly
+          await animate(2200,t=>{ const d=1.25*t; updateExtrudePreview(d); const q=scr(d); H1.tx=q.x; H1.ty=q.y; });
           await wait(300); force=0; await wait(250); endExtrudePreview(true); }
         force=null; H1.mode="i"; await wait(900);
         // 3 · pinky: left hand undo, right hand redo
@@ -17209,7 +17217,8 @@ void main(){
         await point('#toolbar [data-act="cloth"]', "Cloth · Inflate — pressure inside the form (XPBD)", 300); CL.open("inflate"); Object.assign(CL.cfg,{detail:0,pressure:1.55,stretch:0.5}); CL.build(); CL.play();
         { const t0=performance.now(); while(alive && CL.frames<190 && performance.now()-t0<9000) await wait(100); } if(!alive) return; CL.pause(); say("Bake the inflated form"); CL.bake(); await wait(700); if(!alive) return;
         say("Cloth · Drape — a sheet falls and collides with the form"); CL.open("drape"); Object.assign(CL.cfg,{sheetRes:48}); CL.build(); CL.play();
-        { const t0=performance.now(); while(alive && CL.frames<300 && performance.now()-t0<11000) await wait(100); } if(!alive) return; CL.pause(); await wait(700);
+        { const t0=performance.now(); while(alive && CL.frames<300 && performance.now()-t0<11000) await wait(100); } if(!alive) return; CL.pause(); await wait(500);
+        say("Bake the drape — the sheet becomes its own Cloth layer"); CL.bake(); await wait(1600);
       } finally { spinHold=false; try{ window.__cloth&&window.__cloth.close(); }catch(e){} try{ window.__eq&&window.__eq.op(null); }catch(e){} }
     },
     // 2 — torus (sliders) -> wireframe (sliders) -> patent halftone -> normals -> solid -> new
