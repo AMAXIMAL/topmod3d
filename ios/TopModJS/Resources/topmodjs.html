@@ -874,6 +874,18 @@ body.opCol.fullscreen #ocBar{display:none!important}
 body.opDock #toolpop,body.opDock.opOpen #layersPanel,body.opDock.opOpen #modPanel{border-left:0!important}
 #toolbar{border-right:0!important}
 #toast{max-width:calc(100% - 24px)!important;white-space:normal!important;text-align:center;box-sizing:border-box}
+/* Explain tour: spotlight + caption card */
+#tourSpot{position:fixed;z-index:100010;border:2px solid #00E5FF;border-radius:10px;box-shadow:0 0 0 9999px rgba(3,6,12,.72),0 0 22px rgba(0,229,255,.7);pointer-events:none;transition:all .45s cubic-bezier(.4,.1,.2,1)}
+#tourCard{position:fixed;z-index:100011;width:min(300px,calc(100vw - 24px));background:#0b0f18;border:1px solid rgba(0,229,255,.45);border-radius:12px;padding:12px 14px 10px;color:#dff6ff;font:13px/1.45 var(--font,system-ui);box-shadow:0 10px 40px rgba(0,0,0,.6);transition:left .45s cubic-bezier(.4,.1,.2,1),top .45s cubic-bezier(.4,.1,.2,1)}
+#tourCard h4{margin:0 0 4px;font:800 11px var(--mono,monospace);letter-spacing:1.6px;text-transform:uppercase;color:#00E5FF}
+#tourCard p{margin:0 0 10px}
+#tourCard .tnav{display:flex;align-items:center;gap:6px}
+#tourCard .tnav span{flex:1;font:10px var(--mono,monospace);color:#7f9bb0}
+#tourCard button{background:rgba(0,229,255,.1);border:1px solid rgba(0,229,255,.4);color:#bff3ff;border-radius:7px;padding:4px 10px;font:700 11px var(--font,system-ui);cursor:pointer}
+#tourCard button.go{background:#00E5FF;color:#04222a;border-color:#00E5FF}
+#tourCard .tbar{height:2px;background:rgba(0,229,255,.15);border-radius:2px;margin:0 0 8px;overflow:hidden}
+#tourCard .tbar i{display:block;height:100%;width:0;background:#00E5FF}
+body.phone #tourCard{font-size:11px;padding:9px 11px 8px;width:min(240px,calc(100vw - 24px))}
 /* no floating Apply / Cancel over the 3D view — Apply lives in the Options column */
 #floatApply{display:none!important}
 /* Hands demo: simulated tracking overlay */
@@ -1074,9 +1086,11 @@ html.inApp [data-act="fullscreen"],html.inApp [data-act="shortcuts"],html.inApp 
       <div class="mi" data-act="lineArt">Line Art (pen-plotter styles)</div>
     </div></div>
     <div class="menu"><span class="mtitle">Help</span><div class="mlist">
+      <div class="mi" id="miDemo">&#9654; Demo &mdash; watch TopMod build models</div>
+      <div class="mi" id="miExplain">&#10067; Explain the interface &mdash; guided tour</div>
       <div class="mi" data-act="controls">Controls &amp; Gestures</div>
       <div class="mi" data-act="shortcuts">Keyboard Shortcuts</div>
-      <div class="mi" data-act="about">About TopMod.JS</div>
+      <div class="mi" data-act="about">About TopMod 3D</div>
     </div></div>
     <div class="menu" id="demoMenu"><span class="mtitle" id="demoTitle" title="Auto-showcase: cycles shapes, ops and render modes with a slow orbit. Any click/key stops it.">&#9654; Demo</span></div>
   </div>
@@ -17987,6 +18001,57 @@ void main(){
  try{new ResizeObserver(upd).observe(mb);}catch(e){} new MutationObserver(upd).observe(document.body,{attributes:true,attributeFilter:["class"]});
  setTimeout(upd,300); setTimeout(upd,1500);}
  if(document.readyState==="loading") document.addEventListener("DOMContentLoaded",init); else init();})();</script>
+<script>/* Help ▸ Demo / Explain the interface (guided tour that spotlights each area) */
+(function(){
+ var STEPS=[
+  ["#menubar","Menus","Every command lives up here — File, Edit, View, Primitives, Selection, Tools, Remeshing, Make, Render and Help. Swipe the bar on iPhone to see them all."],
+  ["#toolbar","Tools","The tool column. Groups run TopMod-first: Primitives, Topology, Subdivide, Edit, Extrude, Deform, Boolean, Clean-up, Generate, Gems, Analyze, Fabricate."],
+  ["#tbDockBar","Resize columns","Every column has a width bar like this one. Drag it to resize, double-click to reset."],
+  ["#view","3D view","Drag to orbit, pinch or scroll to zoom. Tap a face, edge or vertex to select it; double-tap the neighbour to grab a whole loop."],
+  ["#navcube","Nav cube","Tap a face, edge or corner to snap the view. ⌂ frames everything, ⟳ slowly spins the model while you work."],
+  ["#toolpop","Options","The current tool's settings. Sliders preview live; press Apply to keep the result."],
+  ["#layersPanel","Layers","Each layer is a separate object. Show / hide, lock, duplicate or delete it, and tap a layer to make it active. Tap the header to fold this section."],
+  ["#modPanel","Modifiers","The live, editable history of the active layer. Every operation stacks here — toggle ◉ on and off, reorder, or edit its settings any time. Fabrication sits at the bottom."],
+  ["#modes","Selection modes","Pick what a tap selects: vertices, edges or faces."],
+  ["#viewStyleSel","View styles","Switch how the model is drawn: solid, wireframe, blueprint, glass and gem stones like sapphire and ruby."],
+  ["#sectionFab","Section","Slice through the model with a moving section plane."],
+  ["#handFab","Hands","Model with your hands. The camera tracks them: pinch to pick, ring-finger pinch for shortcuts, two hands to zoom."],
+  ["#recBtn","Record","Rec Screen records the 3D view; 360 MOV records a 15-second turntable from the current angle."],
+  ["#snapToggle","Snap","Snap moves and rotations to clean steps."],
+  ["#miDemo","Demos","Help ▸ Demo plays the built-in demos; this tour lives in Help ▸ Explain the interface."]];
+ var spot=null, card=null, i=0, timer=null, t0=0, DUR=6500, raf=0;
+ function vis(el){ if(!el) return false; var r=el.getBoundingClientRect(); return r.width>2&&r.height>2&&getComputedStyle(el).display!=="none"&&getComputedStyle(el).visibility!=="hidden"; }
+ function target(sel){ if(sel==="#miDemo"){ var hm=[].slice.call(document.querySelectorAll("#menubar .mtitle")).filter(function(t){return /help/i.test(t.textContent);})[0]; return hm; } return document.querySelector(sel); }
+ function show(k){ var n=STEPS.length; i=(k+n)%n; var st=STEPS[i], el=target(st[0]), tries=0;
+   while(!vis(el)&&tries<n){ i=(i+1)%n; st=STEPS[i]; el=target(st[0]); tries++; }
+   if(!el) return close();
+   var r=el.getBoundingClientRect(), pad=6, L=Math.max(4,r.left-pad), T=Math.max(4,r.top-pad), W=Math.min(innerWidth-8,r.width+2*pad), H=Math.min(innerHeight-8,r.height+2*pad);
+   Object.assign(spot.style,{left:L+"px",top:T+"px",width:W+"px",height:H+"px"});
+   card.innerHTML='<div class="tbar"><i></i></div><h4>'+st[1]+'</h4><p>'+st[2]+'</p><div class="tnav"><span>'+(i+1)+' / '+n+'</span><button class="bk">Back</button><button class="go">'+(i===n-1?"Done":"Next")+'</button><button class="x">&times;</button></div>';
+   card.querySelector(".bk").onclick=function(e){e.stopPropagation();show(i-1);};
+   card.querySelector(".go").onclick=function(e){e.stopPropagation(); if(i===n-1) close(); else show(i+1);};
+   card.querySelector(".x").onclick=function(e){e.stopPropagation();close();};
+   var cw=card.offsetWidth, ch=card.offsetHeight, cx, cy;
+   if(r.right+cw+18<innerWidth){ cx=r.right+14; cy=r.top; } else if(r.left-cw-18>0){ cx=r.left-cw-14; cy=r.top; }
+   else if(r.bottom+ch+16<innerHeight){ cx=r.left+r.width/2-cw/2; cy=r.bottom+12; } else { cx=r.left+r.width/2-cw/2; cy=r.top-ch-12; }
+   cx=Math.max(10,Math.min(innerWidth-cw-10,cx)); cy=Math.max(10,Math.min(innerHeight-ch-10,cy));
+   card.style.left=cx+"px"; card.style.top=cy+"px"; t0=performance.now(); }
+ function tick(){ if(!card) return; var f=Math.min(1,(performance.now()-t0)/DUR), b=card.querySelector(".tbar i"); if(b) b.style.width=(f*100)+"%";
+   if(f>=1){ if(i===STEPS.length-1) return close(); show(i+1); } raf=requestAnimationFrame(tick); }
+ function key(e){ if(!card) return; if(e.key==="Escape") close(); else if(e.key==="ArrowRight") show(i+1); else if(e.key==="ArrowLeft") show(i-1); }
+ function open(){ close(); try{ window.__demo&&window.__demo.stop&&window.__demo.stop(true); }catch(e){}
+   document.querySelectorAll("#menubar .menu.open").forEach(function(m){m.classList.remove("open");});
+   spot=document.createElement("div"); spot.id="tourSpot"; card=document.createElement("div"); card.id="tourCard";
+   document.body.appendChild(spot); document.body.appendChild(card); addEventListener("keydown",key,true); addEventListener("resize",rs);
+   show(0); raf=requestAnimationFrame(tick); }
+ function rs(){ if(card) show(i); }
+ function close(){ cancelAnimationFrame(raf); if(spot) spot.remove(); if(card) card.remove(); spot=card=null; removeEventListener("keydown",key,true); removeEventListener("resize",rs); }
+ window.__explain={open:open,close:close,steps:STEPS};
+ function init(){ var d=document.getElementById("miDemo"), x=document.getElementById("miExplain");
+   if(d) d.addEventListener("click",function(e){ e.stopPropagation(); document.querySelectorAll("#menubar .menu.open").forEach(function(m){m.classList.remove("open");}); try{ window.__demo.start(0); }catch(_){} });
+   if(x) x.addEventListener("click",function(e){ e.stopPropagation(); open(); }); }
+ if(document.readyState==="loading") document.addEventListener("DOMContentLoaded",init); else init();
+})();</script>
 <script>/* Toolbar order (audit Oct 2026): TopMod-first — Topology & Subdivide near the top; booleans / clean-up / analysis split out of Remesh & TrueForm; no duplicates */
 (function(){
  var ORDER=[
