@@ -95,9 +95,13 @@ namespace TopModRhinoLink
                          .Replace("<band size=\"818\">", "<band size=\"" + band + "\">");
                 var path = Path.Combine(AppFolder, "TopMod.rhw");
                 File.WriteAllText(path, rhw);
-                // import every time (Rhino replaces a layout of the same name) so the band width tracks the window, then restore by name
+                // import once (re-importing adds "TopMod 01", "TopMod 02"… instead of replacing), then restore by name
                 // NOTE: only works from a [CommandStyle(Style.ScriptRunner)] command (TopModWorkspace)
-                RhinoApp.RunScript("_-WindowLayout _Import \"" + path + "\" _Enter", false);
+                if (Settings.GetInteger("LayoutVersion", 0) < 2)
+                {
+                    RhinoApp.RunScript("_-WindowLayout _Import \"" + path + "\" _Enter", false);
+                    Settings.SetInteger("LayoutVersion", 2);
+                }
                 RhinoApp.RunScript("_-WindowLayout \"TopMod\"", false);
             }
             if (doc != null)
