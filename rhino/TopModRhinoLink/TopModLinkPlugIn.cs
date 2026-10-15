@@ -83,15 +83,21 @@ namespace TopModRhinoLink
             catch { }
             if (rhw != null)
             {
+                // the TopMod dock band takes PanelFraction of the Rhino window (the .rhw stores an absolute width)
+                int band = 1135;
+                try
+                {
+                    var win = Rhino.UI.RhinoEtoApp.MainWindow;
+                    if (win != null && win.Width > 400) band = (int)Math.Round(win.Width * PanelFraction);
+                }
+                catch { }
+                rhw = rhw.Replace("dock_band_size=\"818,200\"", "dock_band_size=\"" + band + ",200\"")
+                         .Replace("<band size=\"818\">", "<band size=\"" + band + "\">");
                 var path = Path.Combine(AppFolder, "TopMod.rhw");
                 File.WriteAllText(path, rhw);
-                // import (idempotent: Rhino replaces a layout of the same name) then restore by name
+                // import every time (Rhino replaces a layout of the same name) so the band width tracks the window, then restore by name
                 // NOTE: only works from a [CommandStyle(Style.ScriptRunner)] command (TopModWorkspace)
-                if (!Settings.GetBool("LayoutImported", false))
-                {
-                    RhinoApp.RunScript("_-WindowLayout _Import \"" + path + "\" _Enter", false);
-                    Settings.SetBool("LayoutImported", true);
-                }
+                RhinoApp.RunScript("_-WindowLayout _Import \"" + path + "\" _Enter", false);
                 RhinoApp.RunScript("_-WindowLayout \"TopMod\"", false);
             }
             if (doc != null)
@@ -108,6 +114,9 @@ namespace TopModRhinoLink
             }
             return rhw != null;
         }
+
+        /// <summary>Share of the Rhino window the TopMod panel takes in the TopMod workspace (0.63 ≈ the panel at 1135 of 1800 pt).</summary>
+        public const double PanelFraction = 0.63;
 
         public bool WorkspaceApplied { get => Settings.GetBool("WorkspaceApplied", false); set => Settings.SetBool("WorkspaceApplied", value); }
 

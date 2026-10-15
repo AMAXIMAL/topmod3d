@@ -14,9 +14,10 @@
     <Authors>ION / AMAXIMAL</Authors>
     <GenerateDocumentationFile>false</GenerateDocumentationFile>
     <NoWarn>NU1701;CS1591</NoWarn>
-    <!-- The TopMod app itself is compiled into the plug-in. If the master copy on this Mac is present it is used; otherwise the TOPMOD.html checked in beside this file. -->
-    <TopModHtml Condition="Exists('$(HOME)/AMAXiMAL/projects/topmod/TOPMOD.html')">$(HOME)/AMAXiMAL/projects/topmod/TOPMOD.html</TopModHtml>
-    <TopModHtml Condition="'$(TopModHtml)'==''">TOPMOD.html</TopModHtml>
+    <!-- The TopMod app is the TOPMOD.html checked in beside this file: a snapshot of the master
+         (~/AMAXiMAL/projects/topmod/TOPMOD.html) with the Rhino bridge hooks applied.
+         Refresh it with:  python3 sync_topmod.py   (copies the master here and re-applies the hooks). -->
+    <TopModHtml>TOPMOD.html</TopModHtml>
   </PropertyGroup>
   <ItemGroup>
     <PackageReference Include="RhinoCommon" Version="8.19.25132.1001" ExcludeAssets="runtime" />
@@ -27,7 +28,12 @@
     <EmbeddedResource Include="topmod.ico" LogicalName="TopModRhinoLink.topmod.ico" />
     <EmbeddedResource Include="TopMod.rhw" LogicalName="TopMod.rhw" Condition="Exists('TopMod.rhw')" />
   </ItemGroup>
-  <Target Name="ReportHtml" BeforeTargets="Build">
+  <Target Name="CheckHtml" BeforeTargets="Build">
+    <Error Condition="!Exists('$(TopModHtml)')" Text="TOPMOD.html is missing beside the project: run  python3 sync_topmod.py" />
+    <Exec Command="grep -q __tmBridge &quot;$(TopModHtml)&quot;" IgnoreExitCode="true" ConsoleToMSBuild="true" Condition="'$(OS)' != 'Windows_NT'">
+      <Output TaskParameter="ExitCode" PropertyName="BridgeCheck" />
+    </Exec>
+    <Error Condition="'$(BridgeCheck)' == '1'" Text="TOPMOD.html has no Rhino bridge hooks (__tmBridge): run  python3 sync_topmod.py" />
     <Message Importance="high" Text="Embedding TopMod app from: $(TopModHtml)" />
   </Target>
 </Project>

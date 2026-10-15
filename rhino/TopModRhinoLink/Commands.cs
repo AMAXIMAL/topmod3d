@@ -19,13 +19,9 @@ namespace TopModRhinoLink
             var p = TopModLinkPlugIn.Instance;
             if (Rhino.UI.Panels.IsPanelVisible(id)) { Rhino.UI.Panels.ClosePanel(id); return Result.Success; }
             Rhino.UI.Panels.OpenPanel(id);
-            if (!p.WorkspaceApplied)
-            {
-                // first run: set up the TopMod workspace (panel docked right, half width, single Perspective view)
-                p.WorkspaceApplied = true;
-                Eto.Forms.Application.Instance.AsyncInvoke(() => RhinoApp.RunScript("_TopModWorkspace", false));
-                RhinoApp.WriteLine("TopMod workspace applied. Run TopModWorkspace any time to restore it.");
-            }
+            // every start: the TopMod workspace (panel docked right at half width, single shaded Perspective view)
+            p.WorkspaceApplied = true;
+            Eto.Forms.Application.Instance.AsyncInvoke(() => RhinoApp.RunScript("_TopModWorkspace", false));
             return Result.Success;
         }
     }

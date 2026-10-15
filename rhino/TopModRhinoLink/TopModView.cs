@@ -50,6 +50,14 @@ namespace TopModRhinoLink
             layoutOn.Click += (s, e) => Application.Instance.AsyncInvoke(() => RhinoApp.RunScript("_TopModWorkspace", false));
             var layoutOff = new Button { Text = "Default", ToolTip = "Rhino's default window layout with four viewports" };
             layoutOff.Click += (s, e) => Application.Instance.AsyncInvoke(() => RhinoApp.RunScript("_TopModDefaultLayout", false));
+            var close = new Button { Text = "✕ Close", ToolTip = "Close TopMod and go back to Rhino's default layout (the live object stays; run TopMod to reopen)" };
+            close.Click += (s, e) => Application.Instance.AsyncInvoke(() =>
+            {
+                var p = TopModLinkPlugIn.Instance;
+                if (p.Form != null && p.Form.Visible) p.Form.Close();
+                if (Rhino.UI.Panels.IsPanelVisible(TopModPanel.PanelId)) Rhino.UI.Panels.ClosePanel(TopModPanel.PanelId);
+                RhinoApp.RunScript("_TopModDefaultLayout", false);
+            });
 
             _status = new Label { Text = "loading…", VerticalAlignment = VerticalAlignment.Center, TextColor = Colors.Gray };
 
@@ -58,7 +66,7 @@ namespace TopModRhinoLink
                 Orientation = Orientation.Horizontal,
                 Spacing = 4, Padding = new Padding(6, 4),
                 VerticalContentAlignment = VerticalAlignment.Center,
-                Items = { bake, bakeMesh, import, reload, new Panel { Width = 8 }, layoutOn, layoutOff, new StackLayoutItem(null, true), _status }
+                Items = { bake, bakeMesh, import, reload, new Panel { Width = 8 }, layoutOn, layoutOff, close, new StackLayoutItem(null, true), _status }
             };
 
             Content = new TableLayout { Rows = { new TableRow(bar), new TableRow(_web) { ScaleHeight = true } } };
