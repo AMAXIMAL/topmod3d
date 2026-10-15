@@ -19,6 +19,7 @@ namespace TopModRhinoLink
         protected override LoadReturnCode OnLoad(ref string errorMessage)
         {
             Sync = new LiveSync();
+            LiveSync.DowelDiameterIn = Settings.GetDouble("DowelIn", 0.25);
             Rhino.UI.Panels.RegisterPanel(this, typeof(TopModPanel), "TopMod 3D", typeof(TopModLinkPlugIn).Assembly, "TopModRhinoLink.topmod.ico", Rhino.UI.PanelType.System);
             return LoadReturnCode.Success;
         }

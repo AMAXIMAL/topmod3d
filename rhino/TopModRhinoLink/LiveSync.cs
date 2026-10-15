@@ -22,10 +22,15 @@ namespace TopModRhinoLink
         public const string BakeLayer = "TopMod::Baked";
         public const string FabLayer = "TopMod::Fab";
         static readonly System.Drawing.Color CyanC = System.Drawing.Color.FromArgb(0, 229, 255);
-        static readonly System.Drawing.Color OrangeC = System.Drawing.Color.FromArgb(255, 140, 0);
+        static readonly System.Drawing.Color OrangeC = System.Drawing.Color.FromArgb(255, 140, 0);   // live geometry (Tiger+ orange)
+        static readonly System.Drawing.Color SteelC = System.Drawing.Color.FromArgb(90, 140, 200);   // baked copies
         static readonly System.Drawing.Color YellowC = System.Drawing.Color.FromArgb(255, 214, 0);
         static readonly System.Drawing.Color GreyC = System.Drawing.Color.FromArgb(120, 130, 140);
         public bool LiveIsMesh { get; private set; }
+        /// <summary>Last model pushed by the page, in doc units Z-up (face order = TopMod face order). Used to label assembled faces.</summary>
+        public PolyMesh LastWebMesh { get; private set; }
+        /// <summary>Registration dowel diameter for plywood stacks, in inches (TopModDowel command).</summary>
+        public static double DowelDiameterIn { get; set; } = 0.25;
 
         readonly object _lock = new object();
         Guid _liveId = Guid.Empty;
@@ -69,6 +74,7 @@ namespace TopModRhinoLink
         {
             var pm = ObjConvert.Scaled(ObjConvert.YupToZup(ObjConvert.Parse(objText)), InToDoc(doc));
             if (pm.IsEmpty) return;
+            LastWebMesh = pm;
             var tol = doc.ModelAbsoluteTolerance;
             // "mesh" while a simulation streams or a Fabrication tool is on (fast); NURBS once it settles / on Bake
             GeometryBase geo = mode == "mesh" ? (GeometryBase)ObjConvert.ToRhinoMesh(pm) : ObjConvert.ToBrep(pm, tol);
@@ -88,7 +94,7 @@ namespace TopModRhinoLink
                 if (live == null)
                 {
                     var attr = doc.CreateDefaultAttributes();
-                    attr.LayerIndex = EnsureLayer(doc, LiveLayer, CyanC);
+                    attr.LayerIndex = EnsureLayer(doc, LiveLayer, OrangeC, true);
                     attr.Name = "TopMod (live)";
                     attr.SetUserString(TagKey, "1");
                     _liveId = geo is Brep b2 ? doc.Objects.AddBrep(b2, attr) : doc.Objects.AddMesh((Mesh)geo, attr);
@@ -184,7 +190,7 @@ namespace TopModRhinoLink
             int n = 1;
             while (doc.Layers.FindByFullPath(BakeLayer + "::Bake " + n.ToString("00"), -1) >= 0) n++;
             string bakeName = "Bake " + n.ToString("00");
-            int bakeIdx = EnsureLayer(doc, BakeLayer + "::" + bakeName, OrangeC);
+            int bakeIdx = EnsureLayer(doc, BakeLayer + "::" + bakeName, SteelC);
 
             var attr = live.Attributes.Duplicate();
             attr.LayerIndex = bakeIdx;
@@ -242,12 +248,25 @@ namespace TopModRhinoLink
                 Point3d Conv(Point3d p) => new Point3d(p.X * s, -p.Z * s, p.Y * s);   // TopMod Y-up inches → Rhino Z-up doc units
                 int iAsm = EnsureLayer(doc, FabLayer + "::Assembled", YellowC);
                 int iFlat = EnsureLayer(doc, FabLayer + "::Flat", OrangeC);
+                int iIds = EnsureLayer(doc, FabLayer + "::IDs", GreyC);
+                var asm = new List<Polyline>(); var flat = new List<Polyline>();
                 int k = 0;
                 foreach (var (src, dst) in loops)
                 {
                     k++;
-                    AddLoop(doc, src, Conv, iAsm, (mode ?? "fab") + " " + k);
-                    AddLoop(doc, dst, Conv, iFlat, (mode ?? "fab") + " flat " + k);
+                    var a = AddLoop(doc, src, Conv, iAsm, (mode ?? "fab") + " " + k);
+                    var f = AddLoop(doc, dst, Conv, iFlat, (mode ?? "fab") + " flat " + k);
+                    if (a == null || f == null) continue;
+                    asm.Add(a); flat.Add(f);
+                    // part IDs: the same label on the slab in place and on its flat cut-out
+                    string id = "S" + k.ToString("00");
+                    AddDot(doc, Centroid(a), id, iIds);
+                    AddDot(doc, Centroid(f), id, iIds);
+                }
+                if (asm.Count >= 2 && DowelDiameterIn > 0)
+                {
+                    try { AddDowels(doc, asm, flat, EnsureLayer(doc, FabLayer + "::Dowels", System.Drawing.Color.FromArgb(60, 120, 255)), DowelDiameterIn * s, doc.ModelAbsoluteTolerance); }
+                    catch (Exception ex) { RhinoApp.WriteLine("TopMod: dowels — " + ex.Message); }
                 }
                 if (!string.IsNullOrEmpty(netObj))
                 {
@@ -256,6 +275,15 @@ namespace TopModRhinoLink
                     {
                         int iCut = EnsureLayer(doc, FabLayer + "::Net Cut", System.Drawing.Color.FromArgb(230, 60, 60));
                         int iFold = EnsureLayer(doc, FabLayer + "::Net Fold", GreyC);
+                        // part IDs: face i of the net ↔ face i of the model (same face order), labelled on both
+                        var model = LastWebMesh;
+                        bool paired = model != null && model.Faces.Count == pm.Faces.Count;
+                        for (int i = 0; i < pm.Faces.Count; i++)
+                        {
+                            string id = "F" + (i + 1);
+                            AddDot(doc, FaceCenter(pm, i), id, iIds);
+                            if (paired) AddDot(doc, FaceCenter(model, i), id, iIds);
+                        }
                         // edge use-count: 1 = boundary (cut), 2 = shared (fold)
                         var count = new Dictionary<(int, int), int>();
                         foreach (var f in pm.Faces)
@@ -281,9 +309,9 @@ namespace TopModRhinoLink
             finally { _suppress = false; }
         }
 
-        static void AddLoop(RhinoDoc doc, List<Point3d> pts, Func<Point3d, Point3d> conv, int layerIndex, string name)
+        static Polyline AddLoop(RhinoDoc doc, List<Point3d> pts, Func<Point3d, Point3d> conv, int layerIndex, string name)
         {
-            if (pts == null || pts.Count < 2) return;
+            if (pts == null || pts.Count < 2) return null;
             var pl = new Polyline();
             foreach (var p in pts) pl.Add(conv(p));
             if (pl.Count > 2 && pl[0].DistanceTo(pl[pl.Count - 1]) > doc.ModelAbsoluteTolerance) pl.Add(pl[0]);   // close it
@@ -292,6 +320,147 @@ namespace TopModRhinoLink
             a.Name = name;
             a.SetUserString(FabTagKey, "1");
             doc.Objects.AddPolyline(pl, a);
+            return pl;
+        }
+
+        static ObjectAttributes FabAttr(RhinoDoc doc, int layerIndex, string name = null)
+        {
+            var a = doc.CreateDefaultAttributes();
+            a.LayerIndex = layerIndex;
+            if (name != null) a.Name = name;
+            a.SetUserString(FabTagKey, "1");
+            return a;
+        }
+
+        static void AddDot(RhinoDoc doc, Point3d p, string text, int layerIndex)
+        {
+            if (!p.IsValid) return;
+            doc.Objects.AddTextDot(text, p, FabAttr(doc, layerIndex, text));
+        }
+
+        static Point3d Centroid(Polyline pl)
+        {
+            var amp = pl.IsClosed ? AreaMassProperties.Compute(pl.ToNurbsCurve()) : null;
+            if (amp != null && amp.Centroid.IsValid) return amp.Centroid;
+            var c = Point3d.Origin; int n = pl.IsClosed ? pl.Count - 1 : pl.Count;
+            for (int i = 0; i < n; i++) c += pl[i];
+            return n > 0 ? c / n : Point3d.Unset;
+        }
+
+        static Point3d FaceCenter(PolyMesh pm, int i)
+        {
+            var f = pm.Faces[i]; var c = Point3d.Origin;
+            foreach (int v in f) c += pm.Verts[v];
+            return f.Length > 0 ? c / f.Length : Point3d.Unset;
+        }
+
+        /// <summary>
+        /// Registration dowels for a plywood stack: two holes through the footprint shared by every slab, so the
+        /// stack self-aligns on two rods. When the slabs don't all overlap, each neighbouring pair gets its own pair.
+        /// Holes go on the slab in place (Assembled) and on its flat cut-out, by the slab's own in-plane mapping.
+        /// </summary>
+        static void AddDowels(RhinoDoc doc, List<Polyline> asm, List<Polyline> flat, int layer, double dia, double tol)
+        {
+            int n = asm.Count;
+            var planes = new Plane[n]; var outlines = new Curve[n];
+            if (Plane.FitPlaneToPoints(asm[0], out var basePl) != PlaneFitResult.Success) return;
+            for (int i = 0; i < n; i++)
+            {
+                if (Plane.FitPlaneToPoints(asm[i], out planes[i]) != PlaneFitResult.Success) return;
+                var c = asm[i].ToNurbsCurve();
+                c.Transform(Transform.PlanarProjection(basePl));   // all outlines in the stacking plane
+                outlines[i] = c;
+            }
+            double r = dia / 2;
+
+            // 1) one pair of rods through the whole stack
+            Curve common = outlines[0];
+            for (int i = 1; i < n && common != null; i++) common = Largest(Curve.CreateBooleanIntersection(common, outlines[i], tol));
+            var pts = common != null ? PickTwo(common, basePl, r, tol) : null;
+            if (pts != null)
+            {
+                for (int i = 0; i < n; i++) for (int j = 0; j < pts.Count; j++) Hole(pts[j], i, "D" + (j + 1));
+                return;
+            }
+            // 2) fall back: a pair per neighbouring slab
+            for (int i = 0; i + 1 < n; i++)
+            {
+                var reg = Largest(Curve.CreateBooleanIntersection(outlines[i], outlines[i + 1], tol));
+                var pp = reg != null ? PickTwo(reg, basePl, r, tol) : null;
+                if (pp == null) continue;
+                for (int j = 0; j < pp.Count; j++) { Hole(pp[j], i, "D" + (i + 1) + (char)('a' + j)); Hole(pp[j], i + 1, "D" + (i + 1) + (char)('a' + j)); }
+            }
+
+            void Hole(Point3d p, int slab, string label)
+            {
+                // rod line through the stack → hit on this slab's plane
+                var ln = new Line(p - basePl.Normal * 1e6, p + basePl.Normal * 1e6);
+                if (!Rhino.Geometry.Intersect.Intersection.LinePlane(ln, planes[slab], out double t)) return;
+                var hit = ln.PointAt(t);
+                var circ = new Circle(new Plane(hit, planes[slab].Normal), r);
+                doc.Objects.AddCircle(circ, FabAttr(doc, layer, label + " S" + (slab + 1).ToString("00")));
+                // same hole on the flat cut-out: rigid in-plane map from the slab's outline to its flat outline
+                if (SlabToFlat(asm[slab], flat[slab], out var xf))
+                {
+                    var fc = new Circle(circ.Plane, r); fc.Transform(xf);
+                    doc.Objects.AddCircle(fc, FabAttr(doc, layer, label + " S" + (slab + 1).ToString("00") + " flat"));
+                }
+            }
+        }
+
+        static Curve Largest(Curve[] cs)
+        {
+            if (cs == null || cs.Length == 0) return null;
+            Curve best = null; double bestA = 0;
+            foreach (var c in cs)
+            {
+                var amp = AreaMassProperties.Compute(c);
+                if (amp != null && amp.Area > bestA) { bestA = amp.Area; best = c; }
+            }
+            return best;
+        }
+
+        /// <summary>Two points well inside a planar region, spread along its long axis; null when it is too small for the hole.</summary>
+        static List<Point3d> PickTwo(Curve region, Plane pl, double r, double tol)
+        {
+            var amp = AreaMassProperties.Compute(region);
+            if (amp == null) return null;
+            var c = amp.Centroid;
+            var bb = region.GetBoundingBox(pl);
+            var dirs = bb.Diagonal.X >= bb.Diagonal.Y ? new[] { (pl.XAxis, bb.Diagonal.X), (pl.YAxis, bb.Diagonal.Y) } : new[] { (pl.YAxis, bb.Diagonal.Y), (pl.XAxis, bb.Diagonal.X) };
+            foreach (var (dir, len) in dirs)
+                foreach (double f in new[] { 0.35, 0.3, 0.25, 0.2, 0.15, 0.1 })
+                {
+                    var a = c + dir * f * len; var b = c - dir * f * len;
+                    if (Inside(region, a, pl, r, tol) && Inside(region, b, pl, r, tol)) return new List<Point3d> { a, b };
+                }
+            return null;
+        }
+
+        /// <summary>Point inside the region with at least 1.5 radii of material around the hole.</summary>
+        static bool Inside(Curve region, Point3d p, Plane pl, double r, double tol)
+        {
+            if (region.Contains(p, pl, tol) != PointContainment.Inside) return false;
+            region.ClosestPoint(p, out double t);
+            return region.PointAt(t).DistanceTo(p) >= 1.5 * r;
+        }
+
+        /// <summary>Rigid map from a slab outline (in place) to the same outline laid flat, from three well-spread matching vertices.</summary>
+        static bool SlabToFlat(Polyline src, Polyline dst, out Transform xf)
+        {
+            xf = Transform.Identity;
+            int n = Math.Min(src.Count, dst.Count); if (n < 3) return false;
+            int i0 = 0, i1 = -1, i2 = -1; double best = 0;
+            for (int i = 1; i < n; i++) { double d = src[i].DistanceTo(src[0]); if (d > best) { best = d; i1 = i; } }
+            if (i1 < 0) return false;
+            best = 0; var ax = src[i1] - src[0];
+            for (int i = 1; i < n; i++) { if (i == i1) continue; double a = Vector3d.CrossProduct(ax, src[i] - src[0]).Length; if (a > best) { best = a; i2 = i; } }
+            if (i2 < 0 || best < 1e-9) return false;
+            var ps = new Plane(src[i0], src[i1] - src[i0], src[i2] - src[i0]);
+            var pd = new Plane(dst[i0], dst[i1] - dst[i0], dst[i2] - dst[i0]);
+            if (!ps.IsValid || !pd.IsValid) return false;
+            xf = Transform.PlaneToPlane(ps, pd);
+            return true;
         }
 
         // ---------------- helpers ----------------
@@ -318,10 +487,15 @@ namespace TopModRhinoLink
         }
 
         /// <summary>Find or create a layer by full path ("TopMod::Fab::Flat"), creating parents as needed.</summary>
-        public static int EnsureLayer(RhinoDoc doc, string fullPath, System.Drawing.Color color)
+        public static int EnsureLayer(RhinoDoc doc, string fullPath, System.Drawing.Color color, bool recolor = false)
         {
             int i = doc.Layers.FindByFullPath(fullPath, -1);
-            if (i >= 0) return i;
+            if (i >= 0)
+            {
+                // existing docs made with the old cyan Live layer pick up the new color
+                if (recolor && doc.Layers[i].Color != color) { var l = doc.Layers[i]; l.Color = color; doc.Layers.Modify(l, i, true); }
+                return i;
+            }
             var parts = fullPath.Split(new[] { "::" }, StringSplitOptions.None);
             Guid parentId = Guid.Empty;
             string path = "";

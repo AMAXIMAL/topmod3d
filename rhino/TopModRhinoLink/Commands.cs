@@ -150,6 +150,24 @@ namespace TopModRhinoLink
         }
     }
 
+    /// <summary>TopModDowel — diameter of the registration dowel holes added to plywood stacks (inches).</summary>
+    public class TopModDowelCommand : Command
+    {
+        public override string EnglishName => "TopModDowel";
+        protected override Result RunCommand(RhinoDoc doc, RunMode mode)
+        {
+            var gn = new GetNumber();
+            gn.SetCommandPrompt("Registration dowel diameter in inches (0 = no dowels)");
+            gn.SetDefaultNumber(LiveSync.DowelDiameterIn);
+            gn.SetLowerLimit(0, false);
+            if (gn.Get() != GetResult.Number) return Result.Cancel;
+            LiveSync.DowelDiameterIn = gn.Number();
+            TopModLinkPlugIn.Instance.Settings.SetDouble("DowelIn", gn.Number());
+            RhinoApp.WriteLine("TopMod: dowel holes {0}. Re-run the fabrication tool in TopMod to update the curves.", gn.Number() > 0 ? gn.Number() + " in" : "off");
+            return Result.Success;
+        }
+    }
+
     /// <summary>TopModSetHtml — development override: run an external TOPMOD.html instead of the embedded copy (Enter = embedded).</summary>
     public class TopModSetHtmlCommand : Command
     {
