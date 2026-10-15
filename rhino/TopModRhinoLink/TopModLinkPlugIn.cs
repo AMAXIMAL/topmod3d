@@ -20,6 +20,7 @@ namespace TopModRhinoLink
         {
             Sync = new LiveSync();
             LiveSync.DowelDiameterIn = Settings.GetDouble("DowelIn", 0.25);
+            EdgeConduit.Init((EdgeMode)Settings.GetInteger("EdgeMode", (int)EdgeMode.Visible));
             Rhino.UI.Panels.RegisterPanel(this, typeof(TopModPanel), "TopMod 3D", typeof(TopModLinkPlugIn).Assembly, "TopModRhinoLink.topmod.ico", Rhino.UI.PanelType.System);
             return LoadReturnCode.Success;
         }
@@ -140,6 +141,13 @@ namespace TopModRhinoLink
         public const double PanelFraction = 2.0 / 3.0;
 
         public bool WorkspaceApplied { get => Settings.GetBool("WorkspaceApplied", false); set => Settings.SetBool("WorkspaceApplied", value); }
+
+        /// <summary>Edge overlay on the live object (Visible / All / Off), remembered between sessions.</summary>
+        public void SetEdgeMode(EdgeMode m)
+        {
+            EdgeConduit.Instance?.Set(m);
+            Settings.SetInteger("EdgeMode", (int)m);
+        }
 
         public string DevHtmlPath => Settings.GetString("HtmlPath", "");
         public void SetDevHtmlPath(string p) { Settings.SetString("HtmlPath", p ?? ""); }

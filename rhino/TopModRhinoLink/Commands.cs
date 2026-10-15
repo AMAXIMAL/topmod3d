@@ -146,6 +146,24 @@ namespace TopModRhinoLink
         }
     }
 
+    /// <summary>TopModEdges — outline the live model in the viewports: Visible (hidden edges removed), All (see-through), Off.</summary>
+    public class TopModEdgesCommand : Command
+    {
+        public override string EnglishName => "TopModEdges";
+        protected override Result RunCommand(RhinoDoc doc, RunMode mode)
+        {
+            var go = new GetOption();
+            go.SetCommandPrompt("TopMod edge outline (now " + (EdgeConduit.Instance?.Mode ?? EdgeMode.Visible) + ")");
+            int iv = go.AddOption("Visible"), ia = go.AddOption("All"), io = go.AddOption("Off");
+            if (go.Get() != GetResult.Option) return Result.Cancel;
+            int i = go.OptionIndex();
+            var m = i == iv ? EdgeMode.Visible : i == ia ? EdgeMode.All : EdgeMode.Off;
+            TopModLinkPlugIn.Instance.SetEdgeMode(m);
+            RhinoApp.WriteLine("TopMod edges: {0}", m);
+            return Result.Success;
+        }
+    }
+
     /// <summary>TopModDowel — diameter of the registration dowel holes added to plywood stacks (inches).</summary>
     public class TopModDowelCommand : Command
     {

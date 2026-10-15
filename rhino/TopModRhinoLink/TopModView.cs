@@ -50,6 +50,14 @@ namespace TopModRhinoLink
             layoutOn.Click += (s, e) => Application.Instance.AsyncInvoke(() => RhinoApp.RunScript("_TopModWorkspace", false));
             var layoutOff = new Button { Text = "Default", ToolTip = "Rhino's default window layout with four viewports" };
             layoutOff.Click += (s, e) => Application.Instance.AsyncInvoke(() => RhinoApp.RunScript("_TopModDefaultLayout", false));
+            string EdgeLabel(EdgeMode m) => m == EdgeMode.Visible ? "Edges: Visible" : m == EdgeMode.All ? "Edges: All" : "Edges: Off";
+            var edges = new Button { Text = EdgeLabel(EdgeConduit.Instance?.Mode ?? EdgeMode.Visible), ToolTip = "Outline the live model in Rhino like TopMod: Visible (hidden edges removed) → All (see-through) → Off" };
+            edges.Click += (s, e) =>
+            {
+                var next = EdgeConduit.Instance?.Next() ?? EdgeMode.Visible;
+                TopModLinkPlugIn.Instance.SetEdgeMode(next);
+                edges.Text = EdgeLabel(next);
+            };
             var close = new Button { Text = "✕ Close", ToolTip = "Close TopMod and go back to Rhino's default layout (the live object stays; run TopMod to reopen)" };
             close.Click += (s, e) => Application.Instance.AsyncInvoke(() =>
             {
@@ -66,7 +74,7 @@ namespace TopModRhinoLink
                 Orientation = Orientation.Horizontal,
                 Spacing = 4, Padding = new Padding(6, 4),
                 VerticalContentAlignment = VerticalAlignment.Center,
-                Items = { bake, bakeMesh, import, reload, new Panel { Width = 8 }, layoutOn, layoutOff, close, new StackLayoutItem(null, true), _status }
+                Items = { bake, bakeMesh, import, reload, new Panel { Width = 8 }, edges, new Panel { Width = 8 }, layoutOn, layoutOff, close, new StackLayoutItem(null, true), _status }
             };
 
             Content = new TableLayout { Rows = { new TableRow(bar), new TableRow(_web) { ScaleHeight = true } } };
