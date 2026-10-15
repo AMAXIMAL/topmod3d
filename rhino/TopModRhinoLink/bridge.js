@@ -41,7 +41,7 @@
       var b = document.getElementById("rhinoLink"); if(b) b.style.borderColor = "";
     });
     try{ B.setRhinoLink(true); }catch(e){}
-    addBar();
+    /* addBar(); — retired: Bake / Mesh / Import live only in the window toolbar (grey bar at the top) */
     setTimeout(demoPrompt, 900);
     window.__tmReady = true;
   }
