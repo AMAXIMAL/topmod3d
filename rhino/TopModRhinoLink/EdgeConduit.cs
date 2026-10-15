@@ -66,7 +66,7 @@ namespace TopModRhinoLink
             var shown = new Line[_lines.Length];
             for (int i = 0; i < _lines.Length; i++)
                 shown[i] = new Line(Nudge(_lines[i].From, cam), Nudge(_lines[i].To, cam));
-            e.Display.DrawLines(shown, Front, 2);
+            e.Display.DrawLines(shown, Front, 1);
         }
 
         static Point3d Nudge(Point3d p, Point3d cam) => p + (cam - p) * 0.0015;

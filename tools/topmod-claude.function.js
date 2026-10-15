@@ -9,7 +9,7 @@
 // Allowance (until credits / in-app purchase): guests FREE_GUEST builds per day per device+IP,
 // Sign in with Apple users FREE_ACCOUNT builds per day.
 
-const MODEL = "claude-sonnet-5-5";
+const MODEL = "claude-haiku-5-5";   // cheapest current model ($0.10 / $0.50 per MTok)
 const FREE_GUEST = 5, FREE_ACCOUNT = 25;
 const APPLE_AUD = "com.amaximal.topmodjs";
 const ORIGINS = ["https://amaximal.com", "https://www.amaximal.com", "null"]; // "null" = the iOS app (file/srcdoc origin)
@@ -39,7 +39,7 @@ const TOOL = {
 const cors = (req) => {
   const o = req.headers.get("origin") || "null";
   return { "access-control-allow-origin": ORIGINS.includes(o) ? o : "https://amaximal.com",
-           "access-control-allow-methods": "POST, OPTIONS", "access-control-allow-headers": "content-type", "vary": "origin" };
+           "access-control-allow-methods": "POST, OPTIONS", "access-control-allow-headers": "content-type, x-user-key", "vary": "origin" };
 };
 const json = (req, o, status = 200) => new Response(JSON.stringify(o), {
   status, headers: { "content-type": "application/json; charset=utf-8", "cache-control": "no-store", ...cors(req) } });
@@ -68,12 +68,18 @@ async function appleSub(token) {
 export async function onRequestOptions({ request }) { return new Response(null, { status: 204, headers: cors(request) }); }
 
 export async function onRequestPost({ request, env }) {
-  if (!env.ANTHROPIC_API_KEY) return json(request, { error: "Claude isn't set up on the server yet" }, 503);
+  // a user's own Anthropic key (bring-your-own): passed through to Anthropic for this request only, never stored, no daily limit
+  const userKey = (request.headers.get("x-user-key") || "").trim();
+  const ownKey = /^sk-[A-Za-z0-9_\-]{20,}$/.test(userKey) ? userKey : "";
+  // bring-your-own-key only: AMAXIMAL no longer pays for builds
+  if (!ownKey) return json(request, { error: "Add your own Anthropic API key in the Claude window (🔑) to use Claude" }, 401);
   let b; try { b = await request.json(); } catch (e) { return json(request, { error: "bad request" }, 400); }
   const prompt = String(b.prompt || "").trim().slice(0, 1200);
   if (!prompt) return json(request, { error: "empty prompt" }, 400);
   const catalog = JSON.stringify(b.catalog || {}); if (catalog.length > 60000) return json(request, { error: "catalog too large" }, 413);
   const scene = JSON.stringify(b.scene || {}).slice(0, 6000);
+  // model: free builds always use the cheap default; your own key may pick any Claude model
+  const model = (ownKey && /^claude-[a-z0-9.\-]{3,60}$/.test(String(b.model || ""))) ? String(b.model) : MODEL;
 
   // who is asking, and how many builds are left today
   const day = new Date().toISOString().slice(0, 10);
@@ -83,7 +89,7 @@ export async function onRequestPost({ request, env }) {
   const cap = sub ? FREE_ACCOUNT : FREE_GUEST;
   const k = "tmc:" + day + ":" + who;
   const used = +(await env.COMMENTS.get(k) || 0);
-  if (used >= cap) return json(request, { error: sub ? "You've used today's Claude builds. More tomorrow." : "Free builds used for today. Sign in with Apple for more.", remaining: 0 }, 429);
+  if (!ownKey && used >= cap) return json(request, { error: sub ? "You've used today's Claude builds. More tomorrow." : "Free builds used for today. Sign in with Apple for more.", remaining: 0 }, 429);
 
   const history = (Array.isArray(b.history) ? b.history : []).slice(-8)
     .filter(m => m && (m.role === "user" || m.role === "assistant") && typeof m.content === "string")
@@ -92,15 +98,16 @@ export async function onRequestPost({ request, env }) {
 
   const r = await fetch("https://api.anthropic.com/v1/messages", {
     method: "POST",
-    headers: { "content-type": "application/json", "x-api-key": env.ANTHROPIC_API_KEY, "anthropic-version": "2023-06-01" },
+    headers: { "content-type": "application/json", "x-api-key": ownKey, "anthropic-version": "2023-06-01" },
     body: JSON.stringify({
-      model: MODEL, max_tokens: 2000,
+      model, max_tokens: 2000,
       system: [{ type: "text", text: SYS }, { type: "text", text: "CATALOG " + catalog, cache_control: { type: "ephemeral" } }],
       tools: [TOOL], tool_choice: { type: "auto" },
       messages: history.concat([{ role: "user", content: "SCENE " + scene + "\n\nREQUEST " + prompt }])
     })
   });
   const j = await r.json().catch(() => ({}));
+  if (!r.ok && ownKey && r.status === 401) return json(request, { error: "Anthropic rejected your API key — remove it with 🔑 and paste it again" }, 401);
   if (!r.ok) return json(request, { error: "Claude is busy — try again in a moment", detail: (j.error && (j.error.type + ": " + j.error.message)) || ("upstream " + r.status) }, 503);
   const tu = (j.content || []).find(c => c.type === "tool_use");
   const tx = (j.content || []).filter(c => c.type === "text").map(c => c.text).join(" ").trim();
@@ -108,6 +115,6 @@ export async function onRequestPost({ request, env }) {
   if (!Array.isArray(plan.steps)) plan.steps = [];
   plan.steps = plan.steps.slice(0, 40);
 
-  await env.COMMENTS.put(k, String(used + 1), { expirationTtl: 2 * 86400 });
+  if (!ownKey) await env.COMMENTS.put(k, String(used + 1), { expirationTtl: 2 * 86400 });
   return json(request, { plan, remaining: cap - used - 1 });
 }
