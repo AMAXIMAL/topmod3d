@@ -210,8 +210,17 @@ namespace TopModRhinoLink
             vp.CameraUp = Rhino.Geometry.Vector3d.ZAxis;
             if (cam.TryGetProperty("fov", out var f))
             {
-                double vfov = f.GetDouble() * Math.PI / 180.0;          // three.js: vertical FOV in degrees
-                double lens = 12.0 / Math.Tan(vfov / 2.0);              // 24 mm frame height
+                // three.js: vertical FOV (degrees) over a view of aspect a = w/h.
+                // Rhino: the 35 mm lens fits the 24 mm frame side to the viewport's SHORTER side.
+                // Fit everything TopMod sees into Rhino's viewport as tightly as possible (same zoom, nothing cropped).
+                double tv = Math.Tan(f.GetDouble() * Math.PI / 360.0);                      // TopMod half-height (tan)
+                double aT = cam.TryGetProperty("a", out var ta) && ta.GetDouble() > 0 ? ta.GetDouble() : 1.0;
+                double th = tv * aT;                                                         // TopMod half-width (tan)
+                var sz = vp.Size;
+                double aR = sz.Height > 0 ? (double)sz.Width / sz.Height : 1.0;
+                double y = Math.Max(tv, th / aR);                                            // Rhino half-height that holds both
+                double shortSide = aR < 1 ? y * aR : y;                                      // half-tan along Rhino's shorter side
+                double lens = 12.0 / shortSide;
                 vp.Camera35mmLensLength = Math.Max(5, Math.Min(500, lens));
             }
             view.Redraw();

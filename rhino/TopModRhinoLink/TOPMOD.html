@@ -12272,7 +12272,7 @@ window.__tmBridge={ get mesh(){return mesh}, set mesh(v){mesh=v}, get layers(){r
   snapshot:function(){return snapshot()}, addLayer:function(m,b){return addLayer(m,b)}, clearSel:function(r){return clearSel(r)},
   updateCrustUI:function(){return updateCrustUI()}, renderLayerList:function(){return renderLayerList()}, renderModStack:function(){return renderModStack()},
   setRhinoLink:function(on){return setRhinoLink(on)}, setRhinoPush:function(f){rhinoPush=f}, clearCrust:function(){crustPairs=null}, toast:function(m,b){return toast(m,b)},
-  cam:function(){return {p:[camera.position.x,camera.position.y,camera.position.z],t:[target.x,target.y,target.z],fov:camera.fov}},
+  cam:function(){return {p:[camera.position.x,camera.position.y,camera.position.z],t:[target.x,target.y,target.z],fov:camera.fov,a:camera.aspect}},
   get fabActive(){return !!fabActive},
   get fabLive(){try{return !!((slabData&&slabData.count)||liveNet)}catch(e){return false}},
   fabMode:function(){try{return plyMode()}catch(e){return null}},
