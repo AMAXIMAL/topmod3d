@@ -18,6 +18,7 @@ namespace TopModRhinoLink
             var id = TopModPanel.PanelId;
             var p = TopModLinkPlugIn.Instance;
             if (Rhino.UI.Panels.IsPanelVisible(id)) { Rhino.UI.Panels.ClosePanel(id); return Result.Success; }
+            p.OpenedThisSession = true;
             Rhino.UI.Panels.OpenPanel(id);
             // every start: the TopMod workspace (panel docked right at half width, single shaded Perspective view)
             p.WorkspaceApplied = true;
@@ -51,6 +52,7 @@ namespace TopModRhinoLink
         protected override Result RunCommand(RhinoDoc doc, RunMode mode)
         {
             var p = TopModLinkPlugIn.Instance;
+            p.OpenedThisSession = true;
             if (!Rhino.UI.Panels.IsPanelVisible(TopModPanel.PanelId)) Rhino.UI.Panels.OpenPanel(TopModPanel.PanelId);
             bool ok = p.ApplyWorkspace(doc);
             p.WorkspaceApplied = true;

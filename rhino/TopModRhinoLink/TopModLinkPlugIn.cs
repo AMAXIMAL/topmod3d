@@ -18,6 +18,7 @@ namespace TopModRhinoLink
 
         protected override LoadReturnCode OnLoad(ref string errorMessage)
         {
+            LoadedAt = DateTime.Now;
             Sync = new LiveSync();
             LiveSync.DowelDiameterIn = Settings.GetDouble("DowelIn", 0.25);
             EdgeConduit.Init((EdgeMode)Settings.GetInteger("EdgeMode", (int)EdgeMode.Visible));
@@ -139,6 +140,10 @@ namespace TopModRhinoLink
 
         /// <summary>Share of the Rhino window the TopMod panel takes in the TopMod workspace (two thirds).</summary>
         public const double PanelFraction = 2.0 / 3.0;
+
+        /// <summary>Set once TopMod was opened on purpose this session; until then a panel Rhino restores at launch is closed.</summary>
+        public bool OpenedThisSession { get; set; }
+        public DateTime LoadedAt { get; private set; } = DateTime.Now;
 
         public bool WorkspaceApplied { get => Settings.GetBool("WorkspaceApplied", false); set => Settings.SetBool("WorkspaceApplied", value); }
 

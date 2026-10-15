@@ -31,7 +31,17 @@ namespace TopModRhinoLink
             Content = TopModView.Shared(compact: true);
         }
 
-        public void PanelShown(uint documentSerialNumber, ShowPanelReason reason) { }
+        public void PanelShown(uint documentSerialNumber, ShowPanelReason reason)
+        {
+            // Rhino reopens panels that were open at quit. TopMod should only come up when asked for (TopMod command,
+            // Layout button) — so a panel restored in the first moments after launch is closed again.
+            var p = TopModLinkPlugIn.Instance;
+            if (p != null && !p.OpenedThisSession && (DateTime.Now - p.LoadedAt).TotalSeconds < 30)
+                Eto.Forms.Application.Instance.AsyncInvoke(() =>
+                {
+                    if (!p.OpenedThisSession && Rhino.UI.Panels.IsPanelVisible(PanelId)) Rhino.UI.Panels.ClosePanel(PanelId);
+                });
+        }
         public void PanelHidden(uint documentSerialNumber, ShowPanelReason reason) { }
         public void PanelClosing(uint documentSerialNumber, bool onCloseDocument) { Content = null; }
     }
