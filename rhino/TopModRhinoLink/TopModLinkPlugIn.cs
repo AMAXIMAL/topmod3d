@@ -48,8 +48,12 @@ namespace TopModRhinoLink
         {
             string html;
             var dev = Settings.GetString("HtmlPath", "");
+            // the package ships TOPMOD.html beside the .rhp: that copy is the one TopMod runs; the embedded copy is the fallback
+            string packaged = null;
+            try { packaged = Path.Combine(Path.GetDirectoryName(typeof(TopModLinkPlugIn).Assembly.Location) ?? "", "TOPMOD.html"); } catch { }
             if (!string.IsNullOrWhiteSpace(dev) && File.Exists(dev)) { html = File.ReadAllText(dev); source = dev; }
-            else { html = Resource("TOPMOD.html"); source = "embedded"; }
+            else if (packaged != null && File.Exists(packaged) && (html = File.ReadAllText(packaged)).Contains("__tmBridge")) { source = "package"; }
+            else { html = Resource("TOPMOD.html"); source = "embedded"; }   // a packaged copy without the Rhino hooks would leave the link dead
             var bridge = Resource("bridge.js");
             const string marker = "<!--topmod-rhino-bridge-->";
             string tag = marker + "<script>" + bridge + "</script>";
@@ -92,35 +96,48 @@ namespace TopModRhinoLink
                 }
                 catch { }
                 rhw = rhw.Replace("dock_band_size=\"818,200\"", "dock_band_size=\"" + band + ",200\"")
-                         .Replace("<band size=\"818\">", "<band size=\"" + band + "\">");
+                         .Replace("<band size=\"818\">", "<band size=\"" + band + "\">")
+                         // its own name: an import that collides with an existing layout gets renamed "… 01", "… 02"
+                         .Replace("name=\"TopMod\">", "name=\"" + LayoutName + "\">")
+                         .Replace("<locale_1033>TopMod</locale_1033>", "<locale_1033>" + LayoutName + "</locale_1033>");
                 var path = Path.Combine(AppFolder, "TopMod.rhw");
                 File.WriteAllText(path, rhw);
                 // import once (re-importing adds "TopMod 01", "TopMod 02"… instead of replacing), then restore by name
                 // NOTE: only works from a [CommandStyle(Style.ScriptRunner)] command (TopModWorkspace)
-                if (Settings.GetInteger("LayoutVersion", 0) < 2)
+                if (Settings.GetInteger("LayoutVersion", 0) < 3)
                 {
                     RhinoApp.RunScript("_-WindowLayout _Import \"" + path + "\" _Enter", false);
-                    Settings.SetInteger("LayoutVersion", 2);
+                    Settings.SetInteger("LayoutVersion", 3);
                 }
-                RhinoApp.RunScript("_-WindowLayout \"TopMod\"", false);
+                RhinoApp.RunScript("_-WindowLayout \"" + LayoutName + "\"", false);
             }
-            if (doc != null)
-            {
-                foreach (var v in doc.Views)
-                    if (v.ActiveViewport.Name == "Perspective")
-                    {
-                        doc.Views.ActiveView = v; v.Maximized = true;
-                        var shaded = Rhino.Display.DisplayModeDescription.FindByName("Shaded");
-                        if (shaded != null) v.ActiveViewport.DisplayMode = shaded;
-                        break;
-                    }
-                doc.Views.Redraw();
-            }
+            MaximizeShadedPerspective(doc);
+            // a restored layout rebuilds its views a moment later; set Shaded again once it has settled
+            Eto.Forms.Application.Instance.AsyncInvoke(() => MaximizeShadedPerspective(RhinoDoc.ActiveDoc));
             return rhw != null;
         }
 
-        /// <summary>Share of the Rhino window the TopMod panel takes in the TopMod workspace (0.63 ≈ the panel at 1135 of 1800 pt).</summary>
-        public const double PanelFraction = 0.63;
+        public const string LayoutName = "TopMod Workspace";
+
+        /// <summary>Single maximized Perspective view in Shaded mode.</summary>
+        public static void MaximizeShadedPerspective(RhinoDoc doc)
+        {
+            if (doc == null) return;
+            var shaded = Rhino.Display.DisplayModeDescription.FindByName("Shaded")
+                      ?? Rhino.Display.DisplayModeDescription.GetDisplayMode(Rhino.Display.DisplayModeDescription.ShadedId);
+            Rhino.Display.RhinoView persp = null;
+            foreach (var v in doc.Views)
+                if (v.ActiveViewport.Name == "Perspective") { persp = v; break; }
+            if (persp == null) foreach (var v in doc.Views) if (v.ActiveViewport.IsPerspectiveProjection) { persp = v; break; }
+            if (persp == null) return;
+            doc.Views.ActiveView = persp;
+            if (!persp.Maximized) persp.Maximized = true;
+            if (shaded != null && persp.ActiveViewport.DisplayMode?.Id != shaded.Id) persp.ActiveViewport.DisplayMode = shaded;
+            doc.Views.Redraw();
+        }
+
+        /// <summary>Share of the Rhino window the TopMod panel takes in the TopMod workspace (two thirds).</summary>
+        public const double PanelFraction = 2.0 / 3.0;
 
         public bool WorkspaceApplied { get => Settings.GetBool("WorkspaceApplied", false); set => Settings.SetBool("WorkspaceApplied", value); }
 

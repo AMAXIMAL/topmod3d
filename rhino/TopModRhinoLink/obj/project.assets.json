@@ -187,7 +187,7 @@
     "/Users/ions/.nuget/packages/": {}
   },
   "project": {
-    "version": "2.1.2",
+    "version": "2.1.3",
     "restore": {
       "projectUniqueName": "/Users/ions/AMAXiMAL/projects/topmod/rhino/TopModRhinoLink/TopModRhinoLink.csproj",
       "projectName": "TopModRhinoLink",
