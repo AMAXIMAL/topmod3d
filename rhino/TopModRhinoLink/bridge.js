@@ -41,6 +41,29 @@
       var b = document.getElementById("rhinoLink"); if(b) b.style.borderColor = "";
     });
     try{ B.setRhinoLink(true); }catch(e){}
+    /* The starting model can be built after this point (or the first push races it and sends nothing),
+       and the app only pushes on change — so keep offering the current model until Rhino has real geometry. */
+    (function kick(tries){
+      var obj = ""; try{ obj = B.TM.toOBJ(B.fabMesh()) || ""; }catch(e){}
+      if(/\nf /.test("\n" + obj)){ if(!out || !/\nf /.test("\n" + out.obj)) pushNow(wantMesh() ? "mesh" : "nurbs"); return; }
+      if(tries > 0) setTimeout(function(){ kick(tries - 1); }, 400);
+    })(40);
+    /* Rhino's WebView draws the system (light) scrollbar; give the panels a thin dark one that matches TopMod */
+    try{
+      var st = document.createElement("style");
+      st.id = "tm-rhino-scroll";
+      st.textContent =
+        /* WebKit ignores the app's ::-webkit-scrollbar styling (and draws the light system bar) wherever
+           scrollbar-width / scrollbar-color are set, so clear those and restate TopMod's own cyan bar */
+        ":root{color-scheme:dark}" +
+        "*{scrollbar-width:auto !important;scrollbar-color:auto !important}" +
+        "::-webkit-scrollbar{width:7px !important;height:7px !important;background:transparent !important}" +
+        "::-webkit-scrollbar-track{background:rgba(10,20,34,.6) !important;border-radius:10px !important}" +
+        "::-webkit-scrollbar-thumb{background:linear-gradient(180deg,#00E5FF,#1a73a8) !important;border-radius:10px !important;border:1px solid rgba(0,229,255,.25) !important}" +
+        "::-webkit-scrollbar-thumb:hover{background:linear-gradient(180deg,#5df0ff,#2b8fc7) !important}" +
+        "::-webkit-scrollbar-corner{background:transparent !important}";
+      document.head.appendChild(st);
+    }catch(e){}
     /* addBar(); — retired: Bake / Mesh / Import live only in the window toolbar (grey bar at the top) */
     setTimeout(demoPrompt, 900);
     window.__tmReady = true;
