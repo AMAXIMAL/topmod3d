@@ -907,6 +907,13 @@ body.uiGrey #menubar,body.uiGrey #toolbar,body.uiGrey #toolpop,body.uiGrey #laye
 body.uiGrey #toolbar img.ticon,body.uiGrey #toolbar svg,body.uiGrey #status #lightBtn{filter:hue-rotate(157deg) contrast(1.15)}
 body.uiGrey,body.uiGrey #frame,body.uiGrey #main{background:#3b3f45!important}
 /* top bar: no Controller / Send model / Generators */
+/* Mono: white / black / grey chrome; the only colour is magenta in the sliders (an SVG filter greys + inverts every pixel except magenta) */
+body.uiMono #menubar,body.uiMono #toolbar,body.uiMono #toolpop,body.uiMono #layersPanel,body.uiMono #modPanel,body.uiMono #status,body.uiMono .mlist,body.uiMono #fabNode,body.uiMono #console,body.uiMono #tourCard,body.uiMono #creditCard,body.uiMono #handPrim,body.uiMono #toast,body.uiMono #amxDemo,body.uiMono #navcube>button,body.uiMono #tbScroll,body.uiMono #mbScroll,body.uiMono #ncCanvas,body.uiMono #claudePanel,body.uiMono #amxDemoAsk{filter:url(#tmMonoF)}
+body.uiMono #toolbar img.ticon,body.uiMono #toolbar svg,body.uiMono #status #lightBtn{filter:grayscale(1) invert(1)}
+body.uiMono,body.uiMono #frame,body.uiMono #main{background:#e9eaec!important}
+body.uiMono #tbDockBar,body.uiMono #opDockBar,body.uiMono #ocBar{background:transparent!important}
+html body.uiMono input[type=range]{filter:none;--sl:#ff00ff;--slt:#3a3a3a}
+
 #menubar>button.tb,#ekMenu{display:none!important}
 /* touch devices: each top menu is a native picker, exactly like the bottom-bar shading select */
 .mNative{position:absolute;inset:0;width:100%;height:100%;opacity:0;-webkit-appearance:none;appearance:none;font-size:16px;cursor:pointer;z-index:2}
@@ -1112,7 +1119,7 @@ html.inApp [data-act="fullscreen"],html.inApp [data-act="shortcuts"],html.inApp 
   <div id="titlebar"><span class="dot"></span> untitled.obj &mdash; TOPMOD</div>
 
   <div id="menubar">
-    <span id="wordmark"><span class="cy">TOP</span>MOD 3D <span class="ver">v3.9</span></span>
+    <span id="wordmark"><span class="cy">TOP</span>MOD 3D <span class="ver">v4.0</span></span>
     <div class="menu"><span class="mtitle">File</span><div class="mlist">
       <div class="mi" data-act="newProject">New<span class="kbd">&#8679;&#8984;N</span></div>
       <div class="msep"></div>
@@ -1149,6 +1156,7 @@ html.inApp [data-act="fullscreen"],html.inApp [data-act="shortcuts"],html.inApp 
       <div class="mi" data-ui="grey">Grey mode (orange)</div>
       <div class="mi" data-ui="light">White mode (lime)</div>
       <div class="mi" data-ui="navy">Neon (magenta · lime) — suggested</div>
+      <div class="mi" data-ui="mono">Mono (black · white · grey, magenta sliders)</div>
       <div class="msep"></div>
       <div class="mi" data-act="tgB">Toggle Bounding Box</div>
       <div class="mi" data-act="tgSec">Toggle Section Plane</div>
@@ -7829,7 +7837,7 @@ function makeGroundGrid(size,c1,c2){ const h=size/2, pos=[], col=[], A=new THREE
   const g=new THREE.BufferGeometry(); g.setAttribute("position",new THREE.Float32BufferAttribute(pos,3)); g.setAttribute("color",new THREE.Float32BufferAttribute(col,3));
   const L=new THREE.LineSegments(g,new THREE.LineBasicMaterial({vertexColors:true})); L.userData.size=size; return L; }
 const grid=makeGroundGrid(60,0x7fd8ef,0x4699b3);   // 60 x 60 ground, 1-inch cells
-window.__setSceneBg=function(m){ if(m===true) m="light"; if(!m) m="dark"; try{ const C={dark:[0x080a12,0x7fd8ef,0x4699b3],grey:[0x3b3f45,0xff9a1f,0x7a6a5a],light:[0xeef1f5,0x7ccf1a,0xb4c3a2],navy:[0x0b0614,0x39ff14,0xff2bd6]}[m]||[0x080a12,0x7fd8ef,0x4699b3];
+window.__setSceneBg=function(m){ if(m===true) m="light"; if(!m) m="dark"; try{ const C={dark:[0x080a12,0x7fd8ef,0x4699b3],grey:[0x3b3f45,0xff9a1f,0x7a6a5a],light:[0xeef1f5,0x7ccf1a,0xb4c3a2],navy:[0x0b0614,0x39ff14,0xff2bd6],mono:[0xe9eaec,0x2a2a2a,0xa9abae]}[m]||[0x080a12,0x7fd8ef,0x4699b3];
   scene.background=new THREE.Color(C[0]); const ca=grid.geometry.attributes.color, pa=grid.geometry.attributes.position, A=new THREE.Color(C[1]), B=new THREE.Color(C[2]);
   for(let v=0;v<pa.count;v+=4){ const x0=pa.getX(v), x1=pa.getX(v+1), z0=pa.getZ(v), cen=(x0===0&&x1===0); const K=cen?A:B; for(let k=0;k<4;k++){ const isB=(k>=2); const c=(isB? (pa.getZ(v+2)===0&&pa.getZ(v+3)===0) : cen)?A:B; ca.setXYZ(v+k,c.r,c.g,c.b); } } ca.needsUpdate=true; }catch(e){} };
 grid.material.transparent=true; grid.material.opacity=0.33;
@@ -9356,7 +9364,7 @@ function serializeProject(){
       mesh:{ verts:L.mesh.verts, faces:L.mesh.faces }
     })),
     view: { yaw, pitch, dist, target:[target.x,target.y,target.z] },
-    ui: { theme:(["uiLight","uiNavy","uiGrey"].find(c=>document.body.classList.contains(c))||"dark"), layersOn:(typeof layersOn!=="undefined")?!!layersOn:true },
+    ui: { theme:(["uiLight","uiNavy","uiGrey","uiMono"].find(c=>document.body.classList.contains(c))||"dark"), layersOn:(typeof layersOn!=="undefined")?!!layersOn:true },
     app: { name:"TopMod 3D", ext:".tmod" }
   });
 }
@@ -19544,7 +19552,7 @@ window.__tmCore={ get OP_PARAMS(){return OP_PARAMS}, get MODS(){return MODS}, ge
  setTimeout(upd,300); setTimeout(upd,1500); }
  if(document.readyState==="loading") document.addEventListener("DOMContentLoaded",init); else init();})();</script>
 <script>/* View ▸ Interface: Dark (default) / White mode — remembered per device */
-(function(){ function apply(m){ if(["dark","grey","light","navy"].indexOf(m)<0) m="dark"; document.body.classList.toggle("uiLight",m==="light"); document.body.classList.toggle("uiGrey",m==="grey"); document.body.classList.toggle("uiNavy",m==="navy");
+(function(){ function apply(m){ if(["dark","grey","light","navy","mono"].indexOf(m)<0) m="dark"; document.body.classList.toggle("uiLight",m==="light"); document.body.classList.toggle("uiGrey",m==="grey"); document.body.classList.toggle("uiNavy",m==="navy"); document.body.classList.toggle("uiMono",m==="mono"); try{ window.__monoModel&&window.__monoModel(m==="mono"); }catch(e){}
    try{ if(window.__setSceneBg) window.__setSceneBg(m); }catch(e){}
    document.querySelectorAll("[data-ui]").forEach(function(el){ el.classList.toggle("on",el.dataset.ui===m); }); }
  function init(){ var m="dark"; try{ m=localStorage.getItem("tmUI")||"dark"; }catch(e){} apply(m);
@@ -20528,5 +20536,19 @@ body.duo #claudePanel,body.duoBottom #claudePanel{top:calc(var(--duoH,50vh) + 8p
   setInterval(()=>{ all().forEach(el=>{ if(el.offsetParent!==null) upd(el); }); },250);
   all().forEach(upd); })();
 </script>
+<svg width="0" height="0" style="position:absolute;width:0;height:0" aria-hidden="true"><defs><filter id="tmMonoF" color-interpolation-filters="sRGB" x="0" y="0" width="100%" height="100%">
+<feColorMatrix in="SourceGraphic" type="matrix" result="g" values="-0.2126 -0.7152 -0.0722 0 1  -0.2126 -0.7152 -0.0722 0 1  -0.2126 -0.7152 -0.0722 0 1  0 0 0 1 0"/>
+<feColorMatrix in="SourceGraphic" type="matrix" result="k" values="1 0 0 0 0  0 1 0 0 0  0 0 1 0 0  2.2 -4.4 2.2 0 -2.6"/>
+<feComposite in="k" in2="SourceAlpha" operator="in" result="k2"/>
+<feMerge><feMergeNode in="g"/><feMergeNode in="k2"/></feMerge></filter></defs></svg>
+<script>/* Mono mode: models go neutral grey (no colour on models); other modes restore the original material colour */
+(function(){ let saved=null;
+  window.__monoModel=function(on){ try{ const S=window.__tmCore&&window.__tmCore.scene; if(!S) { setTimeout(()=>window.__monoModel(on),400); return; }
+    S.traverse(o=>{ const mats=o.isMesh?(Array.isArray(o.material)?o.material:[o.material]):[]; mats.forEach(m=>{ if(!m||!m.color||m.vertexColors||m.transparent||m.depthTest===false||o.renderOrder>0) return;
+      if(on){ if(m.userData.__monoOrig==null){ m.userData.__monoOrig=m.color.getHex(); } m.color.setHex(0xcfd1d4); }
+      else if(m.userData.__monoOrig!=null){ m.color.setHex(m.userData.__monoOrig); delete m.userData.__monoOrig; } }); }); }catch(e){} };
+  // new meshes created while in Mono get the grey too
+  setInterval(()=>{ if(document.body.classList.contains("uiMono")) window.__monoModel(true); },700);
+})();</script>
 </body>
 </html>

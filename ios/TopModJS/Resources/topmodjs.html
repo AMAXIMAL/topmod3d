@@ -907,6 +907,13 @@ body.uiGrey #menubar,body.uiGrey #toolbar,body.uiGrey #toolpop,body.uiGrey #laye
 body.uiGrey #toolbar img.ticon,body.uiGrey #toolbar svg,body.uiGrey #status #lightBtn{filter:hue-rotate(157deg) contrast(1.15)}
 body.uiGrey,body.uiGrey #frame,body.uiGrey #main{background:#3b3f45!important}
 /* top bar: no Controller / Send model / Generators */
+/* Mono: white / black / grey chrome; the only colour is magenta in the sliders (an SVG filter greys + inverts every pixel except magenta) */
+body.uiMono #menubar,body.uiMono #toolbar,body.uiMono #toolpop,body.uiMono #layersPanel,body.uiMono #modPanel,body.uiMono #status,body.uiMono .mlist,body.uiMono #fabNode,body.uiMono #console,body.uiMono #tourCard,body.uiMono #creditCard,body.uiMono #handPrim,body.uiMono #toast,body.uiMono #amxDemo,body.uiMono #navcube>button,body.uiMono #tbScroll,body.uiMono #mbScroll,body.uiMono #ncCanvas,body.uiMono #claudePanel,body.uiMono #amxDemoAsk{filter:url(#tmMonoF)}
+body.uiMono #toolbar img.ticon,body.uiMono #toolbar svg,body.uiMono #status #lightBtn{filter:grayscale(1) invert(1)}
+body.uiMono,body.uiMono #frame,body.uiMono #main{background:#e9eaec!important}
+body.uiMono #tbDockBar,body.uiMono #opDockBar,body.uiMono #ocBar{background:transparent!important}
+html body.uiMono input[type=range]{filter:none;--sl:#ff00ff;--slt:#3a3a3a}
+
 #menubar>button.tb,#ekMenu{display:none!important}
 /* touch devices: each top menu is a native picker, exactly like the bottom-bar shading select */
 .mNative{position:absolute;inset:0;width:100%;height:100%;opacity:0;-webkit-appearance:none;appearance:none;font-size:16px;cursor:pointer;z-index:2}
@@ -1112,13 +1119,12 @@ html.inApp [data-act="fullscreen"],html.inApp [data-act="shortcuts"],html.inApp 
   <div id="titlebar"><span class="dot"></span> untitled.obj &mdash; TOPMOD</div>
 
   <div id="menubar">
-    <span id="wordmark"><span class="cy">TOP</span>MOD 3D <span class="ver">v3.9</span></span>
+    <span id="wordmark"><span class="cy">TOP</span>MOD 3D <span class="ver">v4.0</span></span>
     <div class="menu"><span class="mtitle">File</span><div class="mlist">
       <div class="mi" data-act="newProject">New<span class="kbd">&#8679;&#8984;N</span></div>
       <div class="msep"></div>
-      <div class="mi" data-act="openProject">Open Project&hellip;<span class="kbd">.TM3</span></div>
-      <div class="mi" data-act="saveProject">Save<span class="kbd">.TM3</span></div>
-      <div class="mi" data-act="saveProjectAs">Save As&hellip;<span class="kbd">.TM3</span></div>
+      <div class="mi" data-act="saveProject">Save<span class="kbd">.TMOD</span></div>
+      <div class="mi" data-act="openProject">Load&hellip;<span class="kbd">.TMOD</span></div>
       <div class="msep"></div>
       <div class="mi" data-act="import">Import Mesh (OBJ · STL · PLY · OFF · GLB · 3MF)&hellip;</div>
       <div class="mi" data-act="export">Export OBJ&hellip;</div>
@@ -1150,6 +1156,7 @@ html.inApp [data-act="fullscreen"],html.inApp [data-act="shortcuts"],html.inApp 
       <div class="mi" data-ui="grey">Grey mode (orange)</div>
       <div class="mi" data-ui="light">White mode (lime)</div>
       <div class="mi" data-ui="navy">Neon (magenta · lime) — suggested</div>
+      <div class="mi" data-ui="mono">Mono (black · white · grey, magenta sliders)</div>
       <div class="msep"></div>
       <div class="mi" data-act="tgB">Toggle Bounding Box</div>
       <div class="mi" data-act="tgSec">Toggle Section Plane</div>
@@ -1293,6 +1300,10 @@ html.inApp [data-act="fullscreen"],html.inApp [data-act="shortcuts"],html.inApp 
         <button class="tb" data-p="mobius" title="Möbius strip (parametric)"><img class="ticon" alt="mobius"><span class="tlbl">Möbius</span></button>
         <button class="tb" data-p="spiral" title="Spiral coil (parametric)"><img class="ticon" alt="spiral"><span class="tlbl">Spiral</span></button>
         <button class="tb" data-p="polygon" title="Polygon / prism (parametric)"><img class="ticon" alt="polygon"><span class="tlbl">Polygon</span></button>
+      </span>
+      <span class="tgrp" data-label="Tiger+">
+        <button class="tb" data-op="chamfer" title="Chamfer (Tiger+) — cut every edge and corner flat; live modifier with width"><svg class="ticon" width="26" height="26" viewBox="0 0 26 26" fill="none"><path d="M4 22V9l5-5h13v13l-5 5H4z" fill="#FF8C22" fill-opacity=".85"/><path d="M4 9l5-5M17 22l5-5" stroke="#00E5FF" stroke-width="2" stroke-linecap="round"/></svg><span class="tlbl">Chamfer</span></button>
+        <button class="tb" data-op="fillet" title="Fillet (Tiger+) — round every edge and corner; live modifier with radius and segments"><svg class="ticon" width="26" height="26" viewBox="0 0 26 26" fill="none"><path d="M4 22V11a7 7 0 0 1 7-7h11v11a7 7 0 0 1-7 7H4z" fill="#FF8C22" fill-opacity=".85"/><path d="M4 11a7 7 0 0 1 7-7M22 15a7 7 0 0 1-7 7" stroke="#00E5FF" stroke-width="2" stroke-linecap="round"/></svg><span class="tlbl">Fillet</span></button>
       </span>
       <span class="tgrp" data-label="Edit">
         <button class="tb" data-op="move" title="Move / rotate / scale the object with a gumball (M)"><img class="ticon" alt="Move"><span class="tlbl">Move</span></button>
@@ -2178,7 +2189,7 @@ html.inApp [data-act="fullscreen"],html.inApp [data-act="shortcuts"],html.inApp 
   </div>
 
   <input type="file" id="fileImport" accept=".obj,.stl,.ply,.off,.glb,.gltf,.3mf">
-  <input type="file" id="projectImport" accept=".tm3,.topmod,application/json">
+  <input type="file" id="projectImport" accept=".tmod,.tm3,.topmod,application/json,application/octet-stream,text/plain">
   <div id="handPalette" aria-hidden="true"></div>
   <div id="handPrim" aria-hidden="true"></div>
   <canvas id="handCanvas"></canvas>
@@ -7071,6 +7082,15 @@ function deleteLayer(i){
   if(activeLayer>=layers.length) activeLayer=layers.length-1;
   mesh=layers[activeLayer].mesh; rebuild(); renderLayerList();
 }
+// copy one named part of a layer's result into a new, plain layer (the source keeps its live stack)
+function extractPart(li,name){ const L=layers[li]; if(!L) return; const save=L.partHide; L.partHide=null; L._ev=null; L._evKey=null;
+  let M; try{ M=layerEval(L); }finally{ L.partHide=save; L._ev=null; L._evKey=null; }
+  const pt=M&&M.parts&&M.parts.find(p=>p.name===name); if(!pt){ toast&&toast("Part not found",true); return; }
+  const vm=new Map(), V=[], F=[]; for(let i=pt.from;i<pt.to;i++) F.push(M.faces[i].map(v=>{ if(!vm.has(v)){ vm.set(v,V.length); V.push(M.verts[v].slice()); } return vm.get(v); }));
+  snapshot(); layers.push({id:layerSeq++, name:L.name+" · "+name, mesh:{verts:V,faces:F}, visible:true, locked:false, modifiers:[], groups:[]});
+  L.partHide=Object.assign({},L.partHide||{}); L.partHide[name]=true; L._ev=null; L._evKey=null;
+  setActiveLayer(layers.length-1); rebuild(); renderInactiveLayers&&renderInactiveLayers(); renderLayerList();
+  toast&&toast(name+" copied to its own layer (hidden in "+L.name+")"); }
 function renderLayerList(){
   const list=$("#layerList"); if(!list) return;
   list.innerHTML="";
@@ -7104,6 +7124,18 @@ function renderLayerList(){
     row.appendChild(dup); row.appendChild(merge); row.appendChild(del);
     row.onclick=()=>setActiveLayer(i);
     list.appendChild(row);
+    // sub-layers: named parts produced by the modifier stack (e.g. Bejewel → Base geometry / Gems / Studs)
+    let ev=null; try{ ev=(L.modifiers&&L.modifiers.some(x=>x.on))?layerEval(L):null; }catch(e){}
+    const parts=ev&&(ev.allParts||ev.parts);
+    if(parts&&parts.length>1){
+      parts.forEach(pt=>{ const hid=!!(L.partHide&&L.partHide[pt.name]);
+        const sr=document.createElement("div"); sr.className="layerRow subLayer"+(hid?" hiddenPart":"");
+        const ind=document.createElement("span"); ind.className="subIndent"; ind.textContent="└";
+        const v=mkBtn("layerVis",hid?"&#10005;":"&#128065;","Show / hide "+pt.name,()=>{ L.partHide=L.partHide||{}; if(hid) delete L.partHide[pt.name]; else L.partHide[pt.name]=true; L._ev=null; L._evKey=null; rebuild(); renderInactiveLayers&&renderInactiveLayers(); renderLayerList(); });
+        const n=document.createElement("span"); n.className="layerName"; n.textContent=pt.name+" ("+(pt.to-pt.from)+"f)";
+        const ex=mkBtn("layerBtn","&#8689;","Copy "+pt.name+" to its own layer",()=>extractPart(i,pt.name));
+        sr.appendChild(ind); sr.appendChild(v); sr.appendChild(n); sr.appendChild(ex); sr.onclick=()=>setActiveLayer(i); list.appendChild(sr); });
+    }
   }
   if(typeof renderModStack==="function") renderModStack();
   if(typeof renderSelGroups==="function") renderSelGroups();
@@ -7358,8 +7390,13 @@ const MODS={
               const key=[cut,p.table,p.crown,p.pav,p.girdle,Math.round(p.sym)].join("|"); window.__bejCache=window.__bejCache||{};
               const gem=window.__bejCache[key]||(window.__bejCache[key]=TM.primitives.diamond(p.table,p.crown,p.pav,p.girdle,Math.round(p.sym),1,50,77,cut));
               const studs=p.studs?{n:p.stN,thick:p.stT,len:p.stL,bend:p.stB,sides:[12,6,4,3][Math.round(p.stS)||0],dome:!!p.stD}:null;
-              const r=TM.bejewel(m,gem,{size:p.size,abs:p.absOn?p.dia:0,lift:p.lift,where:["faces","verts","both"][Math.round(p.where)||0],maxInst:8000,studs});
-              return p.keep?TM.mergeMeshes([m,{verts:r.verts,faces:r.faces}]):{verts:r.verts,faces:r.faces}; }},
+              const bo={size:p.size,abs:p.absOn?p.dia:0,lift:p.lift,where:["faces","verts","both"][Math.round(p.where)||0],maxInst:8000,studs};
+              // sub-layers: base / gems / studs are kept as named parts of the result (Layers panel shows them as children)
+              const segs=[]; if(p.keep) segs.push(["Base geometry",m]);
+              if(studs){ const g=TM.bejewel(m,gem,Object.assign({},bo,{part:"gems"})), st=TM.bejewel(m,gem,Object.assign({},bo,{part:"studs"}));
+                segs.push(["Gems",{verts:g.verts,faces:g.faces}],["Studs",{verts:st.verts,faces:st.faces}]); }
+              else { const r=TM.bejewel(m,gem,bo); segs.push(["Gems",{verts:r.verts,faces:r.faces}]); }
+              return withParts(segs); }},
   // --- topology (selection-based: the picked faces + the tool's options are captured when the modifier is added) ---
   pinch:   {label:"Pinch Extrude", grp:"Topology", params:[{k:"dist",l:"Distance",min:0.4,max:5,step:0.1,def:2.0},{k:"segments",l:"Segments",min:3,max:40,step:1,def:14},{k:"neck",l:"Neck",min:0.05,max:0.8,step:0.01,def:0.18},{k:"bulge",l:"Bulge",min:0.5,max:1.6,step:0.05,def:1.0}],
             apply:(m,p)=>{ let out=m; const faces=(p.faces||[]).filter(f=>f<out.faces.length).sort((a,b)=>b-a);
@@ -7403,17 +7440,27 @@ function _evalCreases(m){
 function evalMods(base, mods, L){
   let m=base; _evalBase=base; _evalLayer=L||null;
   for(const md of mods){ if(!md.on) continue; const R=MODS[md.type]; if(!R) continue;
-    try{ const r=R.apply(m, md.params); if(r&&r.verts&&r.verts.length&&r.faces&&r.faces.length){ if(r.verts.every(v=>v.every(Number.isFinite))) m=r; } }catch(e){}
+    md._err=null; md._lvl=null;   // status for the Modifiers panel (red dot when a modifier isn't doing anything)
+    try{ const r=R.apply(m, md.params);
+      if(r&&r.verts&&r.verts.length&&r.faces&&r.faces.length){ if(r.verts.every(v=>v.every(Number.isFinite))){ if(r===m){ md._err="had no effect — adjust its settings or reselect faces"; md._lvl="warn"; } m=r; } else md._err="produced invalid points"; }
+      else md._err="produced no geometry"; }catch(e){ md._err=(e&&e.message)||String(e)||"failed"; }
   }
   return m;
 }
+// meshes made of named parts (sub-layers): parts = [{name, from, to}] face ranges
+function withParts(segs){ const ms=segs.map(x=>x[1]).filter(x=>x&&x.faces); if(ms.length===1&&segs.length===1) { const o=TM.mergeMeshes(ms); o.parts=[{name:segs[0][0],from:0,to:o.faces.length}]; return o; }
+  const out=TM.mergeMeshes(ms); let at=0; out.parts=[]; segs.forEach(([nm,mm])=>{ if(!mm||!mm.faces) return; out.parts.push({name:nm,from:at,to:at+mm.faces.length}); at+=mm.faces.length; }); return out; }
+function partFilter(M,hide){ if(!M||!M.parts||!hide) return M; const off=M.parts.filter(p=>hide[p.name]); if(!off.length) return M;
+  const keep=[], vm=new Map(), V=[]; M.parts.forEach(p=>{ if(hide[p.name]) return; for(let i=p.from;i<p.to;i++) keep.push(M.faces[i].map(v=>{ if(!vm.has(v)){ vm.set(v,V.length); V.push(M.verts[v]); } return vm.get(v); })); });
+  const r={verts:V,faces:keep}; let at=0; r.parts=M.parts.filter(p=>!hide[p.name]).map(p=>{ const n={name:p.name,from:at,to:at+(p.to-p.from)}; at=n.to; return n; }); r.allParts=M.parts; return r; }
 function layerEval(L){
   if(!L) return mesh;
   const mods=(L.modifiers||[]).filter(x=>x.on);
   if(!mods.length) return L.mesh;
   const key=L.mesh.verts.length+"_"+L.mesh.faces.length+"_"+JSON.stringify(L.modifiers,(k,v)=>(k==="baked"||(k&&k.charAt(0)==="_"))?undefined:v)+"_"+(L._stamp||0)+"_"+(L.creases?JSON.stringify(L.creases):"");
-  if(L._evKey===key && L._ev) return L._ev;
-  const r=evalMods(L.mesh, mods, L); L._evKey=key; L._ev=r; return r;
+  const key2=key+"_"+(L.partHide?JSON.stringify(L.partHide):"");
+  if(L._evKey===key2 && L._ev) return L._ev;
+  const r=partFilter(evalMods(L.mesh, mods, L), L.partHide); L._evKey=key2; L._ev=r; return r;
 }
 function activeModsEnabled(){ const L=layers[activeLayer]; return !!(L&&L.modifiers&&L.modifiers.some(x=>x.on)); }
 // The whole visible model the fabricate tools consume: every VISIBLE layer, each folded through its
@@ -7489,11 +7536,37 @@ function flattenStack(){
   L.mesh=mesh; L.modifiers=[]; L.gen=null; L._ev=null; L._evKey=null; L.creases=null; L.creaseTopo=null; closeModEdit();
   rebuild(); renderModStack(); toast&&toast("Stack flattened — geometry is now editable");
 }
+// Change the base geometry under a live modifier stack: pick any primitive, the modifiers re-run on it
+function openBasePicker(anchor){
+  let pk=document.getElementById("basePicker"); if(pk){ pk.remove(); return; }
+  pk=document.createElement("div"); pk.id="basePicker";
+  pk.innerHTML='<div class="bpHead">Change base shape <span>modifiers stay</span></div><div class="bpGrid"></div>';
+  const grid=pk.querySelector(".bpGrid"), seen=new Set();
+  $$("#toolbar [data-p]").forEach(b=>{ const p=b.dataset.p; if(seen.has(p)||p==="text") return; seen.add(p);
+    const c=b.cloneNode(true); c.removeAttribute("id"); c.classList.remove("on"); c.className="tb bpItem"; c.title="Use "+primLabel(p)+" as the base";
+    c.onclick=e=>{ e.stopPropagation(); pk.remove(); swapBase(p); }; grid.appendChild(c); });
+  document.body.appendChild(pk);
+  const r=anchor.getBoundingClientRect(), W=Math.min(340,innerWidth-16);
+  pk.style.width=W+"px"; pk.style.left=Math.max(8,Math.min(innerWidth-W-8,r.left))+"px"; pk.style.top=Math.min(innerHeight-pk.offsetHeight-8,r.bottom+6)+"px";
+  setTimeout(()=>{ const off=e=>{ if(!pk.contains(e.target)){ pk.remove(); document.removeEventListener("pointerdown",off,true); } }; document.addEventListener("pointerdown",off,true); },0);
+}
+function swapBase(p){
+  const L=layers[activeLayer]; if(!L) return;
+  if(typeof isActiveLocked==="function"&&isActiveLocked()){ toast&&toast("Layer is locked",true); return; }
+  const keepName=L.name, named=!!(L.gen?keepName!==primLabel(L.gen.prim):!/^(Cube|Base mesh|Layer \d+)$/.test(keepName||""));
+  closeToolPop();
+  if(PARAM_PRIM_NAMES.includes(p)){ primClick(p,document.querySelector('#toolbar [data-p="'+p+'"]')); }
+  else { loadPrim(p); L.gen=null; L._ev=null; L._evKey=null; }
+  if(named) L.name=keepName; else if(!PARAM_PRIM_NAMES.includes(p)) L.name=primLabel(p);
+  rebuild(); renderModStack(); renderLayerList&&renderLayerList();
+  toast&&toast("Base is now "+primLabel(p)+" — "+((L.modifiers||[]).length)+" modifier"+((L.modifiers||[]).length===1?"":"s")+" re-applied");
+}
 function renderModStack(){
   const list=$("#modList"); if(!list) return;
   const L=layers[activeLayer]; list.innerHTML="";
   const nm=$("#modLayerName"); if(nm) nm.textContent=L?L.name:"—";
   const mods=(L&&L.modifiers)||[];
+  try{ if(L&&mods.some(x=>x.on)) layerEval(L); }catch(e){}
   if(modEditId!=null && !mods.some(m=>m.id===modEditId)){ modEditId=null; if(tpState&&tpState.op==="modedit"&&typeof closeToolPop==="function") closeToolPop(); }
   const mk=(cls,html,title,fn,dis)=>{ const b=document.createElement("button"); b.className=cls; b.innerHTML=html; b.title=title; if(dis)b.disabled=true; b.onclick=e=>{e.stopPropagation();fn();}; return b; };
   // The base object sits at the TOP; modifiers stack underneath it (first-applied directly below).
@@ -7503,8 +7576,9 @@ function renderModStack(){
   const bName=document.createElement("span"); bName.className="modName"; bName.textContent=L?(isPrim?primLabel(L.gen.prim):"Base mesh"):"—";
   const bTag=document.createElement("span"); bTag.className="modBaseTag"; bTag.textContent="base";
   baseRow.appendChild(bIcon); baseRow.appendChild(bName); baseRow.appendChild(bTag);
+  if(L) baseRow.appendChild(mk("modBtn modSwap","&#8644;","Change the base shape — modifiers stay",()=>openBasePicker(baseRow)));
   if(isPrim){ baseRow.title="Edit "+primLabel(L.gen.prim)+" parameters"; baseRow.onclick=()=>editGenLayer(activeLayer); }
-  else { baseRow.title="Base geometry — edit it directly, or add modifiers above"; baseRow.onclick=()=>toast&&toast("Base geometry — edit it directly, or add modifiers above it"); }
+  else { baseRow.title="Change the base shape — modifiers stay"; baseRow.onclick=()=>openBasePicker(baseRow); }
   list.appendChild(baseRow);
   // remembered steps from step-by-step modeling (Layers off): baked, listed but not active
   ((L&&L.steps)||[]).forEach((lab,i)=>{ const r=document.createElement("div"); r.className="modRow off modStep"; r.title="Baked step "+(i+1)+" (modeled with Layers off)";
@@ -7514,6 +7588,7 @@ function renderModStack(){
     const R=MODS[md.type]||{label:md.type,params:[]};
     const row=document.createElement("div"); row.className="modRow"+(md.on?"":" off")+(md.id===modEditId?" sel":"");
     const on=mk("modOn",md.on?"&#9673;":"&#9711;",md.on?"On — click to turn this modifier off":"Off — click to turn it on",()=>toggleModifier(md.id));
+    if(md.on&&md._err){ const w=md._lvl==="warn"; on.classList.add(w?"warn":"bad"); on.title=(w?"Needs an update — ":"Not working — ")+md._err+" (click to turn it off)"; row.classList.add(w?"modWarn":"modBad"); }
     const nmS=document.createElement("span"); nmS.className="modName"; nmS.textContent=(md.type==="tool"&&md.params&&md.params.label)||R.label;
     const up=mk("modBtn","&#9650;","Move up",()=>moveModifier(md.id,-1),i===0);
     const dn=mk("modBtn","&#9660;","Move down",()=>moveModifier(md.id,+1),i===mods.length-1);
@@ -7762,7 +7837,7 @@ function makeGroundGrid(size,c1,c2){ const h=size/2, pos=[], col=[], A=new THREE
   const g=new THREE.BufferGeometry(); g.setAttribute("position",new THREE.Float32BufferAttribute(pos,3)); g.setAttribute("color",new THREE.Float32BufferAttribute(col,3));
   const L=new THREE.LineSegments(g,new THREE.LineBasicMaterial({vertexColors:true})); L.userData.size=size; return L; }
 const grid=makeGroundGrid(60,0x7fd8ef,0x4699b3);   // 60 x 60 ground, 1-inch cells
-window.__setSceneBg=function(m){ if(m===true) m="light"; if(!m) m="dark"; try{ const C={dark:[0x080a12,0x7fd8ef,0x4699b3],grey:[0x3b3f45,0xff9a1f,0x7a6a5a],light:[0xeef1f5,0x7ccf1a,0xb4c3a2],navy:[0x0b0614,0x39ff14,0xff2bd6]}[m]||[0x080a12,0x7fd8ef,0x4699b3];
+window.__setSceneBg=function(m){ if(m===true) m="light"; if(!m) m="dark"; try{ const C={dark:[0x080a12,0x7fd8ef,0x4699b3],grey:[0x3b3f45,0xff9a1f,0x7a6a5a],light:[0xeef1f5,0x7ccf1a,0xb4c3a2],navy:[0x0b0614,0x39ff14,0xff2bd6],mono:[0xe9eaec,0x2a2a2a,0xa9abae]}[m]||[0x080a12,0x7fd8ef,0x4699b3];
   scene.background=new THREE.Color(C[0]); const ca=grid.geometry.attributes.color, pa=grid.geometry.attributes.position, A=new THREE.Color(C[1]), B=new THREE.Color(C[2]);
   for(let v=0;v<pa.count;v+=4){ const x0=pa.getX(v), x1=pa.getX(v+1), z0=pa.getZ(v), cen=(x0===0&&x1===0); const K=cen?A:B; for(let k=0;k<4;k++){ const isB=(k>=2); const c=(isB? (pa.getZ(v+2)===0&&pa.getZ(v+3)===0) : cen)?A:B; ca.setXYZ(v+k,c.r,c.g,c.b); } } ca.needsUpdate=true; }catch(e){} };
 grid.material.transparent=true; grid.material.opacity=0.33;
@@ -9269,7 +9344,7 @@ $("#sectionFab")&&$("#sectionFab").addEventListener("click",()=>toggleSection())
 $("#btnRedo")&&$("#btnRedo").addEventListener("click",redo);
 
 // ---------- native .topmod project format (layers + meshes + state) ----------
-const TOPMOD_FORMAT_VERSION=3;
+const TOPMOD_FORMAT_VERSION=4;   // v4: .tmod — adds sub-layer visibility, baked steps, camera view, UI state
 function serializeProject(){
   commitActiveToLayer();
   return JSON.stringify({
@@ -9285,13 +9360,17 @@ function serializeProject(){
       modifiers: (L.modifiers||[]).map(m=>({ type:m.type, on:m.on!==false, params:m.params||{} })),
       groups: (L.groups||[]).map(g=>({ name:g.name, faces:g.faces })),
       creases: L.creases||null, creaseTopo: L.creaseTopo||null,
+      partHide: L.partHide||null, steps: Array.isArray(L.steps)?L.steps.slice():null,
       mesh:{ verts:L.mesh.verts, faces:L.mesh.faces }
-    }))
+    })),
+    view: { yaw, pitch, dist, target:[target.x,target.y,target.z] },
+    ui: { theme:(["uiLight","uiNavy","uiGrey","uiMono"].find(c=>document.body.classList.contains(c))||"dark"), layersOn:(typeof layersOn!=="undefined")?!!layersOn:true },
+    app: { name:"TopMod 3D", ext:".tmod" }
   });
 }
 function loadProject(text, nameHint){
   let doc;
-  try{ doc=JSON.parse(text); }catch(e){ throw "Not a valid .TM3 file"; }
+  try{ doc=JSON.parse(text); }catch(e){ throw "Not a valid .TMOD file"; }
   if(!doc || doc.format!=="topmod" || !Array.isArray(doc.layers)) throw "Not a TopMod project file";
   if(!doc.layers.length) throw "Project has no layers";
   // Rebuild every layer. Validation tolerates OPEN surfaces (boundaries) and
@@ -9306,7 +9385,8 @@ function loadProject(text, nameHint){
       gen: (L.gen && L.gen.prim) ? { prim:L.gen.prim, params:Object.assign({}, L.gen.params||{}) } : null,
       modifiers: Array.isArray(L.modifiers) ? L.modifiers.filter(md=>md&&md.type).map(md=>({ id:modSeq++, type:md.type, on:md.on!==false, params:Object.assign({}, md.params||{}) })) : [],
       groups: Array.isArray(L.groups) ? L.groups.filter(g=>g&&Array.isArray(g.faces)).map(g=>({ id:groupSeq++, name:g.name||"Group", faces:g.faces.slice() })) : [],
-      creases: (L.creases&&typeof L.creases==="object") ? Object.assign({}, L.creases) : null, creaseTopo: L.creaseTopo||null };
+      creases: (L.creases&&typeof L.creases==="object") ? Object.assign({}, L.creases) : null, creaseTopo: L.creaseTopo||null,
+      partHide: (L.partHide&&typeof L.partHide==="object") ? Object.assign({}, L.partHide) : null, steps: Array.isArray(L.steps)?L.steps.slice():[] };
   });
   // swap in the loaded project
   for(const o of layerObjs){ scene.remove(o); o.geometry&&o.geometry.dispose(); } layerObjs=[];
@@ -9314,6 +9394,7 @@ function loadProject(text, nameHint){
   activeLayer=Math.min(Math.max(0,doc.activeLayer|0), layers.length-1);
   mesh=layers[activeLayer].mesh;
   if(doc.renderMode && RMODES[doc.renderMode]) setRenderMode(doc.renderMode);
+  if(doc.view&&isFinite(doc.view.dist)){ yaw=+doc.view.yaw||yaw; pitch=+doc.view.pitch||pitch; dist=+doc.view.dist||dist; if(Array.isArray(doc.view.target)) target.set(+doc.view.target[0]||0,+doc.view.target[1]||0,+doc.view.target[2]||0); try{ applyCam(); }catch(e){} }
   if(doc.make && typeof $==="function" && $("#mkScale")){ const k=doc.make;
     if(k.scale!=null){$("#mkScale").value=k.scale; $("#mkScaleV").textContent=k.scale;}
     if(k.page){$("#mkPage").value=k.page;}
@@ -9350,8 +9431,8 @@ function loadProject(text, nameHint){
   rebuild(); renderInactiveLayers(); renderLayerList();
 }
 let currentProjectName=null;
-function _projFileName(name){ return (name || ("project-"+new Date().toISOString().replace(/[:.]/g,"-").slice(0,19)))+".tm3"; }
-function updateProjectTitle(){ const t=$("#titlebar"); if(t) t.innerHTML='<span class="dot"></span> '+(currentProjectName?currentProjectName+".tm3":"untitled")+" &mdash; TOPMOD"; }
+function _projFileName(name){ return (name || ("project-"+new Date().toISOString().replace(/[:.]/g,"-").slice(0,19)))+".tmod"; }
+function updateProjectTitle(){ const t=$("#titlebar"); if(t) t.innerHTML='<span class="dot"></span> '+(currentProjectName?currentProjectName+".tmod":"untitled")+" &mdash; TOPMOD"; }
 function _writeProject(name){
   const text=serializeProject();
   const fn=_projFileName(name);
@@ -9369,7 +9450,7 @@ function saveProject(){ if(currentProjectName) _writeProject(currentProjectName)
 function saveProjectAs(){
   let n=prompt("Save project as:", currentProjectName||"untitled");
   if(n===null) return;                                   // cancelled
-  n=n.trim().replace(/\.(tm3|topmod)$/i,"").replace(/[\/\\:*?"<>|]/g,"_").trim() || "untitled";
+  n=n.trim().replace(/\.(tmod|tm3|topmod)$/i,"").replace(/[\/\\:*?"<>|]/g,"_").trim() || "untitled";
   currentProjectName=n; updateProjectTitle();
   _writeProject(n);
 }
@@ -9538,7 +9619,7 @@ $("#fileImport").addEventListener("change",async ev=>{
 $("#projectImport")&&$("#projectImport").addEventListener("change",ev=>{
   const f=ev.target.files[0]; if(!f) return;
   const r=new FileReader();
-  r.onload=()=>{ try{ loadProject(r.result, f.name.replace(/\.(tm3|topmod)$/i,"")); toast&&toast("Opened "+f.name); }catch(e){ toast&&toast(String(e),true); } };
+  r.onload=()=>{ try{ loadProject(r.result, f.name.replace(/\.(tmod|tm3|topmod)$/i,"")); toast&&toast("Opened "+f.name); }catch(e){ toast&&toast(String(e),true); } };
   r.readAsText(f);
   ev.target.value="";
 });
@@ -11244,7 +11325,7 @@ addEventListener("keydown",e=>{
       if(t&&t.blur&&t!==document.body) try{ t.blur(); }catch(_){}
       if(k==="y"||e.code==="KeyY"||e.shiftKey) redo(); else undo();
       return; } }
-  if(e.target.tagName==="INPUT") return;
+  if(e.target.tagName==="TEXTAREA"||e.target.isContentEditable||e.target.tagName==="INPUT"||e.target.tagName==="SELECT"||(e.target.closest&&e.target.closest("#claudePanel"))) return;
   if(false && e.shiftKey && !e.metaKey && !e.ctrlKey && !e.altKey && (e.key==="F"||e.key==="f")){ e.preventDefault(); toggleFullscreen(); return; }   // Shift+F: full screen on/off
   if(e.key==="Delete"||e.key==="Backspace"){
     if(selMode==="face"&&sel.faces.size){ e.preventDefault(); ops.deleteFace(); return; }
@@ -12295,7 +12376,7 @@ $("#toolpop")&&$("#toolpop").classList.add("empty");
     head.addEventListener("touchstart",down,{passive:false}); addEventListener("touchmove",move,{passive:false}); addEventListener("touchend",up);
   }
   addEventListener("keydown",e=>{
-    if(e.key==="`"&&e.target.tagName!=="INPUT"){ e.preventDefault(); show(!box.classList.contains("show")); }
+    if(e.key==="`"&&!/^(INPUT|TEXTAREA|SELECT)$/.test(e.target.tagName)&&!e.target.isContentEditable){ e.preventDefault(); show(!box.classList.contains("show")); }
     if(e.key==="Escape"&&box.classList.contains("show")&&e.target===inp){ show(false); }
   });
   // help + scripting API: TM (kernel), mesh, rebuild, sel, info(), normals(), commit()
@@ -16406,8 +16487,8 @@ window.__ek={applyWhole:applyWhole,ops:ops,snapshot:snapshot,rebuild:rebuild,toa
   let w=null; try{ const v=+localStorage.getItem("tmTbW2"); if(v) w=v; }catch(e){}
   function cells(){ const ph=phone(); root.setProperty("--tbCell",ph?"34px":"40px"); root.setProperty("--tbCellH",ph?"36px":"42px"); root.setProperty("--tbIcon",ph?"18px":"21px"); }
   function defaultW(){ const f=document.querySelector("#menubar .menu .mtitle"); const fx=f?f.getBoundingClientRect().left:0;
-    const ph=phone(), duo=document.body.classList.contains("duo")||document.body.classList.contains("duoBottom"), n=duo?4:2;
-    const two=n*(ph?34:40)+(n-1)*3+8+10+12;            // default = TWO tool icons wide (FOUR in the Duo layout) + gap, group padding/border, column padding, scrollbar slack
+    const ph=phone(), duo=document.body.classList.contains("duo")||document.body.classList.contains("duoBottom"), n=duo?4:3;
+    const two=n*(ph?34:40)+(n-1)*3+8+10+12;            // default = THREE tool icons wide (FOUR in the Duo layout) + gap, group padding/border, column padding, scrollbar slack
     return Math.round(two); }
   function layout(){
     const mb=document.getElementById("menubar"), st=document.getElementById("status");
@@ -18415,14 +18496,39 @@ void main(){
   { const t=q("#demoTitle"); if(t){ t.addEventListener("click", e => { e.stopPropagation(); alive ? (paused ? resume() : stop()) : (pill ? resume() : start()); });
       // the Demo button lives on the bottom bar (first cell)
       const st=q("#status"), dm=q("#demoMenu"); if(st){ t.classList.add("cell"); t.id="demoTitle"; st.insertBefore(t, st.firstChild); if(dm) dm.style.display="none"; } } }
-  if (AUTO) { const afterSplash=()=>{ const sp=document.getElementById("tmSplash"); if(sp){ setTimeout(afterSplash,250); return; } start(); };   // never start under the intro
+  // startup: ask whether to run the demo (embedded pages such as the Duo viewer, ?demo / #demo, and gallery links keep their old behaviour)
+  function askDemo(){
+    const qs=location.hash+location.search; let inFrame=false; try{ inFrame=window.top!==window.self; }catch(e){ inFrame=true; }
+    if(/[?#&]gallery=/.test(qs)) return;
+    if(inFrame||/[?#&]demo\b/i.test(qs)) { start(); return; }
+    let pref=null; try{ pref=localStorage.getItem("tm_demo_ask"); }catch(e){}
+    if(pref==="yes"){ start(); return; } if(pref==="no") return;
+    const card=document.createElement("div"); card.id="amxDemoAsk"; card.setAttribute("role","dialog"); card.setAttribute("aria-label","Run the demo?");
+    card.innerHTML='<div class="dqT">Run the demo?</div><div class="dqS">A short tour of what TopMod can make. You can start it any time from the Demo button.</div>'+
+      '<div class="dqB"><button type="button" class="dqYes">&#9654; Watch demo</button><button type="button" class="dqNo">Start modeling</button></div>'+
+      '<label class="dqR"><input type="checkbox"> Don\'t ask again</label>';
+    const st=document.createElement("style"); st.textContent=
+      "#amxDemoAsk{position:fixed;left:50%;top:50%;transform:translate(-50%,-50%);z-index:10001;width:min(360px,calc(100vw - 32px));background:rgba(8,12,18,.94);color:#e8eef4;"+
+      "border:1.5px solid #FF8C22;border-radius:18px;padding:18px 18px 14px;box-shadow:0 0 0 1px rgba(255,140,34,.25),0 0 26px rgba(255,140,34,.45),0 18px 50px rgba(0,0,0,.6);font:13px/1.4 var(--font,-apple-system,sans-serif);text-align:center;backdrop-filter:blur(10px);-webkit-backdrop-filter:blur(10px)}"+
+      "#amxDemoAsk .dqT{font-weight:800;font-size:18px;letter-spacing:.02em;margin-bottom:6px}#amxDemoAsk .dqS{color:#9fb0bf;margin-bottom:14px}"+
+      "#amxDemoAsk .dqB{display:flex;gap:10px;justify-content:center;flex-wrap:wrap}#amxDemoAsk button{cursor:pointer;border-radius:999px;padding:9px 16px;font:700 13px var(--font,inherit);border:1px solid rgba(255,255,255,.18);background:#141a24;color:#e8eef4}"+
+      "#amxDemoAsk .dqYes{background:#FF8C22;border-color:#FF8C22;color:#1a0e02}#amxDemoAsk .dqR{display:inline-flex;gap:6px;align-items:center;margin-top:12px;color:#7f93a5;font-size:11px;cursor:pointer;user-select:none}"+
+      "body.uiLight #amxDemoAsk{background:rgba(250,251,252,.96);color:#1b232c}body.uiLight #amxDemoAsk .dqS{color:#55626f}body.uiLight #amxDemoAsk button:not(.dqYes){background:#eef1f4;color:#1b232c;border-color:#cfd6dd}";
+    document.head.appendChild(st); document.body.appendChild(card);
+    const done=yes=>{ try{ if(card.querySelector(".dqR input").checked) localStorage.setItem("tm_demo_ask",yes?"yes":"no"); }catch(e){} card.remove(); removeEventListener("keydown",key,true); if(yes) start(); };
+    const key=e=>{ if(e.key==="Escape"){ e.preventDefault(); e.stopPropagation(); done(false); } else if(e.key==="Enter"&&!/^(INPUT|TEXTAREA)$/.test((e.target||{}).tagName||"")){ e.preventDefault(); e.stopPropagation(); done(true); } };
+    card.querySelector(".dqYes").onclick=()=>done(true); card.querySelector(".dqNo").onclick=()=>done(false);
+    addEventListener("keydown",key,true); setTimeout(()=>{ try{ card.querySelector(".dqYes").focus(); }catch(e){} },60);
+  }
+  if (AUTO) { const afterSplash=()=>{ const sp=document.getElementById("tmSplash"); if(sp){ setTimeout(afterSplash,250); return; } askDemo(); };   // never start under the intro
     if (document.readyState === "complete") afterSplash(); else addEventListener("load", afterSplash); }
 })();
 /* Ask Claude bridge: the in-app assistant drives the app through these (read live) */
 window.__tmCore={ get OP_PARAMS(){return OP_PARAMS}, get MODS(){return MODS}, get OP_AS_MOD(){return OP_AS_MOD}, get ops(){return ops},
   get layers(){return layers}, get activeLayer(){return activeLayer}, get sel(){return sel},
   addModifier, dispMesh, setMode, clearSel, rebuildOverlay, updateHint:(...a)=>{ try{ updateHint(...a); }catch(e){} }, newProject, primClick, closeToolPop, openToolPop,
-  rebuild, renderModStack, setRenderMode, renderLayerList, snapshot };
+  rebuild, renderModStack, setRenderMode, renderLayerList, snapshot,
+  swapBase, openBasePicker, get renderer(){return renderer}, get scene(){return scene}, get camera(){return camera}, layerEval, serializeProject, loadProject, toast:(m,b)=>{ try{ toast(m,b); }catch(e){} } };
 })();
 
 </script>
@@ -19446,7 +19552,7 @@ window.__tmCore={ get OP_PARAMS(){return OP_PARAMS}, get MODS(){return MODS}, ge
  setTimeout(upd,300); setTimeout(upd,1500); }
  if(document.readyState==="loading") document.addEventListener("DOMContentLoaded",init); else init();})();</script>
 <script>/* View ▸ Interface: Dark (default) / White mode — remembered per device */
-(function(){ function apply(m){ if(["dark","grey","light","navy"].indexOf(m)<0) m="dark"; document.body.classList.toggle("uiLight",m==="light"); document.body.classList.toggle("uiGrey",m==="grey"); document.body.classList.toggle("uiNavy",m==="navy");
+(function(){ function apply(m){ if(["dark","grey","light","navy","mono"].indexOf(m)<0) m="dark"; document.body.classList.toggle("uiLight",m==="light"); document.body.classList.toggle("uiGrey",m==="grey"); document.body.classList.toggle("uiNavy",m==="navy"); document.body.classList.toggle("uiMono",m==="mono"); try{ window.__monoModel&&window.__monoModel(m==="mono"); }catch(e){}
    try{ if(window.__setSceneBg) window.__setSceneBg(m); }catch(e){}
    document.querySelectorAll("[data-ui]").forEach(function(el){ el.classList.toggle("on",el.dataset.ui===m); }); }
  function init(){ var m="dark"; try{ m=localStorage.getItem("tmUI")||"dark"; }catch(e){} apply(m);
@@ -19825,7 +19931,7 @@ body.duo #viewWrap::after{content:"TOUCH PAD";position:absolute;left:50%;top:50%
 </script>
 <style>
 /* ---------- Ask Claude (in-app assistant) ---------- */
-#claudePanel{position:fixed;right:14px;bottom:64px;width:min(400px,calc(100vw - 28px));max-height:min(560px,calc(100vh - 140px));z-index:100010;display:flex;flex-direction:column;
+#claudePanel{position:fixed;right:14px;bottom:64px;left:auto;width:min(400px,calc(100vw - 28px));max-height:min(560px,calc(100vh - 140px));z-index:100010;display:flex;flex-direction:column;
   background:rgba(12,16,24,.96);border:1px solid rgba(0,229,255,.35);border-radius:16px;box-shadow:0 20px 60px rgba(0,0,0,.55);color:#e6edf3;font:13px/1.45 var(--ui,system-ui,sans-serif);backdrop-filter:blur(12px);-webkit-backdrop-filter:blur(12px)}
 #claudePanel[hidden]{display:none}
 #claudePanel header{display:flex;align-items:center;gap:8px;padding:10px 12px;border-bottom:1px solid rgba(255,255,255,.08)}
@@ -19849,23 +19955,91 @@ body.duo #viewWrap::after{content:"TOUCH PAD";position:absolute;left:50%;top:50%
 #clSignIn p{margin:0;color:#aebdcb}
 #clSignIn .btn{display:inline-flex;justify-content:center;align-items:center;gap:8px;background:#fff;color:#000;border:0;border-radius:10px;padding:11px 14px;font-weight:700;cursor:pointer}
 #clSignIn .ghost{background:transparent;color:#8aa0b4;border:1px solid rgba(255,255,255,.15)}
+html body #amxDemo{top:66.667vh!important;bottom:auto!important;margin-top:-22px;border-color:rgba(0,229,255,.95)!important;box-shadow:0 0 0 1px rgba(0,229,255,.85),0 0 16px rgba(0,229,255,.6),0 0 38px rgba(0,229,255,.28),0 10px 30px rgba(0,0,0,.45)!important;animation:amxGlow 2.4s ease-in-out infinite}
+html body #amxDemo.paused{border-color:rgba(255,140,34,.95)!important;box-shadow:0 0 0 1px rgba(255,140,34,.85),0 0 16px rgba(255,140,34,.55),0 0 38px rgba(255,140,34,.25),0 10px 30px rgba(0,0,0,.45)!important}
+@keyframes amxGlow{50%{box-shadow:0 0 0 1px rgba(0,229,255,1),0 0 24px rgba(0,229,255,.8),0 0 56px rgba(0,229,255,.38),0 10px 30px rgba(0,0,0,.45)}}
+html body #amxDemo button.x.sm{width:30px!important;height:30px!important;font-size:19px!important;top:-14px!important;right:-14px!important;background:#101722!important;color:#e8fbff!important;border:1.5px solid rgba(0,229,255,.9)!important;box-shadow:0 0 12px rgba(0,229,255,.6)}
+html body #amxDemo button.x.sm:hover{background:#e5384d!important;border-color:#ff8a9a!important;box-shadow:0 0 14px rgba(229,56,77,.7)}
+@media (prefers-reduced-motion:reduce){html body #amxDemo{animation:none}}
+body.duoBottom #amxDemo{top:66vh!important;bottom:auto!important;margin-top:-21px}
+body.duo #amxDemo{top:calc(var(--duoH,50vh) + (100vh - var(--duoH,50vh))*0.66)!important;bottom:auto!important;margin-top:-21px}
+#basePicker{position:fixed;z-index:100011;background:rgba(10,14,22,.97);border:1px solid rgba(0,229,255,.4);border-radius:12px;padding:10px;box-shadow:0 18px 50px rgba(0,0,0,.55)}
+#basePicker .bpHead{font:700 10px var(--mono,monospace);letter-spacing:.12em;text-transform:uppercase;color:#00E5FF;margin:0 2px 8px}
+#basePicker .bpHead span{color:#8aa0b4;font-weight:500;margin-left:6px}
+#basePicker .bpGrid{display:grid;grid-template-columns:repeat(auto-fill,minmax(58px,1fr));gap:6px;max-height:50vh;overflow:auto}
+#basePicker .bpItem{width:auto!important;margin:0!important}
+.modRow.modBase .modSwap{margin-left:6px}
+.layerRow.subLayer{padding-left:18px;opacity:.92;font-size:.95em}
+.layerRow.subLayer .subIndent{color:#4b6a7a;margin-right:4px;font:11px var(--mono,monospace)}
+.layerRow.subLayer.hiddenPart .layerName{opacity:.45;text-decoration:line-through}
+#modList .modRow>.modOn.bad{color:#ff4d5e!important;text-shadow:0 0 6px rgba(255,77,94,.85)}
+.modRow.modBad .modName{color:#ff9aa5}
+#modList .modRow>.modOn.warn{color:#ffd23f!important;text-shadow:0 0 6px rgba(255,210,63,.8)}
+.modRow.modWarn .modName{color:#ffe08a}
+/* Rhino-style sliders: thick rounded track, orange fill to the value, big white pill thumb (themes re-tint via their panel filters) */
+html body input[type=range]{-webkit-appearance:none;appearance:none;height:24px;background:transparent;cursor:pointer;accent-color:auto;--sl:#FF8C22;--slt:#e3e5e8}
+html body input[type=range]:focus{outline:none}
+html body input[type=range]::-webkit-slider-runnable-track{height:10px;border-radius:999px;background:linear-gradient(90deg,var(--sl) 0,var(--sl) var(--p,50%),var(--slt) var(--p,50%),var(--slt) 100%);border:0}
+html body input[type=range]::-webkit-slider-thumb{-webkit-appearance:none;appearance:none;width:34px;height:22px;margin-top:-6px;border-radius:999px;background:#fff;border:0;box-shadow:0 1px 4px rgba(0,0,0,.5),inset 0 -1px 0 rgba(0,0,0,.08);transition:transform .08s}
+html body input[type=range]:active::-webkit-slider-thumb{transform:scale(1.06)}
+html body input[type=range]:focus-visible::-webkit-slider-thumb{box-shadow:0 0 0 3px rgba(255,140,34,.55),0 1px 4px rgba(0,0,0,.5)}
+html body input[type=range]::-moz-range-track{height:10px;border-radius:999px;background:var(--slt);border:0}
+html body input[type=range]::-moz-range-progress{height:10px;border-radius:999px;background:var(--sl)}
+html body input[type=range]::-moz-range-thumb{width:34px;height:22px;border-radius:999px;background:#fff;border:0;box-shadow:0 1px 4px rgba(0,0,0,.5)}
+html body input[type=range]:disabled{opacity:.45;cursor:default}
+/* themes: Light / Navy cancel their panel filter on the slider and use the theme accent; Grey pre-tints through its filter */
+html body.uiLight input[type=range]{filter:hue-rotate(-83deg) invert(1);--sl:#2f8f2f;--slt:#d3d9df}
+html body.uiNavy input[type=range]{filter:brightness(.893) saturate(.476) hue-rotate(-128deg);--sl:#ff3fbf;--slt:#e7e2ec}
+html body.uiGrey input[type=range]{--sl:#01e1ff;--slt:#8a8a8a}
+/* floating, draggable, resizable Claude window */
+#claudePanel{resize:both;overflow:hidden;min-width:300px;min-height:260px;max-width:96vw;max-height:92vh;height:min(540px,calc(100vh - 140px))}
+#claudePanel header{cursor:move;user-select:none;-webkit-user-select:none;touch-action:none;flex:none}
+#claudePanel header button{cursor:pointer}
+#clSignIn{overflow:auto;flex:1;min-height:0}
+#clSignIn[hidden],#clChat[hidden]{display:none!important}
+#clChat{flex:1;min-height:0;flex-direction:column}
+#clLog{min-height:0}
+#clSugg,#clForm{flex:none}
+#claudePanel .clGrip{position:absolute;right:2px;bottom:2px;width:14px;height:14px;pointer-events:none;opacity:.55;background:linear-gradient(135deg,transparent 0 50%,rgba(0,229,255,.7) 50% 58%,transparent 58% 70%,rgba(0,229,255,.7) 70% 78%,transparent 78%)}
 #claudeFab{white-space:nowrap;cursor:pointer;background:rgba(0,229,255,0.1);border:1px solid rgba(0,229,255,0.3);color:var(--cyan,#00E5FF);font:11px var(--mono,monospace);padding:3px 9px;border-radius:7px}
 #claudeFab.on{background:var(--cyan,#00E5FF);color:#04222a}
 #clSignIn [hidden]{display:none!important}
+/* chat text can be selected and copied */
+#claudePanel #clLog,#claudePanel #clLog *{user-select:text!important;-webkit-user-select:text!important;-webkit-touch-callout:default!important;cursor:text}
+#clLog .m{position:relative}
+#clLog .m .clCp{position:absolute;top:3px;right:3px;display:none;cursor:pointer;user-select:none!important;-webkit-user-select:none!important;background:rgba(10,14,21,.85);color:#9fdfff;border:1px solid rgba(0,229,255,.35);border-radius:6px;font:10px var(--mono,monospace);padding:1px 6px}
+#clLog .m:hover .clCp,#clLog .m .clCp.done{display:block}
+@media (hover:none){#clLog .m.a .clCp{display:block;opacity:.7}}
+#clModelRow{flex:none;display:flex;align-items:center;gap:8px;padding:6px 10px 0;font:10px var(--mono,monospace);color:#7f93a5;letter-spacing:.06em}
+#clModelRow{position:relative}
+#clModel{flex:1;min-width:0;display:flex;align-items:center;gap:6px;cursor:pointer;text-align:left;background:#0a0e15;color:#e6edf3;border:1px solid rgba(255,255,255,.14);border-radius:8px;padding:6px 8px;font:12px var(--font,inherit);letter-spacing:0}
+#clModel b{flex:1;min-width:0;font-weight:600;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}#clModel i{font-style:normal;color:#00E5FF}
+#clModel.locked{opacity:.7}#clModel.locked i{color:#7f93a5}
+#clModelMenu{position:absolute;left:58px;right:10px;bottom:calc(100% + 4px);z-index:5;max-height:260px;overflow:auto;background:#0b1018;border:1px solid rgba(0,229,255,.35);border-radius:10px;box-shadow:0 10px 30px rgba(0,0,0,.55);padding:4px}
+#clModelMenu[hidden]{display:none!important}
+#clModelMenu .o{display:block;width:100%;text-align:left;cursor:pointer;background:none;border:0;border-radius:7px;color:#e6edf3;padding:7px 9px;font:12px var(--font,inherit);letter-spacing:0}
+#clModelMenu .o:hover{background:rgba(0,229,255,.12)}#clModelMenu .o.on{background:rgba(0,229,255,.2);color:#9ff3ff}
+#clModelMenu .note{padding:7px 9px;font:11px var(--font,inherit);color:#9fb0bf;letter-spacing:0;line-height:1.35}
 body.duo #claudePanel,body.duoBottom #claudePanel{top:calc(var(--duoH,50vh) + 8px);bottom:8px;max-height:none}
 @media (max-width:600px){#claudePanel{left:8px;right:8px;width:auto;bottom:58px}}
 </style>
-<div id="claudePanel" hidden role="dialog" aria-label="Ask Claude">
-  <header><b>&#10022; CLAUDE</b><span id="clAcct"></span><span class="sp"></span><button id="clNew" title="New conversation">&#8635;</button><button id="clClose" title="Close">&times;</button></header>
+<div id="claudePanel" hidden role="dialog" aria-label="Ask Claude"><i class="clGrip"></i>
+  <header><b>&#10022; CLAUDE</b><span id="clAcct"></span><span class="sp"></span><button id="clKey" title="Use / remove your own Anthropic API key">&#128273;</button><button id="clNew" title="New conversation">&#8635;</button><button id="clClose" title="Close">&times;</button></header>
   <div id="clSignIn" hidden>
     <p>Describe what you want and Claude builds it in TopMod: primitives, handles, modifiers, gems, renders.</p>
+    <p style="font-size:12px;color:#c9d6e2">To start, paste your own Anthropic API key. Get one at <a href="https://console.anthropic.com/settings/keys" target="_blank" rel="noopener" style="color:#00E5FF">console.anthropic.com</a> → API Keys.</p>
     <button class="btn" id="clApple">&#63743; Sign in with Apple</button>
     <button class="btn ghost" id="clGuest">Try a few free requests</button>
-    <p style="font-size:11px;color:#6f8394">Powered by Claude from Anthropic. Your prompt and a summary of the current scene are sent to AMAXIMAL's server to process the request.</p>
+    <button class="btn ghost" id="clOwnKey">Use my own Anthropic API key</button>
+    <div id="clKeyBox" style="display:none;gap:8px;text-align:left"><input id="clKeyIn" type="password" autocomplete="off" placeholder="sk-ant-…" style="background:#0a0e15;color:#e6edf3;border:1px solid rgba(255,255,255,.14);border-radius:10px;padding:10px;font:inherit">
+      <p style="font-size:11px;margin:0">Create one at console.anthropic.com → API Keys. It's stored only on this device and sent straight to Anthropic; usage is billed to your Anthropic account (unlimited builds, no AMAXIMAL limit).</p>
+      <button class="btn" id="clKeySave">Save key</button></div>
+    <p style="font-size:11px;color:#6f8394">Powered by Claude from Anthropic. Your prompt and a summary of the current scene go to Anthropic with your key (or through amaximal.com when this page can't reach Anthropic directly — the key is never stored there).</p>
   </div>
-  <div id="clChat" hidden style="display:contents">
+  <div id="clChat" hidden style="display:none">
     <div id="clLog"></div>
     <div id="clSugg"></div>
+    <div id="clModelRow"><span>MODEL</span><button type="button" id="clModel" title="Claude model" aria-haspopup="listbox"><b id="clModelName">Haiku 5.5</b><i>&#9662;</i></button><div id="clModelMenu" role="listbox" hidden></div></div>
     <form id="clForm"><textarea id="clIn" rows="1" placeholder="Make a ring with three twisted handles, gemmed…"></textarea><button id="clSend" type="submit">Make</button></form>
   </div>
 </div>
@@ -19876,11 +20050,37 @@ body.duo #claudePanel,body.duoBottom #claudePanel{top:calc(var(--duoH,50vh) + 8p
 (function(){
   const C=window.__tmCore; if(!C) return;
   const EP="https://amaximal.com/api/topmod-claude";
-  const MODEL="claude-sonnet-5-5";
+  const MODEL="claude-haiku-5-5";   // cheapest current Claude model (free builds always use this)
+  const BASE_MODELS=[["claude-haiku-5-5","Haiku 5.5 — fastest, cheapest"],["claude-sonnet-5-5","Sonnet 5.5 — smarter"],["claude-opus-5-5","Opus 5.5 — most capable, priciest"]];
   const $q=s=>document.querySelector(s);
-  const ls={get(k){try{return localStorage.getItem(k)}catch(e){return null}},set(k,v){try{localStorage.setItem(k,v)}catch(e){}},del(k){try{localStorage.removeItem(k)}catch(e){}}};
+  const MEM={};   // fallback when the page can't use localStorage (sandboxed previews, some WebViews)
+  const ls={get(k){ try{ const v=localStorage.getItem(k); if(v!=null) return v; }catch(e){} return k in MEM?MEM[k]:null; },
+    set(k,v){ MEM[k]=v; try{ localStorage.setItem(k,v); }catch(e){} }, del(k){ delete MEM[k]; try{ localStorage.removeItem(k); }catch(e){} }};
   const wait=ms=>new Promise(r=>setTimeout(r,ms));
   let busy=false, history=[];
+  // one-time reset (Oct 2026): Claude is now bring-your-own-key only — clear old saved keys / guest passes so everyone starts by adding their own key
+  if(!ls.get("tm_claude_reset2")){ ["tm_claude_devkey","tm_claude_guest","tm_claude_acct","tm_claude_models","tm_claude_model"].forEach(k=>ls.del(k)); ls.set("tm_claude_reset2","1"); }
+  // model picker: own-key users choose any Claude model their key can use; free builds stay on Haiku
+  function curModel(){ return ls.get("tm_claude_devkey") ? (ls.get("tm_claude_model")||MODEL) : MODEL; }
+  function modelList(){ try{ const j=JSON.parse(ls.get("tm_claude_models")||"null"); if(Array.isArray(j)&&j.length) return j; }catch(e){} return BASE_MODELS; }
+  // custom menu (native <select> popups don't open in some WebViews)
+  function modelName(id){ const f=modelList().concat(BASE_MODELS).find(m=>m[0]===id); return f?f[1]:id; }
+  function fillModels(){ const btn=document.getElementById("clModel"); if(!btn) return; const own=!!ls.get("tm_claude_devkey"), cur=curModel();
+    document.getElementById("clModelName").textContent=modelName(cur); btn.classList.toggle("locked",!own);
+    btn.title=own?"Choose a Claude model (billed to your Anthropic key)":"Add your Anthropic API key to choose a model"; }
+  function openModelMenu(){ const m=document.getElementById("clModelMenu"); if(!m.hidden){ m.hidden=true; return; }
+    const own=!!ls.get("tm_claude_devkey"), cur=curModel(); m.innerHTML="";
+    if(!own){ const n=document.createElement("div"); n.className="note"; n.textContent="Add your Anthropic API key to use Claude and pick a model."; m.appendChild(n);
+      const k=document.createElement("button"); k.type="button"; k.className="o"; k.textContent="🔑 Add my own key…"; k.onclick=()=>{ m.hidden=true; keyScreen(); }; m.appendChild(k); m.hidden=false; return; }
+    modelList().forEach(([id,name])=>{ const o=document.createElement("button"); o.type="button"; o.className="o"+(id===cur?" on":""); o.setAttribute("role","option"); o.textContent=name||id;
+      o.onclick=()=>{ m.hidden=true; if(id!==cur){ ls.set("tm_claude_model",id); fillModels(); add("s","Model: "+(name||id)); } }; m.appendChild(o); });
+    m.hidden=false; refreshModels(); }
+  document.addEventListener("pointerdown",e=>{ const m=document.getElementById("clModelMenu"); if(m&&!m.hidden&&!e.target.closest("#clModelMenu,#clModel")) m.hidden=true; },true);
+  async function refreshModels(){ const k=ls.get("tm_claude_devkey"); if(!k) return;
+    try{ const ac=new AbortController(), to=setTimeout(()=>ac.abort(),6000);
+      const r=await fetch("https://api.anthropic.com/v1/models?limit=100",{headers:{"x-api-key":k,"anthropic-version":"2023-06-01","anthropic-dangerous-direct-browser-access":"true"},signal:ac.signal}); clearTimeout(to);
+      if(!r.ok) return; const j=await r.json(); const L=(j.data||[]).filter(m=>/^claude-/.test(m.id)).map(m=>[m.id,(m.display_name||m.id)+(m.id===MODEL?" — cheapest":"")]);
+      if(L.length){ ls.set("tm_claude_models",JSON.stringify(L)); fillModels(); } }catch(e){} }
 
   /* ---------- catalog: what Claude may use, read live from this build ---------- */
   function paramInfo(id){
@@ -19994,7 +20194,7 @@ body.duo #claudePanel,body.duoBottom #claudePanel{top:calc(var(--duoH,50vh) + 8p
    "{act:'frameAll'|'topopt'|'physics'|'lineArt'} {name:'Layer name'} {clear:true}. "+
    "Rules: only use names, ids and option values from CATALOG; keep values inside min/max; prefer few, robust steps (usually 2–8); "+
    "handles in TopMod come from the tmHandles modifier (count, twist) on a closed polyhedron like a dodecahedron or cube; finish organic forms with subdivide; "+
-   "if the request is impossible with these tools, say so in reply and return the closest build. Never discuss anything unrelated to modeling in this app.";
+   "Always answer by calling build_model (never plain text). If the request is impossible with these tools, say so in reply and return the closest build. Never discuss anything unrelated to modeling in this app.";
   const TOOL={name:"build_model",description:"Build or edit the model in TopMod with ordered steps.",
     input_schema:{type:"object",properties:{reply:{type:"string",description:"One or two sentences to the user about what you built."},steps:{type:"array",items:{type:"object"}}},required:["reply","steps"]}};
 
@@ -20004,28 +20204,40 @@ body.duo #claudePanel,body.duoBottom #claudePanel{top:calc(var(--duoH,50vh) + 8p
     const devKey=ls.get("tm_claude_devkey");
     if(devKey){
       const msgs=history.slice(-8).concat([{role:"user",content:"SCENE "+JSON.stringify(sc)+"\n\nREQUEST "+prompt}]);
-      const r=await fetch("https://api.anthropic.com/v1/messages",{method:"POST",headers:{"content-type":"application/json","x-api-key":devKey,"anthropic-version":"2023-06-01","anthropic-dangerous-direct-browser-access":"true"},
-        body:JSON.stringify({model:MODEL,max_tokens:2000,system:[{type:"text",text:SYS},{type:"text",text:"CATALOG "+JSON.stringify(cat),cache_control:{type:"ephemeral"}}],tools:[TOOL],tool_choice:{type:"tool",name:"build_model"},messages:msgs})});
+      let r; try{ r=await fetch("https://api.anthropic.com/v1/messages",{method:"POST",headers:{"content-type":"application/json","x-api-key":devKey,"anthropic-version":"2023-06-01","anthropic-dangerous-direct-browser-access":"true"},
+        body:JSON.stringify({model:curModel(),max_tokens:2000,system:[{type:"text",text:SYS},{type:"text",text:"CATALOG "+JSON.stringify(cat),cache_control:{type:"ephemeral"}}],tools:[TOOL],tool_choice:{type:"auto"},messages:msgs})});
+      }catch(netErr){ r=null; }
+      if(!r){   // direct call blocked (some WebViews/previews) → go through amaximal.com with the user's key (passed through, never stored)
+        const r2=await fetch(EP,{method:"POST",headers:{"content-type":"application/json","x-user-key":devKey},
+          body:JSON.stringify({prompt,scene:sc,catalog:cat,history:history.slice(-8),device:deviceId(),build:(window.TM_BUILD||"3.9"),model:curModel()})});
+        const j2=await r2.json().catch(()=>({})); if(!r2.ok) throw new Error(j2.error||("HTTP "+r2.status));
+        return j2.plan||{reply:j2.reply||"",steps:[]};
+      }
       const j=await r.json(); if(!r.ok) throw new Error((j.error&&j.error.message)||("HTTP "+r.status));
-      const tu=(j.content||[]).find(c=>c.type==="tool_use"); return tu?tu.input:{reply:"(no plan)",steps:[]};
+      const tu=(j.content||[]).find(c=>c.type==="tool_use"); const tx=(j.content||[]).filter(c=>c.type==="text").map(c=>c.text).join(" ").trim(); return tu?tu.input:{reply:tx||"I couldn't plan that one — try rephrasing.",steps:[]};
     }
-    const r=await fetch(EP,{method:"POST",headers:{"content-type":"application/json"},
-      body:JSON.stringify({prompt,scene:sc,catalog:cat,history:history.slice(-8),device:deviceId(),account:ls.get("tm_claude_acct")||null,build:(window.TM_BUILD||"3.9")})});
-    const j=await r.json().catch(()=>({})); if(!r.ok) throw new Error(j.error||("HTTP "+r.status));
-    if(typeof j.remaining==="number") setAcct(j.remaining);
-    return j.plan||{reply:j.reply||"",steps:[]};
+    throw new Error("add your Anthropic API key first (🔑 in the Claude window)");
   }
 
   /* ---------- UI ---------- */
   const pnl=$q("#claudePanel"), log=$q("#clLog"), inp=$q("#clIn");
-  function add(cls,txt){ const d=document.createElement("div"); d.className="m "+cls; d.textContent=txt; log.appendChild(d); log.scrollTop=1e9; return d; }
-  function setAcct(rem){ const a=ls.get("tm_claude_acct"); $q("#clAcct").textContent=(a?"SIGNED IN":"GUEST")+(typeof rem==="number"?" · "+rem+" left":""); }
-  function signedIn(){ return !!(ls.get("tm_claude_acct")||ls.get("tm_claude_guest")||ls.get("tm_claude_devkey")); }
+  function add(cls,txt){ const d=document.createElement("div"); d.className="m "+cls; d.textContent=txt; log.appendChild(d); log.scrollTop=1e9; if(/\b(a|u)\b/.test(cls)) addCopy(d,txt); return d; }
+  function copyText(t){ if(navigator.clipboard&&navigator.clipboard.writeText) return navigator.clipboard.writeText(t).catch(()=>fallbackCopy(t)); fallbackCopy(t); return Promise.resolve(); }
+  function fallbackCopy(t){ const ta=document.createElement("textarea"); ta.value=t; ta.style.cssText="position:fixed;left:-9999px;top:0"; document.body.appendChild(ta); ta.select(); try{ document.execCommand("copy"); }catch(e){} ta.remove(); }
+  function addCopy(d,txt){ const b=document.createElement("span"); b.className="clCp"; b.textContent="Copy"; b.title="Copy this message";
+    b.addEventListener("click",e=>{ e.stopPropagation(); copyText(txt).then(()=>{ b.textContent="Copied ✓"; b.classList.add("done"); setTimeout(()=>{ b.textContent="Copy"; b.classList.remove("done"); },1200); }); }); d.appendChild(b); }
+  // keys typed anywhere in the Claude window stay in the Claude window (no modeling shortcuts firing underneath)
+  ["keydown","keyup","keypress"].forEach(t=>pnl.addEventListener(t,e=>{ if(e.key==="Escape"&&t==="keydown"&&e.target===inp&&!inp.value){ hide(); } e.stopPropagation(); }));
+  // copy shortcut on selected chat text uses the browser copy, not the app's geometry copy
+  pnl.addEventListener("copy",e=>e.stopPropagation());
+  function setAcct(rem){ const a=ls.get("tm_claude_acct"), k=ls.get("tm_claude_devkey"); $q("#clAcct").textContent=k?"YOUR KEY":"NO KEY"; $q("#clAcct").title=k?"Using your own Anthropic API key — click to remove":"Click to add your own Anthropic API key"; }
+  function signedIn(){ return !!ls.get("tm_claude_devkey"); }   // own Anthropic key required
   function show(){
+    if(pnl.hidden){ pnl.style.left=""; pnl.style.top=""; pnl.style.right=""; pnl.style.bottom=""; }   // always opens docked on the right (size is remembered)
     pnl.hidden=false; const ok=signedIn(); { const f=document.getElementById("claudeFab"); f&&f.classList.add("on"); }
-    $q("#clSignIn").hidden=ok; $q("#clChat").hidden=!ok; $q("#clChat").style.display=ok?"contents":"none";
-    $q("#clApple").hidden=!(window.webkit&&window.webkit.messageHandlers&&window.webkit.messageHandlers.appleSignIn);
-    setAcct(); if(ok){ if(!log.childElementCount) add("s","Describe a form. Claude builds it with TopMod's own tools — ⌘Z undoes the whole build."); setTimeout(()=>inp.focus(),50); }
+    $q("#clSignIn").hidden=ok; $q("#clChat").hidden=!ok; $q("#clChat").style.display=ok?"flex":"none";
+    $q("#clApple").hidden=true; $q("#clGuest").hidden=true; $q("#clOwnKey").hidden=true; if(!ok) $q("#clKeyBox").style.display="grid";
+    setAcct(); fillModels(); if(ls.get("tm_claude_devkey")&&!ls.get("tm_claude_models")) refreshModels(); if(ok){ if(!log.childElementCount) add("s","Describe a form. Claude builds it with TopMod's own tools — ⌘Z undoes the whole build."); setTimeout(()=>inp.focus(),50); }
     const S=["Ring with 3 twisted handles, gold","Twisted torus vase","Gem-set dodecahedron pendant","Make it smoother","Add a mirror"];
     $q("#clSugg").innerHTML=""; S.forEach(t=>{ const b=document.createElement("button"); b.type="button"; b.textContent=t; b.onclick=()=>{ inp.value=t; send(); }; $q("#clSugg").appendChild(b); });
   }
@@ -20040,14 +20252,36 @@ body.duo #claudePanel,body.duoBottom #claudePanel{top:calc(var(--duoH,50vh) + 8p
       const prog=add("s","Building…");
       const res=await run(plan,(r,ok)=>{ prog.textContent=(ok?"✓ ":"✕ ")+r; });
       prog.textContent=res.filter(x=>!String(x).startsWith("✕")).length+" of "+res.length+" steps · ⌘Z undoes";
-    }catch(e){ th.remove(); add("a err","Couldn't reach Claude: "+e.message); }
+    }catch(e){ th.remove(); add("a err","Couldn't reach Claude: "+(/fetch/i.test(e.message)?"no connection to Claude from this page — check your internet, or use TopMod at amaximal.com/software/topmod":e.message)); }
     busy=false; $q("#clSend").disabled=false;
   }
   $q("#clForm").addEventListener("submit",e=>{ e.preventDefault(); send(); });
+  $q("#clModel").addEventListener("click",e=>{ e.preventDefault(); e.stopPropagation(); openModelMenu(); });
   inp.addEventListener("keydown",e=>{ if(e.key==="Enter"&&!e.shiftKey){ e.preventDefault(); send(); } });
   $q("#clClose").onclick=hide;
   $q("#clNew").onclick=()=>{ history=[]; log.innerHTML=""; show(); };
   $q("#clGuest").onclick=()=>{ ls.set("tm_claude_guest","1"); show(); };
+  $q("#clOwnKey").onclick=()=>{ const b=$q("#clKeyBox"), on=b.style.display==="none"; b.style.display=on?"grid":"none"; if(on) setTimeout(()=>$q("#clKeyIn").focus(),30); };
+  const keyMsg=(t,bad)=>{ let m=$q("#clKeyMsg"); if(!m){ m=document.createElement("p"); m.id="clKeyMsg"; m.style.cssText="margin:0;font-size:12px"; $q("#clKeyBox").appendChild(m); } m.textContent=t||""; m.style.color=bad?"#ff8a9a":"#9fe8c8"; };
+  async function saveKey(){ const btn=$q("#clKeySave"); let k=$q("#clKeyIn").value.replace(/\s+/g,"").replace(/^(export)?ANTHROPIC_API_KEY=/i,"").replace(/^["'`]+|["'`]+$/g,"");
+    if(!k){ keyMsg("Paste your key first",true); return; }
+    if(/…|\.\.\./.test(k)){ $q("#clKeyIn").style.borderColor="#ff7b8f"; keyMsg("That's the shortened key from the list (it has … in it). Create a new key and copy it right away — Anthropic only shows the full key once.",true); return; }
+    if(!/^sk-/.test(k)) keyMsg("Heads up: Anthropic keys usually start with sk-ant- — checking it anyway…");
+    $q("#clKeyIn").style.borderColor=""; btn.disabled=true; btn.textContent="Checking…"; keyMsg("");
+    let st=0; try{ const ac=new AbortController(); const to=setTimeout(()=>ac.abort(),6000);
+      const r=await fetch("https://api.anthropic.com/v1/models",{headers:{"x-api-key":k,"anthropic-version":"2023-06-01","anthropic-dangerous-direct-browser-access":"true"},signal:ac.signal}); clearTimeout(to); st=r.status; }catch(e){ st=-1; }
+    btn.disabled=false; btn.textContent="Save key";
+    if(st===401){ keyMsg("Anthropic rejected that key — check you copied all of it.",true); return; }
+    if(st===403){ keyMsg("That key has no API access — check Billing in the Anthropic console.",true); return; }
+    ls.set("tm_claude_devkey",k); ls.del("tm_claude_models"); $q("#clKeyIn").value=""; refreshModels();
+    keyMsg(st===200?"Key saved ✓":"Key saved (couldn't check it with Anthropic from here — it'll be tested on your first build).");
+    setTimeout(show, st===200?500:1400); }
+  $q("#clKeySave").onclick=saveKey;
+  $q("#clKeyIn").addEventListener("keydown",e=>{ if(e.key==="Enter"){ e.preventDefault(); saveKey(); } });
+  $q("#clAcct").style.cursor="pointer";
+  function keyScreen(){ pnl.hidden=false; $q("#clSignIn").hidden=false; $q("#clChat").hidden=true; $q("#clChat").style.display="none"; $q("#clKeyBox").style.display="grid"; setTimeout(()=>$q("#clKeyIn").focus(),30); }
+  $q("#clAcct").onclick=()=>{ if(ls.get("tm_claude_devkey")){ if(confirm("Remove your Anthropic API key from this device?")){ ls.del("tm_claude_devkey"); show(); } } else keyScreen(); };
+  $q("#clKey").onclick=()=>{ if(ls.get("tm_claude_devkey")){ if(confirm("Remove your Anthropic API key from this device?")){ ls.del("tm_claude_devkey"); show(); } } else keyScreen(); };
   $q("#clApple").onclick=()=>{ try{ window.webkit.messageHandlers.appleSignIn.postMessage({}); }catch(e){} };
   /* native iOS calls this after Sign in with Apple: { user, identityToken } */
   window.__onAppleSignIn=function(r){ if(r&&r.identityToken){ ls.set("tm_claude_acct",r.identityToken); show(); } };
@@ -20058,9 +20292,263 @@ body.duo #claudePanel,body.duoBottom #claudePanel{top:calc(var(--duoH,50vh) + 8p
     const hf=document.getElementById("handFab");
     if(hf&&!document.getElementById("claudeFab")){ const b=document.createElement("button"); b.className="cell"; b.id="claudeFab"; b.title="Ask Claude to build or edit the model"; b.innerHTML="&#10022; Claude"; hf.parentNode.insertBefore(b,hf); b.addEventListener("click",()=>pnl.hidden?show():hide()); }
   })();
+  // drag by the header; size via the corner; position + size remembered
+  (function(){ const hd=pnl.querySelector("header"); let d=null;
+    function clamp(){ const r=pnl.getBoundingClientRect(); let x=r.left, y=r.top; x=Math.max(0,Math.min(innerWidth-80,x)); y=Math.max(0,Math.min(innerHeight-40,y)); pnl.style.left=x+"px"; pnl.style.top=y+"px"; pnl.style.right="auto"; pnl.style.bottom="auto"; }
+    function save(){ try{ const r=pnl.getBoundingClientRect(); localStorage.setItem("tm_claude_win",JSON.stringify({x:r.left,y:r.top,w:r.width,h:r.height})); }catch(e){} }
+    try{ const w=JSON.parse(localStorage.getItem("tm_claude_win")||"null"); if(w&&w.w>200){ pnl.style.width=Math.min(w.w,innerWidth-24)+"px"; pnl.style.height=Math.min(w.h,innerHeight-120)+"px"; } }catch(e){}
+    hd.addEventListener("pointerdown",e=>{ if(e.target.closest("button")) return; const r=pnl.getBoundingClientRect(); d={dx:e.clientX-r.left,dy:e.clientY-r.top}; pnl.style.left=r.left+"px"; pnl.style.top=r.top+"px"; pnl.style.right="auto"; pnl.style.bottom="auto"; hd.setPointerCapture(e.pointerId); e.preventDefault(); });
+    hd.addEventListener("pointermove",e=>{ if(!d) return; pnl.style.left=Math.max(0,Math.min(innerWidth-80,e.clientX-d.dx))+"px"; pnl.style.top=Math.max(0,Math.min(innerHeight-40,e.clientY-d.dy))+"px"; });
+    const up=()=>{ if(!d) return; d=null; save(); }; hd.addEventListener("pointerup",up); hd.addEventListener("pointercancel",up);
+    hd.addEventListener("dblclick",e=>{ if(e.target.closest("button")) return; pnl.style.cssText=""; pnl.hidden=false; try{ localStorage.removeItem("tm_claude_win"); }catch(e){} });
+    try{ new ResizeObserver(()=>{ if(!pnl.hidden) save(); }).observe(pnl); }catch(e){}
+    addEventListener("resize",()=>{ if(pnl.style.left) clamp(); });
+  })();
   window.__claude={catalog,scene,run,show,hide,ask:t=>{ show(); inp.value=t; return send(); }};
 })();
 </script>
 
+<style>
+/* ---------- Post to Gallery ---------- */
+#galBrowse{position:fixed;inset:0;z-index:100012;display:grid;place-items:center;background:rgba(3,6,12,.6);backdrop-filter:blur(6px);-webkit-backdrop-filter:blur(6px)}
+#galBrowse[hidden]{display:none}
+#galBrowse .card{width:min(860px,calc(100vw - 20px));height:min(640px,calc(100vh - 30px));display:flex;flex-direction:column;background:#0c1018;border:1px solid rgba(0,229,255,.35);border-radius:16px;color:#e6edf3;font:13px/1.45 var(--ui,system-ui,sans-serif);overflow:hidden}
+#galBrowse header{display:flex;align-items:center;gap:10px;padding:12px 14px;border-bottom:1px solid rgba(255,255,255,.08)}
+#galBrowse header b{font:800 11px var(--mono,monospace);letter-spacing:.14em;color:#00E5FF;flex:1}
+#galBrowse header a{color:#8aa0b4;font-size:12px}
+#galBrowse header button{background:none;border:0;color:#8aa0b4;font-size:18px;cursor:pointer}
+#gbGrid{flex:1;overflow:auto;padding:12px;display:grid;grid-template-columns:repeat(auto-fill,minmax(170px,1fr));gap:10px;align-content:start}
+#gbGrid .it{background:#121822;border:1px solid rgba(255,255,255,.08);border-radius:12px;overflow:hidden;cursor:pointer;text-align:left;color:inherit;padding:0;font:inherit}
+#gbGrid .it:hover{border-color:rgba(0,229,255,.5)}
+#gbGrid img{display:block;width:100%;aspect-ratio:4/3;object-fit:cover;background:#05070b}
+#gbGrid .t{padding:7px 9px}#gbGrid .t b{display:block;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;font-size:12.5px}#gbGrid .t span{color:#8aa0b4;font-size:11px}
+#gbGrid .empty{grid-column:1/-1;text-align:center;color:#8aa0b4;padding:40px 0}
+#gbDetail{border-top:1px solid rgba(255,255,255,.08);padding:12px 14px;display:flex;gap:12px;align-items:center}
+#gbDetail[hidden]{display:none}
+#gbDetail img{width:96px;height:72px;object-fit:cover;border-radius:8px}
+#gbDetail .tx{flex:1;min-width:0}#gbDetail .tx b{display:block}#gbDetail .tx p{margin:2px 0 0;color:#aebdcb;font-size:12px;max-height:3.2em;overflow:hidden}
+#gbDetail button{border:0;border-radius:10px;padding:10px 14px;font-weight:800;cursor:pointer;background:#00E5FF;color:#04161a}
+#galPanel{position:fixed;inset:0;z-index:100012;display:grid;place-items:center;background:rgba(3,6,12,.6);backdrop-filter:blur(6px);-webkit-backdrop-filter:blur(6px)}
+#galPanel[hidden]{display:none}
+#galPanel .card{width:min(440px,calc(100vw - 24px));max-height:calc(100vh - 40px);overflow:auto;background:#0c1018;border:1px solid rgba(0,229,255,.35);border-radius:16px;color:#e6edf3;font:13px/1.45 var(--ui,system-ui,sans-serif);box-shadow:0 24px 70px rgba(0,0,0,.6)}
+#galPanel header{display:flex;align-items:center;padding:12px 14px;border-bottom:1px solid rgba(255,255,255,.08)}
+#galPanel header b{font:800 11px var(--mono,monospace);letter-spacing:.14em;color:#00E5FF;flex:1}
+#galPanel header button{background:none;border:0;color:#8aa0b4;font-size:18px;cursor:pointer}
+#galPanel .body{display:grid;gap:10px;padding:14px}
+#galPrev{width:100%;aspect-ratio:4/3;object-fit:cover;border-radius:10px;background:#05070b;border:1px solid rgba(255,255,255,.08)}
+#galPanel label{display:grid;gap:4px;font:600 10px var(--mono,monospace);letter-spacing:.1em;color:#8aa0b4;text-transform:uppercase}
+#galPanel input[type=text],#galPanel textarea{background:#070a10;color:#e6edf3;border:1px solid rgba(255,255,255,.14);border-radius:9px;padding:9px 10px;font:13px var(--ui,system-ui,sans-serif);text-transform:none;letter-spacing:0}
+#galPanel textarea{resize:vertical;min-height:54px}
+#galPanel .agree{display:flex;gap:8px;align-items:flex-start;font:12px var(--ui,system-ui,sans-serif);color:#aebdcb;text-transform:none;letter-spacing:0}
+#galPanel .row{display:flex;gap:8px;justify-content:flex-end;align-items:center}
+#galPanel .row span{flex:1;color:#8aa0b4;font-size:12px}
+#galPanel .btn{border:0;border-radius:10px;padding:10px 16px;font-weight:800;cursor:pointer;background:#00E5FF;color:#04161a}
+#galPanel .btn.ghost{background:transparent;color:#8aa0b4;border:1px solid rgba(255,255,255,.15)}
+#galPanel .btn:disabled{opacity:.5}
+#galPanel .msg{padding:10px 12px;border-radius:10px;background:#0b2a30;color:#bff6ff}
+#galPanel .msg.err{background:#3a1220;color:#ffc2cf}
+</style>
+<div id="galBrowse" hidden role="dialog" aria-label="TopMod Gallery">
+  <div class="card"><header><b>&#9672; TOPMOD GALLERY</b><a href="https://amaximal.com/topmod3d/gallery/" target="_blank" rel="noopener">amaximal.com</a><button id="gbClose" title="Close">&times;</button></header>
+  <div id="gbGrid"><div class="empty">Loading…</div></div>
+  <div id="gbDetail" hidden><img alt=""><div class="tx"><b></b><span class="by"></span><p></p></div><button id="gbOpen">Open &amp; remix</button></div></div>
+</div>
+<div id="galPanel" hidden role="dialog" aria-label="Post to Gallery">
+  <div class="card">
+    <header><b>&#9672; POST TO GALLERY</b><button id="galClose" title="Close">&times;</button></header>
+    <div class="body">
+      <img id="galPrev" alt="Render preview">
+      <label>Title<input type="text" id="galTitle" maxlength="80" placeholder="Twisted genus-3 ring"></label>
+      <label>Your name<input type="text" id="galAuthor" maxlength="40" placeholder="Shown on the gallery"></label>
+      <label>Description<textarea id="galNote" maxlength="400" placeholder="How you made it — tools, modifiers, inspiration"></textarea></label>
+      <label class="agree"><input type="checkbox" id="galAgree"> <span>This is my own work and suitable for everyone. Posts appear right away on <b>amaximal.com/topmod3d/gallery</b> and in Browse Gallery; anyone can open and remix the model.</span></label>
+      <div id="galMsg" hidden class="msg"></div>
+      <div class="row"><span id="galInfo"></span><button class="btn ghost" id="galCancel">Cancel</button><button class="btn" id="galSend">Post</button></div>
+    </div>
+  </div>
+</div>
+<script>
+/* Post to Gallery: render + live model + .topmod project → amaximal.com, held for approval.
+   Also opens gallery posts: ?gallery=<id> loads that post's project into the app. */
+(function(){
+  const C=window.__tmCore; if(!C) return;
+  const API="https://amaximal.com/api/gallery/", PAGE="https://amaximal.com/topmod3d/gallery/";
+  const $g=s=>document.getElementById(s);
+  const ls={get(k){try{return localStorage.getItem(k)}catch(e){return null}},set(k,v){try{localStorage.setItem(k,v)}catch(e){}}};
+  let shot=null;
+
+  function render(){ // square-ish 1200×900 JPEG on the scene background
+    const R=C.renderer; R.render(C.scene,C.camera); const src=R.domElement;
+    const W=1200, H=900, c=document.createElement("canvas"); c.width=W; c.height=H; const g=c.getContext("2d");
+    const bg=getComputedStyle(document.getElementById("view")||document.body).backgroundColor; g.fillStyle=(bg&&bg!=="rgba(0, 0, 0, 0)")?bg:"#0a0d14"; g.fillRect(0,0,W,H);
+    const s=Math.max(W/src.width,H/src.height), w=src.width*s, h=src.height*s; g.drawImage(src,(W-w)/2,(H-h)/2,w,h);
+    let q=0.86, d=c.toDataURL("image/jpeg",q); while(d.length>1.15e6&&q>0.4){ q-=0.12; d=c.toDataURL("image/jpeg",q); } return d;
+  }
+  const r4=x=>Math.round(x*1e4)/1e4;
+  function meshPayload(){ let faces=0, genus=null; const out=[];
+    C.layers.forEach((L,i)=>{ if(L.visible===false) return; let M; try{ M=C.layerEval(L); }catch(e){ M=L.mesh; } if(!M||!M.faces.length) return;
+      faces+=M.faces.length; if(i===C.activeLayer){ try{ genus=TM.eulerInfo(M).genus; }catch(e){} }
+      out.push({name:L.name, v:M.verts.map(p=>[r4(p[0]),r4(p[1]),r4(p[2])]), f:M.faces}); });
+    return {mesh:{layers:out}, faces, genus}; }
+  function msg(t,err){ const m=$g("galMsg"); m.hidden=!t; m.textContent=t||""; m.classList.toggle("err",!!err); }
+  function open(){
+    try{ shot=render(); }catch(e){ C.toast("Couldn't capture the view",true); return; }
+    $g("galPrev").src=shot; $g("galAuthor").value=ls.get("tm_gal_author")||""; $g("galTitle").value=""; $g("galNote").value=""; msg("");
+    const L=C.layers[C.activeLayer]; $g("galTitle").placeholder=(L&&L.name&&L.name!=="Cube")?L.name:"Twisted genus-3 ring";
+    let f=0; try{ C.layers.forEach(L=>{ if(L.visible!==false) f+=C.layerEval(L).faces.length; }); }catch(e){}
+    $g("galInfo").textContent=f.toLocaleString()+" faces"; $g("galSend").disabled=false; $g("galSend").textContent="Post"; $g("galPanel").hidden=false;
+    setTimeout(()=>$g("galTitle").focus(),50);
+  }
+  function close(){ $g("galPanel").hidden=true; }
+  async function send(){
+    const title=$g("galTitle").value.trim()||$g("galTitle").placeholder; if(!$g("galAgree").checked){ msg("Please confirm the checkbox first.",true); return; }
+    const b=$g("galSend"); b.disabled=true; b.textContent="Posting…"; msg("");
+    try{
+      const P=meshPayload(); let project=""; try{ project=C.serializeProject(); }catch(e){}
+      let dev=ls.get("tm_claude_dev"); if(!dev){ dev="d_"+Math.random().toString(36).slice(2); ls.set("tm_claude_dev",dev); }
+      ls.set("tm_gal_author",$g("galAuthor").value.trim());
+      const r=await fetch(API+"submit",{method:"POST",headers:{"content-type":"application/json"},body:JSON.stringify({title,author:$g("galAuthor").value.trim(),note:$g("galNote").value.trim(),image:shot,mesh:P.mesh,faces:P.faces,genus:P.genus,project,device:dev})});
+      const j=await r.json().catch(()=>({}));
+      if(!r.ok) throw new Error(j.error||("HTTP "+r.status));
+      msg("Posted! It's live in the gallery now.");
+      b.textContent="Posted ✓";
+    }catch(e){ msg("Couldn't post: "+e.message,true); b.disabled=false; b.textContent="Post"; }
+  }
+  $g("galClose").onclick=close; $g("galCancel").onclick=close; $g("galSend").onclick=send;
+  $g("galPanel").addEventListener("click",e=>{ if(e.target.id==="galPanel") close(); });
+
+  // menu entries: File ▸ Post to Gallery…, File ▸ Browse Gallery
+  (function(){
+    const anchor=document.querySelector('#menubar [data-act="screenshot"]'); if(!anchor||document.getElementById("miGalPost")) return;
+    const a=document.createElement("div"); a.className="mi"; a.id="miGalPost"; a.innerHTML="&#9672; Post to Gallery&hellip;";
+    const b=document.createElement("div"); b.className="mi"; b.id="miGalBrowse"; b.innerHTML="&#9672; Browse Gallery&hellip;";
+    anchor.parentNode.insertBefore(a,anchor.nextSibling); anchor.parentNode.insertBefore(b,a.nextSibling);
+    const shut=()=>{ try{ document.querySelectorAll(".menu.open,.mtitle.open").forEach(m=>m.classList.remove("open")); }catch(e){} };
+    a.addEventListener("click",e=>{ e.stopPropagation(); shut(); open(); });
+    b.addEventListener("click",e=>{ e.stopPropagation(); shut(); browse(); });
+  })();
+
+  // ?gallery=<id> → open that post's project (remix)
+  (function(){ const id=new URLSearchParams(location.search).get("gallery"); if(!id||!/^[a-z0-9]{6,24}$/.test(id)) return;
+    const go=()=>fetch(API+"proj/"+id).then(r=>{ if(!r.ok) throw 0; return r.text(); }).then(t=>{ try{ window.__demo&&window.__demo.stop&&window.__demo.stop(); }catch(e){}
+      C.loadProject(t,"gallery-"+id); C.toast("Opened from the TopMod gallery — it's yours to remix"); }).catch(()=>C.toast("Couldn't open that gallery post",true));
+    if(document.readyState==="complete") setTimeout(go,1500); else addEventListener("load",()=>setTimeout(go,1500)); })();
+
+  // in-app gallery browser: grid of approved posts → open any one (replaces the scene; Undo restores)
+  let gbSel=null;
+  function esc(t){ return String(t||"").replace(/[&<>"]/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;"}[c])); }
+  function browse(){ $g("galBrowse").hidden=false; $g("gbDetail").hidden=true; gbSel=null; const G=$g("gbGrid"); G.innerHTML='<div class="empty">Loading…</div>';
+    fetch(API+"list").then(r=>r.json()).then(j=>{ const it=j.items||[]; G.innerHTML=it.length?"":'<div class="empty">No posts yet — be the first with File ▸ Post to Gallery.</div>';
+      it.forEach(m=>{ const c=document.createElement("button"); c.className="it"; c.innerHTML='<img loading="lazy" alt="" src="'+API+"img/"+m.id+'"><div class="t"><b>'+esc(m.title)+'</b><span>'+esc(m.author)+'</span></div>';
+        c.onclick=()=>{ gbSel=m; const D=$g("gbDetail"); D.hidden=false; D.querySelector("img").src=API+"img/"+m.id; D.querySelector("b").textContent=m.title;
+          D.querySelector(".by").textContent="by "+m.author+(m.genus!=null?" · genus "+m.genus:""); D.querySelector("p").textContent=m.note||""; };
+        G.appendChild(c); }); }).catch(()=>{ G.innerHTML='<div class="empty">Couldn\'t reach the gallery — check your connection.</div>'; }); }
+  $g("gbClose").onclick=()=>{ $g("galBrowse").hidden=true; };
+  $g("galBrowse").addEventListener("click",e=>{ if(e.target.id==="galBrowse") $g("galBrowse").hidden=true; });
+  $g("gbOpen").onclick=()=>{ if(!gbSel) return; const m=gbSel, btn=$g("gbOpen"); btn.disabled=true; btn.textContent="Opening…";
+    fetch(API+"proj/"+m.id).then(r=>{ if(!r.ok) throw 0; return r.text(); }).then(t=>{ try{ window.__demo&&window.__demo.stop&&window.__demo.stop(); }catch(e){}
+      C.snapshot&&C.snapshot(); C.loadProject(t,m.title); $g("galBrowse").hidden=true; C.toast("Opened “"+m.title+"” by "+m.author+" — Undo brings back your scene"); })
+      .catch(()=>C.toast("Couldn't open that post",true)).finally(()=>{ btn.disabled=false; btn.innerHTML="Open &amp; remix"; }); };
+  window.__gallery={open,close,render,meshPayload,browse};
+})();
+</script>
+
+<script>
+/* Tiger+ — Chamfer & Fillet for polygon meshes (live modifiers).
+   Every face is inset at its corners; each edge becomes a strip (1 row = chamfer, N rows on a circular-ish arc = fillet);
+   each vertex becomes a corner patch. Arcs are quadratic Béziers with the original corner as control point, so the
+   rounded strips stay tangent to both neighbouring faces. Closed meshes bevel fully; open edges are left square. */
+(function(){
+  const C=window.__tmCore; if(!C||typeof TM==="undefined") return;
+  const sub=(a,b)=>[a[0]-b[0],a[1]-b[1],a[2]-b[2]], add=(a,b)=>[a[0]+b[0],a[1]+b[1],a[2]+b[2]], mul=(a,s)=>[a[0]*s,a[1]*s,a[2]*s];
+  const len=a=>Math.hypot(a[0],a[1],a[2]), nrm=a=>{ const l=len(a)||1; return [a[0]/l,a[1]/l,a[2]/l]; }, dot=(a,b)=>a[0]*b[0]+a[1]*b[1]+a[2]*b[2];
+  const bez=(p0,c,p1,t)=>{ const u=1-t; return [u*u*p0[0]+2*u*t*c[0]+t*t*p1[0], u*u*p0[1]+2*u*t*c[1]+t*t*p1[1], u*u*p0[2]+2*u*t*c[2]+t*t*p1[2]]; };
+
+  function bevelMesh(m,o){
+    o=o||{}; const n=Math.max(1,Math.min(12,(o.segments|0)||1)), V=m.verts, F=m.faces;
+    if(!F.length) return m;
+    // average edge length → absolute width
+    let el=0, ec=0; F.forEach(f=>{ for(let i=0;i<f.length;i++){ el+=len(sub(V[f[i]],V[f[(i+1)%f.length]])); ec++; } });
+    const d=(o.width==null?0.12:o.width)*(el/ec);
+    const out=[], faces=[]; const P=new Map();               // "f,i" -> new vertex index of face f's corner i
+    const pv=p=>{ out.push(p); return out.length-1; };
+    // 1. inset corner points (parallelogram offset keeps both adjacent edges at distance d)
+    F.forEach((f,fi)=>{ const k=f.length;
+      for(let i=0;i<k;i++){ const v=V[f[i]], u=V[f[(i+k-1)%k]], w=V[f[(i+1)%k]];
+        const a=sub(u,v), b=sub(w,v), la=len(a), lb=len(b), e1=mul(a,1/(la||1)), e2=mul(b,1/(lb||1));
+        const sn=Math.sqrt(Math.max(1e-6,1-dot(e1,e2)**2)); let s=d/sn; s=Math.min(s,0.45*la,0.45*lb);
+        P.set(fi+","+i,pv(add(v,add(mul(e1,s),mul(e2,s))))); }
+      faces.push(f.map((_,i)=>P.get(fi+","+i))); });
+    // half-edge map
+    const HE=new Map(); F.forEach((f,fi)=>{ for(let i=0;i<f.length;i++) HE.set(f[i]+","+f[(i+1)%f.length],[fi,i]); });
+    const corner=(fi,vi)=>{ const f=F[fi]; return P.get(fi+","+f.indexOf(vi)); };
+    // arc points cache per (vertex, faceA, faceB) so strips and corner patches share vertices
+    const arcCache=new Map();
+    function arc(v,fa,fb){ // indices from corner(fa,v) to corner(fb,v), n+1 long
+      const key=v+":"+fa+":"+fb, rk=v+":"+fb+":"+fa;
+      if(arcCache.has(key)) return arcCache.get(key); if(arcCache.has(rk)) return arcCache.get(rk).slice().reverse();
+      const A=corner(fa,v), B=corner(fb,v), r=[A];
+      let ctl=V[v]; if(n>1){ // control point: on the shared edge, level with the inset corners (keeps the round tangent to both faces)
+        const fA=F[fa], j=fA.indexOf(v), cand=[fA[(j+1)%fA.length],fA[(j+fA.length-1)%fA.length]], fB=F[fb];
+        const w=cand.find(x=>fB.includes(x)); if(w!=null){ const e=nrm(sub(V[w],V[v])), t=(dot(sub(out[A],V[v]),e)+dot(sub(out[B],V[v]),e))/2; ctl=add(V[v],mul(e,t)); } }
+      for(let k=1;k<n;k++) r.push(pv(bez(out[A],ctl,out[B],k/n))); r.push(B); arcCache.set(key,r); return r; }
+    // 2. edge strips
+    const done=new Set();
+    F.forEach((f,fi)=>{ for(let i=0;i<f.length;i++){ const a=f[i], b=f[(i+1)%f.length], tw=HE.get(b+","+a);
+      if(!tw){ faces.push([corner(fi,b),corner(fi,a),pv(V[a].slice()),pv(V[b].slice())]); continue; }  // open edge: square it off
+      const key=Math.min(a,b)+","+Math.max(a,b); if(done.has(key)) continue; done.add(key);
+      const gi=tw[0], Aa=arc(a,fi,gi), Bb=arc(b,fi,gi);
+      for(let k=0;k<n;k++) faces.push([Bb[k],Aa[k],Aa[k+1],Bb[k+1]]); } });
+    // 3. corner patches
+    const visited=new Set();
+    F.forEach((f,fi)=>{ f.forEach((v,ci)=>{ const vk=v+":"+fi; if(visited.has(vk)) return;
+      // walk around v: from face f go to the face that owns edge v→prev(v in f)
+      const ring=[]; let cur=fi, guard=0, open=false;
+      do{ visited.add(v+":"+cur); const cf=F[cur], k=cf.length, j=cf.indexOf(v), u=cf[(j+k-1)%k], nx=HE.get(v+","+u);
+        if(!nx){ open=true; break; } ring.push([cur,nx[0]]); cur=nx[0]; }while(cur!==fi && ++guard<64);
+      if(open||ring.length<3) return;   // boundary vertex: leave as is
+      const loop=[]; ring.forEach(([fa,fb])=>{ const a=arc(v,fa,fb); for(let k=0;k<a.length-1;k++) loop.push(a[k]); });
+      if(n===1){ faces.push(loop); return; }
+      // rounded corner: centre of a quadratic triangular patch (corner weight 2/3) + fan
+      let cx=[0,0,0]; ring.forEach(([fa])=>{ cx=add(cx,out[corner(fa,v)]); }); cx=mul(cx,1/ring.length);
+      let mid=[0,0,0]; loop.forEach(i=>{ mid=add(mid,out[i]); }); mid=mul(mid,1/loop.length); const c=pv(add(mul(cx,0.25),mul(add(mul(mid,0.5),mul(V[v],0.5)),0.75)));
+      for(let k=0;k<loop.length;k++) faces.push([loop[k],loop[(k+1)%loop.length],c]);
+    }); });
+    return {verts:out, faces};
+  }
+  TM.bevelMesh=bevelMesh;
+
+  // live modifiers + toolbar ops
+  C.MODS.chamfer={label:"Chamfer (Tiger+)", grp:"Tiger+", params:[{k:"width",l:"Width",min:0.01,max:0.45,step:0.01,def:0.12}],
+    apply:(m,p)=>bevelMesh(m,{width:p.width,segments:1})};
+  C.MODS.fillet={label:"Fillet (Tiger+)", grp:"Tiger+", params:[{k:"width",l:"Radius",min:0.01,max:0.45,step:0.01,def:0.15},{k:"segments",l:"Segments",min:2,max:10,step:1,def:4}],
+    apply:(m,p)=>bevelMesh(m,{width:p.width,segments:Math.round(p.segments)})};
+  C.OP_AS_MOD.chamfer="chamfer"; C.OP_AS_MOD.fillet="fillet";
+})();
+</script>
+
+<script>
+/* slider fill: keep --p (value %) in sync for every range input, including values set from code */
+(function(){ function upd(el){ const mn=+el.min||0, mx=(el.max===""?100:+el.max), v=+el.value; const p=mx>mn?Math.max(0,Math.min(100,(v-mn)/(mx-mn)*100)):0; const s=p.toFixed(1)+"%"; if(el.__p!==s){ el.__p=s; el.style.setProperty("--p",s); } }
+  const all=()=>document.querySelectorAll("input[type=range]");
+  document.addEventListener("input",e=>{ if(e.target&&e.target.type==="range") upd(e.target); },true);
+  document.addEventListener("change",e=>{ if(e.target&&e.target.type==="range") upd(e.target); },true);
+  setInterval(()=>{ all().forEach(el=>{ if(el.offsetParent!==null) upd(el); }); },250);
+  all().forEach(upd); })();
+</script>
+<svg width="0" height="0" style="position:absolute;width:0;height:0" aria-hidden="true"><defs><filter id="tmMonoF" color-interpolation-filters="sRGB" x="0" y="0" width="100%" height="100%">
+<feColorMatrix in="SourceGraphic" type="matrix" result="g" values="-0.2126 -0.7152 -0.0722 0 1  -0.2126 -0.7152 -0.0722 0 1  -0.2126 -0.7152 -0.0722 0 1  0 0 0 1 0"/>
+<feColorMatrix in="SourceGraphic" type="matrix" result="k" values="1 0 0 0 0  0 1 0 0 0  0 0 1 0 0  2.2 -4.4 2.2 0 -2.6"/>
+<feComposite in="k" in2="SourceAlpha" operator="in" result="k2"/>
+<feMerge><feMergeNode in="g"/><feMergeNode in="k2"/></feMerge></filter></defs></svg>
+<script>/* Mono mode: models go neutral grey (no colour on models); other modes restore the original material colour */
+(function(){ let saved=null;
+  window.__monoModel=function(on){ try{ const S=window.__tmCore&&window.__tmCore.scene; if(!S) { setTimeout(()=>window.__monoModel(on),400); return; }
+    S.traverse(o=>{ const mats=o.isMesh?(Array.isArray(o.material)?o.material:[o.material]):[]; mats.forEach(m=>{ if(!m||!m.color||m.vertexColors||m.transparent||m.depthTest===false||o.renderOrder>0) return;
+      if(on){ if(m.userData.__monoOrig==null){ m.userData.__monoOrig=m.color.getHex(); } m.color.setHex(0xcfd1d4); }
+      else if(m.userData.__monoOrig!=null){ m.color.setHex(m.userData.__monoOrig); delete m.userData.__monoOrig; } }); }); }catch(e){} };
+  // new meshes created while in Mono get the grey too
+  setInterval(()=>{ if(document.body.classList.contains("uiMono")) window.__monoModel(true); },700);
+})();</script>
 </body>
 </html>
