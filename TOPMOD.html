@@ -20550,11 +20550,14 @@ body.duo #claudePanel,body.duoBottom #claudePanel{top:calc(var(--duoH,50vh) + 8p
 <script>/* Mono mode: models go neutral grey (no colour on models); other modes restore the original material colour */
 (function(){ let saved=null;
   window.__monoModel=function(on){ try{ const S=window.__tmCore&&window.__tmCore.scene; if(!S) { setTimeout(()=>window.__monoModel(on),400); return; }
-    S.traverse(o=>{ const mats=o.isMesh?(Array.isArray(o.material)?o.material:[o.material]):[]; mats.forEach(m=>{ if(!m||!m.color||m.vertexColors||m.transparent||m.depthTest===false||o.renderOrder>0) return;
+    S.traverse(o=>{ const mats=o.isMesh?(Array.isArray(o.material)?o.material:[o.material]):[]; mats.forEach(m=>{ if(!m||!m.color||m.depthTest===false||o.renderOrder>0||(m.transparent&&!(m.transmission>0)&&m.opacity<0.9)) return; if(m.vertexColors){ if(on&&m.userData.__monoVC==null){ m.userData.__monoVC=1; m.vertexColors=false; m.needsUpdate=true; } }
       if(on){ if(m.userData.__monoOrig==null){ m.userData.__monoOrig=m.color.getHex(); } m.color.set(window.__monoAccentColor||"#00E5FF"); }
-      else if(m.userData.__monoOrig!=null){ m.color.setHex(m.userData.__monoOrig); delete m.userData.__monoOrig; } }); }); }catch(e){} };
+      else if(m.userData.__monoOrig!=null){ m.color.setHex(m.userData.__monoOrig); delete m.userData.__monoOrig; if(m.userData.__monoVC){ m.vertexColors=true; m.needsUpdate=true; delete m.userData.__monoVC; } } }); }); }catch(e){} };
   // new meshes created while in Mono get the grey too
-  setInterval(()=>{ if(document.body.classList.contains("uiMono")||document.body.classList.contains("uiMonoDark")) window.__monoModel(true); },700);
+  // re-apply right before every frame so meshes rebuilt while dragging a slider never flash back to their own colour
+  (function hook(){ const R=window.__tmCore&&window.__tmCore.renderer; if(!R){ setTimeout(hook,400); return; } if(R.__monoHooked) return; R.__monoHooked=true;
+    const orig=R.render.bind(R); let last=0;
+    R.render=function(sc,cam){ if(document.body.classList.contains("uiMono")||document.body.classList.contains("uiMonoDark")){ const t=performance.now(); if(t-last>30){ last=t; window.__monoModel(true); } } return orig(sc,cam); }; })();
   // Mono accent colour (sliders, icon tint and the model itself): user-pickable, starts TopMod cyan; picker opens centre screen
   const isMono=()=>document.body.classList.contains("uiMono")||document.body.classList.contains("uiMonoDark");
   function setAccent(c){ window.__monoAccentColor=c; document.querySelectorAll("feFlood.tmAccent").forEach(f=>f.setAttribute("flood-color",c)); const sw=document.getElementById("miMonoSw"); if(sw) sw.style.background=c;
