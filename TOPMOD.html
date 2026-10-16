@@ -911,16 +911,26 @@ body.uiGrey #toolbar img.ticon,body.uiGrey #toolbar svg,body.uiGrey #status #lig
 body.uiGrey,body.uiGrey #frame,body.uiGrey #main{background:#3b3f45!important}
 /* top bar: no Controller / Send model / Generators */
 /* Mono: white / black / grey chrome; the only colour is magenta in the sliders (an SVG filter greys + inverts every pixel except magenta) */
-body.uiMono #menubar>:not(#wordmark),body.uiMono #toolbar,body.uiMono #toolpop,body.uiMono #layersPanel,body.uiMono #modPanel,body.uiMono #status,body.uiMono .mlist,body.uiMono #fabNode,body.uiMono #console,body.uiMono #tourCard,body.uiMono #creditCard,body.uiMono #handPrim,body.uiMono #toast,body.uiMono #amxDemo,body.uiMono #navcube>button,body.uiMono #tbScroll,body.uiMono #mbScroll,body.uiMono #ncCanvas,body.uiMono #claudePanel{filter:url(#tmMonoF)}
+body.uiMono #menubar>:not(#wordmark),body.uiMono #toolpop,body.uiMono #layersPanel,body.uiMono #modPanel,body.uiMono #status,body.uiMono .mlist,body.uiMono #fabNode,body.uiMono #console,body.uiMono #tourCard,body.uiMono #creditCard,body.uiMono #handPrim,body.uiMono #toast,body.uiMono #amxDemo,body.uiMono #navcube>button,body.uiMono #tbScroll,body.uiMono #mbScroll,body.uiMono #ncCanvas,body.uiMono #claudePanel{filter:url(#tmMonoF)}
 body.uiMonoDark #menubar>:not(#wordmark),body.uiMonoDark #toolbar,body.uiMonoDark #toolpop,body.uiMonoDark #layersPanel,body.uiMonoDark #modPanel,body.uiMonoDark #status,body.uiMonoDark .mlist,body.uiMonoDark #fabNode,body.uiMonoDark #console,body.uiMonoDark #tourCard,body.uiMonoDark #creditCard,body.uiMonoDark #handPrim,body.uiMonoDark #toast,body.uiMonoDark #amxDemo,body.uiMonoDark #navcube>button,body.uiMonoDark #tbScroll,body.uiMonoDark #mbScroll,body.uiMonoDark #ncCanvas,body.uiMonoDark #claudePanel{filter:url(#tmMonoDF)}
-body.uiMono #toolbar img.ticon,body.uiMono #toolbar svg,body.uiMono #status #lightBtn{filter:url(#tmMonoIconL)}
 body.uiMonoDark #toolbar img.ticon,body.uiMonoDark #toolbar svg,body.uiMonoDark #status #lightBtn{filter:url(#tmMonoIconD)}
 body.uiMono,body.uiMono #frame,body.uiMono #main{background:#e9eaec!important}
 body.uiMonoDark,body.uiMonoDark #frame,body.uiMonoDark #main{background:#111214!important}
 body.uiMono #tbDockBar,body.uiMono #opDockBar,body.uiMono #ocBar,body.uiMonoDark #tbDockBar,body.uiMonoDark #opDockBar,body.uiMonoDark #ocBar{background:transparent!important}
 html body:not(.uiMono) input[type=range]{--sl:var(--tmAcc,#FF8C22)}
+/* Light theme tool rail: real light styling (no filter) so the tool icons keep their own orange */
+html body.uiMono #toolbar{filter:none!important;background:#f3f4f5!important;border-color:#d6d8db!important;color:#222}
+html body.uiMono #toolbar .tgrp{background:#eceef0!important;border-color:#d6d9dd!important}
+html body.uiMono #toolbar .tgrp::before{color:#6b7480!important}
+html body.uiMono #toolbar button.tb{background:#dfe2e6!important;border-color:#c9cdd3!important;box-shadow:none!important}
+html body.uiMono #toolbar button.tb:hover{background:#d3d7dc!important}
+html body.uiMono #toolbar button.tb.on{background:rgba(0,145,173,.16)!important;border-color:var(--tmAcc,#0091AD)!important}
+html body.uiMono #toolbar button.tb .tlbl{color:#3a4048!important}
+html body.uiMono #toolbar button.tb:hover .tlbl,html body.uiMono #toolbar button.tb.on .tlbl{color:var(--tmAcc,#0091AD)!important}
+html body.uiMono #toolbar #tbHead,html body.uiMono #toolbar #tbTitle,html body.uiMono #toolbar #tbTab,html body.uiMono #toolbar #tbPin,html body.uiMono #toolbar #tbGrip{color:#333!important;background:transparent!important;border-color:#d6d8db!important}
+/* custom tool colour only when the user picks one (default = the icons' own orange) */
+body.toolTint #toolbar img.ticon,body.toolTint #status #lightBtn{filter:url(#tmDarkIcon)}
 body:not(.uiMono):not(.uiMonoDark):not(.uiLight):not(.uiGrey):not(.uiNavy) #menubar>:not(#wordmark),body:not(.uiMono):not(.uiMonoDark):not(.uiLight):not(.uiGrey):not(.uiNavy) #toolbar,body:not(.uiMono):not(.uiMonoDark):not(.uiLight):not(.uiGrey):not(.uiNavy) #toolpop,body:not(.uiMono):not(.uiMonoDark):not(.uiLight):not(.uiGrey):not(.uiNavy) #layersPanel,body:not(.uiMono):not(.uiMonoDark):not(.uiLight):not(.uiGrey):not(.uiNavy) #modPanel,body:not(.uiMono):not(.uiMonoDark):not(.uiLight):not(.uiGrey):not(.uiNavy) #status,body:not(.uiMono):not(.uiMonoDark):not(.uiLight):not(.uiGrey):not(.uiNavy) .mlist,body:not(.uiMono):not(.uiMonoDark):not(.uiLight):not(.uiGrey):not(.uiNavy) #fabNode,body:not(.uiMono):not(.uiMonoDark):not(.uiLight):not(.uiGrey):not(.uiNavy) #console,body:not(.uiMono):not(.uiMonoDark):not(.uiLight):not(.uiGrey):not(.uiNavy) #tourCard,body:not(.uiMono):not(.uiMonoDark):not(.uiLight):not(.uiGrey):not(.uiNavy) #creditCard,body:not(.uiMono):not(.uiMonoDark):not(.uiLight):not(.uiGrey):not(.uiNavy) #handPrim,body:not(.uiMono):not(.uiMonoDark):not(.uiLight):not(.uiGrey):not(.uiNavy) #toast,body:not(.uiMono):not(.uiMonoDark):not(.uiLight):not(.uiGrey):not(.uiNavy) #amxDemo,body:not(.uiMono):not(.uiMonoDark):not(.uiLight):not(.uiGrey):not(.uiNavy) #navcube>button,body:not(.uiMono):not(.uiMonoDark):not(.uiLight):not(.uiGrey):not(.uiNavy) #tbScroll,body:not(.uiMono):not(.uiMonoDark):not(.uiLight):not(.uiGrey):not(.uiNavy) #mbScroll,body:not(.uiMono):not(.uiMonoDark):not(.uiLight):not(.uiGrey):not(.uiNavy) #ncCanvas,body:not(.uiMono):not(.uiMonoDark):not(.uiLight):not(.uiGrey):not(.uiNavy) #claudePanel{filter:url(#tmDarkF)}
-body:not(.uiMono):not(.uiMonoDark):not(.uiLight):not(.uiGrey):not(.uiNavy) #toolbar img.ticon,body:not(.uiMono):not(.uiMonoDark):not(.uiLight):not(.uiGrey):not(.uiNavy) #toolbar svg,body:not(.uiMono):not(.uiMonoDark):not(.uiLight):not(.uiGrey):not(.uiNavy) #status #lightBtn{filter:url(#tmDarkIcon)}
 html body.uiMono input[type=range]{filter:none;--sl:#ff00ff;--slt:#3a3a3a}
 html body.uiMono #menubar{background:#f3f4f5!important;border-color:#d6d8db!important}
 html body.uiMonoDark #menubar{background:#0c0d0f!important;border-color:#26282b!important}
@@ -18564,7 +18574,7 @@ void main(){
       "body.uiLight #amxDemoAsk{background:rgba(250,251,252,.96);color:#1b232c}body.uiLight #amxDemoAsk .dqS{color:#55626f}body.uiLight #amxDemoAsk button:not(.dqYes){background:#eef1f4;color:#1b232c;border-color:#cfd6dd}";
     st.textContent+="#amxDemoAsk .dqL{border-bottom:1px solid rgba(127,127,127,.25);padding-bottom:12px;margin-bottom:12px}#amxDemoAsk .dqH{font:800 10px var(--mono,monospace);letter-spacing:2px;color:#8a96a3;margin-bottom:8px}"+
       "#amxDemoAsk .dqThemes{display:flex;flex-wrap:wrap;gap:6px;justify-content:center}#amxDemoAsk .dqThemes button{min-width:0!important;padding:6px 10px!important;font-size:11.5px!important}#amxDemoAsk .dqThemes button.on{outline:2px solid var(--tmAcc,#FF8C22);outline-offset:1px}"+
-      "#amxDemoAsk .dqAcc{display:flex;gap:7px;justify-content:center;margin-top:9px}#amxDemoAsk .dqAcc[hidden]{display:none}#amxDemoAsk .dqAcc button{width:22px;height:22px;min-width:0!important;padding:0!important;border-radius:50%!important;border:2px solid transparent!important}#amxDemoAsk .dqAcc button.on{border-color:#111!important;box-shadow:0 0 0 2px #fff inset}#amxDemoAsk .dqPick{width:26px;height:24px;padding:0;border:0;background:conic-gradient(red,yellow,lime,cyan,blue,magenta,red);border-radius:50%;cursor:pointer;-webkit-appearance:none;appearance:none}#amxDemoAsk .dqPick::-webkit-color-swatch-wrapper{padding:0;opacity:0}#amxDemoAsk .dqPick::-webkit-color-swatch{border:0;opacity:0}";
+      "#amxDemoAsk .dqAcc{display:none!important;gap:7px;justify-content:center;margin-top:9px}#amxDemoAsk .dqAcc[hidden]{display:none}#amxDemoAsk .dqAcc button{width:22px;height:22px;min-width:0!important;padding:0!important;border-radius:50%!important;border:2px solid transparent!important}#amxDemoAsk .dqAcc button.on{border-color:#111!important;box-shadow:0 0 0 2px #fff inset}#amxDemoAsk .dqPick{width:26px;height:24px;padding:0;border:0;background:conic-gradient(red,yellow,lime,cyan,blue,magenta,red);border-radius:50%;cursor:pointer;-webkit-appearance:none;appearance:none}#amxDemoAsk .dqPick::-webkit-color-swatch-wrapper{padding:0;opacity:0}#amxDemoAsk .dqPick::-webkit-color-swatch{border:0;opacity:0}";
     document.head.appendChild(st); { const w=whatsNewCard(); if(w){ const sk=startStack(); sk.appendChild(card); sk.appendChild(w); } else document.body.appendChild(card); }
     // LOOK: pick the interface theme (and the Mono accent) right here; Yes / No closes the card
     const TH=[["mono","Light theme"],["dark","Dark theme"]];
@@ -19615,7 +19625,7 @@ window.__tmCore={ get OP_PARAMS(){return OP_PARAMS}, get MODS(){return MODS}, ge
  setTimeout(upd,300); setTimeout(upd,1500); }
  if(document.readyState==="loading") document.addEventListener("DOMContentLoaded",init); else init();})();</script>
 <script>/* View ▸ Interface: Dark (default) / White mode — remembered per device */
-(function(){ function apply(m){ if(["dark","grey","light","navy","mono","monodark"].indexOf(m)<0) m="dark"; document.body.classList.toggle("uiLight",m==="light"); document.body.classList.toggle("uiGrey",m==="grey"); document.body.classList.toggle("uiNavy",m==="navy"); document.body.classList.toggle("uiMono",m==="mono"); document.body.classList.toggle("uiMonoDark",m==="monodark"); try{ window.__monoModel&&window.__monoModel(true); }catch(e){}
+(function(){ function apply(m){ if(["dark","grey","light","navy","mono","monodark"].indexOf(m)<0) m="dark"; document.body.classList.toggle("uiLight",m==="light"); document.body.classList.toggle("uiGrey",m==="grey"); document.body.classList.toggle("uiNavy",m==="navy"); document.body.classList.toggle("uiMono",m==="mono"); document.body.classList.toggle("uiMonoDark",m==="monodark"); try{ window.__monoModel&&window.__monoModel(true); window.__themeAccent&&window.__themeAccent(); }catch(e){}
    try{ if(window.__setSceneBg) window.__setSceneBg(m); }catch(e){}
    document.querySelectorAll("[data-ui]").forEach(function(el){ el.classList.toggle("on",el.dataset.ui===m); }); }
  function init(){ var m="mono"; try{ if(!localStorage.getItem("tmUIdef3")){ localStorage.setItem("tmUIdef2","1"); localStorage.setItem("tmUIdef3","1"); localStorage.removeItem("tmUI"); } m=localStorage.getItem("tmUI")||"mono"; if(m==="light"){ m="mono"; localStorage.setItem("tmUI",m); } if(m==="monodark"||m==="navy"){ m="dark"; localStorage.setItem("tmUI",m); } if(m==="grey"){ m="mono"; localStorage.setItem("tmUI",m); } }catch(e){} apply(m);
@@ -20613,11 +20623,14 @@ body.duo #claudePanel,body.duoBottom #claudePanel{top:calc(var(--duoH,50vh) + 8p
     R.render=function(sc,cam){ if(true){ const t=performance.now(); if(t-last>30){ last=t; window.__monoModel(true); } } return orig(sc,cam); }; })();
   // ---- Colours: Accent (text + sliders, TopMod blue), Shader (the model, orange), Tool (tool icons, orange) ----
   const DEF={acc:"#00E5FF",shd:"#FF8C22",tool:"#FF8C22",dim:"#FF3B30"}, KEY={acc:"tmMonoAccent",shd:"tmShader",tool:"tmTool",dim:"tmDim"};
-  try{ if(!localStorage.getItem("tmSet3")){ localStorage.setItem("tmSet3","1"); localStorage.removeItem("tmMonoAccent"); } }catch(e){}
-  const get=k=>{ try{ return localStorage.getItem(KEY[k])||DEF[k]; }catch(e){ return DEF[k]; } };
+  try{ if(!localStorage.getItem("tmSet4")){ localStorage.setItem("tmSet3","1"); localStorage.setItem("tmSet4","1"); ["tmMonoAccent","tmShader","tmTool","tmDim"].forEach(k=>localStorage.removeItem(k)); } }catch(e){}
+  const lightUI=()=>document.body.classList.contains("uiMono");
+  const defOf=k=>k==="acc"?(lightUI()?"#0091AD":"#00E5FF"):DEF[k];
+  const get=k=>{ try{ return localStorage.getItem(KEY[k])||defOf(k); }catch(e){ return defOf(k); } };
+  window.__themeAccent=()=>{ setAccent(get("acc")); paint&&paint(); };
   function setAccent(c){ window.__monoAccentColor=c; try{ document.documentElement.style.setProperty("--tmAcc",c); }catch(e){} document.querySelectorAll("feFlood.tmAccent").forEach(f=>f.setAttribute("flood-color",c)); }
   function setShader(c){ window.__shaderColor=c; window.__monoModel(true); }
-  function setTool(c){ window.__toolColor=c; document.querySelectorAll("feFlood.tmTool").forEach(f=>f.setAttribute("flood-color",c)); }
+  function setTool(c){ window.__toolColor=c; document.querySelectorAll("feFlood.tmTool").forEach(f=>f.setAttribute("flood-color",c)); document.body.classList.toggle("toolTint",c.toLowerCase()!==DEF.tool.toLowerCase()); }
   function setDim(c){ window.__dimColor=c; try{ document.documentElement.style.setProperty("--tmDim",c); if(window.__matDim) window.__matDim.color.set(c); }catch(e){} }
   const SET={acc:setAccent,shd:setShader,tool:setTool,dim:setDim};
   setAccent(get("acc")); setShader(get("shd")); setTool(get("tool")); setDim(get("dim"));
@@ -20642,7 +20655,7 @@ body.duo #claudePanel,body.duoBottom #claudePanel{top:calc(var(--duoH,50vh) + 8p
   pk.querySelectorAll(".sw").forEach(box=>{ const k=box.dataset.k;
     PRE.forEach(c=>{ const b=document.createElement("button"); b.type="button"; b.style.background=c; b.title=c; b.dataset.c=c; b.onclick=()=>choose(k,c); box.appendChild(b); });
     const ci=document.createElement("input"); ci.type="color"; ci.title="Any colour"; ci.addEventListener("input",()=>choose(k,ci.value)); box.appendChild(ci);
-    const r=document.createElement("button"); r.type="button"; r.className="reset"; r.textContent="Reset"; r.onclick=()=>{ try{ localStorage.removeItem(KEY[k]); }catch(e){} SET[k](DEF[k]); paint(); }; box.appendChild(r); });
+    const r=document.createElement("button"); r.type="button"; r.className="reset"; r.textContent="Reset"; r.onclick=()=>{ try{ localStorage.removeItem(KEY[k]); }catch(e){} SET[k](defOf(k)); paint(); }; box.appendChild(r); });
   const curTheme=()=>document.body.classList.contains("uiMono")?"mono":"dark";
   pk.querySelectorAll(".th button").forEach(b=>b.onclick=()=>{ const mi=document.querySelector('.mi[data-ui="'+b.dataset.t+'"]'); if(mi) mi.click(); setTimeout(paint,30); });
   function paint(){ const t=curTheme(); pk.querySelectorAll(".th button").forEach(b=>b.classList.toggle("on",b.dataset.t===t));
