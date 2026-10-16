@@ -915,6 +915,7 @@ body.uiMonoDark #toolbar img.ticon,body.uiMonoDark #toolbar svg,body.uiMonoDark 
 body.uiMono,body.uiMono #frame,body.uiMono #main{background:#e9eaec!important}
 body.uiMonoDark,body.uiMonoDark #frame,body.uiMonoDark #main{background:#111214!important}
 body.uiMono #tbDockBar,body.uiMono #opDockBar,body.uiMono #ocBar,body.uiMonoDark #tbDockBar,body.uiMonoDark #opDockBar,body.uiMonoDark #ocBar{background:transparent!important}
+html body:not(.uiMono) input[type=range]{--sl:var(--tmAcc,#FF8C22)}
 html body.uiMono input[type=range]{filter:none;--sl:#ff00ff;--slt:#3a3a3a}
 html body.uiMono #menubar{background:#f3f4f5!important;border-color:#d6d8db!important}
 html body.uiMonoDark #menubar{background:#0c0d0f!important;border-color:#26282b!important}
@@ -1163,13 +1164,9 @@ html.inApp [data-act="fullscreen"],html.inApp [data-act="shortcuts"],html.inApp 
       <div class="mi" data-act="tgSeam">Toggle Seam Highlights</div>
       <div class="msep"></div>
       <div class="mlab">Interface</div>
-      <div class="mi" data-ui="mono">Mono white (default · orange accent)</div>
-      <div class="mi" data-ui="dark">Dark mode (cyan)</div>
-      <div class="mi" data-ui="monodark">Mono black (black · white · accent)</div>
-      <div class="mi" id="miMonoAccent">Mono accent colour&hellip; <span id="miMonoSw" style="display:inline-block;width:10px;height:10px;border-radius:3px;background:#FF8C22;vertical-align:middle;margin-left:4px"></span></div>
-      <div class="mi" data-ui="grey">Grey mode (orange)</div>
-      <div class="mi" data-ui="light">White mode (lime)</div>
-      <div class="mi" data-ui="navy">Neon (magenta · lime) — suggested</div>
+      <div class="mi" data-ui="mono">Light theme</div>
+      <div class="mi" data-ui="dark">Dark theme</div>
+      <div class="mi" id="miMonoAccent">Accent colour&hellip; <span id="miMonoSw" style="display:inline-block;width:10px;height:10px;border-radius:3px;background:#FF8C22;vertical-align:middle;margin-left:4px"></span></div>
       <div class="msep"></div>
       <div class="mi" data-act="tgB">Toggle Bounding Box</div>
       <div class="mi" data-act="tgSec">Toggle Section Plane</div>
@@ -18511,13 +18508,26 @@ void main(){
       // the Demo button lives on the bottom bar (first cell)
       const st=q("#status"), dm=q("#demoMenu"); if(st){ t.classList.add("cell"); t.id="demoTitle"; st.insertBefore(t, st.firstChild); if(dm) dm.style.display="none"; } } }
   // startup: ask whether to run the demo (embedded pages such as the Duo viewer, ?demo / #demo, and gallery links keep their old behaviour)
+  // WHAT'S NEW card (once per version) — shown under the DEMO card, or on its own
+  function whatsNewCard(){ let seen=null; try{ seen=localStorage.getItem("tm_wn_v40"); }catch(e){} if(seen) return null;
+    const w=document.createElement("div"); w.id="amxWhatsNew"; w.setAttribute("role","dialog"); w.setAttribute("aria-label","What's new");
+    w.innerHTML='<div class="wnT">WHAT\'S NEW</div><ul><li><b>Claude AI</b> builds models from a sentence — open it from <b>Help &rarr; Ask Claude</b> (or the &#10022; Claude button) and add your own Anthropic key.</li><li><b>Light / Dark themes</b> with your own <b>accent colour</b> (View &rarr; Interface).</li><li>Tiger+ <b>fillet &amp; chamfer</b>, sub-layers, change the base under a modifier stack, and the online <b>Gallery</b>.</li></ul><button type="button" class="wnOk">Got it</button>';
+    const st=document.createElement("style"); st.textContent="#amxWhatsNew{width:min(360px,calc(100vw - 32px));background:rgba(8,12,18,.94);color:#e8eef4;border:1.5px solid var(--tmAcc,#FF8C22);border-radius:18px;padding:16px 18px 14px;box-shadow:0 18px 50px rgba(0,0,0,.45);font:13px/1.45 var(--font,-apple-system,sans-serif);text-align:left;backdrop-filter:blur(10px);-webkit-backdrop-filter:blur(10px)}"+
+      "#amxWhatsNew .wnT{font:900 15px var(--font,inherit);letter-spacing:5px;text-align:center;margin-bottom:8px}#amxWhatsNew ul{margin:0 0 12px;padding-left:18px}#amxWhatsNew li{margin:5px 0}#amxWhatsNew b{color:var(--tmAcc,#FF8C22)}"+
+      "#amxWhatsNew .wnOk{display:block;margin:0 auto;cursor:pointer;border-radius:999px;padding:8px 18px;font:700 13px var(--font,inherit);border:1px solid var(--tmAcc,#FF8C22);background:transparent;color:inherit}"+
+      "body.uiMono #amxWhatsNew{background:rgba(255,255,255,.97);color:#111;border-color:var(--tmAcc,#FF8C22)}"+
+      "#amxStartStack{position:fixed;left:50%;top:50%;transform:translate(-50%,-50%);z-index:10001;display:flex;flex-direction:column;align-items:center;gap:12px;max-height:calc(100vh - 24px);overflow:auto}#amxStartStack>#amxDemoAsk{position:static!important;transform:none!important}";
+    document.head.appendChild(st);
+    w.querySelector(".wnOk").onclick=()=>{ try{ localStorage.setItem("tm_wn_v40","1"); }catch(e){} const sk=w.parentNode; w.remove(); if(sk&&sk.id==="amxStartStack"&&!sk.children.length) sk.remove(); };
+    return w; }
+  function startStack(){ let sk=document.getElementById("amxStartStack"); if(!sk){ sk=document.createElement("div"); sk.id="amxStartStack"; document.body.appendChild(sk); } return sk; }
   function askDemo(){
     const qs=location.hash+location.search; let inFrame=false; try{ inFrame=window.top!==window.self; }catch(e){ inFrame=true; }
     if(/[?#&]gallery=/.test(qs)) return;
     const duo=document.body.classList.contains("duoBottom")||document.body.classList.contains("duo");
     if(duo||/[?#&]demo\b/i.test(qs)) { start(); return; }   // the Duo product page runs its own demo; ?demo forces it
     let pref=null; try{ if(!localStorage.getItem("tm_demo_ask2")){ localStorage.setItem("tm_demo_ask2","1"); localStorage.removeItem("tm_demo_ask"); } pref=localStorage.getItem("tm_demo_ask"); }catch(e){}
-    if(pref==="yes"){ start(); return; } if(pref==="no") return;
+    if(pref==="yes"||pref==="no"){ const w=whatsNewCard(); if(w) startStack().appendChild(w); if(pref==="yes") start(); return; }
     const card=document.createElement("div"); card.id="amxDemoAsk"; card.setAttribute("role","dialog"); card.setAttribute("aria-label","Run the demo?");
     card.innerHTML='<div class="dqL"><div class="dqH">LOOK</div><div class="dqThemes"></div><div class="dqAcc"></div></div><div class="dqT">DEMO</div><div class="dqS">Watch a short tour of what TopMod can make?</div>'+
       '<div class="dqB"><button type="button" class="dqYes">Yes</button><button type="button" class="dqNo">No</button></div>'+
@@ -18536,18 +18546,18 @@ void main(){
     st.textContent+="#amxDemoAsk .dqL{border-bottom:1px solid rgba(127,127,127,.25);padding-bottom:12px;margin-bottom:12px}#amxDemoAsk .dqH{font:800 10px var(--mono,monospace);letter-spacing:2px;color:#8a96a3;margin-bottom:8px}"+
       "#amxDemoAsk .dqThemes{display:flex;flex-wrap:wrap;gap:6px;justify-content:center}#amxDemoAsk .dqThemes button{min-width:0!important;padding:6px 10px!important;font-size:11.5px!important}#amxDemoAsk .dqThemes button.on{outline:2px solid var(--tmAcc,#FF8C22);outline-offset:1px}"+
       "#amxDemoAsk .dqAcc{display:flex;gap:7px;justify-content:center;margin-top:9px}#amxDemoAsk .dqAcc[hidden]{display:none}#amxDemoAsk .dqAcc button{width:22px;height:22px;min-width:0!important;padding:0!important;border-radius:50%!important;border:2px solid transparent!important}#amxDemoAsk .dqAcc button.on{border-color:#111!important;box-shadow:0 0 0 2px #fff inset}";
-    document.head.appendChild(st); document.body.appendChild(card);
+    document.head.appendChild(st); { const w=whatsNewCard(); if(w){ const sk=startStack(); sk.appendChild(card); sk.appendChild(w); } else document.body.appendChild(card); }
     // LOOK: pick the interface theme (and the Mono accent) right here; Yes / No closes the card
-    const TH=[["mono","Mono white"],["monodark","Mono black"],["dark","Dark"],["light","White"],["grey","Grey"],["navy","Neon"]];
+    const TH=[["mono","Light theme"],["dark","Dark theme"]];
     const ACC=["#FF8C22","#00E5FF","#FF00B8","#2F6BFF","#34C759","#FFD60A"];
     const thBox=card.querySelector(".dqThemes"), accBox=card.querySelector(".dqAcc");
     const curTheme=()=>{ const b=document.body.classList; return b.contains("uiMono")?"mono":b.contains("uiMonoDark")?"monodark":b.contains("uiLight")?"light":b.contains("uiGrey")?"grey":b.contains("uiNavy")?"navy":"dark"; };
-    const paint=()=>{ const t=curTheme(); thBox.querySelectorAll("button").forEach(b=>b.classList.toggle("on",b.dataset.t===t)); accBox.hidden=!(t==="mono"||t==="monodark");
+    const paint=()=>{ const t=curTheme(); thBox.querySelectorAll("button").forEach(b=>b.classList.toggle("on",b.dataset.t===t)); accBox.hidden=false;
       const a=(window.__monoAccentColor||"").toLowerCase(); accBox.querySelectorAll("button").forEach(b=>b.classList.toggle("on",b.dataset.c.toLowerCase()===a)); };
     TH.forEach(([k,n])=>{ const b=document.createElement("button"); b.type="button"; b.textContent=n; b.dataset.t=k; b.onclick=()=>{ const mi=document.querySelector('.mi[data-ui="'+k+'"]'); if(mi) mi.click(); setTimeout(paint,30); }; thBox.appendChild(b); });
     ACC.forEach(c=>{ const b=document.createElement("button"); b.type="button"; b.style.background=c; b.dataset.c=c; b.title=c; b.onclick=()=>{ try{ window.__monoAccent&&window.__monoAccent(c); localStorage.setItem("tmMonoAccent",c); }catch(e){} paint(); }; accBox.appendChild(b); });
     paint();
-    const done=yes=>{ try{ if(card.querySelector(".dqSw").checked) localStorage.setItem("tm_demo_ask",yes?"yes":"no"); }catch(e){} card.remove(); removeEventListener("keydown",key,true); if(yes) start(); };
+    const done=yes=>{ try{ if(card.querySelector(".dqSw").checked) localStorage.setItem("tm_demo_ask",yes?"yes":"no"); }catch(e){} const sk=card.parentNode; card.remove(); if(sk&&sk.id==="amxStartStack"&&!sk.children.length) sk.remove(); removeEventListener("keydown",key,true); if(yes) start(); };
     const key=e=>{ if(e.key==="Escape"){ e.preventDefault(); e.stopPropagation(); done(false); } else if(e.key==="Enter"&&!/^(INPUT|TEXTAREA)$/.test((e.target||{}).tagName||"")){ e.preventDefault(); e.stopPropagation(); done(true); } };
     card.querySelector(".dqYes").onclick=()=>done(true); card.querySelector(".dqNo").onclick=()=>done(false);
     addEventListener("keydown",key,true); setTimeout(()=>{ try{ card.querySelector(".dqYes").focus(); }catch(e){} },60);
@@ -19584,10 +19594,10 @@ window.__tmCore={ get OP_PARAMS(){return OP_PARAMS}, get MODS(){return MODS}, ge
  setTimeout(upd,300); setTimeout(upd,1500); }
  if(document.readyState==="loading") document.addEventListener("DOMContentLoaded",init); else init();})();</script>
 <script>/* View ▸ Interface: Dark (default) / White mode — remembered per device */
-(function(){ function apply(m){ if(["dark","grey","light","navy","mono","monodark"].indexOf(m)<0) m="dark"; document.body.classList.toggle("uiLight",m==="light"); document.body.classList.toggle("uiGrey",m==="grey"); document.body.classList.toggle("uiNavy",m==="navy"); document.body.classList.toggle("uiMono",m==="mono"); document.body.classList.toggle("uiMonoDark",m==="monodark"); try{ window.__monoModel&&window.__monoModel(m==="mono"||m==="monodark"); }catch(e){}
+(function(){ function apply(m){ if(["dark","grey","light","navy","mono","monodark"].indexOf(m)<0) m="dark"; document.body.classList.toggle("uiLight",m==="light"); document.body.classList.toggle("uiGrey",m==="grey"); document.body.classList.toggle("uiNavy",m==="navy"); document.body.classList.toggle("uiMono",m==="mono"); document.body.classList.toggle("uiMonoDark",m==="monodark"); try{ window.__monoModel&&window.__monoModel(true); }catch(e){}
    try{ if(window.__setSceneBg) window.__setSceneBg(m); }catch(e){}
    document.querySelectorAll("[data-ui]").forEach(function(el){ el.classList.toggle("on",el.dataset.ui===m); }); }
- function init(){ var m="mono"; try{ if(!localStorage.getItem("tmUIdef2")){ localStorage.setItem("tmUIdef2","1"); if(localStorage.getItem("tmUI")==="dark") localStorage.removeItem("tmUI"); } m=localStorage.getItem("tmUI")||"mono"; }catch(e){} apply(m);
+ function init(){ var m="mono"; try{ if(!localStorage.getItem("tmUIdef2")){ localStorage.setItem("tmUIdef2","1"); if(localStorage.getItem("tmUI")==="dark") localStorage.removeItem("tmUI"); } m=localStorage.getItem("tmUI")||"mono"; if(m==="light"){ m="mono"; localStorage.setItem("tmUI",m); } if(m==="monodark"||m==="navy"){ m="dark"; localStorage.setItem("tmUI",m); } if(m==="grey"){ m="mono"; localStorage.setItem("tmUI",m); } }catch(e){} apply(m);
    var vs=document.getElementById("viewStyleSel"); var cur=(vs&&vs.value)||"solid"; document.querySelectorAll("[data-rm]").forEach(function(el){ el.classList.toggle("on",el.dataset.rm===cur); });
    document.querySelectorAll("[data-ui]").forEach(function(el){ el.addEventListener("click",function(e){ e.stopPropagation(); document.querySelectorAll("#menubar .menu.open").forEach(function(x){x.classList.remove("open");});
      var v=el.dataset.ui; try{ localStorage.setItem("tmUI",v); }catch(_){} apply(v); }); }); }
@@ -20579,9 +20589,9 @@ body.duo #claudePanel,body.duoBottom #claudePanel{top:calc(var(--duoH,50vh) + 8p
   // re-apply right before every frame so meshes rebuilt while dragging a slider never flash back to their own colour
   (function hook(){ const R=window.__tmCore&&window.__tmCore.renderer; if(!R){ setTimeout(hook,400); return; } if(R.__monoHooked) return; R.__monoHooked=true;
     const orig=R.render.bind(R); let last=0;
-    R.render=function(sc,cam){ if(document.body.classList.contains("uiMono")||document.body.classList.contains("uiMonoDark")){ const t=performance.now(); if(t-last>30){ last=t; window.__monoModel(true); } } return orig(sc,cam); }; })();
+    R.render=function(sc,cam){ if(true){ const t=performance.now(); if(t-last>30){ last=t; window.__monoModel(true); } } return orig(sc,cam); }; })();
   // Mono accent colour (sliders, icon tint and the model itself): user-pickable, starts TopMod cyan; picker opens centre screen
-  const isMono=()=>document.body.classList.contains("uiMono")||document.body.classList.contains("uiMonoDark");
+  const isMono=()=>true;   // accent applies in both Light and Dark themes
   function setAccent(c){ window.__monoAccentColor=c; try{ document.documentElement.style.setProperty("--tmAcc",c); }catch(e){} document.querySelectorAll("feFlood.tmAccent").forEach(f=>f.setAttribute("flood-color",c)); const sw=document.getElementById("miMonoSw"); if(sw) sw.style.background=c;
     if(isMono()) window.__monoModel(true); }
   let acc="#FF8C22"; try{ acc=localStorage.getItem("tmMonoAccent")||acc; }catch(e){} setAccent(acc);
@@ -20604,7 +20614,7 @@ body.duo #claudePanel,body.duoBottom #claudePanel{top:calc(var(--duoH,50vh) + 8p
   function choose(c){ if(!/^#[0-9a-f]{6}$/i.test(c)) return; setAccent(c); mark(c); try{ localStorage.setItem("tmMonoAccent",c); }catch(e){} }
   cIn.addEventListener("input",()=>choose(cIn.value)); hIn.addEventListener("change",()=>choose(hIn.value.startsWith("#")?hIn.value:"#"+hIn.value));
   ["keydown","keyup","keypress"].forEach(t=>pk.addEventListener(t,e=>{ if(t==="keydown"&&(e.key==="Escape"||e.key==="Enter")&&e.target!==hIn) close(); e.stopPropagation(); }));
-  function open(){ if(!isMono()){ try{ localStorage.setItem("tmUI","mono"); }catch(_){} const m=document.querySelector('[data-ui="mono"]'); m&&m.click(); }
+  function open(){
     mark(window.__monoAccentColor||"#FF8C22"); shade.hidden=false; pk.hidden=false; }
   function close(){ shade.hidden=true; pk.hidden=true; }
   pk.querySelector(".done").onclick=close; shade.onclick=close;
