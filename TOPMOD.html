@@ -18594,7 +18594,7 @@ void main(){
   function askDemo(){
     const qs=location.hash+location.search; let inFrame=false; try{ inFrame=window.top!==window.self; }catch(e){ inFrame=true; }
     if(/[?#&]gallery=/.test(qs)) return;
-    const duo=document.body.classList.contains("duoBottom")||document.body.classList.contains("duo");
+    const duo=document.body.classList.contains("duoBottom");   // only the Duo product page auto-runs; a user-chosen Duo layout still gets the prompt
     if(duo||/[?#&]demo\b/i.test(qs)) { start(); return; }   // the Duo product page runs its own demo; ?demo forces it
     let pref=null; try{ if(!localStorage.getItem("tm_demo_ask2")){ localStorage.setItem("tm_demo_ask2","1"); localStorage.removeItem("tm_demo_ask"); } pref=localStorage.getItem("tm_demo_ask"); }catch(e){}
     if(pref==="yes"||pref==="no"){ const w=whatsNewCard(); if(w) startStack().appendChild(w); if(pref==="yes") start(); return; }
@@ -20029,9 +20029,9 @@ body.duo #viewWrap::after{content:"TOUCH PAD";position:absolute;left:50%;top:50%
 /* Duo layout: auto on a half-folded foldable (viewport segments / Device Posture), or View ▸ Duo layout */
 (function(){
  var KEY="tm_duo";
- function set(on,save){ if(on&&window.__vp) window.__vp.set(1,true); document.body.classList.toggle("duo",!!on); var m=document.getElementById("miDuo"); if(m) m.classList.toggle("on",!!on); var m1=document.getElementById("miSingle"); if(m1) m1.classList.toggle("on",!on);
+ function set(on,save){ document.body.classList.toggle("duo",!!on); var m=document.getElementById("miDuo"); if(m) m.classList.toggle("on",!!on); var m1=document.getElementById("miSingle"); if(m1) m1.classList.toggle("on",!on);
    if(save){ try{ localStorage.setItem(KEY,on?"1":"0"); }catch(e){} }
-   setTimeout(function(){ dispatchEvent(new Event("resize")); },30); }
+   setTimeout(function(){ dispatchEvent(new Event("resize")); if(save&&window.__vp&&window.__vp.mode!==1) setTimeout(function(){ var f=document.querySelector('#menubar [data-act="frameAll"]'); if(f) f.click(); window.__vp.draw(); },150); },30); }
  function auto(){ var seg=false; try{ seg=matchMedia("(vertical-viewport-segments: 2)").matches; }catch(e){}
    var fold=false; try{ fold=navigator.devicePosture&&navigator.devicePosture.type==="folded"&&innerHeight>innerWidth; }catch(e){}
    return seg||fold; }
@@ -20862,7 +20862,11 @@ body.duo #claudePanel,body.duoBottom #claudePanel{top:calc(var(--duoH,50vh) + 8p
 body.vp2 #view,body.vp4 #view{position:absolute!important;z-index:2}
 body.vp2 #view{left:50%!important;top:0!important;width:50%!important;height:100%!important}
 body.vp4 #view{left:50%!important;top:0!important;width:50%!important;height:50%!important}
+#mvHost{position:absolute;inset:0;pointer-events:none;z-index:1}#mvHost>canvas{pointer-events:auto}#mvLabs{position:absolute;inset:0;pointer-events:none;z-index:3}body.duo #mvLabs{position:fixed!important;left:0;top:0;right:auto;bottom:auto;width:100vw;height:var(--duoH);z-index:41}
 #mvCanvas{position:absolute;inset:0;width:100%;height:100%;display:none;z-index:1;touch-action:none}
+body.duo #mvHost{position:fixed!important;left:0;top:0;right:auto;bottom:auto;width:100vw;height:var(--duoH);z-index:39}
+html body.duo.vp2 #view{z-index:40!important;position:fixed!important;left:50vw!important;top:0!important;width:50vw!important;height:var(--duoH)!important}
+html body.duo.vp4 #view{z-index:40!important;position:fixed!important;left:50vw!important;top:0!important;width:50vw!important;height:calc(var(--duoH) / 2)!important}
 body.vp2 #mvCanvas,body.vp4 #mvCanvas{display:block}
 .mvLab{position:absolute;z-index:3;display:none;font:800 10px var(--mono,monospace);letter-spacing:1.5px;color:var(--tmAcc,#0091AD);pointer-events:none;padding:4px 7px}
 body.vp2 .mvLab.v2,body.vp4 .mvLab.v4{display:block}
@@ -20874,14 +20878,15 @@ body.vp2 #navcube,body.vp4 #navcube{z-index:31}
 (function(){
  const core=window.__tmCore; if(!core||!window.THREE) return;
  const wrap=document.getElementById("viewWrap"), view=document.getElementById("view"); if(!wrap||!view) return;
- const mv=document.createElement("canvas"); mv.id="mvCanvas"; wrap.insertBefore(mv,view);
- const add=(cls,css,txt)=>{ const d=document.createElement("div"); d.className=cls; d.style.cssText=css; if(txt) d.textContent=txt; wrap.appendChild(d); return d; };
+ const glc=document.createElement("canvas"); let g2=null;   // off-DOM GL canvas, copied into a 2D canvas (one WebGL layer on screen composites reliably)
+ const host=document.createElement("div"); host.id="mvHost"; wrap.insertBefore(host,view); const mv=document.createElement("canvas"); mv.id="mvCanvas"; host.appendChild(mv); const labs=document.createElement("div"); labs.id="mvLabs"; wrap.appendChild(labs);
+ const add=(cls,css,txt)=>{ const d=document.createElement("div"); d.className=cls; d.style.cssText=css; if(txt) d.textContent=txt; labs.appendChild(d); return d; };
  add("mvLab v2","left:0;top:0","TOP"); add("mvLab v2","left:50%;top:0","PERSPECTIVE");
  add("mvLab v4","left:0;top:0","TOP"); add("mvLab v4","left:50%;top:0","PERSPECTIVE"); add("mvLab v4","left:0;top:50%","FRONT"); add("mvLab v4","left:50%;top:50%","RIGHT");
  add("mvLine v2 v4","left:50%;top:0;width:1px;height:100%"); add("mvLine v4","left:0;top:50%;width:100%;height:1px");
  let R=null, mode=1, need=true;
  const views={ top:{dir:[0,1,0],up:[0,0,-1],zoom:1,pan:[0,0]}, front:{dir:[0,0,1],up:[0,1,0],zoom:1,pan:[0,0]}, right:{dir:[1,0,0],up:[0,1,0],zoom:1,pan:[0,0]} };
- const panes=()=>{ const W=wrap.clientWidth,H=wrap.clientHeight;
+ const panes=()=>{ const W=host.clientWidth,H=host.clientHeight;
    if(mode===2) return [["top",0,0,W/2,H]];
    if(mode===4) return [["top",0,0,W/2,H/2],["front",0,H/2,W/2,H/2],["right",W/2,H/2,W/2,H/2]];
    return []; };
@@ -20890,8 +20895,8 @@ body.vp2 #navcube,body.vp4 #navcube{z-index:31}
    sc.traverse(o=>{ if(o.isMesh&&o.visible&&o.geometry&&!o.isInstancedMesh){ let v=true; for(let p=o;p;p=p.parent) if(p.visible===false){ v=false; break; } if(!v) return; try{ b.setFromObject(o); if(!b.isEmpty()&&isFinite(b.min.x)) box.union(b); }catch(e){} } });
    if(box.isEmpty()) box.set(new THREE.Vector3(-1,-1,-1),new THREE.Vector3(1,1,1)); return box; }
  function draw(){ need=false; if(mode===1) return;
-   const W=wrap.clientWidth,H=wrap.clientHeight; if(!(W>0&&H>0)) return;
-   if(!R){ try{ R=new THREE.WebGLRenderer({canvas:mv,antialias:true,alpha:false,preserveDrawingBuffer:true}); }catch(e){ return; } }
+   const W=host.clientWidth,H=host.clientHeight; if(!(W>0&&H>0)) return;
+   if(!R){ try{ R=new THREE.WebGLRenderer({canvas:glc,antialias:true,alpha:false,preserveDrawingBuffer:true}); }catch(e){ return; } }
    const pr=Math.min(devicePixelRatio||1,2); if(R.getPixelRatio()!==pr) R.setPixelRatio(pr);
    const sz=R.getSize(new THREE.Vector2()); if(sz.x!==W||sz.y!==H) R.setSize(W,H,false);
    const main=core.renderer; try{ R.toneMapping=main.toneMapping; R.toneMappingExposure=main.toneMappingExposure; R.outputEncoding=main.outputEncoding; }catch(e){}
@@ -20907,12 +20912,14 @@ body.vp2 #navcube,body.vp4 #navcube{z-index:31}
      cam.position.copy(tgt).addScaledVector(new THREE.Vector3(...V.dir),rad*10); cam.lookAt(tgt); cam.updateProjectionMatrix();
      R.setViewport(x,H-y-h,w,h); R.setScissor(x,H-y-h,w,h); R.render(core.scene,cam); }
    } finally { for(const [m,r,mt,cc] of sw){ m.roughness=r; m.metalness=mt; if(cc!==undefined) m.clearcoat=cc; } }
-   R.setScissorTest(false); }
+   R.setScissorTest(false);
+   try{ if(!g2) g2=mv.getContext("2d"); const bw=Math.round(W*pr), bh=Math.round(H*pr); if(mv.width!==bw||mv.height!==bh){ mv.width=bw; mv.height=bh; } g2.drawImage(glc,0,0,bw,bh); }catch(e){} }
  // redraw the ortho panes whenever the live view renders
  const ren=core.renderer, orig=ren.render.bind(ren);
- ren.render=function(sc,cm){ const r=orig(sc,cm); if(mode!==1&&cm===core.camera&&!ren.getRenderTarget()&&!need){ need=true; requestAnimationFrame(draw); } return r; };
+ ren.render=function(sc,cm){ if(cm===core.camera&&!ren.getRenderTarget()){ const z=(mode!==1&&cm.aspect<1)?cm.aspect:1; if(Math.abs((cm.zoom||1)-z)>1e-4){ cm.zoom=z; cm.updateProjectionMatrix(); } }   // tall narrow pane: keep the model in frame
+   const r=orig(sc,cm); if(mode!==1&&cm===core.camera&&!ren.getRenderTarget()&&!need){ need=true; requestAnimationFrame(draw); } return r; };
  // pan / zoom / reset in the ortho panes
- const hit=e=>{ const r=wrap.getBoundingClientRect(), x=e.clientX-r.left, y=e.clientY-r.top; for(const p of panes()) if(x>=p[1]&&x<p[1]+p[3]&&y>=p[2]&&y<p[2]+p[4]) return p; return null; };
+ const hit=e=>{ const r=host.getBoundingClientRect(), x=e.clientX-r.left, y=e.clientY-r.top; for(const p of panes()) if(x>=p[1]&&x<p[1]+p[3]&&y>=p[2]&&y<p[2]+p[4]) return p; return null; };
  mv.addEventListener("wheel",e=>{ const p=hit(e); if(!p) return; e.preventDefault(); const V=views[p[0]]; V.zoom=Math.min(50,Math.max(0.05,V.zoom*Math.exp(-e.deltaY*0.0015))); draw(); },{passive:false});
  let drag=null;
  mv.addEventListener("pointerdown",e=>{ const p=hit(e); if(!p) return; drag={p,x:e.clientX,y:e.clientY}; try{ mv.setPointerCapture(e.pointerId); }catch(_){} });
@@ -20921,14 +20928,13 @@ body.vp2 #navcube,body.vp4 #navcube{z-index:31}
  const up=()=>{ drag=null; }; mv.addEventListener("pointerup",up); mv.addEventListener("pointercancel",up);
  mv.addEventListener("dblclick",e=>{ const p=hit(e); if(!p) return; const V=views[p[0]]; V.zoom=1; V.pan=[0,0]; draw(); });
  function set(n,silent){ mode=n===4?4:n===2?2:1; const b=document.body.classList; b.toggle("vp2",mode===2); b.toggle("vp4",mode===4);
-   if(mode!==1&&b.contains("duo")&&window.__duo) window.__duo.set(false);
    ["miVp1","miVp2","miVp4"].forEach((id,i)=>{ const m=document.getElementById(id); if(m) m.classList.toggle("on",[1,2,4][i]===mode); });
    try{ localStorage.setItem("tmVp",String(mode)); }catch(e){}
-   setTimeout(()=>{ dispatchEvent(new Event("resize")); if(!silent){ const f=document.querySelector('#menubar [data-act="frameAll"]'); if(f) f.click(); } draw(); },60); }
+   setTimeout(()=>{ dispatchEvent(new Event("resize")); try{ view.style.display="none"; void view.offsetWidth; view.style.display=""; core.renderer.render(core.scene,core.camera); }catch(e){} setTimeout(()=>{ if(!silent){ const f=document.querySelector('#menubar [data-act="frameAll"]'); if(f) f.click(); } draw(); },120); },60); }
  [["miVp1",1],["miVp2",2],["miVp4",4]].forEach(([id,n])=>{ const m=document.getElementById(id); if(m) m.addEventListener("click",e=>{ e.stopPropagation(); document.querySelectorAll("#menubar .menu.open").forEach(x=>x.classList.remove("open")); set(n); }); });
- try{ new ResizeObserver(()=>{ if(mode!==1) draw(); }).observe(wrap); }catch(e){}
+ try{ new ResizeObserver(()=>{ if(mode!==1) draw(); }).observe(host); }catch(e){}
  window.__vp={set,draw,get mode(){return mode;}};
- let sv=1; try{ sv=+localStorage.getItem("tmVp")||1; }catch(e){} if(sv!==1&&!document.body.classList.contains("duo")&&!document.body.classList.contains("duoBottom")) set(sv,true); else set(1,true);
+ let sv=1; try{ sv=+localStorage.getItem("tmVp")||1; }catch(e){} if(sv!==1&&!document.body.classList.contains("duoBottom")) set(sv,true); else set(1,true);
 })();</script>
 </body>
 </html>
