@@ -15,7 +15,7 @@ using System.Reflection;
 [assembly: System.Reflection.AssemblyDescriptionAttribute(("TopMod 3D inside Rhino: the modeler runs in a Rhino window, its model lives in Rh" +
     "ino as NURBS, edits flow both ways, with Bake and Import."))]
 [assembly: System.Reflection.AssemblyFileVersionAttribute("2.1.4.0")]
-[assembly: System.Reflection.AssemblyInformationalVersionAttribute("2.1.4+938125d1238a6390ed1f72ae62ad1546e6a23ce9")]
+[assembly: System.Reflection.AssemblyInformationalVersionAttribute("2.1.4+cf7373eeee71eed33c7963ffa2a0ab500fa50474")]
 [assembly: System.Reflection.AssemblyProductAttribute("TopModRhinoLink")]
 [assembly: System.Reflection.AssemblyTitleAttribute("TopModRhinoLink")]
 [assembly: System.Reflection.AssemblyVersionAttribute("2.1.4.0")]

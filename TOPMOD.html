@@ -908,11 +908,19 @@ body.uiGrey #toolbar img.ticon,body.uiGrey #toolbar svg,body.uiGrey #status #lig
 body.uiGrey,body.uiGrey #frame,body.uiGrey #main{background:#3b3f45!important}
 /* top bar: no Controller / Send model / Generators */
 /* Mono: white / black / grey chrome; the only colour is magenta in the sliders (an SVG filter greys + inverts every pixel except magenta) */
-body.uiMono #menubar,body.uiMono #toolbar,body.uiMono #toolpop,body.uiMono #layersPanel,body.uiMono #modPanel,body.uiMono #status,body.uiMono .mlist,body.uiMono #fabNode,body.uiMono #console,body.uiMono #tourCard,body.uiMono #creditCard,body.uiMono #handPrim,body.uiMono #toast,body.uiMono #amxDemo,body.uiMono #navcube>button,body.uiMono #tbScroll,body.uiMono #mbScroll,body.uiMono #ncCanvas,body.uiMono #claudePanel,body.uiMono #amxDemoAsk{filter:url(#tmMonoF)}
-body.uiMono #toolbar img.ticon,body.uiMono #toolbar svg,body.uiMono #status #lightBtn{filter:grayscale(1) invert(1)}
+body.uiMono #menubar>:not(#wordmark),body.uiMono #toolbar,body.uiMono #toolpop,body.uiMono #layersPanel,body.uiMono #modPanel,body.uiMono #status,body.uiMono .mlist,body.uiMono #fabNode,body.uiMono #console,body.uiMono #tourCard,body.uiMono #creditCard,body.uiMono #handPrim,body.uiMono #toast,body.uiMono #amxDemo,body.uiMono #navcube>button,body.uiMono #tbScroll,body.uiMono #mbScroll,body.uiMono #ncCanvas,body.uiMono #claudePanel,body.uiMono #amxDemoAsk{filter:url(#tmMonoF)}
+body.uiMonoDark #menubar>:not(#wordmark),body.uiMonoDark #toolbar,body.uiMonoDark #toolpop,body.uiMonoDark #layersPanel,body.uiMonoDark #modPanel,body.uiMonoDark #status,body.uiMonoDark .mlist,body.uiMonoDark #fabNode,body.uiMonoDark #console,body.uiMonoDark #tourCard,body.uiMonoDark #creditCard,body.uiMonoDark #handPrim,body.uiMonoDark #toast,body.uiMonoDark #amxDemo,body.uiMonoDark #navcube>button,body.uiMonoDark #tbScroll,body.uiMonoDark #mbScroll,body.uiMonoDark #ncCanvas,body.uiMonoDark #claudePanel,body.uiMonoDark #amxDemoAsk{filter:url(#tmMonoDF)}
+body.uiMono #toolbar img.ticon,body.uiMono #toolbar svg,body.uiMono #status #lightBtn{filter:url(#tmMonoIconL)}
+body.uiMonoDark #toolbar img.ticon,body.uiMonoDark #toolbar svg,body.uiMonoDark #status #lightBtn{filter:url(#tmMonoIconD)}
 body.uiMono,body.uiMono #frame,body.uiMono #main{background:#e9eaec!important}
-body.uiMono #tbDockBar,body.uiMono #opDockBar,body.uiMono #ocBar{background:transparent!important}
+body.uiMonoDark,body.uiMonoDark #frame,body.uiMonoDark #main{background:#111214!important}
+body.uiMono #tbDockBar,body.uiMono #opDockBar,body.uiMono #ocBar,body.uiMonoDark #tbDockBar,body.uiMonoDark #opDockBar,body.uiMonoDark #ocBar{background:transparent!important}
 html body.uiMono input[type=range]{filter:none;--sl:#ff00ff;--slt:#3a3a3a}
+html body.uiMono #menubar{background:#f3f4f5!important;border-color:#d6d8db!important}
+html body.uiMonoDark #menubar{background:#0c0d0f!important;border-color:#26282b!important}
+html body.uiMono #wordmark{color:#111!important}
+html body.uiMono #wordmark .ver{color:#666!important}
+html body.uiMonoDark input[type=range]{filter:none;--sl:#ff00ff;--slt:#4a4a4a}
 
 #menubar>button.tb,#ekMenu{display:none!important}
 /* touch devices: each top menu is a native picker, exactly like the bottom-bar shading select */
@@ -1153,10 +1161,12 @@ html.inApp [data-act="fullscreen"],html.inApp [data-act="shortcuts"],html.inApp 
       <div class="msep"></div>
       <div class="mlab">Interface</div>
       <div class="mi" data-ui="dark">Dark mode (default · cyan)</div>
+      <div class="mi" data-ui="mono">Mono white (white · black · accent)</div>
+      <div class="mi" data-ui="monodark">Mono black (black · white · accent)</div>
+      <div class="mi" id="miMonoAccent">Mono accent colour&hellip; <span id="miMonoSw" style="display:inline-block;width:10px;height:10px;border-radius:3px;background:#00E5FF;vertical-align:middle;margin-left:4px"></span></div>
       <div class="mi" data-ui="grey">Grey mode (orange)</div>
       <div class="mi" data-ui="light">White mode (lime)</div>
       <div class="mi" data-ui="navy">Neon (magenta · lime) — suggested</div>
-      <div class="mi" data-ui="mono">Mono (black · white · grey, magenta sliders)</div>
       <div class="msep"></div>
       <div class="mi" data-act="tgB">Toggle Bounding Box</div>
       <div class="mi" data-act="tgSec">Toggle Section Plane</div>
@@ -7837,7 +7847,7 @@ function makeGroundGrid(size,c1,c2){ const h=size/2, pos=[], col=[], A=new THREE
   const g=new THREE.BufferGeometry(); g.setAttribute("position",new THREE.Float32BufferAttribute(pos,3)); g.setAttribute("color",new THREE.Float32BufferAttribute(col,3));
   const L=new THREE.LineSegments(g,new THREE.LineBasicMaterial({vertexColors:true})); L.userData.size=size; return L; }
 const grid=makeGroundGrid(60,0x7fd8ef,0x4699b3);   // 60 x 60 ground, 1-inch cells
-window.__setSceneBg=function(m){ if(m===true) m="light"; if(!m) m="dark"; try{ const C={dark:[0x080a12,0x7fd8ef,0x4699b3],grey:[0x3b3f45,0xff9a1f,0x7a6a5a],light:[0xeef1f5,0x7ccf1a,0xb4c3a2],navy:[0x0b0614,0x39ff14,0xff2bd6],mono:[0xe9eaec,0x2a2a2a,0xa9abae]}[m]||[0x080a12,0x7fd8ef,0x4699b3];
+window.__setSceneBg=function(m){ if(m===true) m="light"; if(!m) m="dark"; try{ const C={dark:[0x080a12,0x7fd8ef,0x4699b3],grey:[0x3b3f45,0xff9a1f,0x7a6a5a],light:[0xeef1f5,0x7ccf1a,0xb4c3a2],navy:[0x0b0614,0x39ff14,0xff2bd6],mono:[0xe9eaec,0x2a2a2a,0xa9abae],monodark:[0x111214,0xd0d0d0,0x55575a]}[m]||[0x080a12,0x7fd8ef,0x4699b3];
   scene.background=new THREE.Color(C[0]); const ca=grid.geometry.attributes.color, pa=grid.geometry.attributes.position, A=new THREE.Color(C[1]), B=new THREE.Color(C[2]);
   for(let v=0;v<pa.count;v+=4){ const x0=pa.getX(v), x1=pa.getX(v+1), z0=pa.getZ(v), cen=(x0===0&&x1===0); const K=cen?A:B; for(let k=0;k<4;k++){ const isB=(k>=2); const c=(isB? (pa.getZ(v+2)===0&&pa.getZ(v+3)===0) : cen)?A:B; ca.setXYZ(v+k,c.r,c.g,c.b); } } ca.needsUpdate=true; }catch(e){} };
 grid.material.transparent=true; grid.material.opacity=0.33;
@@ -9364,7 +9374,7 @@ function serializeProject(){
       mesh:{ verts:L.mesh.verts, faces:L.mesh.faces }
     })),
     view: { yaw, pitch, dist, target:[target.x,target.y,target.z] },
-    ui: { theme:(["uiLight","uiNavy","uiGrey","uiMono"].find(c=>document.body.classList.contains(c))||"dark"), layersOn:(typeof layersOn!=="undefined")?!!layersOn:true },
+    ui: { theme:(["uiLight","uiNavy","uiGrey","uiMono","uiMonoDark"].find(c=>document.body.classList.contains(c))||"dark"), layersOn:(typeof layersOn!=="undefined")?!!layersOn:true },
     app: { name:"TopMod 3D", ext:".tmod" }
   });
 }
@@ -19552,7 +19562,7 @@ window.__tmCore={ get OP_PARAMS(){return OP_PARAMS}, get MODS(){return MODS}, ge
  setTimeout(upd,300); setTimeout(upd,1500); }
  if(document.readyState==="loading") document.addEventListener("DOMContentLoaded",init); else init();})();</script>
 <script>/* View ▸ Interface: Dark (default) / White mode — remembered per device */
-(function(){ function apply(m){ if(["dark","grey","light","navy","mono"].indexOf(m)<0) m="dark"; document.body.classList.toggle("uiLight",m==="light"); document.body.classList.toggle("uiGrey",m==="grey"); document.body.classList.toggle("uiNavy",m==="navy"); document.body.classList.toggle("uiMono",m==="mono"); try{ window.__monoModel&&window.__monoModel(m==="mono"); }catch(e){}
+(function(){ function apply(m){ if(["dark","grey","light","navy","mono","monodark"].indexOf(m)<0) m="dark"; document.body.classList.toggle("uiLight",m==="light"); document.body.classList.toggle("uiGrey",m==="grey"); document.body.classList.toggle("uiNavy",m==="navy"); document.body.classList.toggle("uiMono",m==="mono"); document.body.classList.toggle("uiMonoDark",m==="monodark"); try{ window.__monoModel&&window.__monoModel(m==="mono"||m==="monodark"); }catch(e){}
    try{ if(window.__setSceneBg) window.__setSceneBg(m); }catch(e){}
    document.querySelectorAll("[data-ui]").forEach(function(el){ el.classList.toggle("on",el.dataset.ui===m); }); }
  function init(){ var m="dark"; try{ m=localStorage.getItem("tmUI")||"dark"; }catch(e){} apply(m);
@@ -20536,19 +20546,45 @@ body.duo #claudePanel,body.duoBottom #claudePanel{top:calc(var(--duoH,50vh) + 8p
   setInterval(()=>{ all().forEach(el=>{ if(el.offsetParent!==null) upd(el); }); },250);
   all().forEach(upd); })();
 </script>
-<svg width="0" height="0" style="position:absolute;width:0;height:0" aria-hidden="true"><defs><filter id="tmMonoF" color-interpolation-filters="sRGB" x="0" y="0" width="100%" height="100%">
-<feColorMatrix in="SourceGraphic" type="matrix" result="g" values="-0.2126 -0.7152 -0.0722 0 1  -0.2126 -0.7152 -0.0722 0 1  -0.2126 -0.7152 -0.0722 0 1  0 0 0 1 0"/>
-<feColorMatrix in="SourceGraphic" type="matrix" result="k" values="1 0 0 0 0  0 1 0 0 0  0 0 1 0 0  2.2 -4.4 2.2 0 -2.6"/>
-<feComposite in="k" in2="SourceAlpha" operator="in" result="k2"/>
-<feMerge><feMergeNode in="g"/><feMergeNode in="k2"/></feMerge></filter></defs></svg>
+<svg width="0" height="0" style="position:absolute;width:0;height:0" aria-hidden="true"><defs><filter id="tmMonoF" color-interpolation-filters="sRGB" x="0" y="0" width="100%" height="100%"><feColorMatrix in="SourceGraphic" type="matrix" result="g" values="-0.2126 -0.7152 -0.0722 0 1  -0.2126 -0.7152 -0.0722 0 1  -0.2126 -0.7152 -0.0722 0 1  0 0 0 1 0"/><feColorMatrix in="SourceGraphic" type="matrix" result="r" values="1 0 0 0 0  1 0 0 0 0  1 0 0 0 0  0 0 0 1 0"/><feFlood class="tmAccent" flood-color="#00E5FF" result="f"/><feComposite in="f" in2="r" operator="arithmetic" k1="1" k2="0" k3="0" k4="0" result="c"/><feColorMatrix in="SourceGraphic" type="matrix" result="m" values="0 0 0 0 0  0 0 0 0 0  0 0 0 0 0  4 -8 4 0 -0.8"/><feComposite in="c" in2="m" operator="in" result="c2"/><feComposite in="c2" in2="SourceAlpha" operator="in" result="k"/><feMerge><feMergeNode in="g"/><feMergeNode in="k"/></feMerge></filter><filter id="tmMonoDF" color-interpolation-filters="sRGB" x="0" y="0" width="100%" height="100%"><feColorMatrix in="SourceGraphic" type="matrix" result="g" values="0.2126 0.7152 0.0722 0 0  0.2126 0.7152 0.0722 0 0  0.2126 0.7152 0.0722 0 0  0 0 0 1 0"/><feColorMatrix in="SourceGraphic" type="matrix" result="r" values="1 0 0 0 0  1 0 0 0 0  1 0 0 0 0  0 0 0 1 0"/><feFlood class="tmAccent" flood-color="#00E5FF" result="f"/><feComposite in="f" in2="r" operator="arithmetic" k1="1" k2="0" k3="0" k4="0" result="c"/><feColorMatrix in="SourceGraphic" type="matrix" result="m" values="0 0 0 0 0  0 0 0 0 0  0 0 0 0 0  4 -8 4 0 -0.8"/><feComposite in="c" in2="m" operator="in" result="c2"/><feComposite in="c2" in2="SourceAlpha" operator="in" result="k"/><feMerge><feMergeNode in="g"/><feMergeNode in="k"/></feMerge></filter><filter id="tmMonoIconL" color-interpolation-filters="sRGB" x="0" y="0" width="100%" height="100%"><feColorMatrix in="SourceGraphic" type="matrix" result="g" values="-0.2126 -0.7152 -0.0722 0 1  -0.2126 -0.7152 -0.0722 0 1  -0.2126 -0.7152 -0.0722 0 1  0 0 0 1 0"/><feColorMatrix in="SourceGraphic" type="matrix" result="mg" values="0.2126 0.7152 0.0722 0 0.1  0 0 0 0 0  0.2126 0.7152 0.0722 0 0.1  0 0 0 1 0"/><feColorMatrix in="SourceGraphic" type="matrix" result="w" values="0 0 0 0 0  0 0 0 0 0  0 0 0 0 0  5 0 -5 0 -1.6"/><feComposite in="mg" in2="w" operator="in" result="t"/><feComposite in="t" in2="SourceAlpha" operator="in" result="t2"/><feMerge><feMergeNode in="g"/><feMergeNode in="t2"/></feMerge></filter><filter id="tmMonoIconD" color-interpolation-filters="sRGB" x="0" y="0" width="100%" height="100%"><feColorMatrix in="SourceGraphic" type="matrix" result="g" values="-0.2126 -0.7152 -0.0722 0 1  -0.2126 -0.7152 -0.0722 0 1  -0.2126 -0.7152 -0.0722 0 1  0 0 0 1 0"/><feColorMatrix in="SourceGraphic" type="matrix" result="mg" values="0.2126 0.7152 0.0722 0 0.1  0 0 0 0 0  0.2126 0.7152 0.0722 0 0.1  0 0 0 1 0"/><feColorMatrix in="SourceGraphic" type="matrix" result="w" values="0 0 0 0 0  0 0 0 0 0  0 0 0 0 0  5 0 -5 0 -1.6"/><feComposite in="mg" in2="w" operator="in" result="t"/><feComposite in="t" in2="SourceAlpha" operator="in" result="t2"/><feMerge><feMergeNode in="g"/><feMergeNode in="t2"/></feMerge></filter></defs></svg>
 <script>/* Mono mode: models go neutral grey (no colour on models); other modes restore the original material colour */
 (function(){ let saved=null;
   window.__monoModel=function(on){ try{ const S=window.__tmCore&&window.__tmCore.scene; if(!S) { setTimeout(()=>window.__monoModel(on),400); return; }
     S.traverse(o=>{ const mats=o.isMesh?(Array.isArray(o.material)?o.material:[o.material]):[]; mats.forEach(m=>{ if(!m||!m.color||m.vertexColors||m.transparent||m.depthTest===false||o.renderOrder>0) return;
-      if(on){ if(m.userData.__monoOrig==null){ m.userData.__monoOrig=m.color.getHex(); } m.color.setHex(0xcfd1d4); }
+      if(on){ if(m.userData.__monoOrig==null){ m.userData.__monoOrig=m.color.getHex(); } m.color.set(window.__monoAccentColor||"#00E5FF"); }
       else if(m.userData.__monoOrig!=null){ m.color.setHex(m.userData.__monoOrig); delete m.userData.__monoOrig; } }); }); }catch(e){} };
   // new meshes created while in Mono get the grey too
-  setInterval(()=>{ if(document.body.classList.contains("uiMono")) window.__monoModel(true); },700);
+  setInterval(()=>{ if(document.body.classList.contains("uiMono")||document.body.classList.contains("uiMonoDark")) window.__monoModel(true); },700);
+  // Mono accent colour (sliders, icon tint and the model itself): user-pickable, starts TopMod cyan; picker opens centre screen
+  const isMono=()=>document.body.classList.contains("uiMono")||document.body.classList.contains("uiMonoDark");
+  function setAccent(c){ window.__monoAccentColor=c; document.querySelectorAll("feFlood.tmAccent").forEach(f=>f.setAttribute("flood-color",c)); const sw=document.getElementById("miMonoSw"); if(sw) sw.style.background=c;
+    if(isMono()) window.__monoModel(true); }
+  let acc="#00E5FF"; try{ acc=localStorage.getItem("tmMonoAccent")||acc; }catch(e){} setAccent(acc);
+  const st=document.createElement("style"); st.textContent=
+    "#monoPick{position:fixed;left:50%;top:50%;transform:translate(-50%,-50%);z-index:100030;width:min(300px,calc(100vw - 32px));background:#fff;color:#111;border:1px solid #cfd2d6;border-radius:16px;box-shadow:0 20px 60px rgba(0,0,0,.35);padding:16px;font:13px var(--font,-apple-system,sans-serif);text-align:center}"+
+    "#monoPick[hidden]{display:none}#monoPick h4{margin:0 0 12px;font:800 11px var(--mono,monospace);letter-spacing:1.6px;text-transform:uppercase;color:#555}"+
+    "#monoPick .sw{display:grid;grid-template-columns:repeat(6,1fr);gap:8px;margin-bottom:12px}#monoPick .sw button{aspect-ratio:1;border-radius:10px;border:2px solid transparent;cursor:pointer;padding:0}#monoPick .sw button.on{border-color:#111;box-shadow:0 0 0 2px #fff inset}"+
+    "#monoPick .row{display:flex;gap:8px;align-items:center;justify-content:center}#monoPick input[type=color]{width:44px;height:34px;border:1px solid #cfd2d6;border-radius:8px;padding:2px;background:#fff;cursor:pointer}"+
+    "#monoPick input[type=text]{width:90px;border:1px solid #cfd2d6;border-radius:8px;padding:8px;font:12px var(--mono,monospace);text-transform:uppercase}#monoPick .done{background:#111;color:#fff;border:0;border-radius:999px;padding:9px 18px;font-weight:700;cursor:pointer}"+
+    "#monoPickShade{position:fixed;inset:0;background:rgba(0,0,0,.25);z-index:100029}#monoPickShade[hidden]{display:none}";
+  document.head.appendChild(st);
+  const shade=document.createElement("div"); shade.id="monoPickShade"; shade.hidden=true;
+  const pk=document.createElement("div"); pk.id="monoPick"; pk.hidden=true; pk.setAttribute("role","dialog"); pk.setAttribute("aria-label","Mono accent colour");
+  const PRESETS=["#00E5FF","#FF8C22","#FF3B30","#FF00B8","#A040FF","#2F6BFF","#00B3FF","#00D1B2","#34C759","#B6E000","#FFD60A","#8E8E93"];
+  pk.innerHTML='<h4>Accent colour</h4><div class="sw"></div><div class="row"><input type="color" aria-label="Custom colour"><input type="text" maxlength="7" aria-label="Hex"><button type="button" class="done">Done</button></div>';
+  document.body.appendChild(shade); document.body.appendChild(pk);
+  const swBox=pk.querySelector(".sw"), cIn=pk.querySelector("input[type=color]"), hIn=pk.querySelector("input[type=text]");
+  PRESETS.forEach(c=>{ const b=document.createElement("button"); b.type="button"; b.style.background=c; b.title=c; b.dataset.c=c; b.onclick=()=>choose(c); swBox.appendChild(b); });
+  function mark(c){ swBox.querySelectorAll("button").forEach(b=>b.classList.toggle("on",b.dataset.c.toLowerCase()===c.toLowerCase())); cIn.value=c.length===7?c:"#00e5ff"; hIn.value=c.toUpperCase(); }
+  function choose(c){ if(!/^#[0-9a-f]{6}$/i.test(c)) return; setAccent(c); mark(c); try{ localStorage.setItem("tmMonoAccent",c); }catch(e){} }
+  cIn.addEventListener("input",()=>choose(cIn.value)); hIn.addEventListener("change",()=>choose(hIn.value.startsWith("#")?hIn.value:"#"+hIn.value));
+  ["keydown","keyup","keypress"].forEach(t=>pk.addEventListener(t,e=>{ if(t==="keydown"&&(e.key==="Escape"||e.key==="Enter")&&e.target!==hIn) close(); e.stopPropagation(); }));
+  function open(){ if(!isMono()){ try{ localStorage.setItem("tmUI","mono"); }catch(_){} const m=document.querySelector('[data-ui="mono"]'); m&&m.click(); }
+    mark(window.__monoAccentColor||"#00E5FF"); shade.hidden=false; pk.hidden=false; }
+  function close(){ shade.hidden=true; pk.hidden=true; }
+  pk.querySelector(".done").onclick=close; shade.onclick=close;
+  const mi=document.getElementById("miMonoAccent"); if(mi) mi.addEventListener("click",e=>{ e.stopPropagation(); document.querySelectorAll("#menubar .menu.open").forEach(x=>x.classList.remove("open")); open(); });
+  window.__monoAccent=setAccent; window.__monoPick=open;
 })();</script>
 </body>
 </html>
