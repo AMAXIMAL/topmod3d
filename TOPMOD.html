@@ -5189,66 +5189,63 @@ function offsetMesh(m, d=0.1){
   return {verts, faces:m.faces.map(f=>f.slice())};
 }
 
-// ---------- pipes (TopMod "wireframe with columns"): n-sided tube per edge ----------
-// Each edge becomes a closed n-sided cylinder, extended by ~one radius at both
-// ends so adjacent tubes overlap into visual joints. Tubes are disjoint shells.
+// ---------- pipes (TopMod "wireframe with columns"): one solid, connected wireframe ----------
+// Every edge becomes an n-sided tube; at each vertex the tube ends are joined by the convex hull of their
+// end rings (no balls), with the rings shared between tube and joint — so the result is ONE closed solid.
 function pipes(m, {thickness=0.1, sides=6}={}){
   sides=Math.max(3,Math.min(12,Math.round(sides)));
-  const r=thickness;
-  const verts=[],faces=[];
-  for(const e of edges(m)){
-    const A=m.verts[e.a], B=m.verts[e.b];
-    let u=V3.norm(V3.sub(B,A));
-    // extend ends to cover joints
-    const a=V3.sub(A,V3.mul(u,r*0.9)), b=V3.add(B,V3.mul(u,r*0.9));
-    // perpendicular basis
-    let p=Math.abs(u[0])<0.9? [1,0,0]:[0,1,0];
-    p=V3.norm(V3.sub(p,V3.mul(u,p[0]*u[0]+p[1]*u[1]+p[2]*u[2])));
-    const q=[u[1]*p[2]-u[2]*p[1], u[2]*p[0]-u[0]*p[2], u[0]*p[1]-u[1]*p[0]];
-    const base=verts.length;
-    for(let i=0;i<sides;i++){
-      const t=2*Math.PI*i/sides, c=Math.cos(t)*r, s2=Math.sin(t)*r;
-      verts.push([a[0]+p[0]*c+q[0]*s2, a[1]+p[1]*c+q[1]*s2, a[2]+p[2]*c+q[2]*s2]);
-    }
-    for(let i=0;i<sides;i++){
-      const t=2*Math.PI*i/sides, c=Math.cos(t)*r, s2=Math.sin(t)*r;
-      verts.push([b[0]+p[0]*c+q[0]*s2, b[1]+p[1]*c+q[1]*s2, b[2]+p[2]*c+q[2]*s2]);
-    }
-    // side quads (outward), caps
-    for(let i=0;i<sides;i++){
-      const j=(i+1)%sides;
-      faces.push([base+i, base+j, base+sides+j, base+sides+i]);
-    }
-    const capA=[],capB=[];
-    for(let i=0;i<sides;i++){ capA.push(base+(sides-1-i)); capB.push(base+sides+i); }
-    faces.push(capA,capB);
-  }
-  // Spherical union at every node: a UV sphere centred on each vertex so the pipe ends
-  // meet in a ball (ball-and-stick joints). Radius a touch larger than the tube so the
-  // flat caps tuck inside the sphere.
-  const used=new Set();
-  for(const e of edges(m)){ used.add(e.a); used.add(e.b); }
-  const rs=r*1.45, slices=sides, stacks=Math.max(4,Math.ceil(sides/2));
-  for(const vi of used){
-    const C=m.verts[vi], base=verts.length;
-    verts.push([C[0], C[1]+rs, C[2]]);                                  // top pole
-    for(let st=1;st<stacks;st++){
-      const phi=Math.PI*st/stacks, y=Math.cos(phi)*rs, rr=Math.sin(phi)*rs;
-      for(let sl=0;sl<slices;sl++){ const th=2*Math.PI*sl/slices;
-        verts.push([C[0]+rr*Math.cos(th), C[1]+y, C[2]+rr*Math.sin(th)]); }
-    }
-    verts.push([C[0], C[1]-rs, C[2]]);                                  // bottom pole
-    const top=base, bottom=verts.length-1, rowOf=st=> base+1+(st-1)*slices;
-    for(let sl=0;sl<slices;sl++){ const a=rowOf(1)+sl, b=rowOf(1)+(sl+1)%slices; faces.push([top,b,a]); }
-    for(let st=1;st<stacks-1;st++){
-      for(let sl=0;sl<slices;sl++){
-        const a=rowOf(st)+sl, b=rowOf(st)+(sl+1)%slices, c=rowOf(st+1)+(sl+1)%slices, d=rowOf(st+1)+sl;
-        faces.push([a,b,c,d]);
-      }
-    }
-    for(let sl=0;sl<slices;sl++){ const a=rowOf(stacks-1)+sl, b=rowOf(stacks-1)+(sl+1)%slices; faces.push([bottom,a,b]); }
-  }
+  const r=thickness, E=edges(m), V=m.verts;
+  const sub3=(a,b)=>[a[0]-b[0],a[1]-b[1],a[2]-b[2]], dot3=(a,b)=>a[0]*b[0]+a[1]*b[1]+a[2]*b[2], cr3=(a,b)=>[a[1]*b[2]-a[2]*b[1],a[2]*b[0]-a[0]*b[2],a[0]*b[1]-a[1]*b[0]];
+  const nrm3=a=>{ const l=Math.hypot(a[0],a[1],a[2])||1; return [a[0]/l,a[1]/l,a[2]/l]; };
+  // incident edges per vertex
+  const inc=new Map(); E.forEach((e,ei)=>{ for(const [v,o] of [[e.a,e.b],[e.b,e.a]]){ let L=inc.get(v); if(!L){ L=[]; inc.set(v,L); } L.push({ei,o}); } });
+  const elen=E.map(e=>Math.hypot(...sub3(V[e.b],V[e.a])));
+  // ring offset per vertex: far enough that every end ring is a face of the joint hull
+  const tOf=new Map();
+  for(const [v,L] of inc){ if(L.length<2){ tOf.set(v,0); continue; }
+    let need=r*1.05; const dirs=L.map(x=>nrm3(sub3(V[x.o],V[v])));
+    for(let i=0;i<dirs.length;i++) for(let j=i+1;j<dirs.length;j++){ const c=Math.max(-1,Math.min(1,dot3(dirs[i],dirs[j]))), th=Math.acos(c); if(th>1e-3) need=Math.max(need, r/Math.tan(th/2)*1.08); }
+    let cap=Infinity; for(const x of L) cap=Math.min(cap, elen[x.ei]*0.45); tOf.set(v, Math.min(need,cap)); }
+  const verts=[], faces=[], ringAt=new Map();   // "ei,v" -> [vertex indices]
+  // one basis per edge (shared by both ends, so tubes don't twist)
+  E.forEach((e,ei)=>{ const A=V[e.a], B=V[e.b], u=nrm3(sub3(B,A));
+    let p=Math.abs(u[0])<0.9?[1,0,0]:[0,1,0]; const pd=dot3(p,u); p=nrm3([p[0]-u[0]*pd,p[1]-u[1]*pd,p[2]-u[2]*pd]); const q=cr3(u,p);
+    for(const [v,sgn] of [[e.a,1],[e.b,-1]]){ const t=tOf.get(v)||0, C=V[v], c0=[C[0]+u[0]*t*sgn, C[1]+u[1]*t*sgn, C[2]+u[2]*t*sgn], ring=[];
+      for(let i=0;i<sides;i++){ const a=2*Math.PI*i/sides, ca=Math.cos(a)*r, sa=Math.sin(a)*r; ring.push(verts.length); verts.push([c0[0]+p[0]*ca+q[0]*sa, c0[1]+p[1]*ca+q[1]*sa, c0[2]+p[2]*ca+q[2]*sa]); }
+      ringAt.set(ei+","+v, ring); }
+    const RA=ringAt.get(ei+","+e.a), RB=ringAt.get(ei+","+e.b);
+    for(let i=0;i<sides;i++){ const j=(i+1)%sides; let f=[RA[i],RA[j],RB[j],RB[i]];
+      const n=cr3(sub3(verts[f[1]],verts[f[0]]),sub3(verts[f[3]],verts[f[0]])), mid=[(verts[f[0]][0]+verts[f[2]][0])/2,(verts[f[0]][1]+verts[f[2]][1])/2,(verts[f[0]][2]+verts[f[2]][2])/2];
+      const axisPt=[A[0]+u[0]*dot3(sub3(mid,A),u), A[1]+u[1]*dot3(sub3(mid,A),u), A[2]+u[2]*dot3(sub3(mid,A),u)];
+      if(dot3(n,sub3(mid,axisPt))<0) f=f.reverse(); faces.push(f); } });
+  // joints
+  for(const [v,L] of inc){
+    const rings=L.map(x=>ringAt.get(x.ei+","+v));
+    if(L.length===1){ // open end: flat cap facing away from the tube
+      const R=rings[0], o=V[L[0].o], C=V[v]; let f=R.slice(); const n=cr3(sub3(verts[f[1]],verts[f[0]]),sub3(verts[f[2]],verts[f[0]]));
+      if(dot3(n,sub3(C,o))<0) f.reverse(); faces.push(f); continue; }
+    const ids=rings.flat(), ringOf=new Map(); rings.forEach((R,k)=>R.forEach(id=>ringOf.set(id,k)));
+    const P=ids.map(id=>verts[id]), tri=hullIdx(P);
+    if(!tri){ continue; }
+    for(const t of tri){ const g=t.map(i=>ids[i]); const k0=ringOf.get(g[0]); if(ringOf.get(g[1])===k0&&ringOf.get(g[2])===k0) continue;   // the ring's own cap: open, the tube attaches here
+      faces.push(g); } }
   return {verts,faces};
+  function hullIdx(pts){   // incremental 3D convex hull → outward triangles as indices into pts
+    const n=pts.length, eps=1e-10*Math.max(1e-6,r*r); if(n<4) return null;
+    let i1=0,b=0; for(let i=1;i<n;i++){ const d=Math.hypot(...sub3(pts[i],pts[0])); if(d>b){b=d;i1=i;} }
+    let i2=-1; b=0; for(let i=0;i<n;i++){ if(i===0||i===i1) continue; const d=Math.hypot(...cr3(sub3(pts[i],pts[0]),sub3(pts[i1],pts[0]))); if(d>b){b=d;i2=i;} }
+    if(i2<0) return null; const n0=cr3(sub3(pts[i1],pts[0]),sub3(pts[i2],pts[0]));
+    let i3=-1; b=0; for(let i=0;i<n;i++){ if(i===0||i===i1||i===i2) continue; const d=Math.abs(dot3(sub3(pts[i],pts[0]),n0)); if(d>b){b=d;i3=i;} }
+    if(i3<0||b<1e-12) return null;
+    const ctr=[0,1,2].map(k=>(pts[0][k]+pts[i1][k]+pts[i2][k]+pts[i3][k])/4);
+    const mk=(a,bb,c)=>{ let nr=cr3(sub3(pts[bb],pts[a]),sub3(pts[c],pts[a])); if(dot3(nr,sub3(ctr,pts[a]))>0){ const t=bb; bb=c; c=t; nr=cr3(sub3(pts[bb],pts[a]),sub3(pts[c],pts[a])); } return {v:[a,bb,c],n:nr,p:pts[a]}; };
+    let F=[mk(0,i1,i2),mk(0,i1,i3),mk(0,i2,i3),mk(i1,i2,i3)];
+    const front=(f,q)=>dot3(f.n,sub3(q,f.p))>eps*Math.hypot(...f.n);
+    for(let i=0;i<n;i++){ if(i===0||i===i1||i===i2||i===i3) continue; const q=pts[i], vis=F.filter(f=>front(f,q)); if(!vis.length) continue;
+      const cnt=new Set(); for(const f of vis) for(let e=0;e<3;e++) cnt.add(f.v[e]+"_"+f.v[(e+1)%3]);
+      const hz=[]; for(const f of vis) for(let e=0;e<3;e++){ const a=f.v[e], c=f.v[(e+1)%3]; if(!cnt.has(c+"_"+a)) hz.push([a,c]); }
+      F=F.filter(f=>!front(f,q)); for(const [a,c] of hz) F.push(mk(a,c,i)); }
+    return F.map(f=>f.v); }
 }
 
 // ---------- delete faces (leaves holes; orphaned vertices removed) ----------
@@ -20112,6 +20109,11 @@ body.duo #menubar{padding-top:3px!important}
 body.duo #toolpop{top:calc(var(--duoH) + 34px)!important;max-height:calc(100vh - var(--duoH) - 80px)!important}
 html body.duo #navcube{position:fixed!important;top:8px!important;right:34px!important;left:auto!important;z-index:45!important}
 body.duo #viewWrap{background:radial-gradient(ellipse at 50% 40%,rgba(0,229,255,.05),transparent 70%)}
+#duoSplit{display:none;position:fixed;left:0;right:0;top:var(--duoH);height:18px;transform:translateY(-50%);z-index:60;cursor:row-resize;touch-action:none}
+body.duo #duoSplit{display:block}
+#duoSplit::before{content:"";position:absolute;left:0;right:0;top:50%;height:2px;margin-top:-1px;background:var(--tmAcc,#0091AD);opacity:.35;transition:opacity .15s}
+#duoSplit::after{content:"";position:absolute;left:50%;top:50%;width:46px;height:6px;margin:-3px 0 0 -23px;border-radius:999px;background:var(--tmAcc,#0091AD);opacity:.75}
+#duoSplit:hover::before,#duoSplit.drag::before{opacity:.9}
 body.duo #viewWrap::after{content:"TOUCH PAD";position:absolute;left:50%;top:50%;transform:translate(-50%,-50%);font:600 10px/1 var(--font,system-ui);letter-spacing:.2em;color:rgba(0,229,255,.22);pointer-events:none}
 </style>
 <script>/* Units: the default cube (2 scene units) reads as a 1-inch cube. Settings ▸ Units: inches (default) or mm */
@@ -20970,6 +20972,18 @@ html body.fullscreen.fullscreen.fullscreen.fullscreen.fullscreen.fullscreen.full
 <script>(function(){ const bar=document.getElementById("fsBar"); if(!bar) return; const b=document.body.classList;
  bar.querySelectorAll("button").forEach(x=>x.addEventListener("click",e=>{ e.stopPropagation(); const k=x.dataset.k; b.toggle(k); x.classList.toggle("on",b.contains(k)); setTimeout(()=>dispatchEvent(new Event("resize")),30); }));
  new MutationObserver(()=>{ if(!b.contains("fullscreen")&&(b.contains("fsT")||b.contains("fsO")||b.contains("fsL"))){ b.remove("fsT","fsO","fsL"); bar.querySelectorAll("button").forEach(x=>x.classList.remove("on")); } }).observe(document.body,{attributes:true,attributeFilter:["class"]});
+})();</script>
+<div id="duoSplit" title="Drag to resize the viewport · double-click to reset"></div>
+<script>/* Duo: drag the bar between the viewport and the tools to resize them (remembered) */
+(function(){ const bar=document.getElementById("duoSplit"); if(!bar) return; const B=document.body;
+ const apply=f=>{ f=Math.max(0.2,Math.min(0.75,f)); B.style.setProperty("--duoH",(f*100).toFixed(2)+"vh"); return f; };
+ try{ const f=parseFloat(localStorage.getItem("tmDuoH")); if(f>0) apply(f); }catch(e){}
+ let drag=null, raf=0; const kick=()=>{ if(raf) return; raf=requestAnimationFrame(()=>{ raf=0; dispatchEvent(new Event("resize")); try{ window.__vp&&window.__vp.draw(); }catch(e){} }); };
+ bar.addEventListener("pointerdown",e=>{ e.preventDefault(); e.stopPropagation(); drag={id:e.pointerId}; bar.classList.add("drag"); try{ bar.setPointerCapture(e.pointerId); }catch(_){} });
+ bar.addEventListener("pointermove",e=>{ if(!drag) return; apply(e.clientY/innerHeight); kick(); });
+ const end=e=>{ if(!drag) return; drag=null; bar.classList.remove("drag"); const v=parseFloat(getComputedStyle(B).getPropertyValue("--duoH"))/100; try{ localStorage.setItem("tmDuoH",String(v)); }catch(_){} kick(); };
+ bar.addEventListener("pointerup",end); bar.addEventListener("pointercancel",end);
+ bar.addEventListener("dblclick",()=>{ apply(0.5); try{ localStorage.removeItem("tmDuoH"); }catch(_){} kick(); });
 })();</script>
 <style>
 body.vp2 #view,body.vp4 #view{position:absolute!important;z-index:2}
