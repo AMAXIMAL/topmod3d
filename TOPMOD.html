@@ -8280,8 +8280,19 @@ function rebuild(opts){
   const uvs=[]; for(let i=0;i<pos.length;i+=3){ uvs.push(pos[i]*0.5+0.5, pos[i+1]*0.5+0.5); }
   g.setAttribute("uv",new THREE.Float32BufferAttribute(uvs,2));
   g.computeVertexNormals();
+  if(dm.smoothFrom!=null){ try{   // fillet rounds: crease-angle vertex normals (smooth across the blend, crisp where it meets flat faces)
+    const FN=dm.faces.map(f=>{ const n=TM.faceNormal(dm,f), l=Math.hypot(n[0],n[1],n[2])||1; return [n[0]/l,n[1]/l,n[2]/l]; }), around=new Map();
+    dm.faces.forEach((f,fi)=>f.forEach(v=>{ let a=around.get(v); if(!a){ a=[]; around.set(v,a); } a.push(fi); }));
+    const vn=(v,fi)=>{ const n0=FN[fi]; let x=0,y=0,z=0; for(const g2 of around.get(v)||[]){ const q=FN[g2]; if(q[0]*n0[0]+q[1]*n0[1]+q[2]*n0[2]>0.7){ x+=q[0]; y+=q[1]; z+=q[2]; } } const l=Math.hypot(x,y,z)||1; return [x/l,y/l,z/l]; };
+    const nor=g.attributes.normal; let t=0;
+    dm.faces.forEach((f,fi)=>{ const sm=fi>=dm.smoothFrom;
+      if(f.length===3){ for(let i=0;i<3;i++){ const n=sm?vn(f[i],fi):FN[fi]; nor.setXYZ(t*3+i,n[0],n[1],n[2]); } t++; }
+      else { const ns=f.map(v=>sm?vn(v,fi):FN[fi]); let cx=0,cy=0,cz=0; ns.forEach(n=>{ cx+=n[0]; cy+=n[1]; cz+=n[2]; }); const cl=Math.hypot(cx,cy,cz)||1, cn=[cx/cl,cy/cl,cz/cl];
+        for(let i=0;i<f.length;i++){ const a=ns[i], b=ns[(i+1)%f.length]; nor.setXYZ(t*3,a[0],a[1],a[2]); nor.setXYZ(t*3+1,b[0],b[1],b[2]); nor.setXYZ(t*3+2,cn[0],cn[1],cn[2]); t++; } } });
+    nor.needsUpdate=true; }catch(e){} }
   matEdge.color.setHex(rm.edge[0]); matEdge.opacity=rm.edge[1];
-  meshObj=new THREE.Mesh(g,rm.mat); scene.add(meshObj);
+  let _mat=rm.mat; if(dm.smoothFrom!=null&&_mat&&_mat.flatShading){ if(!_mat.userData.smoothTwin){ const t=_mat.clone(); t.flatShading=false; t.needsUpdate=true; _mat.userData.smoothTwin=t; } _mat=_mat.userData.smoothTwin; _mat.color&&_mat.color.copy(rm.mat.color); }   // per-vertex normals only show without flat shading
+  meshObj=new THREE.Mesh(g,_mat); scene.add(meshObj);
   rebuildBBox();   // also while dragging, so the box follows the live result
 
   // OpenSubdiv cage editing: edges/points (and so picking) come from the control cage, the surface stays subdivided
@@ -8289,7 +8300,9 @@ function rebuild(opts){
   const em = cageOn ? mesh : dm;
   edgeList=TM.edges(em); edgeSegToEdge=[];
   const epos=[];
-  edgeList.forEach((e,i)=>{ epos.push(...em.verts[e.a],...em.verts[e.b]); edgeSegToEdge.push(i); });
+  let _smE=null; if(!cageOn&&em.smoothFrom!=null){ _smE=new Map(); em.faces.forEach((f,fi)=>{ for(let i=0;i<f.length;i++){ const a=f[i], b=f[(i+1)%f.length], k=a<b?a+"_"+b:b+"_"+a; _smE.set(k,(_smE.get(k)||0)+(fi>=em.smoothFrom?1:0)); } }); }
+  edgeList.forEach((e,i)=>{ if(_smE&&_smE.get(e.a<e.b?e.a+"_"+e.b:e.b+"_"+e.a)>=2) return;   // inside a fillet round: no wire lines, it reads as one smooth surface
+    epos.push(...em.verts[e.a],...em.verts[e.b]); edgeSegToEdge.push(i); });
   const eg=new THREE.BufferGeometry();
   eg.setAttribute("position",new THREE.Float32BufferAttribute(epos,3));
   edgeObj=new THREE.LineSegments(eg,cageOn?matCageEdge:matEdge); scene.add(edgeObj);
@@ -18683,11 +18696,12 @@ void main(){
  const tip=document.createElement("div"); tip.id="ppTip"; tip.style.cssText="position:fixed;z-index:46;display:none;transform:translate(-50%,-140%);pointer-events:none;font:700 11px var(--mono,monospace);color:#fff;background:rgba(10,14,20,.85);padding:2px 7px;border-radius:6px"; document.body.appendChild(tip);
  let key="", C=null, N=null, L=1, drag=null;
  const vec=a=>new THREE.Vector3(a[0],a[1],a[2]);
- function compute(){ const M=dispMesh(); const c=new THREE.Vector3(), n=new THREE.Vector3(); let cnt=0;
+ function compute(){ const M=dispMesh(); const c=new THREE.Vector3(), n=new THREE.Vector3(), fns=[]; let cnt=0;
    for(const fi of sel.faces){ const f=M.faces[fi]; if(!f||f.length<3) continue; const fc=new THREE.Vector3(); for(const vi of f) fc.add(vec(M.verts[vi])); fc.divideScalar(f.length); c.add(fc);
      const fn=new THREE.Vector3(); for(let i=0;i<f.length;i++){ const a=vec(M.verts[f[i]]), b=vec(M.verts[f[(i+1)%f.length]]); fn.x+=(a.y-b.y)*(a.z+b.z); fn.y+=(a.z-b.z)*(a.x+b.x); fn.z+=(a.x-b.x)*(a.y+b.y); }   // Newell normal
-     if(fn.lengthSq()>0) n.add(fn.normalize()); cnt++; }
+     if(fn.lengthSq()>0){ fn.normalize(); fns.push(fn.clone()); n.add(fn); } cnt++; }
    if(!cnt||n.lengthSq()<1e-12) return false; C=c.divideScalar(cnt); N=n.normalize();
+   if(fns.some(q=>q.dot(N)<0.85)) return false;   // faces pointing different ways (e.g. a pair picked for a Handle): no push/pull arrow
    let mn=[1e9,1e9,1e9],mx=[-1e9,-1e9,-1e9]; for(const v of M.verts) for(let i=0;i<3;i++){ if(v[i]<mn[i]) mn[i]=v[i]; if(v[i]>mx[i]) mx[i]=v[i]; }
    L=Math.max(mx[0]-mn[0],mx[1]-mn[1],mx[2]-mn[2],0.2)*0.32; return true; }
  function active(){ return selMode==="face"&&sel.faces.size>0&&!tpState&&!(window.__demo&&window.__demo.on&&window.__demo.on())&&!(typeof isActiveLocked==="function"&&isActiveLocked()); }
@@ -18700,7 +18714,7 @@ void main(){
  const ren=renderer, orig=ren.render.bind(ren); ren.render=function(sc,cm){ try{ if(cm===camera) sync(); }catch(e){} return orig(sc,cm); };
  const scr=p=>{ const v=p.clone().project(camera), r=canvas.getBoundingClientRect(); return {x:r.left+(v.x+1)/2*r.width, y:r.top+(1-v.y)/2*r.height}; };
  function hit(x,y){ if(!grp.visible||!C) return false; const a=scr(grp.position), b=scr(grp.position.clone().addScaledVector(N,L*1.27));
-   const dx=b.x-a.x, dy=b.y-a.y, l2=dx*dx+dy*dy||1, t=Math.max(0,Math.min(1,((x-a.x)*dx+(y-a.y)*dy)/l2)), px=a.x+t*dx-x, py=a.y+t*dy-y; return px*px+py*py<(22*22); }
+   const dx=b.x-a.x, dy=b.y-a.y, l2=dx*dx+dy*dy||1, t=Math.max(0,Math.min(1,((x-a.x)*dx+(y-a.y)*dy)/l2)), px=a.x+t*dx-x, py=a.y+t*dy-y; return px*px+py*py<(16*16)&&t>0.12; }   // grab the shaft / head, not the base where the face itself is
  function down(x,y,shift){ if(!hit(x,y)) return false;
    let kind="pull", vs=null;
    if(shift||dispMesh()!==mesh){ kind="extrude"; if(!beginExtrudePreview()) return false; }   // with live modifiers the base cage differs, so pull via an extrude
@@ -19686,7 +19700,7 @@ window.__tmCore={ get bboxObj(){return bboxObj}, get edgeObj(){return edgeObj}, 
   ["Primitives",["Cube","Tetra","Octa","Icosa","Dodeca","CubOcta","Bucky","Torus","Cylinder","Möbius","Spiral","Polygon"]],
   ["Topology",["Handle","Bridge","Crust","Rind","Loops","Wire","Pipe","Offset"]],
   ["Subdivide",["Catmull","DooSabin","Loop","√3 Subd","Honey","Pentagon","Dual","Truncate"]],
-  ["Edit",["Move","Scale","Fillet","Chamfer","Array","Mirror","Ins Edge","Delete"]],
+  ["Edit",["Fillet","Chamfer","Move","Scale","Array","Mirror","Ins Edge","Delete"]],
   ["Extrude",["Extrude","Dome","Pinch","Stellate","DblStell","Greeble"]],
   ["Deform",["Twist","Bend","Taper","Bulge","Spherify","Noise"]],
   ["Generate",["Parametric/Lattice","Blobs","Growth","Sponge","Gyroid","TPMS","Generate/Lattice","Sierp","Hybrid","Rössler","Wave","Cymatics","K=−1","Weave","Chain","Voronoi","Tree","Maze","Maze 3D","Breeze","Text"]],
@@ -20673,7 +20687,7 @@ body.duo #claudePanel,body.duoBottom #claudePanel{top:calc(var(--duoH,50vh) + 8p
   const bez=(p0,c,p1,t)=>{ const u=1-t; return [u*u*p0[0]+2*u*t*c[0]+t*t*p1[0], u*u*p0[1]+2*u*t*c[1]+t*t*p1[1], u*u*p0[2]+2*u*t*c[2]+t*t*p1[2]]; };
 
   function bevelMesh(m,o){
-    o=o||{}; const n=Math.max(1,Math.min(12,(o.segments|0)||1)), V=m.verts, F=m.faces;
+    o=o||{}; const n=Math.max(1,Math.min(16,(o.segments|0)||1)), V=m.verts, F=m.faces;
     if(!F.length) return m;
     // average edge length → absolute width
     let el=0, ec=0; F.forEach(f=>{ for(let i=0;i<f.length;i++){ el+=len(sub(V[f[i]],V[f[(i+1)%f.length]])); ec++; } });
@@ -20722,14 +20736,15 @@ body.duo #claudePanel,body.duoBottom #claudePanel{top:calc(var(--duoH,50vh) + 8p
       let mid=[0,0,0]; loop.forEach(i=>{ mid=add(mid,out[i]); }); mid=mul(mid,1/loop.length); const c=pv(add(mul(cx,0.25),mul(add(mul(mid,0.5),mul(V[v],0.5)),0.75)));
       for(let k=0;k<loop.length;k++) faces.push([loop[k],loop[(k+1)%loop.length],c]);
     }); });
-    return {verts:out, faces};
+    const res={verts:out, faces}; if(n>1) res.smoothFrom=F.length;   // fillet rounds (strips + corner patches) shade smooth, like a NURBS blend
+    return res;
   }
   TM.bevelMesh=bevelMesh;
 
   // live modifiers + toolbar ops
   C.MODS.chamfer={label:"Chamfer", grp:"Edit", params:[{k:"width",l:"Width",min:0.01,max:0.45,step:0.01,def:0.12}],
     apply:(m,p)=>bevelMesh(m,{width:p.width,segments:1})};
-  C.MODS.fillet={label:"Fillet", grp:"Edit", params:[{k:"width",l:"Radius",min:0.01,max:0.45,step:0.01,def:0.15},{k:"segments",l:"Segments",min:2,max:10,step:1,def:4}],
+  C.MODS.fillet={label:"Fillet", grp:"Edit", params:[{k:"width",l:"Radius",min:0.01,max:0.45,step:0.01,def:0.15},{k:"segments",l:"Segments",min:2,max:16,step:1,def:8}],
     apply:(m,p)=>bevelMesh(m,{width:p.width,segments:Math.round(p.segments)})};
   C.OP_AS_MOD.chamfer="chamfer"; C.OP_AS_MOD.fillet="fillet";
 })();
@@ -21010,15 +21025,15 @@ body.vp2 #navcube,body.vp4 #navcube{z-index:31}
    if(maxK&&mode!==1){ const o={}; o[maxK]=[0,0,W,H]; return o; }
    if(mode===2) return {a:[0,0,W/2,H], L:[W/2,0,W/2,H]};
    if(mode===4) return {a:[0,0,W/2,H/2], L:[W/2,0,W/2,H/2], b:[0,H/2,W/2,H/2], c:[W/2,H/2,W/2,H/2]};
-   return {}; };
+   return {L:[0,0,W,H]}; };   // single viewport: just the live view (its title + menu still show)
  const panes=()=>{ const l=layout(); return ["a","b","c"].filter(k=>l[k]).map(k=>[k,...l[k]]); };
  // ---- titles (click = menu) ----
  const tit={}; ["a","b","c","L"].forEach(k=>{ const t=document.createElement("button"); t.type="button"; t.className="mvLab"; t.dataset.k=k; labs.appendChild(t); tit[k]=t;
    t.addEventListener("pointerdown",e=>e.stopPropagation()); t.addEventListener("click",e=>{ e.stopPropagation(); openMenu(k,t); }); });
  const liveName=()=>{ const s=slots.L, V=VIEWS[s.v]; if(s.v!=="persp"&&V&&V.yp){ const dy=Math.abs(Math.atan2(Math.sin(core.yaw-V.yp[0]),Math.cos(core.yaw-V.yp[0]))), dp=Math.abs(core.pitch-V.yp[1]); if(Math.abs(V.yp[1])>1.5?dp<0.02:(dy<0.02&&dp<0.02)) return V.n; } return "Perspective"; };
  const rmLabel=()=>{ const o=document.querySelector('#viewStyleSel option[value="'+core.renderMode+'"]'); return o?o.textContent.replace(/\s*\(.*\)/,""):(core.renderMode||""); };
- function paintTitles(){ const l=layout(), M=mode!==1;
-   for(const k in tit){ const t=tit[k], r=l[k]; t.style.display=M&&r?"block":"none"; if(!r) continue; t.style.left=r[0]+"px"; t.style.top=r[1]+"px";
+ function paintTitles(){ const l=layout();
+   for(const k in tit){ const t=tit[k], r=l[k]; t.style.display=r?"block":"none"; if(!r) continue; t.style.left=r[0]+"px"; t.style.top=r[1]+"px";
      const s=slots[k]; t.textContent=(k==="L"?liveName():VIEWS[s.v].n).toUpperCase()+" ▾"; t.title=(k==="L"?rmLabel():ODISP[s.d])+" — click for view, display and show options"; } }
  let menu=null;
  function closeMenu(){ if(menu){ menu.remove(); menu=null; removeEventListener("pointerdown",outside,true); } }
@@ -21158,7 +21173,7 @@ body.vp2 #navcube,body.vp4 #navcube{z-index:31}
    setTimeout(()=>{ dispatchEvent(new Event("resize")); try{ view.style.display="none"; void view.offsetWidth; view.style.display=""; poke(); }catch(e){} setTimeout(()=>{ if(!silent){ const f=document.querySelector('#menubar [data-act="frameAll"]'); if(f) f.click(); } draw(); },120); },60); }
  [["miVp1",1],["miVp2",2],["miVp4",4]].forEach(([id,n])=>{ const m=document.getElementById(id); if(m) m.addEventListener("click",e=>{ e.stopPropagation(); document.querySelectorAll("#menubar .menu.open").forEach(x=>x.classList.remove("open")); set(n); }); });
  try{ new ResizeObserver(()=>{ if(mode!==1) draw(); }).observe(host); }catch(e){}
- setInterval(()=>{ if(mode!==1) paintTitles(); },500);
+ setInterval(()=>{ paintTitles(); },500);
  // the main window's View ▸ Toggle Edges / Toggle Silhouette switch every viewport together
  const syncAll=(key,val)=>{ for(const k of ["a","b","c"]) slots[k][key]=val; save(); draw(); };
  document.addEventListener("click",e=>{ const t=e.target&&e.target.closest&&e.target.closest('#menubar [data-act="tgE"], #menubar [data-act="tgB"], #miDims, #miSil, #mvMenu .mvI');

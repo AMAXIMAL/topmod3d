@@ -67,6 +67,9 @@ namespace TopModRhinoLink
                 RhinoApp.RunScript("_TopModDefaultLayout", false);
             });
 
+            _separate = new Button { Text = "⧉ Separate", ToolTip = "Pop TopMod out of Rhino into its own window (drag it to another monitor). Press again to dock it back." };
+            _separate.Click += (s, e) => Application.Instance.AsyncInvoke(ToggleSeparate);
+
             _status = new Label { Text = "loading…", VerticalAlignment = VerticalAlignment.Center, TextColor = Colors.Gray };
 
             var bar = new StackLayout
@@ -74,7 +77,7 @@ namespace TopModRhinoLink
                 Orientation = Orientation.Horizontal,
                 Spacing = 4, Padding = new Padding(6, 4),
                 VerticalContentAlignment = VerticalAlignment.Center,
-                Items = { bake, bakeMesh, import, reload, new Panel { Width = 8 }, edges, new Panel { Width = 8 }, layoutOn, layoutOff, close, new StackLayoutItem(null, true), _status }
+                Items = { bake, bakeMesh, import, reload, new Panel { Width = 8 }, edges, new Panel { Width = 8 }, layoutOn, layoutOff, _separate, close, new StackLayoutItem(null, true), _status }
             };
 
             Content = new TableLayout { Rows = { new TableRow(bar), new TableRow(_web) { ScaleHeight = true } } };
@@ -82,8 +85,51 @@ namespace TopModRhinoLink
             _timer = new UITimer { Interval = 0.08 };   // fast enough to follow a streaming simulation
             _timer.Elapsed += (s, e) => Tick();
 
-            Load += (s, e) => { if (!_loaded) LoadPage(); else _timer.Start(); };
+            Load += (s, e) => { UpdateSeparateLabel(); if (!_loaded) LoadPage(); else _timer.Start(); };
             UnLoad += (s, e) => _timer.Stop();
+        }
+
+        Button _separate;
+
+        static bool IsFloating { get { var f = TopModLinkPlugIn.Instance?.Form; return f != null && f.Visible; } }
+
+        void UpdateSeparateLabel()
+        {
+            if (_separate == null) return;
+            _separate.Text = IsFloating ? "⇲ Dock" : "⧉ Separate";
+        }
+
+        /// <summary>Docked panel ⇄ separate floating window. The same view (and the loaded model) moves between them.</summary>
+        void ToggleSeparate()
+        {
+            var p = TopModLinkPlugIn.Instance;
+            p.OpenedThisSession = true;
+            if (IsFloating)
+            {
+                p.Form.Close();   // Closed handler releases the view
+                Rhino.UI.Panels.OpenPanel(TopModPanel.PanelId);
+                try
+                {
+                    var doc = RhinoDoc.ActiveDoc;
+                    if (doc != null && Rhino.UI.Panels.GetPanel(TopModPanel.PanelId, doc) is TopModPanel panel && panel.Content == null)
+                        panel.Content = Shared(compact: true);
+                }
+                catch { }
+                RhinoApp.RunScript("_TopModWorkspace", false);
+            }
+            else
+            {
+                if (Rhino.UI.Panels.IsPanelVisible(TopModPanel.PanelId)) Rhino.UI.Panels.ClosePanel(TopModPanel.PanelId);
+                Application.Instance.AsyncInvoke(() =>
+                {
+                    if (p.Form == null) p.Form = new TopModForm();
+                    p.Form.Show();
+                    p.Form.BringToFront();
+                    UpdateSeparateLabel();
+                    RhinoApp.RunScript("_TopModDefaultLayout", false);
+                });
+            }
+            UpdateSeparateLabel();
         }
 
         public void LoadPage()
