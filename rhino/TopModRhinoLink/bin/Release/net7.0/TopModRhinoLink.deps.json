@@ -6,7 +6,7 @@
   "compilationOptions": {},
   "targets": {
     ".NETCoreApp,Version=v7.0": {
-      "TopModRhinoLink/2.1.4": {
+      "TopModRhinoLink/2.1.5": {
         "runtime": {
           "TopModRhinoLink.rhp": {}
         }
@@ -14,7 +14,7 @@
     }
   },
   "libraries": {
-    "TopModRhinoLink/2.1.4": {
+    "TopModRhinoLink/2.1.5": {
       "type": "project",
       "serviceable": false,
       "sha512": ""
