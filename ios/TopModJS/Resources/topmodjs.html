@@ -213,7 +213,10 @@ canvas#view{width:100%;height:100%;display:block;touch-action:none;outline:none;
   color:var(--text);background:var(--panel);border:1px solid rgba(127,216,239,0.4);border-radius:12px;
   box-shadow:0 6px 20px rgba(0,0,0,0.45)}
 #bboxInfo b{color:#7fd8ef}
-.bblabel{position:absolute;display:none;transform:translate(-50%,-50%);padding:2px 8px;
+.bblabel{position:absolute;display:none;transform:translate(-50%,-50%);}
+html body .bblabel{position:absolute;display:none;transform:translate(-50%,4px)!important;background:none!important;border:0!important;box-shadow:none!important;padding:0 3px!important;color:var(--tmDim,#FF3B30)!important;font:700 11px var(--mono,monospace)!important;text-shadow:0 0 3px rgba(255,255,255,.85),0 0 3px rgba(255,255,255,.85);pointer-events:none}
+body:not(.uiMono) .bblabel{text-shadow:0 0 3px #000,0 0 3px #000!important}
+.bblabel.__old{padding:2px 8px;
   font:10px var(--mono);color:#bdeeff;background:rgba(10,16,24,0.82);
   border:1px solid rgba(127,216,239,0.55);border-radius:9px;pointer-events:none;white-space:nowrap;z-index:5}
 .bblabel b{color:#7fd8ef}
@@ -916,6 +919,8 @@ body.uiMono,body.uiMono #frame,body.uiMono #main{background:#e9eaec!important}
 body.uiMonoDark,body.uiMonoDark #frame,body.uiMonoDark #main{background:#111214!important}
 body.uiMono #tbDockBar,body.uiMono #opDockBar,body.uiMono #ocBar,body.uiMonoDark #tbDockBar,body.uiMonoDark #opDockBar,body.uiMonoDark #ocBar{background:transparent!important}
 html body:not(.uiMono) input[type=range]{--sl:var(--tmAcc,#FF8C22)}
+body:not(.uiMono):not(.uiMonoDark):not(.uiLight):not(.uiGrey):not(.uiNavy) #menubar>:not(#wordmark),body:not(.uiMono):not(.uiMonoDark):not(.uiLight):not(.uiGrey):not(.uiNavy) #toolbar,body:not(.uiMono):not(.uiMonoDark):not(.uiLight):not(.uiGrey):not(.uiNavy) #toolpop,body:not(.uiMono):not(.uiMonoDark):not(.uiLight):not(.uiGrey):not(.uiNavy) #layersPanel,body:not(.uiMono):not(.uiMonoDark):not(.uiLight):not(.uiGrey):not(.uiNavy) #modPanel,body:not(.uiMono):not(.uiMonoDark):not(.uiLight):not(.uiGrey):not(.uiNavy) #status,body:not(.uiMono):not(.uiMonoDark):not(.uiLight):not(.uiGrey):not(.uiNavy) .mlist,body:not(.uiMono):not(.uiMonoDark):not(.uiLight):not(.uiGrey):not(.uiNavy) #fabNode,body:not(.uiMono):not(.uiMonoDark):not(.uiLight):not(.uiGrey):not(.uiNavy) #console,body:not(.uiMono):not(.uiMonoDark):not(.uiLight):not(.uiGrey):not(.uiNavy) #tourCard,body:not(.uiMono):not(.uiMonoDark):not(.uiLight):not(.uiGrey):not(.uiNavy) #creditCard,body:not(.uiMono):not(.uiMonoDark):not(.uiLight):not(.uiGrey):not(.uiNavy) #handPrim,body:not(.uiMono):not(.uiMonoDark):not(.uiLight):not(.uiGrey):not(.uiNavy) #toast,body:not(.uiMono):not(.uiMonoDark):not(.uiLight):not(.uiGrey):not(.uiNavy) #amxDemo,body:not(.uiMono):not(.uiMonoDark):not(.uiLight):not(.uiGrey):not(.uiNavy) #navcube>button,body:not(.uiMono):not(.uiMonoDark):not(.uiLight):not(.uiGrey):not(.uiNavy) #tbScroll,body:not(.uiMono):not(.uiMonoDark):not(.uiLight):not(.uiGrey):not(.uiNavy) #mbScroll,body:not(.uiMono):not(.uiMonoDark):not(.uiLight):not(.uiGrey):not(.uiNavy) #ncCanvas,body:not(.uiMono):not(.uiMonoDark):not(.uiLight):not(.uiGrey):not(.uiNavy) #claudePanel{filter:url(#tmDarkF)}
+body:not(.uiMono):not(.uiMonoDark):not(.uiLight):not(.uiGrey):not(.uiNavy) #toolbar img.ticon,body:not(.uiMono):not(.uiMonoDark):not(.uiLight):not(.uiGrey):not(.uiNavy) #toolbar svg,body:not(.uiMono):not(.uiMonoDark):not(.uiLight):not(.uiGrey):not(.uiNavy) #status #lightBtn{filter:url(#tmDarkIcon)}
 html body.uiMono input[type=range]{filter:none;--sl:#ff00ff;--slt:#3a3a3a}
 html body.uiMono #menubar{background:#f3f4f5!important;border-color:#d6d8db!important}
 html body.uiMonoDark #menubar{background:#0c0d0f!important;border-color:#26282b!important}
@@ -1139,14 +1144,15 @@ html.inApp [data-act="fullscreen"],html.inApp [data-act="shortcuts"],html.inApp 
       <div class="mi" data-act="openProject">Load&hellip;<span class="kbd">.TMOD</span></div>
       <div class="msep"></div>
       <div class="mi" data-act="import">Import Mesh (OBJ · STL · PLY · OFF · GLB · 3MF)&hellip;</div>
-      <div class="mi" data-act="export">Export OBJ&hellip;</div>
-      <div class="mi" data-act="exportWire">Export Wireframe &mdash; edges only (OBJ curves)&hellip;</div>
-      <div class="mi" data-act="exportWireDXF">Export Wireframe &mdash; edges only (DXF 3D lines)&hellip;</div>
-      <div class="mi" data-act="exportWireSVG">Export Wireframe &mdash; current view (SVG)&hellip;</div>
-      <div class="mi" data-act="lineArt">Export Line Art &mdash; plotter (vpype SVG / HPGL)&hellip;</div>
-      <div class="mi" data-act="exportGuide">Export Step Guide (PDF) &mdash; every step, auto-compiled&hellip;</div>
+      <div class="mi" id="miExport">Export&hellip;<span class="kbd">OBJ · DXF · SVG…</span></div>
       <div class="mi" data-act="screenshot">Screenshot (JPG)&hellip;</div>
-      <div class="mi" data-act="spinExport">Export Spin Video (MP4/WebM)&hellip;</div>
+      <div class="mi xHid" style="display:none" data-act="export">Export OBJ&hellip;</div>
+      <div class="mi xHid" style="display:none" data-act="exportWire">Export Wireframe &mdash; edges only (OBJ curves)&hellip;</div>
+      <div class="mi xHid" style="display:none" data-act="exportWireDXF">Export Wireframe &mdash; edges only (DXF 3D lines)&hellip;</div>
+      <div class="mi xHid" style="display:none" data-act="exportWireSVG">Export Wireframe &mdash; current view (SVG)&hellip;</div>
+      <div class="mi xHid" style="display:none" data-act="lineArt">Export Line Art &mdash; plotter (vpype SVG / HPGL)&hellip;</div>
+      <div class="mi xHid" style="display:none" data-act="exportGuide">Export Step Guide (PDF) &mdash; every step, auto-compiled&hellip;</div>
+      <div class="mi xHid" style="display:none" data-act="spinExport">Export Spin Video (MP4/WebM)&hellip;</div>
     </div></div>
     <div class="menu"><span class="mtitle">Edit</span><div class="mlist">
       <div class="mi" data-act="undo">Undo<span class="kbd">&#8984;Z</span></div>
@@ -1163,10 +1169,8 @@ html.inApp [data-act="fullscreen"],html.inApp [data-act="shortcuts"],html.inApp 
       <div class="mi" data-act="tgEdgeLen">Toggle Edge Lengths</div>
       <div class="mi" data-act="tgSeam">Toggle Seam Highlights</div>
       <div class="msep"></div>
-      <div class="mlab">Interface</div>
-      <div class="mi" data-ui="mono">Light theme</div>
-      <div class="mi" data-ui="dark">Dark theme</div>
-      <div class="mi" id="miMonoAccent">Accent colour&hellip; <span id="miMonoSw" style="display:inline-block;width:10px;height:10px;border-radius:3px;background:#FF8C22;vertical-align:middle;margin-left:4px"></span></div>
+      <div class="mi" data-ui="mono" style="display:none">Light theme</div>
+      <div class="mi" data-ui="dark" style="display:none">Dark theme</div>
       <div class="msep"></div>
       <div class="mi" data-act="tgB">Toggle Bounding Box</div>
       <div class="mi" data-act="tgSec">Toggle Section Plane</div>
@@ -8236,7 +8240,7 @@ function rebuild(opts){
   g.computeVertexNormals();
   matEdge.color.setHex(rm.edge[0]); matEdge.opacity=rm.edge[1];
   meshObj=new THREE.Mesh(g,rm.mat); scene.add(meshObj);
-  if(!light) rebuildBBox();
+  rebuildBBox();   // also while dragging, so the box follows the live result
 
   // OpenSubdiv cage editing: edges/points (and so picking) come from the control cage, the surface stays subdivided
   const cageOn = cageEdit && modStackActive && !fabActive;
@@ -8506,13 +8510,16 @@ function walkRing(collectFaces){
 // ---------- bounding box ----------
 let bboxObj=null;
 const matBBox=new THREE.LineBasicMaterial({color:0x7fd8ef,transparent:true,opacity:0.85});
+const matDim=new THREE.LineBasicMaterial({color:0xff3b30,depthTest:false,transparent:true}); window.__matDim=matDim;
 function rebuildBBox(){
   if(bboxObj){ scene.remove(bboxObj); bboxObj.geometry.dispose(); bboxObj=null; }
   const on=$("#tgBBox")&&$("#tgBBox").checked;
   const chip=$("#bboxInfo");
   if(!on||!mesh.verts.length){ if(chip) chip.style.display="none"; return; }
   let mn=[1e9,1e9,1e9],mx=[-1e9,-1e9,-1e9];
-  for(const v of mesh.verts)for(let i=0;i<3;i++){ if(v[i]<mn[i])mn[i]=v[i]; if(v[i]>mx[i])mx[i]=v[i]; }
+  // measure what is actually shown (modifiers applied), not just the base cage
+  let usedDisp=false; try{ if(meshObj&&meshObj.geometry){ const bx=new THREE.Box3().setFromObject(meshObj); if(isFinite(bx.min.x)&&!bx.isEmpty()){ mn=[bx.min.x,bx.min.y,bx.min.z]; mx=[bx.max.x,bx.max.y,bx.max.z]; usedDisp=true; } } }catch(e){}
+  if(!usedDisp) for(const v of mesh.verts)for(let i=0;i<3;i++){ if(v[i]<mn[i])mn[i]=v[i]; if(v[i]>mx[i])mx[i]=v[i]; }
   const c=[[mn[0],mn[1],mn[2]],[mx[0],mn[1],mn[2]],[mx[0],mx[1],mn[2]],[mn[0],mx[1],mn[2]],
            [mn[0],mn[1],mx[2]],[mx[0],mn[1],mx[2]],[mx[0],mx[1],mx[2]],[mn[0],mx[1],mx[2]]];
   const E=[[0,1],[1,2],[2,3],[3,0],[4,5],[5,6],[6,7],[7,4],[0,4],[1,5],[2,6],[3,7]];
@@ -8520,6 +8527,17 @@ function rebuildBBox(){
   const g2=new THREE.BufferGeometry();
   g2.setAttribute("position",new THREE.Float32BufferAttribute(pos,3));
   bboxObj=new THREE.LineSegments(g2,matBBox); scene.add(bboxObj);
+  { // traditional dimension lines  |----- 1.00 -----|  offset from the box, with extension lines
+    const dx=mx[0]-mn[0], dy=mx[1]-mn[1], dz=mx[2]-mn[2], o=Math.max(dx,dy,dz,0.001)*0.14, e=o*0.35, d=[];
+    const L=(a,b)=>{ d.push(...a,...b); };
+    // X: in front of the box (z = max + o), at the bottom
+    L([mn[0],mn[1],mx[2]+o],[mx[0],mn[1],mx[2]+o]); L([mn[0],mn[1],mx[2]],[mn[0],mn[1],mx[2]+o+e]); L([mx[0],mn[1],mx[2]],[mx[0],mn[1],mx[2]+o+e]);
+    // Z: to the right of the box (x = max + o), at the bottom
+    L([mx[0]+o,mn[1],mn[2]],[mx[0]+o,mn[1],mx[2]]); L([mx[0],mn[1],mn[2]],[mx[0]+o+e,mn[1],mn[2]]); L([mx[0],mn[1],mx[2]],[mx[0]+o+e,mn[1],mx[2]]);
+    // Y: left of the front-left edge (x = min - o, z = max)
+    L([mn[0]-o,mn[1],mx[2]],[mn[0]-o,mx[1],mx[2]]); L([mn[0],mn[1],mx[2]],[mn[0]-o-e,mn[1],mx[2]]); L([mn[0],mx[1],mx[2]],[mn[0]-o-e,mx[1],mx[2]]);
+    const gd=new THREE.BufferGeometry(); gd.setAttribute("position",new THREE.Float32BufferAttribute(d,3));
+    bboxObj.add(new THREE.LineSegments(gd,matDim)); bboxObj.userData.dimO=o; }
   bboxMn=mn; bboxMx=mx;
   if(chip) chip.style.display="none"; // dims live on the box edges; chip is for scale preview
 }
@@ -8534,12 +8552,13 @@ function updateBBoxLabels(){
   const mn=bboxMn,mx=bboxMx;
   const f=v=>(Math.round(v*s2*100)/100).toFixed(2);
   // midpoints of one X, one Y, one Z edge (front-bottom, right-vertical, bottom-right)
+  const o=(bboxObj.userData&&bboxObj.userData.dimO)||0;
   const pts={
-    x:[(mn[0]+mx[0])/2, mn[1], mx[2]],
-    y:[mx[0], (mn[1]+mx[1])/2, mx[2]],
-    z:[mx[0], mn[1], (mn[2]+mx[2])/2]
+    x:[(mn[0]+mx[0])/2, mn[1], mx[2]+o],
+    y:[mn[0]-o, (mn[1]+mx[1])/2, mx[2]],
+    z:[mx[0]+o, mn[1], (mn[2]+mx[2])/2]
   };
-  const txt={x:"X <b>"+f(mx[0]-mn[0])+"&Prime;</b>", y:"Y <b>"+f(mx[1]-mn[1])+"&Prime;</b>", z:"Z <b>"+f(mx[2]-mn[2])+"&Prime;</b>"};
+  const txt={x:f(mx[0]-mn[0])+"&Prime;", y:f(mx[1]-mn[1])+"&Prime;", z:f(mx[2]-mn[2])+"&Prime;"};
   const r=canvas.getBoundingClientRect(), wr=$("#viewWrap").getBoundingClientRect();
   for(const k of ["x","y","z"]){
     const p=pts[k];
@@ -18511,14 +18530,14 @@ void main(){
   // WHAT'S NEW card (once per version) — shown under the DEMO card, or on its own
   function whatsNewCard(){ let seen=null; try{ seen=localStorage.getItem("tm_wn_v40"); }catch(e){} if(seen) return null;
     const w=document.createElement("div"); w.id="amxWhatsNew"; w.setAttribute("role","dialog"); w.setAttribute("aria-label","What's new");
-    w.innerHTML='<div class="wnT">WHAT\'S NEW</div><ul><li><b>Claude AI</b> builds models from a sentence — open it from <b>Help &rarr; Ask Claude</b> (or the &#10022; Claude button) and add your own Anthropic key.</li><li><b>Light / Dark themes</b> with your own <b>accent colour</b> (View &rarr; Interface).</li><li>Tiger+ <b>fillet &amp; chamfer</b>, sub-layers, change the base under a modifier stack, and the online <b>Gallery</b>.</li></ul><button type="button" class="wnOk">Got it</button>';
-    const st=document.createElement("style"); st.textContent="#amxWhatsNew{width:min(360px,calc(100vw - 32px));background:rgba(8,12,18,.94);color:#e8eef4;border:1.5px solid var(--tmAcc,#FF8C22);border-radius:18px;padding:16px 18px 14px;box-shadow:0 18px 50px rgba(0,0,0,.45);font:13px/1.45 var(--font,-apple-system,sans-serif);text-align:left;backdrop-filter:blur(10px);-webkit-backdrop-filter:blur(10px)}"+
-      "#amxWhatsNew .wnT{font:900 15px var(--font,inherit);letter-spacing:5px;text-align:center;margin-bottom:8px}#amxWhatsNew ul{margin:0 0 12px;padding-left:18px}#amxWhatsNew li{margin:5px 0}#amxWhatsNew b{color:var(--tmAcc,#FF8C22)}"+
-      "#amxWhatsNew .wnOk{display:block;margin:0 auto;cursor:pointer;border-radius:999px;padding:8px 18px;font:700 13px var(--font,inherit);border:1px solid var(--tmAcc,#FF8C22);background:transparent;color:inherit}"+
+    w.innerHTML='<div class="wnT">WHAT\'S NEW</div><ul><li><b>Claude AI</b> builds models from a sentence — open it from <b>Help &rarr; Ask Claude</b> (or the &#10022; Claude button) and add your own Anthropic key.</li></ul><button type="button" class="wnOk">Got it</button>';
+    const st=document.createElement("style"); st.textContent="#amxWhatsNew{width:min(280px,calc(100vw - 32px));background:rgba(8,12,18,.94);color:#e8eef4;border:1.5px solid var(--tmAcc,#FF8C22);border-radius:16px;padding:12px 14px 10px;box-shadow:0 18px 50px rgba(0,0,0,.45);font:12px/1.4 var(--font,-apple-system,sans-serif);text-align:left;backdrop-filter:blur(10px);-webkit-backdrop-filter:blur(10px)}"+
+      "#amxWhatsNew .wnT{font:900 13px var(--font,inherit);letter-spacing:4px;text-align:center;margin-bottom:6px}#amxWhatsNew ul{margin:0 0 12px;padding-left:18px}#amxWhatsNew li{margin:5px 0}#amxWhatsNew b{color:var(--tmAcc,#FF8C22)}"+
+      "#amxWhatsNew .wnOk{display:block;margin:0 auto;cursor:pointer;border-radius:999px;padding:5px 14px;font:700 12px var(--font,inherit);border:1px solid var(--tmAcc,#FF8C22);background:transparent;color:inherit}"+
       "body.uiMono #amxWhatsNew{background:rgba(255,255,255,.97);color:#111;border-color:var(--tmAcc,#FF8C22)}"+
-      "#amxStartStack{position:fixed;left:50%;top:50%;transform:translate(-50%,-50%);z-index:10001;display:flex;flex-direction:column;align-items:center;gap:12px;max-height:calc(100vh - 24px);overflow:auto}#amxStartStack>#amxDemoAsk{position:static!important;transform:none!important}";
+      "#amxStartStack{position:fixed;left:50%;top:50%;transform:translate(-50%,-50%);z-index:10001;display:flex;flex-direction:column;align-items:center;gap:12px;overflow:visible}#amxStartStack>#amxDemoAsk{position:static!important;transform:none!important}";
     document.head.appendChild(st);
-    w.querySelector(".wnOk").onclick=()=>{ try{ localStorage.setItem("tm_wn_v40","1"); }catch(e){} const sk=w.parentNode; w.remove(); if(sk&&sk.id==="amxStartStack"&&!sk.children.length) sk.remove(); };
+    w.querySelector(".wnOk").onclick=()=>{ try{ localStorage.setItem("tm_wn_v40","1"); }catch(e){} const no=document.querySelector("#amxDemoAsk .dqNo"); if(no){ no.click(); return; } const sk=w.parentNode; w.remove(); if(sk&&sk.id==="amxStartStack") sk.remove(); };
     return w; }
   function startStack(){ let sk=document.getElementById("amxStartStack"); if(!sk){ sk=document.createElement("div"); sk.id="amxStartStack"; document.body.appendChild(sk); } return sk; }
   function askDemo(){
@@ -18533,11 +18552,11 @@ void main(){
       '<div class="dqB"><button type="button" class="dqYes">Yes</button><button type="button" class="dqNo">No</button></div>'+
       '<label class="dqR"><input type="checkbox" class="dqSw"><span class="dqTrack"><span class="dqKnob"></span></span> Don\'t show again</label>';
     const st=document.createElement("style"); st.textContent=
-      "#amxDemoAsk{position:fixed;left:50%;top:50%;transform:translate(-50%,-50%);z-index:10001;width:min(360px,calc(100vw - 32px));background:rgba(8,12,18,.94);color:#e8eef4;"+
-      "border:1.5px solid var(--tmAcc,#FF8C22);border-radius:18px;padding:18px 18px 14px;box-shadow:0 0 0 1px rgba(127,127,127,.25),0 0 26px rgba(0,0,0,.18),0 18px 50px rgba(0,0,0,.6);font:13px/1.4 var(--font,-apple-system,sans-serif);text-align:center;backdrop-filter:blur(10px);-webkit-backdrop-filter:blur(10px)}"+
+      "#amxDemoAsk{position:fixed;left:50%;top:50%;transform:translate(-50%,-50%);z-index:10001;width:min(280px,calc(100vw - 32px));background:rgba(8,12,18,.94);color:#e8eef4;"+
+      "border:1.5px solid var(--tmAcc,#FF8C22);border-radius:18px;padding:12px 14px 10px;box-shadow:0 0 0 1px rgba(127,127,127,.25),0 0 26px rgba(0,0,0,.18),0 18px 50px rgba(0,0,0,.6);font:13px/1.4 var(--font,-apple-system,sans-serif);text-align:center;backdrop-filter:blur(10px);-webkit-backdrop-filter:blur(10px)}"+
       "#amxDemoAsk .dqT{font-weight:800;font-size:18px;letter-spacing:.02em;margin-bottom:6px}#amxDemoAsk .dqS{color:#9fb0bf;margin-bottom:14px}"+
       "#amxDemoAsk .dqB{display:flex;gap:10px;justify-content:center;flex-wrap:wrap}#amxDemoAsk button{cursor:pointer;border-radius:999px;padding:9px 16px;font:700 13px var(--font,inherit);border:1px solid rgba(255,255,255,.18);background:#141a24;color:#e8eef4}"+
-      "#amxDemoAsk .dqT{font:900 22px var(--font,inherit)!important;letter-spacing:6px!important}#amxDemoAsk .dqB button{min-width:96px;font-size:14px}"+
+      "#amxDemoAsk .dqT{font:900 16px var(--font,inherit)!important;letter-spacing:5px!important;margin-bottom:2px!important}#amxDemoAsk .dqS{margin-bottom:9px!important;font-size:12px}#amxDemoAsk .dqB button{min-width:72px;font-size:12.5px;padding:6px 12px!important}#amxDemoAsk .dqR{margin-top:9px!important;font-size:11px!important}#amxDemoAsk .dqL{padding-bottom:8px!important;margin-bottom:8px!important}#amxDemoAsk .dqThemes button{padding:4px 9px!important;font-size:11px!important}#amxDemoAsk .dqAcc{gap:5px!important;margin-top:7px!important}#amxDemoAsk .dqAcc button{width:18px!important;height:18px!important}#amxDemoAsk .dqPick{width:20px!important;height:20px!important}"+
       "#amxDemoAsk .dqYes{background:var(--tmAcc,#FF8C22);border-color:var(--tmAcc,#FF8C22);color:#1a0e02}#amxDemoAsk .dqR{display:inline-flex;gap:8px;align-items:center;margin-top:14px;color:#9fb0bf;font-size:12px;cursor:pointer;user-select:none}"+
       "#amxDemoAsk .dqSw{position:absolute;opacity:0;width:0;height:0}#amxDemoAsk .dqTrack{position:relative;width:34px;height:20px;border-radius:999px;background:#3a4250;transition:background .15s}"+
       "#amxDemoAsk .dqKnob{position:absolute;left:2px;top:2px;width:16px;height:16px;border-radius:50%;background:#fff;transition:left .15s}#amxDemoAsk .dqSw:checked+.dqTrack{background:var(--tmAcc,#FF8C22)}#amxDemoAsk .dqSw:checked+.dqTrack .dqKnob{left:16px}"+
@@ -18545,19 +18564,21 @@ void main(){
       "body.uiLight #amxDemoAsk{background:rgba(250,251,252,.96);color:#1b232c}body.uiLight #amxDemoAsk .dqS{color:#55626f}body.uiLight #amxDemoAsk button:not(.dqYes){background:#eef1f4;color:#1b232c;border-color:#cfd6dd}";
     st.textContent+="#amxDemoAsk .dqL{border-bottom:1px solid rgba(127,127,127,.25);padding-bottom:12px;margin-bottom:12px}#amxDemoAsk .dqH{font:800 10px var(--mono,monospace);letter-spacing:2px;color:#8a96a3;margin-bottom:8px}"+
       "#amxDemoAsk .dqThemes{display:flex;flex-wrap:wrap;gap:6px;justify-content:center}#amxDemoAsk .dqThemes button{min-width:0!important;padding:6px 10px!important;font-size:11.5px!important}#amxDemoAsk .dqThemes button.on{outline:2px solid var(--tmAcc,#FF8C22);outline-offset:1px}"+
-      "#amxDemoAsk .dqAcc{display:flex;gap:7px;justify-content:center;margin-top:9px}#amxDemoAsk .dqAcc[hidden]{display:none}#amxDemoAsk .dqAcc button{width:22px;height:22px;min-width:0!important;padding:0!important;border-radius:50%!important;border:2px solid transparent!important}#amxDemoAsk .dqAcc button.on{border-color:#111!important;box-shadow:0 0 0 2px #fff inset}";
+      "#amxDemoAsk .dqAcc{display:flex;gap:7px;justify-content:center;margin-top:9px}#amxDemoAsk .dqAcc[hidden]{display:none}#amxDemoAsk .dqAcc button{width:22px;height:22px;min-width:0!important;padding:0!important;border-radius:50%!important;border:2px solid transparent!important}#amxDemoAsk .dqAcc button.on{border-color:#111!important;box-shadow:0 0 0 2px #fff inset}#amxDemoAsk .dqPick{width:26px;height:24px;padding:0;border:0;background:conic-gradient(red,yellow,lime,cyan,blue,magenta,red);border-radius:50%;cursor:pointer;-webkit-appearance:none;appearance:none}#amxDemoAsk .dqPick::-webkit-color-swatch-wrapper{padding:0;opacity:0}#amxDemoAsk .dqPick::-webkit-color-swatch{border:0;opacity:0}";
     document.head.appendChild(st); { const w=whatsNewCard(); if(w){ const sk=startStack(); sk.appendChild(card); sk.appendChild(w); } else document.body.appendChild(card); }
     // LOOK: pick the interface theme (and the Mono accent) right here; Yes / No closes the card
     const TH=[["mono","Light theme"],["dark","Dark theme"]];
-    const ACC=["#FF8C22","#00E5FF","#FF00B8","#2F6BFF","#34C759","#FFD60A"];
+    const ACC=["#00E5FF","#FF8C22","#FF00B8","#2F6BFF","#34C759","#FFD60A"];
     const thBox=card.querySelector(".dqThemes"), accBox=card.querySelector(".dqAcc");
     const curTheme=()=>{ const b=document.body.classList; return b.contains("uiMono")?"mono":b.contains("uiMonoDark")?"monodark":b.contains("uiLight")?"light":b.contains("uiGrey")?"grey":b.contains("uiNavy")?"navy":"dark"; };
     const paint=()=>{ const t=curTheme(); thBox.querySelectorAll("button").forEach(b=>b.classList.toggle("on",b.dataset.t===t)); accBox.hidden=false;
       const a=(window.__monoAccentColor||"").toLowerCase(); accBox.querySelectorAll("button").forEach(b=>b.classList.toggle("on",b.dataset.c.toLowerCase()===a)); };
     TH.forEach(([k,n])=>{ const b=document.createElement("button"); b.type="button"; b.textContent=n; b.dataset.t=k; b.onclick=()=>{ const mi=document.querySelector('.mi[data-ui="'+k+'"]'); if(mi) mi.click(); setTimeout(paint,30); }; thBox.appendChild(b); });
-    ACC.forEach(c=>{ const b=document.createElement("button"); b.type="button"; b.style.background=c; b.dataset.c=c; b.title=c; b.onclick=()=>{ try{ window.__monoAccent&&window.__monoAccent(c); localStorage.setItem("tmMonoAccent",c); }catch(e){} paint(); }; accBox.appendChild(b); });
+    ACC.forEach(c=>{ const b=document.createElement("button"); b.type="button"; b.style.background=c; b.dataset.c=c; b.title=c; b.onclick=()=>{ try{ window.__setAllColors&&window.__setAllColors(c); }catch(e){} paint(); }; accBox.appendChild(b); });
+    { const pk=document.createElement("input"); pk.type="color"; pk.className="dqPick"; pk.title="Any colour"; pk.value=(window.__monoAccentColor||"#FF8C22");
+      pk.addEventListener("input",()=>{ try{ window.__setAllColors&&window.__setAllColors(pk.value); }catch(e){} paint(); }); accBox.appendChild(pk); }
     paint();
-    const done=yes=>{ try{ if(card.querySelector(".dqSw").checked) localStorage.setItem("tm_demo_ask",yes?"yes":"no"); }catch(e){} const sk=card.parentNode; card.remove(); if(sk&&sk.id==="amxStartStack"&&!sk.children.length) sk.remove(); removeEventListener("keydown",key,true); if(yes) start(); };
+    const done=yes=>{ try{ if(card.querySelector(".dqSw").checked) localStorage.setItem("tm_demo_ask",yes?"yes":"no"); }catch(e){} const sk=card.parentNode; card.remove(); if(sk&&sk.id==="amxStartStack"){ if(sk.querySelector("#amxWhatsNew")){ try{ localStorage.setItem("tm_wn_v40","1"); }catch(e){} } sk.remove(); } removeEventListener("keydown",key,true); if(yes) start(); };
     const key=e=>{ if(e.key==="Escape"){ e.preventDefault(); e.stopPropagation(); done(false); } else if(e.key==="Enter"&&!/^(INPUT|TEXTAREA)$/.test((e.target||{}).tagName||"")){ e.preventDefault(); e.stopPropagation(); done(true); } };
     card.querySelector(".dqYes").onclick=()=>done(true); card.querySelector(".dqNo").onclick=()=>done(false);
     addEventListener("keydown",key,true); setTimeout(()=>{ try{ card.querySelector(".dqYes").focus(); }catch(e){} },60);
@@ -19597,7 +19618,7 @@ window.__tmCore={ get OP_PARAMS(){return OP_PARAMS}, get MODS(){return MODS}, ge
 (function(){ function apply(m){ if(["dark","grey","light","navy","mono","monodark"].indexOf(m)<0) m="dark"; document.body.classList.toggle("uiLight",m==="light"); document.body.classList.toggle("uiGrey",m==="grey"); document.body.classList.toggle("uiNavy",m==="navy"); document.body.classList.toggle("uiMono",m==="mono"); document.body.classList.toggle("uiMonoDark",m==="monodark"); try{ window.__monoModel&&window.__monoModel(true); }catch(e){}
    try{ if(window.__setSceneBg) window.__setSceneBg(m); }catch(e){}
    document.querySelectorAll("[data-ui]").forEach(function(el){ el.classList.toggle("on",el.dataset.ui===m); }); }
- function init(){ var m="mono"; try{ if(!localStorage.getItem("tmUIdef2")){ localStorage.setItem("tmUIdef2","1"); if(localStorage.getItem("tmUI")==="dark") localStorage.removeItem("tmUI"); } m=localStorage.getItem("tmUI")||"mono"; if(m==="light"){ m="mono"; localStorage.setItem("tmUI",m); } if(m==="monodark"||m==="navy"){ m="dark"; localStorage.setItem("tmUI",m); } if(m==="grey"){ m="mono"; localStorage.setItem("tmUI",m); } }catch(e){} apply(m);
+ function init(){ var m="mono"; try{ if(!localStorage.getItem("tmUIdef3")){ localStorage.setItem("tmUIdef2","1"); localStorage.setItem("tmUIdef3","1"); localStorage.removeItem("tmUI"); } m=localStorage.getItem("tmUI")||"mono"; if(m==="light"){ m="mono"; localStorage.setItem("tmUI",m); } if(m==="monodark"||m==="navy"){ m="dark"; localStorage.setItem("tmUI",m); } if(m==="grey"){ m="mono"; localStorage.setItem("tmUI",m); } }catch(e){} apply(m);
    var vs=document.getElementById("viewStyleSel"); var cur=(vs&&vs.value)||"solid"; document.querySelectorAll("[data-rm]").forEach(function(el){ el.classList.toggle("on",el.dataset.rm===cur); });
    document.querySelectorAll("[data-ui]").forEach(function(el){ el.addEventListener("click",function(e){ e.stopPropagation(); document.querySelectorAll("#menubar .menu.open").forEach(function(x){x.classList.remove("open");});
      var v=el.dataset.ui; try{ localStorage.setItem("tmUI",v); }catch(_){} apply(v); }); }); }
@@ -20578,48 +20599,95 @@ body.duo #claudePanel,body.duoBottom #claudePanel{top:calc(var(--duoH,50vh) + 8p
   setInterval(()=>{ all().forEach(el=>{ if(el.offsetParent!==null) upd(el); }); },250);
   all().forEach(upd); })();
 </script>
-<svg width="0" height="0" style="position:absolute;width:0;height:0" aria-hidden="true"><defs><filter id="tmMonoF" color-interpolation-filters="sRGB" x="0" y="0" width="100%" height="100%"><feColorMatrix in="SourceGraphic" type="matrix" result="g" values="-0.2126 -0.7152 -0.0722 0 1  -0.2126 -0.7152 -0.0722 0 1  -0.2126 -0.7152 -0.0722 0 1  0 0 0 1 0"/><feColorMatrix in="SourceGraphic" type="matrix" result="r" values="1 0 0 0 0  1 0 0 0 0  1 0 0 0 0  0 0 0 1 0"/><feFlood class="tmAccent" flood-color="#FF8C22" result="f"/><feComposite in="f" in2="r" operator="arithmetic" k1="1" k2="0" k3="0" k4="0" result="c"/><feColorMatrix in="SourceGraphic" type="matrix" result="m" values="0 0 0 0 0  0 0 0 0 0  0 0 0 0 0  4 -8 4 0 -0.8"/><feComposite in="c" in2="m" operator="in" result="c2"/><feComposite in="c2" in2="SourceAlpha" operator="in" result="k"/><feMerge><feMergeNode in="g"/><feMergeNode in="k"/></feMerge></filter><filter id="tmMonoDF" color-interpolation-filters="sRGB" x="0" y="0" width="100%" height="100%"><feColorMatrix in="SourceGraphic" type="matrix" result="g" values="0.2126 0.7152 0.0722 0 0  0.2126 0.7152 0.0722 0 0  0.2126 0.7152 0.0722 0 0  0 0 0 1 0"/><feColorMatrix in="SourceGraphic" type="matrix" result="r" values="1 0 0 0 0  1 0 0 0 0  1 0 0 0 0  0 0 0 1 0"/><feFlood class="tmAccent" flood-color="#FF8C22" result="f"/><feComposite in="f" in2="r" operator="arithmetic" k1="1" k2="0" k3="0" k4="0" result="c"/><feColorMatrix in="SourceGraphic" type="matrix" result="m" values="0 0 0 0 0  0 0 0 0 0  0 0 0 0 0  4 -8 4 0 -0.8"/><feComposite in="c" in2="m" operator="in" result="c2"/><feComposite in="c2" in2="SourceAlpha" operator="in" result="k"/><feMerge><feMergeNode in="g"/><feMergeNode in="k"/></feMerge></filter><filter id="tmMonoIconL" color-interpolation-filters="sRGB" x="0" y="0" width="100%" height="100%"><feColorMatrix in="SourceGraphic" type="matrix" result="g" values="-0.2126 -0.7152 -0.0722 0 1  -0.2126 -0.7152 -0.0722 0 1  -0.2126 -0.7152 -0.0722 0 1  0 0 0 1 0"/><feColorMatrix in="SourceGraphic" type="matrix" result="mg" values="0.1276 0.4291 0.0433 0 0.55  0 0 0 0 0  0.1276 0.4291 0.0433 0 0.55  0 0 0 1 0"/><feColorMatrix in="SourceGraphic" type="matrix" result="w" values="0 0 0 0 0  0 0 0 0 0  0 0 0 0 0  5 0 -5 0 -1.6"/><feComposite in="mg" in2="w" operator="in" result="t"/><feComposite in="t" in2="SourceAlpha" operator="in" result="t2"/><feMerge><feMergeNode in="g"/><feMergeNode in="t2"/></feMerge></filter><filter id="tmMonoIconD" color-interpolation-filters="sRGB" x="0" y="0" width="100%" height="100%"><feColorMatrix in="SourceGraphic" type="matrix" result="g" values="-0.2126 -0.7152 -0.0722 0 1  -0.2126 -0.7152 -0.0722 0 1  -0.2126 -0.7152 -0.0722 0 1  0 0 0 1 0"/><feColorMatrix in="SourceGraphic" type="matrix" result="mg" values="0.1276 0.4291 0.0433 0 0.55  0 0 0 0 0  0.1276 0.4291 0.0433 0 0.55  0 0 0 1 0"/><feColorMatrix in="SourceGraphic" type="matrix" result="w" values="0 0 0 0 0  0 0 0 0 0  0 0 0 0 0  5 0 -5 0 -1.6"/><feComposite in="mg" in2="w" operator="in" result="t"/><feComposite in="t" in2="SourceAlpha" operator="in" result="t2"/><feMerge><feMergeNode in="g"/><feMergeNode in="t2"/></feMerge></filter></defs></svg>
+<svg width="0" height="0" style="position:absolute;width:0;height:0" aria-hidden="true"><defs><filter id="tmMonoF" color-interpolation-filters="sRGB" x="0" y="0" width="100%" height="100%"><feColorMatrix in="SourceGraphic" type="matrix" result="g" values="-0.2126 -0.7152 -0.0722 0 1  -0.2126 -0.7152 -0.0722 0 1  -0.2126 -0.7152 -0.0722 0 1  0 0 0 1 0"/><feColorMatrix in="SourceGraphic" type="matrix" result="r" values="1 0 0 0 0  1 0 0 0 0  1 0 0 0 0  0 0 0 1 0"/><feFlood class="tmAccent" flood-color="#FF8C22" result="f"/><feComposite in="f" in2="r" operator="arithmetic" k1="1" k2="0" k3="0" k4="0" result="c"/><feColorMatrix in="SourceGraphic" type="matrix" result="m" values="0 0 0 0 0  0 0 0 0 0  0 0 0 0 0  4 -8 4 0 -0.8"/><feComposite in="c" in2="m" operator="in" result="c2"/><feComposite in="c2" in2="SourceAlpha" operator="in" result="k"/><feColorMatrix in="SourceGraphic" type="matrix" result="rb" values="0 0 1 0 0  0 0 1 0 0  0 0 1 0 0  0 0 0 1 0"/><feComposite in="f" in2="rb" operator="arithmetic" k1="1" k2="0" k3="0" k4="0" result="cc"/><feColorMatrix in="SourceGraphic" type="matrix" result="mc" values="0 0 0 0 0  0 0 0 0 0  0 0 0 0 0  -4 2 2 0 -0.6"/><feComposite in="cc" in2="mc" operator="in" result="cc2"/><feComposite in="cc2" in2="SourceAlpha" operator="in" result="kc"/><feFlood class="tmTool" flood-color="#FF8C22" result="ft"/><feColorMatrix in="SourceGraphic" type="matrix" result="rg" values="0 1 0 0 0  0 1 0 0 0  0 1 0 0 0  0 0 0 1 0"/><feComposite in="ft" in2="rg" operator="arithmetic" k1="1" k2="0" k3="0" k4="0" result="tc"/><feColorMatrix in="SourceGraphic" type="matrix" result="mt" values="0 0 0 0 0  0 0 0 0 0  0 0 0 0 0  -4 4 -4 0 -0.4"/><feComposite in="tc" in2="mt" operator="in" result="tc2"/><feComposite in="tc2" in2="SourceAlpha" operator="in" result="kt"/><feMerge><feMergeNode in="g"/><feMergeNode in="k"/><feMergeNode in="kc"/><feMergeNode in="kt"/></feMerge></filter><filter id="tmMonoDF" color-interpolation-filters="sRGB" x="0" y="0" width="100%" height="100%"><feColorMatrix in="SourceGraphic" type="matrix" result="g" values="0.2126 0.7152 0.0722 0 0  0.2126 0.7152 0.0722 0 0  0.2126 0.7152 0.0722 0 0  0 0 0 1 0"/><feColorMatrix in="SourceGraphic" type="matrix" result="r" values="1 0 0 0 0  1 0 0 0 0  1 0 0 0 0  0 0 0 1 0"/><feFlood class="tmAccent" flood-color="#FF8C22" result="f"/><feComposite in="f" in2="r" operator="arithmetic" k1="1" k2="0" k3="0" k4="0" result="c"/><feColorMatrix in="SourceGraphic" type="matrix" result="m" values="0 0 0 0 0  0 0 0 0 0  0 0 0 0 0  4 -8 4 0 -0.8"/><feComposite in="c" in2="m" operator="in" result="c2"/><feComposite in="c2" in2="SourceAlpha" operator="in" result="k"/><feColorMatrix in="SourceGraphic" type="matrix" result="rb" values="0 0 1 0 0  0 0 1 0 0  0 0 1 0 0  0 0 0 1 0"/><feComposite in="f" in2="rb" operator="arithmetic" k1="1" k2="0" k3="0" k4="0" result="cc"/><feColorMatrix in="SourceGraphic" type="matrix" result="mc" values="0 0 0 0 0  0 0 0 0 0  0 0 0 0 0  -4 2 2 0 -0.6"/><feComposite in="cc" in2="mc" operator="in" result="cc2"/><feComposite in="cc2" in2="SourceAlpha" operator="in" result="kc"/><feFlood class="tmTool" flood-color="#FF8C22" result="ft"/><feColorMatrix in="SourceGraphic" type="matrix" result="rg" values="0 1 0 0 0  0 1 0 0 0  0 1 0 0 0  0 0 0 1 0"/><feComposite in="ft" in2="rg" operator="arithmetic" k1="1" k2="0" k3="0" k4="0" result="tc"/><feColorMatrix in="SourceGraphic" type="matrix" result="mt" values="0 0 0 0 0  0 0 0 0 0  0 0 0 0 0  -4 4 -4 0 -0.4"/><feComposite in="tc" in2="mt" operator="in" result="tc2"/><feComposite in="tc2" in2="SourceAlpha" operator="in" result="kt"/><feMerge><feMergeNode in="g"/><feMergeNode in="k"/><feMergeNode in="kc"/><feMergeNode in="kt"/></feMerge></filter><filter id="tmMonoIconL" color-interpolation-filters="sRGB" x="0" y="0" width="100%" height="100%"><feColorMatrix in="SourceGraphic" type="matrix" result="g" values="-0.0638 -0.2146 -0.0217 0 1  -0.0638 -0.2146 -0.0217 0 1  -0.0638 -0.2146 -0.0217 0 1  0 0 0 1 0"/><feColorMatrix in="SourceGraphic" type="matrix" result="mg" values="0 0 0 0 0  0.1276 0.4291 0.0433 0 0.55  0 0 0 0 0  0 0 0 1 0"/><feColorMatrix in="SourceGraphic" type="matrix" result="w" values="0 0 0 0 0  0 0 0 0 0  0 0 0 0 0  5 0 -5 0 -1.6"/><feComposite in="mg" in2="w" operator="in" result="t"/><feComposite in="t" in2="SourceAlpha" operator="in" result="t2"/><feMerge><feMergeNode in="g"/><feMergeNode in="t2"/></feMerge></filter><filter id="tmMonoIconD" color-interpolation-filters="sRGB" x="0" y="0" width="100%" height="100%"><feColorMatrix in="SourceGraphic" type="matrix" result="g" values="-0.2126 -0.7152 -0.0722 0 1  -0.2126 -0.7152 -0.0722 0 1  -0.2126 -0.7152 -0.0722 0 1  0 0 0 1 0"/><feColorMatrix in="SourceGraphic" type="matrix" result="mg" values="0 0 0 0 0  0.1276 0.4291 0.0433 0 0.55  0 0 0 0 0  0 0 0 1 0"/><feColorMatrix in="SourceGraphic" type="matrix" result="w" values="0 0 0 0 0  0 0 0 0 0  0 0 0 0 0  5 0 -5 0 -1.6"/><feComposite in="mg" in2="w" operator="in" result="t"/><feComposite in="t" in2="SourceAlpha" operator="in" result="t2"/><feMerge><feMergeNode in="g"/><feMergeNode in="t2"/></feMerge></filter><filter id="tmDarkF" color-interpolation-filters="sRGB" x="0" y="0" width="100%" height="100%"><feFlood class="tmAccent" flood-color="#FF8C22" result="f"/><feColorMatrix in="SourceGraphic" type="matrix" result="rb" values="0 0 1 0 0  0 0 1 0 0  0 0 1 0 0  0 0 0 1 0"/><feComposite in="f" in2="rb" operator="arithmetic" k1="1" k2="0" k3="0" k4="0" result="cc"/><feColorMatrix in="SourceGraphic" type="matrix" result="mc" values="0 0 0 0 0  0 0 0 0 0  0 0 0 0 0  -4 2 2 0 -0.6"/><feComposite in="cc" in2="mc" operator="in" result="cc2"/><feComposite in="cc2" in2="SourceAlpha" operator="in" result="kc"/><feMerge><feMergeNode in="SourceGraphic"/><feMergeNode in="kc"/></feMerge></filter><filter id="tmDarkIcon" color-interpolation-filters="sRGB" x="0" y="0" width="100%" height="100%"><feFlood class="tmTool" flood-color="#FF8C22" result="f"/><feColorMatrix in="SourceGraphic" type="matrix" result="l" values="0.1276 0.4291 0.0433 0 0.45  0.1276 0.4291 0.0433 0 0.45  0.1276 0.4291 0.0433 0 0.45  0 0 0 1 0"/><feComposite in="f" in2="l" operator="arithmetic" k1="1" k2="0" k3="0" k4="0" result="c"/><feColorMatrix in="SourceGraphic" type="matrix" result="w" values="0 0 0 0 0  0 0 0 0 0  0 0 0 0 0  5 0 -5 0 -1.6"/><feComposite in="c" in2="w" operator="in" result="t"/><feComposite in="t" in2="SourceAlpha" operator="in" result="t2"/><feMerge><feMergeNode in="SourceGraphic"/><feMergeNode in="t2"/></feMerge></filter></defs></svg>
 <script>/* Mono mode: models go neutral grey (no colour on models); other modes restore the original material colour */
 (function(){ let saved=null;
   window.__monoModel=function(on){ try{ const S=window.__tmCore&&window.__tmCore.scene; if(!S) { setTimeout(()=>window.__monoModel(on),400); return; }
     S.traverse(o=>{ const mats=o.isMesh?(Array.isArray(o.material)?o.material:[o.material]):[]; mats.forEach(m=>{ if(!m||!m.color||m.depthTest===false||o.renderOrder>0||(m.transparent&&!(m.transmission>0)&&m.opacity<0.9)) return; if(m.vertexColors){ if(on&&m.userData.__monoVC==null){ m.userData.__monoVC=1; m.vertexColors=false; m.needsUpdate=true; } }
-      if(on){ if(m.userData.__monoOrig==null){ m.userData.__monoOrig=m.color.getHex(); } m.color.set(window.__monoAccentColor||"#FF8C22"); }
+      if(on){ if(m.userData.__monoOrig==null){ m.userData.__monoOrig=m.color.getHex(); } m.color.set(window.__shaderColor||"#FF8C22"); }
       else if(m.userData.__monoOrig!=null){ m.color.setHex(m.userData.__monoOrig); delete m.userData.__monoOrig; if(m.userData.__monoVC){ m.vertexColors=true; m.needsUpdate=true; delete m.userData.__monoVC; } } }); }); }catch(e){} };
   // new meshes created while in Mono get the grey too
   // re-apply right before every frame so meshes rebuilt while dragging a slider never flash back to their own colour
   (function hook(){ const R=window.__tmCore&&window.__tmCore.renderer; if(!R){ setTimeout(hook,400); return; } if(R.__monoHooked) return; R.__monoHooked=true;
     const orig=R.render.bind(R); let last=0;
     R.render=function(sc,cam){ if(true){ const t=performance.now(); if(t-last>30){ last=t; window.__monoModel(true); } } return orig(sc,cam); }; })();
-  // Mono accent colour (sliders, icon tint and the model itself): user-pickable, starts TopMod cyan; picker opens centre screen
-  const isMono=()=>true;   // accent applies in both Light and Dark themes
-  function setAccent(c){ window.__monoAccentColor=c; try{ document.documentElement.style.setProperty("--tmAcc",c); }catch(e){} document.querySelectorAll("feFlood.tmAccent").forEach(f=>f.setAttribute("flood-color",c)); const sw=document.getElementById("miMonoSw"); if(sw) sw.style.background=c;
-    if(isMono()) window.__monoModel(true); }
-  let acc="#FF8C22"; try{ acc=localStorage.getItem("tmMonoAccent")||acc; }catch(e){} setAccent(acc);
+  // ---- Colours: Accent (text + sliders, TopMod blue), Shader (the model, orange), Tool (tool icons, orange) ----
+  const DEF={acc:"#00E5FF",shd:"#FF8C22",tool:"#FF8C22",dim:"#FF3B30"}, KEY={acc:"tmMonoAccent",shd:"tmShader",tool:"tmTool",dim:"tmDim"};
+  try{ if(!localStorage.getItem("tmSet3")){ localStorage.setItem("tmSet3","1"); localStorage.removeItem("tmMonoAccent"); } }catch(e){}
+  const get=k=>{ try{ return localStorage.getItem(KEY[k])||DEF[k]; }catch(e){ return DEF[k]; } };
+  function setAccent(c){ window.__monoAccentColor=c; try{ document.documentElement.style.setProperty("--tmAcc",c); }catch(e){} document.querySelectorAll("feFlood.tmAccent").forEach(f=>f.setAttribute("flood-color",c)); }
+  function setShader(c){ window.__shaderColor=c; window.__monoModel(true); }
+  function setTool(c){ window.__toolColor=c; document.querySelectorAll("feFlood.tmTool").forEach(f=>f.setAttribute("flood-color",c)); }
+  function setDim(c){ window.__dimColor=c; try{ document.documentElement.style.setProperty("--tmDim",c); if(window.__matDim) window.__matDim.color.set(c); }catch(e){} }
+  const SET={acc:setAccent,shd:setShader,tool:setTool,dim:setDim};
+  setAccent(get("acc")); setShader(get("shd")); setTool(get("tool")); setDim(get("dim"));
+  function choose(k,c){ if(!/^#[0-9a-f]{6}$/i.test(c)) return; SET[k](c); try{ localStorage.setItem(KEY[k],c); }catch(e){} paint(); }
   const st=document.createElement("style"); st.textContent=
-    "#monoPick{position:fixed;left:50%;top:50%;transform:translate(-50%,-50%);z-index:100030;width:min(300px,calc(100vw - 32px));background:#fff;color:#111;border:1px solid #cfd2d6;border-radius:16px;box-shadow:0 20px 60px rgba(0,0,0,.35);padding:16px;font:13px var(--font,-apple-system,sans-serif);text-align:center}"+
-    "#monoPick[hidden]{display:none}#monoPick h4{margin:0 0 12px;font:800 11px var(--mono,monospace);letter-spacing:1.6px;text-transform:uppercase;color:#555}"+
-    "#monoPick .sw{display:grid;grid-template-columns:repeat(6,1fr);gap:8px;margin-bottom:12px}#monoPick .sw button{aspect-ratio:1;border-radius:10px;border:2px solid transparent;cursor:pointer;padding:0}#monoPick .sw button.on{border-color:#111;box-shadow:0 0 0 2px #fff inset}"+
-    "#monoPick .row{display:flex;gap:8px;align-items:center;justify-content:center}#monoPick input[type=color]{width:44px;height:34px;border:1px solid #cfd2d6;border-radius:8px;padding:2px;background:#fff;cursor:pointer}"+
-    "#monoPick input[type=text]{width:90px;border:1px solid #cfd2d6;border-radius:8px;padding:8px;font:12px var(--mono,monospace);text-transform:uppercase}#monoPick .done{background:#111;color:#fff;border:0;border-radius:999px;padding:9px 18px;font-weight:700;cursor:pointer}"+
-    "#monoPickShade{position:fixed;inset:0;background:rgba(0,0,0,.25);z-index:100029}#monoPickShade[hidden]{display:none}";
+    "#tmSettings{position:fixed;left:50%;top:50%;transform:translate(-50%,-50%);z-index:100030;width:min(320px,calc(100vw - 32px));max-height:calc(100vh - 32px);overflow:auto;background:#fff;color:#111;border:1px solid #cfd2d6;border-radius:16px;box-shadow:0 20px 60px rgba(0,0,0,.35);padding:14px 16px;font:13px var(--font,-apple-system,sans-serif)}"+
+    "#tmSettings[hidden],#tmSetShade[hidden]{display:none}#tmSettings h4{margin:0 0 10px;text-align:center;font:900 13px var(--font,inherit);letter-spacing:4px}"+
+    "#tmSettings .sec{margin:0 0 12px}#tmSettings .lab{font:800 10px var(--mono,monospace);letter-spacing:1.6px;text-transform:uppercase;color:#666;margin-bottom:6px;display:flex;justify-content:space-between}#tmSettings .lab i{font-style:normal;text-transform:none;letter-spacing:0;color:#999;font-family:var(--font,inherit)}"+
+    "#tmSettings .th{display:flex;gap:6px}#tmSettings .th button{flex:1;border:1px solid #cfd2d6;background:#f3f4f6;color:#111;border-radius:999px;padding:7px 10px;font:700 12px var(--font,inherit);cursor:pointer}#tmSettings .th button.on{background:#111;color:#fff;border-color:#111}"+
+    "#tmSettings .sw{display:flex;gap:6px;align-items:center;flex-wrap:wrap}#tmSettings .sw button{width:22px;height:22px;border-radius:50%;border:2px solid transparent;cursor:pointer;padding:0}#tmSettings .sw button.on{border-color:#111;box-shadow:0 0 0 2px #fff inset}"+
+    "#tmSettings .sw input[type=color]{width:26px;height:26px;padding:0;border:0;border-radius:50%;cursor:pointer;background:conic-gradient(red,yellow,lime,cyan,blue,magenta,red);-webkit-appearance:none;appearance:none}#tmSettings .sw input[type=color]::-webkit-color-swatch-wrapper{padding:0;opacity:0}#tmSettings .sw input[type=color]::-webkit-color-swatch{border:0;opacity:0}"+
+    "#tmSettings .sw .reset{margin-left:auto;border:0;background:none;color:#888;font:11px var(--font,inherit);cursor:pointer;width:auto;height:auto;border-radius:0}#tmSettings .done{display:block;margin:4px auto 0;background:#111;color:#fff;border:0;border-radius:999px;padding:8px 22px;font-weight:700;cursor:pointer}"+
+    "#tmSetShade{position:fixed;inset:0;background:rgba(0,0,0,.25);z-index:100029}";
   document.head.appendChild(st);
-  const shade=document.createElement("div"); shade.id="monoPickShade"; shade.hidden=true;
-  const pk=document.createElement("div"); pk.id="monoPick"; pk.hidden=true; pk.setAttribute("role","dialog"); pk.setAttribute("aria-label","Mono accent colour");
-  const PRESETS=["#FF8C22","#00E5FF","#FF3B30","#FF00B8","#A040FF","#2F6BFF","#00B3FF","#00D1B2","#34C759","#B6E000","#FFD60A","#8E8E93"];
-  pk.innerHTML='<h4>Accent colour</h4><div class="sw"></div><div class="row"><input type="color" aria-label="Custom colour"><input type="text" maxlength="7" aria-label="Hex"><button type="button" class="done">Done</button></div>';
+  const shade=document.createElement("div"); shade.id="tmSetShade"; shade.hidden=true;
+  const pk=document.createElement("div"); pk.id="tmSettings"; pk.hidden=true; pk.setAttribute("role","dialog"); pk.setAttribute("aria-label","Settings");
+  const PRE=["#00E5FF","#FF8C22","#FF3B30","#FF00B8","#A040FF","#2F6BFF","#34C759","#FFD60A","#8E8E93"];
+  const row=(k,label,hint)=>'<div class="sec"><div class="lab">'+label+'<i>'+hint+'</i></div><div class="sw" data-k="'+k+'"></div></div>';
+  pk.innerHTML='<h4>SETTINGS</h4><div class="sec"><div class="lab">Theme</div><div class="th"><button type="button" data-t="mono">Light</button><button type="button" data-t="dark">Dark</button></div></div>'+
+    row("acc","Accent","text &amp; sliders")+row("shd","Shader","the model")+row("tool","Tool colour","tool icons")+row("dim","Dimension lines","bounding box")+'<button type="button" class="done">Done</button>';
   document.body.appendChild(shade); document.body.appendChild(pk);
-  const swBox=pk.querySelector(".sw"), cIn=pk.querySelector("input[type=color]"), hIn=pk.querySelector("input[type=text]");
-  PRESETS.forEach(c=>{ const b=document.createElement("button"); b.type="button"; b.style.background=c; b.title=c; b.dataset.c=c; b.onclick=()=>choose(c); swBox.appendChild(b); });
-  function mark(c){ swBox.querySelectorAll("button").forEach(b=>b.classList.toggle("on",b.dataset.c.toLowerCase()===c.toLowerCase())); cIn.value=c.length===7?c:"#ff8c22"; hIn.value=c.toUpperCase(); }
-  function choose(c){ if(!/^#[0-9a-f]{6}$/i.test(c)) return; setAccent(c); mark(c); try{ localStorage.setItem("tmMonoAccent",c); }catch(e){} }
-  cIn.addEventListener("input",()=>choose(cIn.value)); hIn.addEventListener("change",()=>choose(hIn.value.startsWith("#")?hIn.value:"#"+hIn.value));
-  ["keydown","keyup","keypress"].forEach(t=>pk.addEventListener(t,e=>{ if(t==="keydown"&&(e.key==="Escape"||e.key==="Enter")&&e.target!==hIn) close(); e.stopPropagation(); }));
-  function open(){
-    mark(window.__monoAccentColor||"#FF8C22"); shade.hidden=false; pk.hidden=false; }
+  pk.querySelectorAll(".sw").forEach(box=>{ const k=box.dataset.k;
+    PRE.forEach(c=>{ const b=document.createElement("button"); b.type="button"; b.style.background=c; b.title=c; b.dataset.c=c; b.onclick=()=>choose(k,c); box.appendChild(b); });
+    const ci=document.createElement("input"); ci.type="color"; ci.title="Any colour"; ci.addEventListener("input",()=>choose(k,ci.value)); box.appendChild(ci);
+    const r=document.createElement("button"); r.type="button"; r.className="reset"; r.textContent="Reset"; r.onclick=()=>{ try{ localStorage.removeItem(KEY[k]); }catch(e){} SET[k](DEF[k]); paint(); }; box.appendChild(r); });
+  const curTheme=()=>document.body.classList.contains("uiMono")?"mono":"dark";
+  pk.querySelectorAll(".th button").forEach(b=>b.onclick=()=>{ const mi=document.querySelector('.mi[data-ui="'+b.dataset.t+'"]'); if(mi) mi.click(); setTimeout(paint,30); });
+  function paint(){ const t=curTheme(); pk.querySelectorAll(".th button").forEach(b=>b.classList.toggle("on",b.dataset.t===t));
+    const cur={acc:window.__monoAccentColor,shd:window.__shaderColor,tool:window.__toolColor,dim:window.__dimColor};
+    pk.querySelectorAll(".sw").forEach(box=>{ const v=(cur[box.dataset.k]||"").toLowerCase(); box.querySelectorAll("button[data-c]").forEach(b=>b.classList.toggle("on",b.dataset.c.toLowerCase()===v)); const ci=box.querySelector("input[type=color]"); if(ci&&v.length===7) ci.value=v; }); }
+  ["keydown","keyup","keypress"].forEach(t=>pk.addEventListener(t,e=>{ if(t==="keydown"&&(e.key==="Escape"||e.key==="Enter")) close(); e.stopPropagation(); }));
+  function open(){ paint(); shade.hidden=false; pk.hidden=false; }
   function close(){ shade.hidden=true; pk.hidden=true; }
   pk.querySelector(".done").onclick=close; shade.onclick=close;
-  const mi=document.getElementById("miMonoAccent"); if(mi) mi.addEventListener("click",e=>{ e.stopPropagation(); document.querySelectorAll("#menubar .menu.open").forEach(x=>x.classList.remove("open")); open(); });
-  window.__monoAccent=setAccent; window.__monoPick=open;
+  // File ▸ Settings…
+  (function(){ const ref=document.querySelector('#menubar .mi[data-act="openProject"]'); if(ref&&!document.getElementById("miSettings")){ const mi=document.createElement("div"); mi.className="mi"; mi.id="miSettings"; mi.innerHTML="Settings&hellip;"; ref.parentNode.insertBefore(mi,ref.nextSibling);
+    mi.addEventListener("click",e=>{ e.stopPropagation(); document.querySelectorAll("#menubar .menu.open").forEach(x=>x.classList.remove("open")); open(); }); } })();
+  window.__monoAccent=setAccent; window.__monoPick=open; window.__tmSettings=open;
+  window.__setAllColors=c=>{ ["acc","shd","tool"].forEach(k=>{ SET[k](c); try{ localStorage.setItem(KEY[k],c); }catch(e){} }); paint(); };
+})();</script>
+<script>/* File ▸ Export… : one dialog — file name + format picker (runs the existing exporters) */
+(function(){
+  const FMT=[["export","OBJ mesh (.obj)","obj"],["exportWire","Wireframe — edges as curves (.obj)","obj"],["exportWireDXF","Wireframe — 3D lines (.dxf)","dxf"],["exportWireSVG","Wireframe — current view (.svg)","svg"],
+    ["lineArt","Line art — pen plotter (SVG / HPGL)",""],["exportGuide","Step guide (.pdf)","pdf"],["spinExport","Spin video (MP4 / WebM)",""]];
+  const st=document.createElement("style"); st.textContent=
+    "#tmExport{position:fixed;left:50%;top:50%;transform:translate(-50%,-50%);z-index:100030;width:min(320px,calc(100vw - 32px));background:#fff;color:#111;border:1.5px solid var(--tmAcc,#00E5FF);border-radius:16px;box-shadow:0 20px 60px rgba(0,0,0,.35);padding:14px 16px;font:13px var(--font,-apple-system,sans-serif)}"+
+    "#tmExport[hidden],#tmExpShade[hidden]{display:none}#tmExport h4{margin:0 0 12px;text-align:center;font:900 13px var(--font,inherit);letter-spacing:4px}#tmExport label{display:block;font:800 10px var(--mono,monospace);letter-spacing:1.6px;text-transform:uppercase;color:#666;margin:0 0 5px}"+
+    "#tmExport input,#tmExport select{width:100%;box-sizing:border-box;border:1px solid #cfd2d6;border-radius:9px;padding:9px 10px;font:13px var(--font,inherit);margin-bottom:12px;background:#fff;color:#111}"+
+    "#tmExport .row{display:flex;gap:8px;justify-content:flex-end}#tmExport button{border-radius:999px;padding:8px 18px;font:700 13px var(--font,inherit);cursor:pointer;border:1px solid #cfd2d6;background:#f3f4f6;color:#111}#tmExport .go{background:#111;color:#fff;border-color:#111}"+
+    "#tmExpShade{position:fixed;inset:0;background:rgba(0,0,0,.25);z-index:100029}";
+  document.head.appendChild(st);
+  const sh=document.createElement("div"); sh.id="tmExpShade"; sh.hidden=true;
+  const d=document.createElement("div"); d.id="tmExport"; d.hidden=true; d.setAttribute("role","dialog"); d.setAttribute("aria-label","Export");
+  d.innerHTML='<h4>EXPORT</h4><label for="tmExpName">Name</label><input id="tmExpName" type="text" value="topmod-model" autocomplete="off"><label for="tmExpFmt">Format</label><select id="tmExpFmt">'+FMT.map((f,i)=>'<option value="'+i+'">'+f[1]+'</option>').join("")+'</select><div class="row"><button type="button" class="cancel">Cancel</button><button type="button" class="go">Export</button></div>';
+  document.body.appendChild(sh); document.body.appendChild(d);
+  const nm=d.querySelector("#tmExpName"), fm=d.querySelector("#tmExpFmt");
+  try{ const last=localStorage.getItem("tmExpFmt"); if(last!=null) fm.value=last; }catch(e){}
+  ["keydown","keyup","keypress"].forEach(t=>d.addEventListener(t,e=>{ if(t==="keydown"&&e.key==="Escape") close(); if(t==="keydown"&&e.key==="Enter") go(); e.stopPropagation(); }));
+  function open(){ sh.hidden=false; d.hidden=false; setTimeout(()=>{ nm.focus(); nm.select(); },30); }
+  function close(){ sh.hidden=true; d.hidden=true; }
+  // the file name typed here replaces the exporter's default name (extension kept)
+  const oc=HTMLAnchorElement.prototype.click;
+  HTMLAnchorElement.prototype.click=function(){ try{ if(window.__expName&&this.download){ const m=/\.[a-z0-9]+$/i.exec(this.download); this.download=window.__expName+(m?m[0]:""); } }catch(e){} return oc.apply(this,arguments); };
+  function go(){ const f=FMT[+fm.value]; if(!f) return; const base=(nm.value||"topmod-model").replace(/[\\/:*?"<>|]+/g,"_").replace(/\.[a-z0-9]{2,4}$/i,"").trim()||"topmod-model";
+    try{ localStorage.setItem("tmExpFmt",fm.value); }catch(e){}
+    window.__expName=base; setTimeout(()=>{ window.__expName=null; },20000); close();
+    const it=document.querySelector('#menubar .mi[data-act="'+f[0]+'"]'); if(it) it.click(); }
+  d.querySelector(".go").onclick=go; d.querySelector(".cancel").onclick=close; sh.onclick=close;
+  const mi=document.getElementById("miExport"); if(mi) mi.addEventListener("click",e=>{ e.stopPropagation(); document.querySelectorAll("#menubar .menu.open").forEach(x=>x.classList.remove("open")); open(); });
+  window.__tmExport=open;
 })();</script>
 </body>
 </html>
