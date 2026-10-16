@@ -5192,8 +5192,8 @@ function offsetMesh(m, d=0.1){
 // ---------- pipes (TopMod "wireframe with columns"): one solid, connected wireframe ----------
 // Every edge becomes an n-sided tube; at each vertex the tube ends are joined by the convex hull of their
 // end rings (no balls), with the rings shared between tube and joint — so the result is ONE closed solid.
-function pipes(m, {thickness=0.1, sides=6}={}){
-  sides=Math.max(3,Math.min(12,Math.round(sides)));
+function pipes(m, {thickness=0.1, sides=6, joint=1}={}){   // joint: 0 faceted hull · 1 star point (tube edges run on to a point) · 2 round
+  sides=Math.max(3,Math.min(12,Math.round(sides))); joint=Math.round(joint)||0;
   const r=thickness, E=edges(m), V=m.verts;
   const sub3=(a,b)=>[a[0]-b[0],a[1]-b[1],a[2]-b[2]], dot3=(a,b)=>a[0]*b[0]+a[1]*b[1]+a[2]*b[2], cr3=(a,b)=>[a[1]*b[2]-a[2]*b[1],a[2]*b[0]-a[0]*b[2],a[0]*b[1]-a[1]*b[0]];
   const nrm3=a=>{ const l=Math.hypot(a[0],a[1],a[2])||1; return [a[0]/l,a[1]/l,a[2]/l]; };
@@ -5225,10 +5225,21 @@ function pipes(m, {thickness=0.1, sides=6}={}){
       const R=rings[0], o=V[L[0].o], C=V[v]; let f=R.slice(); const n=cr3(sub3(verts[f[1]],verts[f[0]]),sub3(verts[f[2]],verts[f[0]]));
       if(dot3(n,sub3(C,o))<0) f.reverse(); faces.push(f); continue; }
     const ids=rings.flat(), ringOf=new Map(); rings.forEach((R,k)=>R.forEach(id=>ringOf.set(id,k)));
+    const C=V[v], dirs=L.map(x=>nrm3(sub3(V[x.o],C)));
+    if(joint===1){   // star: one apex behind the corner where the tubes' edges, run on past the rings, meet
+      const s0=dirs.reduce((a,d)=>[a[0]+d[0],a[1]+d[1],a[2]+d[2]],[0,0,0]), sl=Math.hypot(s0[0],s0[1],s0[2]);
+      if(sl>0.15*L.length){ const n=[s0[0]/sl,s0[1]/sl,s0[2]/sl]; let h=0; for(const d of dirs){ const a=Math.max(0,Math.min(0.999,dot3(d,n))); h+=r/Math.sqrt(1-a*a); } h/=dirs.length;
+        ids.push(verts.length); verts.push([C[0]-n[0]*h, C[1]-n[1]*h, C[2]-n[2]*h]); } }
+    else if(joint===2){   // round: hull over a ball of tube radius, so the corner blends like a fillet
+      const N=Math.max(24,sides*8), ga=Math.PI*(3-Math.sqrt(5));
+      for(let i=0;i<N;i++){ const y=1-2*(i+0.5)/N, rr=Math.sqrt(1-y*y), th=ga*i, d=[Math.cos(th)*rr,y,Math.sin(th)*rr];
+        let ok=true; for(const u of dirs){ if(dot3(d,u)*r>(tOf.get(v)||0)*0.98){ ok=false; break; } } if(!ok) continue;
+        ids.push(verts.length); verts.push([C[0]+d[0]*r*1.02, C[1]+d[1]*r*1.02, C[2]+d[2]*r*1.02]); } }
     const P=ids.map(id=>verts[id]), tri=hullIdx(P);
     if(!tri){ continue; }
-    for(const t of tri){ const g=t.map(i=>ids[i]); const k0=ringOf.get(g[0]); if(ringOf.get(g[1])===k0&&ringOf.get(g[2])===k0) continue;   // the ring's own cap: open, the tube attaches here
+    for(const t of tri){ const g=t.map(i=>ids[i]); const k0=ringOf.get(g[0]); if(k0!==undefined&&ringOf.get(g[1])===k0&&ringOf.get(g[2])===k0) continue;   // the ring's own cap: open, the tube attaches here
       faces.push(g); } }
+  { const used=new Set(); for(const f of faces) for(const i of f) used.add(i); if(used.size<verts.length){ const map=new Map(), nv=[]; verts.forEach((p,i)=>{ if(used.has(i)){ map.set(i,nv.length); nv.push(p); } }); return {verts:nv, faces:faces.map(f=>f.map(i=>map.get(i)))}; } }
   return {verts,faces};
   function hullIdx(pts){   // incremental 3D convex hull → outward triangles as indices into pts
     const n=pts.length, eps=1e-10*Math.max(1e-6,r*r); if(n<4) return null;
@@ -7430,8 +7441,8 @@ const MODS={
   subdivedges:{label:"Subdivide Edges", grp:"Generate", params:[], apply:m=>TM.subdivideAllEdges(m)},
   quadremesh:{label:"Quad Remesh", grp:"Generate", params:[{k:"smooth",l:"Smooth",bool:true,def:false}],
             apply:(m,p)=>TM.quadRemesh(m,{smooth:!!p.smooth})},
-  pipe:    {label:"Pipes", grp:"Generate", params:[{k:"thickness",l:"Thickness",min:0.02,max:0.4,step:0.005,def:0.08},{k:"sides",l:"Sides",min:3,max:12,step:1,def:6}],
-            apply:(m,p)=>TM.pipes(m,{thickness:p.thickness,sides:Math.round(p.sides)})},
+  pipe:    {label:"Pipes", grp:"Generate", params:[{k:"tube",l:"Tube",opts:["Faceted","Round (circle)"],def:0},{k:"joint",l:"Joints",opts:["Faceted","Star point","Round"],def:1},{k:"thickness",l:"Thickness",min:0.02,max:0.4,step:0.005,def:0.08},{k:"sides",l:"Sides",min:3,max:12,step:1,def:6}],
+            apply:(m,p)=>{ const rnd=+p.tube===1; const r=TM.pipes(m,{thickness:p.thickness,sides:rnd?Math.max(16,Math.round(p.sides)):Math.round(p.sides),joint:p.joint==null?1:+p.joint}); if(rnd) r.smoothFrom=0; return r; }},
   wireframe:{label:"Wireframe", grp:"Generate", params:[{k:"thickness",l:"Thickness",min:0.5,max:3,step:0.05,def:1},{k:"width",l:"Corner width (0 = smooth)",min:0,max:0.4,step:0.01,def:0}],
             apply:(m,p)=> (p.width>0.005? TM.wireframeWithCorners(m,{thickness:p.thickness,width:p.width}) : TM.wireframeModel(m,{thickness:p.thickness}))},
   bejewel: {label:"Bejewel", grp:"Generate", params:[{k:"size",l:"Gem size",min:0.1,max:1.6,step:0.01,def:0.75},{k:"lift",l:"Lift (seat depth)",min:-0.6,max:0.6,step:0.01,def:0},
@@ -7451,6 +7462,9 @@ const MODS={
               else { const r=TM.bejewel(m,gem,bo); segs.push(["Gems",{verts:r.verts,faces:r.faces}]); }
               return withParts(segs); }},
   // --- topology (selection-based: the picked faces + the tool's options are captured when the modifier is added) ---
+  dome:    {label:"Dome Extrude", grp:"Topology", params:[{k:"height",l:"Height",min:-1.5,max:2,step:0.01,def:0.6},{k:"rings",l:"Rings",min:1,max:12,step:1,def:3}],
+            apply:(m,p)=>{ let out=m; const faces=(p.faces||[]).filter(f=>f<out.faces.length).sort((a,b)=>b-a);
+              for(const fi of faces){ try{ out=TM.domeExtrude(out,fi,{height:+p.height,rings:Math.max(1,Math.round(p.rings))}); }catch(e){} } return out; }},
   pinch:   {label:"Pinch Extrude", grp:"Topology", params:[{k:"dist",l:"Distance",min:0.4,max:5,step:0.1,def:2.0},{k:"segments",l:"Segments",min:3,max:40,step:1,def:14},{k:"neck",l:"Neck",min:0.05,max:0.8,step:0.01,def:0.18},{k:"bulge",l:"Bulge",min:0.5,max:1.6,step:0.05,def:1.0}],
             apply:(m,p)=>{ let out=m; const faces=(p.faces||[]).filter(f=>f<out.faces.length).sort((a,b)=>b-a);
               for(const fi of faces){ try{ out=TM.pinchExtrude(out,fi,{dist:p.dist,segments:Math.round(p.segments),neck:p.neck,bulge:p.bulge}).mesh; }catch(e){} } return out; }},
@@ -7534,6 +7548,11 @@ function addModifier(type, opts){
     const fs=[...sel.faces]; if(!fs.length){ toast&&toast("Select one or more faces first",true); return; }
     params.faces=fs;
     if($("#pPinchDist")){ params.dist=P("#pPinchDist"); params.segments=Math.round(P("#pPinchSeg")); params.neck=P("#pPinchNeck"); params.bulge=P("#pPinchBulge"); }
+  }
+  if(type==="dome"){
+    const fs=(opts&&opts.faces)||[...sel.faces]; if(!fs.length){ toast&&toast("Select one or more faces first",true); return; }
+    params.faces=fs;
+    if($("#pDomeH")){ params.height=P("#pDomeH"); params.rings=Math.round(P("#pDomeR")); }
   }
   if(type==="latfill"){
     try{ const M=dispMesh(); let a=[1e9,1e9,1e9],b=[-1e9,-1e9,-1e9]; for(const v of M.verts) for(let d=0;d<3;d++){ if(v[d]<a[d])a[d]=v[d]; if(v[d]>b[d])b[d]=v[d]; }
@@ -8872,6 +8891,7 @@ const ops={
   },
   dome(){
     if(!sel.faces.size) return toast("Select one or more faces first",true);
+    if(typeof addModifier==="function"){ addModifier("dome"); return; }   // live modifier: faces + height/rings stay editable
     const opt={height:P("#pDomeH"), rings:Math.round(P("#pDomeR"))};
     applyWhole(m=>{
       let out=m;
