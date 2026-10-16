@@ -215,7 +215,7 @@ canvas#view{width:100%;height:100%;display:block;touch-action:none;outline:none;
 #bboxInfo b{color:#7fd8ef}
 .bblabel{position:absolute;display:none;transform:translate(-50%,-50%);}
 html body .bblabel.bbSize{transform:translate(-50%,-160%)!important;color:var(--tmAcc,#0091AD)!important;font-size:11.5px!important}
-html body .bblabel{position:absolute;display:none;transform:translate(-50%,-50%)!important;background:var(--dimGap,#f3f4f5)!important;border:0!important;box-shadow:none!important;padding:1px 5px!important;border-radius:3px!important;white-space:nowrap;color:var(--tmDim,#FF3B30)!important;font:700 11px var(--mono,monospace)!important;text-shadow:0 0 3px rgba(255,255,255,.85),0 0 3px rgba(255,255,255,.85);pointer-events:none}
+html body .bblabel{position:fixed!important;z-index:45!important;display:none;transform:translate(-50%,-50%)!important;background:var(--dimGap,#f3f4f5)!important;border:0!important;box-shadow:none!important;padding:1px 5px!important;border-radius:3px!important;white-space:nowrap;color:var(--tmDim,#FF3B30)!important;font:700 11px var(--mono,monospace)!important;text-shadow:0 0 3px rgba(255,255,255,.85),0 0 3px rgba(255,255,255,.85);pointer-events:none}
 body:not(.uiMono) .bblabel{text-shadow:none!important;--dimGap:#0b0f15}body.uiMono .bblabel{text-shadow:none!important}
 .bblabel.__old{padding:2px 8px;
   font:10px var(--mono);color:#bdeeff;background:rgba(10,16,24,0.82);
@@ -8606,15 +8606,15 @@ function updateBBoxLabels(){
   const F=v=>window.__fmtLen?window.__fmtLen(v*s2,true):f(v)+"&Prime;"; const txt={x:F(mx[0]-mn[0]), y:F(mx[1]-mn[1]), z:F(mx[2]-mn[2])};
   const r=canvas.getBoundingClientRect(), wr=$("#viewWrap").getBoundingClientRect();
   if(boxOn&&bbLabels.s){ const sp=new THREE.Vector3((mn[0]+mx[0])/2*s2, mx[1]*s2, (mn[2]+mx[2])/2*s2).project(camera);   // overall size over the box: W × D × H
-    if(sp.z>1) bbLabels.s.style.display="none"; else { bbLabels.s.style.left=((sp.x+1)/2*r.width+(r.left-wr.left))+"px"; bbLabels.s.style.top=((-sp.y+1)/2*r.height+(r.top-wr.top))+"px";
+    if(sp.z>1) bbLabels.s.style.display="none"; else { bbLabels.s.style.left=((sp.x+1)/2*r.width+r.left)+"px"; bbLabels.s.style.top=((-sp.y+1)/2*r.height+r.top)+"px";
       bbLabels.s.innerHTML=F(mx[0]-mn[0])+" &times; "+F(mx[2]-mn[2])+" &times; "+F(mx[1]-mn[1]); } }
   if(!on) return;
   for(const k of ["x","y","z"]){
     const p=pts[k];
     const sp=new THREE.Vector3(p[0]*s2,p[1]*s2,p[2]*s2).project(camera);
     if(sp.z>1){ bbLabels[k].style.display="none"; continue; }
-    bbLabels[k].style.left=((sp.x+1)/2*r.width+(r.left-wr.left))+"px";
-    bbLabels[k].style.top=((-sp.y+1)/2*r.height+(r.top-wr.top))+"px";
+    bbLabels[k].style.left=((sp.x+1)/2*r.width+r.left)+"px";     // fixed to the screen: never clipped (Duo puts the canvas outside its wrapper)
+    bbLabels[k].style.top=((-sp.y+1)/2*r.height+r.top)+"px";
     bbLabels[k].innerHTML=txt[k];
   }
 }
