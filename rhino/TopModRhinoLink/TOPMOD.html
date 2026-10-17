@@ -7474,6 +7474,14 @@ const MODS={
   dome:    {label:"Dome Extrude", grp:"Topology", params:[{k:"height",l:"Height",min:-1.5,max:2,step:0.01,def:0.6},{k:"rings",l:"Rings",min:1,max:12,step:1,def:3}],
             apply:(m,p)=>{ let out=m; const faces=(p.faces||[]).filter(f=>f<out.faces.length).sort((a,b)=>b-a);
               for(const fi of faces){ try{ out=TM.domeExtrude(out,fi,{height:+p.height,rings:Math.max(1,Math.round(p.rings))}); }catch(e){} } return out; }},
+  menger:  {label:"Menger Sponge", grp:"Generate", params:[{k:"level",l:"Level",min:1,max:3,step:1,def:2}],
+            apply:(m,p)=>_genFit(TM.mengerSponge(Math.max(1,Math.min(3,Math.round(p.level)))), m)},
+  sierpinski:{label:"Sierpiński Tetrix", grp:"Generate", params:[{k:"level",l:"Level",min:1,max:7,step:1,def:2},{k:"separate",l:"Separate shells",bool:true,def:false},{k:"gap",l:"Gap",min:0,max:0.4,step:0.02,def:0.08}],
+            apply:(m,p)=>_genFit(TM.sierpinski(Math.round(p.level),{separate:!!p.separate, gap:p.separate?+p.gap:0}), m)},
+  gyroid:  {label:"Gyroid", grp:"Generate", heavy:true, params:[{k:"cells",l:"Cells",min:1,max:6,step:1,def:2},{k:"res",l:"Smooth res (0 = poly)",min:0,max:56,step:2,def:0},{k:"box",l:"Box walls",bool:true,def:false}],
+            apply:(m,p)=>{ let r=Math.round(p.res); if(p.box&&r<=0) r=36; return _genFit(TM.gyroid(Math.round(p.cells), r, !!p.box), m); }},
+  hybrid:  {label:"Schoen Hybrid Surface", grp:"Generate", params:[{k:"inset",l:"Inset",min:0.55,max:1,step:0.01,def:0.94},{k:"cluster",l:"Cluster",min:1,max:3,step:1,def:1}],
+            apply:(m,p)=>_genFit(TM.hybridSurface(+p.inset, Math.round(p.cluster)), m)},
   pinch:   {label:"Pinch Extrude", grp:"Topology", params:[{k:"dist",l:"Distance",min:0.4,max:5,step:0.1,def:2.0},{k:"segments",l:"Segments",min:3,max:40,step:1,def:14},{k:"neck",l:"Neck",min:0.05,max:0.8,step:0.01,def:0.18},{k:"bulge",l:"Bulge",min:0.5,max:1.6,step:0.05,def:1.0}],
             apply:(m,p)=>{ let out=m; const faces=(p.faces||[]).filter(f=>f<out.faces.length).sort((a,b)=>b-a);
               for(const fi of faces){ try{ out=TM.pinchExtrude(out,fi,{dist:p.dist,segments:Math.round(p.segments),neck:p.neck,bulge:p.bulge}).mesh; }catch(e){} } return out; }},
@@ -7503,6 +7511,13 @@ const OP_AS_MOD={ latticeFill:"latfill", catmull:"subdivide", doosabin:"smooth",
   triangulate:"triangulate", subdivEdge:"subdivedges", quadRemesh:"quadremesh",
   pipe:"pipe", wireframe:"wireframe", simplify:"simplify" };
 const TOOL_FNS=new Map(); let toolSeq=1;     // live tool modifiers: op closures (selection frozen at add time); baked result kept for reload
+function _genFit(g, m){   // generator modifiers: the shape fills the incoming mesh's bounding box (so upstream size/position carry through)
+  if(!g||!g.verts||!g.verts.length||!m||!m.verts||!m.verts.length) return g;
+  const bb=V=>{ const a=[1e9,1e9,1e9], b=[-1e9,-1e9,-1e9]; for(const v of V) for(let d=0;d<3;d++){ if(v[d]<a[d])a[d]=v[d]; if(v[d]>b[d])b[d]=v[d]; } return [a,b]; };
+  const [ga,gb]=bb(g.verts), [ma,mb]=bb(m.verts), gs=Math.max(gb[0]-ga[0],gb[1]-ga[1],gb[2]-ga[2])||1, ms=Math.max(mb[0]-ma[0],mb[1]-ma[1],mb[2]-ma[2])||gs, k=ms/gs;
+  const gc=[0,1,2].map(d=>(ga[d]+gb[d])/2), mc=[0,1,2].map(d=>(ma[d]+mb[d])/2);
+  return {verts:g.verts.map(v=>[(v[0]-gc[0])*k+mc[0],(v[1]-gc[1])*k+mc[1],(v[2]-gc[2])*k+mc[2]]), faces:g.faces};
+}
 function modDefaults(type){ const r=MODS[type]; const p={}; (r.params||[]).forEach(d=>p[d.k]=(d.axis?d.def:d.def)); return p; }
 // Semi-sharp creases live on the layer (L.creases: "a_b" base-vertex key -> sharpness 0..10) and are applied by the
 // Subdivide modifier whenever its input still has the base mesh's topology (deformers before it are fine).
@@ -7558,6 +7573,10 @@ function addModifier(type, opts){
     params.faces=fs;
     if($("#pPinchDist")){ params.dist=P("#pPinchDist"); params.segments=Math.round(P("#pPinchSeg")); params.neck=P("#pPinchNeck"); params.bulge=P("#pPinchBulge"); }
   }
+  if(type==="menger"&&$("#pMenger")) params.level=Math.round(P("#pMenger"));
+  if(type==="sierpinski"&&$("#pSierp")){ params.level=Math.round(P("#pSierp")); params.separate=!!($("#pSierpSep")&&$("#pSierpSep").checked); params.gap=$("#pSierpGap")?P("#pSierpGap"):params.gap; }
+  if(type==="gyroid"&&$("#pGyro")){ params.cells=Math.round(P("#pGyro")); params.res=Math.round(P("#pGyroRes")); params.box=!!($("#pGyroBox")&&$("#pGyroBox").checked); }
+  if(type==="hybrid"&&$("#pHybInset")){ params.inset=P("#pHybInset"); params.cluster=Math.round(P("#pHybCluster")); }
   if(type==="dome"){
     const fs=(opts&&opts.faces)||[...sel.faces]; if(!fs.length){ toast&&toast("Select one or more faces first",true); return; }
     params.faces=fs;
@@ -9137,6 +9156,7 @@ const ops={
     livePreviewScale(1);
   },
   gyroid(){
+    if(layersOn && layers[activeLayer] && !fabActive && typeof addModifier==="function"){ addModifier("gyroid"); return; }   // live: lands in the modifier stack, settings stay editable
     const u=Math.round(P("#pGyro"));
     let r=Math.round(P("#pGyroRes"));
     const box=$("#pGyroBox").checked;
@@ -9144,10 +9164,12 @@ const ops={
     applyWhole(()=>TM.gyroid(u,r,box),"Gyroid \u00d7"+u+(r? " @"+r:" poly")+(box? " +walls":""));
   },
   hybrid(){
+    if(layersOn && layers[activeLayer] && !fabActive && typeof addModifier==="function"){ addModifier("hybrid"); return; }   // live: lands in the modifier stack, settings stay editable
     const ins=P("#pHybInset"), cl=Math.round(P("#pHybCluster"));
     applyWhole(()=>TM.hybridSurface(ins,cl),"Hybrid P/F-RD \u00d7"+cl);
   },
   sierpinski(){
+    if(layersOn && layers[activeLayer] && !fabActive && typeof addModifier==="function"){ addModifier("sierpinski"); return; }   // live: lands in the modifier stack, settings stay editable
     const l=Math.round(P("#pSierp"));
     const separate=$("#pSierpSep")?$("#pSierpSep").checked:false;
     const gap=separate? P("#pSierpGap") : 0;
@@ -9163,6 +9185,7 @@ const ops={
     applyWhole(m=>TM.addHandle(m,fa,fb,P("#pPinch"),Math.round(P("#pHSeg")),0),"Bridge — genus +1");
   },
   menger(){
+    if(layersOn && layers[activeLayer] && !fabActive && typeof addModifier==="function"){ addModifier("menger"); return; }   // live: lands in the modifier stack, settings stay editable
     const L=Math.round(P("#pMenger"));
     applyWhole(()=>TM.mengerSponge(L),"Menger sponge L"+L+" — genus "+(L===1?5:L===2?81:1409));
   },
