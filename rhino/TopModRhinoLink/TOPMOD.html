@@ -320,7 +320,9 @@ body:not(.uiMono) .bblabel{text-shadow:none!important;--dimGap:#0b0f15}body.uiMo
 #tpGrip{color:rgba(127,216,239,0.5);font-size:12px;letter-spacing:-1px}
 #tpBody{display:flex;flex-direction:column;align-items:stretch;gap:16px;padding:14px;flex:1;overflow-y:auto;min-height:0}
 #tpBody .param{margin:0;width:100%}
-#tpBody .param label{margin-bottom:2px;font-size:9px}
+#tpBody .param label{margin-bottom:2px;font-size:10.5px;letter-spacing:.3px;color:rgba(255,255,255,.72)}
+body.uiMono #tpBody .param label,body.uiMono #tpBody label,body.uiMono #modPanel label{color:rgba(255,255,255,.86)!important}
+body.uiMono #toolpop,body.uiMono #modPanel,body.uiMono #layersPanel{--text-dim:rgba(255,255,255,.68)}   /* light theme is the dark UI luminance-inverted: near-white here reads as near-black */
 #tpBody .param input[type=range]{width:calc(100% - 36px);height:16px}
 #tpBody .param label.chk{display:flex;align-items:center;gap:6px;margin-top:8px;cursor:pointer;white-space:nowrap}
 #tpBody .param label.chk input{accent-color:var(--cyan)}
@@ -6504,9 +6506,9 @@ function polysToMesh(polys){
   const vid=v=>{ const k=key(v); let id=map.get(k); if(id===undefined){ id=verts.length; verts.push([v[0],v[1],v[2]]); map.set(k,id);} return id; };
   for(const p of polys){
     if(p.verts.length<3) continue;
-    const idx=p.verts.map(vid);
+    const idx0=p.verts.map(vid), idx=idx0.filter((v,k)=>v!==idx0[(k+1)%idx0.length]);   // drop repeated (welded) corners
     const uniq=[...new Set(idx)];
-    if(uniq.length<3) continue;
+    if(uniq.length<3||uniq.length!==idx.length) continue;
     faces.push(idx);
   }
   return {verts,faces};
@@ -6731,8 +6733,15 @@ function drill(m,opt){
   const diag=len(sub(mx,mn))||1;
   const axis=opt.axis||[0,1,0];
   const r=opt.radius || diag*0.12;
-  const cyl=makeCylinder(opt.center||c, axis, r, diag*1.4, opt.segs||24);
-  return boolean(m,cyl,"subtract");
+  const ok=o=>{ if(!o||!o.faces.length) return false; const E=new Set(); for(const f of o.faces) for(let i=0;i<f.length;i++){ const k=f[i]+">"+f[(i+1)%f.length]; if(E.has(k)) return false; E.add(k); } return true; };
+  const c0=opt.center||c, e=diag*1e-3, J=[[0,0,0],[1,0.37,0.61],[-0.53,1,0.29],[0.41,-0.67,1],[-1,-0.31,-0.77]];
+  let res=null;
+  for(let t=0;t<J.length;t++){   // BSP CSG can flip a sliver on warped input — nudge the cutter a hair and retry
+    const cc=[c0[0]+J[t][0]*e*t, c0[1]+J[t][1]*e*t, c0[2]+J[t][2]*e*t];
+    res=boolean(m, makeCylinder(cc, axis, r, diag*1.4, (opt.segs||24)+(t%2)), "subtract");
+    if(ok(res)) return res;
+  }
+  return res;
 }
 function voxelRemesh(m,res){
   res=Math.max(4,Math.min(96,Math.round(res||32)));
@@ -8525,6 +8534,13 @@ function applyWhole(fn,label,keepCrust){
     try{ window.__guide&&window.__guide.log(label); }catch(e){}
     toast(label+" ✓ — added to modifiers");
     return;
+  }
+  if(modStackActive && fn.length===0 && layers[activeLayer] && !keepCrust){   // generator (no input mesh): becomes the new base, the modifier stack stays on top
+    let g; try{ g=fn(); const err=TM.validate(g); if(err) throw err; }catch(e){ toast(String(e),true); return; }
+    snapshot(); mesh=g; layers[activeLayer].mesh=mesh; crustPairs=null; updateCrustUI();
+    clearSel(false); rebuild(); renderModStack&&renderModStack();
+    try{ window.__guide&&window.__guide.log(label); }catch(e){}
+    toast(String(label||"Shape").replace(/\s*✓$/,"")+" ✓ — new base (modifiers kept)"); return;
   }
   if(modStackActive){ toast&&toast("Layer has live modifiers — Flatten the stack before a destructive edit (or use a modifier)",true); return; }
   try{
@@ -10790,14 +10806,16 @@ function greebleOpts(){
            shapes:shapes.length?shapes:["box"] };
 }
 function greebleSel(){ return sel.faces.size?[...sel.faces]:null; }
+let grbSrc=null;
 function beginGreeblePreview(){
   grbPreviewActive=true;
   grbBase={verts:mesh.verts.map(v=>v.slice()),faces:mesh.faces.map(f=>f.slice())};
+  { const d=dispMesh(); grbSrc=(d&&d!==mesh)?{verts:d.verts.map(v=>v.slice()),faces:d.faces.map(f=>f.slice())}:null; }   // preview on the evaluated stack
   refreshGreeblePreview();
 }
 function refreshGreeblePreview(){
   if(!grbPreviewActive||!grbBase) return;
-  setMeshGeometry(TF.greeble(grbBase, greebleSel(), greebleOpts()));
+  setMeshGeometry(TF.greeble(grbSrc||grbBase, greebleSel(), greebleOpts()));
 }
 function endGreeblePreview(commit){
   if(!grbPreviewActive) return;
@@ -10806,6 +10824,7 @@ function endGreeblePreview(commit){
   if(commit){
     const o=greebleOpts(), faces=greebleSel();
     mesh=base; rebuild();                                  // restore the original layer
+    if(layersOn && layers[activeLayer] && !fabActive){ applyWhole(m=>TF.greeble(m, faces, o), "Greeble"+(faces?" (selected)":"")); return; }   // live: lands in the modifier stack
     const g=TF.greeble(base, faces, o);
     const err=TM.validate(g);
     if(err){ mesh=base; rebuild(); toast&&toast("Greeble failed: "+err,true); return; }
@@ -10842,7 +10861,7 @@ function endMetaPreview(commit){
   metaPreviewActive=false; metaDrag=null;
   clearMetaGumball();
   const base=metaBase; metaBase=null;
-  if(commit){ const o=metaOpts(); mesh=base; rebuild(); applyWhole(_=>TF.metaballs(o), "Metaballs ("+(metaBalls?metaBalls.length:o.count)+" blobs)"); }
+  if(commit){ const o=metaOpts(); mesh=base; rebuild(); applyWhole(()=>TF.metaballs(o), "Metaballs ("+(metaBalls?metaBalls.length:o.count)+" blobs)"); }
   else if(base){ mesh=base; rebuild(); }
   metaBalls=null;
 }
@@ -10983,14 +11002,16 @@ window.__metaUp=function(){ const had=!!metaDrag; metaDrag=null; return had; };
 })();
 
 // ---------- differential growth live preview (grows the active mesh in frames) ----------
-let dgActive=false, dgBase=null, dgWork=null, dgFrames=0;
+let dgActive=false, dgBase=null, dgWork=null, dgFrames=0, dgStart=null;
+const _mhash=m=>{ let h=m.verts.length*31+m.faces.length; m.verts.forEach((v,i)=>{ h+=(i+1)*(v[0]*1.3+v[1]*2.7+v[2]*0.9); }); return h; };
 function dgParams(){ const gp=(id,d)=>{ const v=P(id); return isFinite(v)?v:d; };
   return { step:gp("#pDGStep",0.22), splitThreshold:gp("#pDGSplit",1.35), repulsion:gp("#pDGRep",0.62), growth:gp("#pDGGrowth",0.25), jitter:gp("#pDGJit",0.0), seed:Math.max(1,Math.round(gp("#pDGSeed",7))) }; }
 function dgUpdateLabel(){ const el=document.getElementById("dgFrameLbl"); if(el&&dgWork) el.textContent=dgFrames+" frame"+(dgFrames!==1?"s":"")+" · "+dgWork.verts.length+" verts / "+dgWork.faces.length+" faces"; }
 function beginDGPreview(){
   dgActive=true; dgFrames=0;
   dgBase={verts:mesh.verts.map(v=>v.slice()),faces:mesh.faces.map(f=>f.slice())};
-  dgWork={verts:dgBase.verts.map(v=>v.slice()),faces:dgBase.faces.map(f=>f.slice())};
+  { const d=dispMesh()||dgBase; dgStart={verts:d.verts.map(v=>v.slice()),faces:d.faces.map(f=>f.slice())}; }
+  dgWork={verts:dgStart.verts.map(v=>v.slice()),faces:dgStart.faces.map(f=>f.slice())};
   dgGrow(10);   // start by growing 10 frames
 }
 function dgGrow(n){
@@ -11001,8 +11022,8 @@ function dgGrow(n){
   dgUpdateLabel();
 }
 function dgReset(){
-  if(!dgActive||!dgBase) return; dgFrames=0;
-  dgWork={verts:dgBase.verts.map(v=>v.slice()),faces:dgBase.faces.map(f=>f.slice())};
+  if(!dgActive||!dgBase) return; dgFrames=0; const s0=dgStart||dgBase;
+  dgWork={verts:s0.verts.map(v=>v.slice()),faces:s0.faces.map(f=>f.slice())};
   setMeshGeometry(dgWork); dgUpdateLabel();
 }
 function endDGPreview(commit){
@@ -11011,7 +11032,10 @@ function endDGPreview(commit){
   if(commit && work){ mesh=base; rebuild();
     const rm=document.getElementById("pDGRemesh"); let out=work, label="Differential growth ("+dgFrames+" frames)";
     if(rm && rm.checked){ try{ out=TF.voxelRemeshSmooth(work,72); label+=" → watertight"; }catch(e){ toast&&toast("Remesh failed: "+e,true); } }
-    applyWhole(_=>out, label); }
+    const h0=dgStart?_mhash(dgStart):null, P0=dgParams(), F0=dgFrames, RM=!!(rm&&rm.checked);
+    applyWhole(m=>{ if(h0!=null && Math.abs(_mhash(m)-h0)<1e-6) return out;   // same input → keep the grown result
+      const q=Object.assign({},P0,{steps:F0}); let g=TM.differentialGrow({verts:m.verts.map(v=>v.slice()),faces:m.faces.map(f=>f.slice())}, q);
+      if(RM){ try{ g=TF.voxelRemeshSmooth(g,72); }catch(e){} } return g; }, label); }
   else if(base){ mesh=base; rebuild(); }
 }
 
@@ -11775,6 +11799,7 @@ $("#snapToggle")&&$("#snapToggle").addEventListener("click",()=>{ snapToGrid=!sn
     $("#hint").textContent="Drag the gumball up/down to place the horizontal cut — the lit side stays. Apply slices & caps it flat.";
   }
   if(op==="slab"||op==="laser"){
+    $("#tpApply")&&($("#tpApply").style.display="none");   // fabrication is a live node in the stack — exports live in the panel
     const host=$("#slabOptsHost");
     if(host){ tpState.moved.push({el:host,parent:host.parentNode,next:host.nextSibling}); body.appendChild(host); host.style.display="block"; }
     const mhost=$("#makeOptsHost");
@@ -12007,6 +12032,7 @@ $("#tpApply").addEventListener("click",()=>{
   if(tpState.op==="offset"){ endOffsetPreview(true); closeToolPop(); return; }
   if(OP_PREVIEW[tpState.op] && opPrevBase){ mesh=_opClone(); opPrevBase=null; const op=tpState.op; ops[op](); closeToolPop(); return; }
   if(tpState.op && tpState.op.startsWith("prim:")){ const name=tpState.op.slice(5); endPrimPreview(true); $("#toolpop").classList.remove("prim-"+name); $("#toolpop").classList.remove("prim-any"); /* keep the committed mesh; close */ const st=tpState; for(const m of st.moved) m.parent.insertBefore(m.el,m.next); st.btn&&st.btn.classList.remove("on"); $("#toolpop").classList.add("empty"); $("#tpTitle").textContent="Options"; tpState=null; return; }
+  if(typeof ops[tpState.op]!=="function"){ closeToolPop(); return; }
   ops[tpState.op]();
 });
 // popover persists until ✕, Esc, or another tool icon is opened (no outside-click dismiss)
@@ -17110,6 +17136,7 @@ applyOriginalIcons(); }catch(e){ console.warn("icon render skipped:",e); }
     el.classList.remove("show"); el.setAttribute("aria-hidden","true"); el.innerHTML="";
     primOpen=false; primHover=null;
   }
+  window.__handMenus={ openPalette, closePalette, openPrim, closePrim, PRIM_ITEMS, LEFT_RING_ITEMS, RIGHT_RING_ITEMS };   // the demo drives the same radial menus
   function primPointAt(x,y){
     const el=document.getElementById("handPrim"); if(!el) return null;
     const btns=[...el.querySelectorAll(".pbtn")];
@@ -18140,7 +18167,7 @@ void main(){
   // demo names + credits (in SEQS order)
   const DEMO_INFO=[
     ["The TopMod Look","after Nathan Ho · TopMod: Akleman, Srinivasan, Chen"],
-    ["Hands","pinch select · ✌ pull to extrude · pinky undo/redo · third-finger shortcuts · two-hand zoom & orbit"],
+    ["Hand Shortcuts","radial menus at the pinch point · slide & release to pick"],
     ["Gem Cuts","four cuts · diamond, sapphire, emerald, ruby"],
     ["Flame","equation deform · TopMod 3D"],
     ["Cloth","XPBD fabric: inflate + drape · after XRTailor / OpenCloth"],
@@ -18342,119 +18369,43 @@ void main(){
         if(window.__lineart && alive){ say("Line Art · wireframe, hidden lines removed"); window.__lineart.open(); EQ("lineart"); await wait(3600); window.__lineart.close(); await wait(300); }
       } finally { spinHold=false; try{ window.__eq&&window.__eq.op(null); }catch(e){} }
     },
-    // 1 — "Hands": simulated hand tracking with the app's real gestures — index pinch select · right ✌ push/pull extrude ·
-    //     ring-finger shortcuts → Wire · pinky undo / redo · both pinch zoom · both ✌ orbit (hand right → model turns right)
+    // 1 — "Hands": the hand-tracking SHORTCUT MENUS (the real radial menus — no simulated hand skeleton).
+    //     A finger-to-thumb tap pops a radial menu at the pinch point; slide to a button and release to fire it.
     async () => {
-      const NS="http://www.w3.org/2000/svg";
-      const svg=document.createElementNS(NS,"svg"); svg.id="handSimSvg";
-      Object.assign(svg.style,{position:"fixed",left:0,top:0,width:"100vw",height:"100vh",pointerEvents:"none",zIndex:100002});
-      document.body.appendChild(svg); document.body.classList.add("handDemo");
-      const badge=document.createElement("div"); badge.id="handSimBadge"; badge.innerHTML="&#9995; HAND TRACKING"; document.body.appendChild(badge);
-      const BASE={w:[0,0],t:[[-18,-8],[-30,-22],[-38,-36],[-44,-48]],i:[[-14,-46],[-16,-66],[-17,-80],[-18,-92]],m:[[0,-48],[0,-70],[0,-86],[0,-99]],
-                  r:[[13,-45],[15,-65],[16,-79],[17,-90]],p:[[25,-38],[29,-54],[31,-65],[33,-75]]};
-      // curled poses: each finger's tip meets the thumb tip
-      const CURL={ i:[[-14,-46],[-19,-64],[-27,-71],[-34,-62]], m:[[0,-48],[-6,-66],[-20,-72],[-33,-63]],
-                   r:[[13,-45],[8,-62],[-6,-68],[-22,-60]], p:[[25,-38],[22,-54],[8,-62],[-12,-56]] };
-      const TH={ i:[[-18,-8],[-29,-26],[-34,-43],[-34,-60]], two:[[-18,-8],[-29,-26],[-33,-44],[-33,-61]], r:[[-18,-8],[-25,-24],[-24,-42],[-22,-58]], p:[[-18,-8],[-22,-24],[-18,-42],[-12,-54]] };
-      const L=(a,b,k)=>[a[0]+(b[0]-a[0])*k,a[1]+(b[1]-a[1])*k];
-      const RING={sel:"rgba(255,215,0,0.95)",ui:"rgba(0,229,255,0.95)",ex:"rgba(255,140,34,0.95)",zoom:"rgba(0,230,118,0.9)",orbit:"rgba(0,229,255,0.9)",undo:"rgba(255,68,136,0.95)",redo:"rgba(0,230,118,0.95)",ring:"rgba(255,140,34,0.95)"};
-      function mkHand(){ const g=document.createElementNS(NS,"g"); svg.appendChild(g); return {g,x:-300,y:-300,tx:-300,ty:-300,p:0,tp:0,mode:"i",mirror:false,show:true,s:2.6*Math.max(0.55,Math.min(1,innerHeight/720)),col:RING.sel}; }
-      function draw(h){ const k=h.p, sx=h.mirror?-1:1, P=JSON.parse(JSON.stringify(BASE));
-        const fs=h.mode==="two"?["i","m"]:[h.mode]; fs.forEach(f=>{ P[f]=BASE[f].map((q,j)=>L(q,CURL[f][j],k)); });
-        P.t=BASE.t.map((q,j)=>L(q,TH[h.mode]||TH.i,j===0?0:k).map?L(q,(TH[h.mode]||TH.i)[j],k):q);
-        const tip=L(P[fs[0]][3],P.t[3],.5);
-        const X=q=>h.x+(q[0]-tip[0])*sx*h.s, Y=q=>h.y+(q[1]-tip[1])*h.s;
-        let s=""; const seg=(a,b)=>{ s+='<line x1="'+X(a)+'" y1="'+Y(a)+'" x2="'+X(b)+'" y2="'+Y(b)+'"/>'; };
-        ["t","i","m","r","p"].forEach(f=>{ seg(P.w,P[f][0]); for(let j=0;j<3;j++) seg(P[f][j],P[f][j+1]); });
-        seg(P.i[0],P.m[0]); seg(P.m[0],P.r[0]); seg(P.r[0],P.p[0]);
-        let d=""; const tips=[P.t[3],P.i[3],P.m[3],P.r[3],P.p[3]];
-        [P.w].concat(P.t.slice(0,3),P.i.slice(0,3),P.m.slice(0,3),P.r.slice(0,3),P.p.slice(0,3)).forEach(q=>{ d+='<circle class="j" cx="'+X(q)+'" cy="'+Y(q)+'" r="1.8"/>'; });
-        tips.forEach(q=>{ d+='<circle class="tg" cx="'+X(q)+'" cy="'+Y(q)+'" r="12"/><circle class="tp" cx="'+X(q)+'" cy="'+Y(q)+'" r="3.2"/>'; });
-        const ring=k>0.7?'<circle class="pr" cx="'+h.x+'" cy="'+h.y+'" r="'+(18+10*(k-0.7)/0.3)+'" style="stroke:'+h.col+'"/>':'';
-        h.g.innerHTML=h.show?'<g class="bones">'+s+'</g><g class="jts">'+d+'</g>'+ring:''; }
-      const H1=mkHand(), H2=mkHand(); H2.mirror=true; H2.show=true; H2.g.setAttribute("class","L"); H2.col=RING.undo;   // left hand = pink, right hand = cyan
-      const idleL=()=>{ H2.mode="i"; H2.tp=0; H2.tx=innerWidth*0.30; H2.ty=innerHeight*0.80; };   // the left hand stays in view, resting, when it isn't doing anything
-      let force=null, raf=0, live=true; const curEl=cursor();
-      function loop(){ if(!live) return;
-        const cx=parseFloat(curEl.style.left), cy=parseFloat(curEl.style.top);
-        if(H1.follow!==false && isFinite(cx) && isFinite(cy) && (cx>4||cy>4)){ H1.tx=cx; H1.ty=cy; }
-        const clicking=curEl.classList.contains("click")||!!document.querySelector(".amxPulse");
-        H1.tp=force!=null?force:(clicking?1:0);
-        [H1,H2].forEach(h=>{ h.x+=(h.tx-h.x)*0.22; h.y+=(h.ty-h.y)*0.22; h.p+=(h.tp-h.p)*0.3; draw(h); });
-        raf=requestAnimationFrame(loop); }
-      H1.x=H1.tx=innerWidth*0.62; H1.y=H1.ty=innerHeight*0.72; idleL(); H2.x=H2.tx; H2.y=H2.ty; loop();
-      const moveTo=(x,y)=>{ curEl.style.left=x+"px"; curEl.style.top=y+"px"; curEl.classList.add("show"); };
-      const pinch=async (ms=420)=>{ force=1; await wait(ms); force=0; await wait(260); force=null; };
-      function frontFace(){ let best=-1,bd=-2; const cp=camera.position;
-        mesh.faces.forEach((f,i)=>{ const c=TM.faceCentroid(mesh,f), n=TM.faceNormal(mesh,f), v=[cp.x-c[0],cp.y-c[1],cp.z-c[2]], l=Math.hypot(...v)||1, d=(n[0]*v[0]+n[1]*v[1]+n[2]*v[2])/l; if(d>bd){ bd=d; best=i; } });
-        return best; }
-      const ease=t=>t<.5?2*t*t:1-Math.pow(-2*t+2,2)/2;
-      async function animate(ms,fn){ const t0=performance.now(); while(alive){ const t=Math.min(1,(performance.now()-t0)/ms); fn(ease(t)); if(t>=1) break; await wait(16); } }
-      const hb=q("#handFab");
+      const HM=window.__handMenus, curEl=cursor();
+      const chip=document.createElement("div"); chip.id="handSimBadge"; chip.innerHTML="&#9995; HAND SHORTCUTS"; document.body.appendChild(chip);
+      const at=(x,y)=>{ curEl.style.left=x+"px"; curEl.style.top=y+"px"; curEl.classList.add("show"); };
+      const glide=async(x0,y0,x1,y1,ms)=>{ const t0=performance.now(); while(alive){ const t=Math.min(1,(performance.now()-t0)/ms), e=t<.5?2*t*t:1-Math.pow(-2*t+2,2)/2; at(x0+(x1-x0)*e,y0+(y1-y0)*e); if(t>=1) break; await wait(16); } };
+      // open one radial menu at (x,y), sweep the cursor around it, then release on `pick`
+      async function menu(kind, x, y, label, pick){
+        if(!HM||!alive) return;
+        say(label); await glide(innerWidth*0.5, innerHeight*0.62, x, y, 650); clickFx(); await wait(180);
+        const el=document.getElementById(kind==="prim"?"handPrim":"handPalette");
+        const items=kind==="prim"?(pick.items||HM.RIGHT_RING_ITEMS):(pick.items||HM.LEFT_RING_ITEMS);
+        if(kind==="prim") HM.openPrim(x,y,items,pick.title); else HM.openPalette(x,y,items,pick.title);
+        await wait(650); if(!el||!alive) return;
+        const bs=[...el.querySelectorAll(".pbtn")], k=Math.max(0,bs.findIndex(b=>b.textContent.trim()===pick.name));
+        let px=x, py=y;
+        for(let j=0;j<=k&&alive;j++){ bs.forEach(b=>b.classList.remove("slideHover")); const r=bs[j].getBoundingClientRect(), nx=r.left+r.width/2, ny=r.top+r.height/2;
+          await glide(px,py,nx,ny,j===0?380:150); px=nx; py=ny; bs[j].classList.add("slideHover"); await wait(j===k?520:90); }
+        say(label.split(" · ")[0]+" · release on "+pick.name); clickFx(); await wait(160);
+        const b=bs[k]; if(b) b.click(); await wait(250);
+      }
       try{
-        spinHold=true;
-        await prim("cube","Cube"); try{ window.__tm.frameAll(1.6); }catch(e){}
-        yaw=0.55; pitch=0.42; applyCam(); await wait(400);
-        // 0 · show where Hands lives — glow it, don't press it
-        say("Hands · the camera button down here turns on tracking");
-        let arrow=null;
-        if(hb){ hb.classList.add("handGlow"); const r=hb.getBoundingClientRect(); H1.follow=false; H1.mode="i"; H1.col=RING.ui; H1.tx=r.left+r.width/2+120; H1.ty=r.top-90;
-          arrow=document.createElement("div"); arrow.id="handArrow"; arrow.innerHTML='<svg viewBox="0 0 40 64" width="34" height="54"><path d="M20 2 V46 M6 32 L20 50 L34 32" fill="none" stroke="#00E5FF" stroke-width="5" stroke-linecap="round" stroke-linejoin="round"/></svg><span>Hands</span>';
-          arrow.style.left=(r.left+r.width/2)+"px"; arrow.style.top=(r.top-66)+"px"; document.body.appendChild(arrow); }
-        { const t0=performance.now(); while(alive && performance.now()-t0<3200){ const t=(performance.now()-t0)/1000;
-            H2.tx=innerWidth*(0.30+0.06*Math.sin(t*1.7)); H2.ty=innerHeight*(0.62+0.08*Math.sin(t*2.3+1));
-            if(t>1.2){ H1.tx=innerWidth*(0.62+0.07*Math.sin(t*1.9+2)); H1.ty=innerHeight*(0.58+0.09*Math.cos(t*2.1)); }
-            await wait(30); } }
-        if(hb) hb.classList.remove("handGlow"); if(arrow) arrow.remove(); idleL();
-        say("Hands on · the camera tracks your hand"); H1.tx=innerWidth*0.55; H1.ty=innerHeight*0.6; await wait(900); H1.follow=true;
-        // 1 · index pinch selects a face
-        setMode("face"); const fi=frontFace(); const fp=window.__tm.faceScreen(fi);
-        say("Index pinch on a face · select"); H1.mode="i"; H1.col=RING.sel; moveTo(fp.x,fp.y); await wait(1000);
-        await pinch(450); try{ sel.faces.clear(); sel.faces.add(fi); rebuildOverlay(); updateHint&&updateHint(); }catch(e){} await wait(700);
-        // 2 · right two-finger pinch on the face, pull along its normal = live extrude; release commits
-        say("Two-finger pinch · pull the face out"); H1.follow=false; H1.mode="two"; H1.col=RING.ex; H1.tx=fp.x; H1.ty=fp.y; await wait(600); force=1; await wait(350);
-        if(beginExtrudePreview()){ const c0=TM.faceCentroid(mesh,mesh.faces[fi]), n0=TM.faceNormal(mesh,mesh.faces[fi]);
-          const scr=d=>{ const v=new THREE.Vector3(c0[0]+n0[0]*d,c0[1]+n0[1]*d,c0[2]+n0[2]*d).project(camera), r=renderer.domElement.getBoundingClientRect(); return {x:r.left+(v.x+1)/2*r.width, y:r.top+(1-(v.y+1)/2)*r.height}; };
-          // the hand rides the face as it pulls out along its normal — the pull follows the extrude direction exactly
-          await animate(2200,t=>{ const d=1.25*t; updateExtrudePreview(d); const q=scr(d); H1.tx=q.x; H1.ty=q.y; });
-          await wait(300); force=0; await wait(250); endExtrudePreview(true); }
-        force=null; H1.mode="i"; await wait(900);
-        // 3 · pinky: left hand undo, right hand redo
-        say("Left pinky pinch · undo"); H2.mode="p"; H2.col=RING.undo; H2.tx=innerWidth*0.38; H2.ty=innerHeight*0.55; H1.tx=innerWidth*0.66; H1.ty=innerHeight*0.72; await wait(700);
-        H2.tp=1; await wait(380); try{ undo(); }catch(e){} H2.tp=0; await wait(1100); idleL();
-        say("Right pinky pinch · redo"); H1.mode="p"; H1.col=RING.redo; H1.tx=innerWidth*0.62; H1.ty=innerHeight*0.55; await wait(700);
-        force=1; await wait(380); try{ redo(); }catch(e){} force=0; await wait(1100); H1.mode="i";
-        // 4 · ring-finger (third finger) pinch opens the Topology shortcuts → Wire
-        const pal=q("#handPrim"); const items=["Catmull","Doo-Sabin","Loop","Dual","Honeycomb","Stellate","Truncate","Crust/Rind","Wire","Pipe","Handle"];
-        H2.mode="r"; H2.col=RING.ring; H2.tx=innerWidth*0.36; H2.ty=innerHeight*0.45; await wait(600);
-        say("Left third-finger pinch · Topology shortcuts"); H2.tp=1; await wait(380);
-        if(pal){ pal.innerHTML='<div class="ph">Remesh / Topology</div>'+items.map(t=>'<button class="pbtn">'+t+'</button>').join(""); pal.style.left=(H2.tx+120)+"px"; pal.style.top=(innerHeight*0.5)+"px"; pal.classList.add("show"); }
-        await wait(500); H2.tp=0; await wait(200); idleL(); H1.mode="i"; H1.col=RING.ui; H1.mirror=false;
-        if(pal){ const bs=[...pal.querySelectorAll(".pbtn")], wi=items.indexOf("Wire"); for(let j=0;j<=wi&&alive;j++){ bs.forEach(b=>b.classList.remove("phover")); bs[j].classList.add("phover"); const r=bs[j].getBoundingClientRect(); H1.tx=r.left+r.width/2; H1.ty=r.top+r.height/2; await wait(j===wi?650:170); } }
-        await pinch(380); if(pal){ pal.classList.remove("show"); pal.innerHTML=""; }
-        try{ const wb=q('#toolbar [data-op="wireframe"]'); if(wb) wb.click(); }catch(e){} say("Wire · added as a live modifier"); await wait(1800);
-        // 5 · both hands index pinch: spread = zoom in, together = zoom out
-        const cx=innerWidth*0.5, cy=innerHeight*0.55; H1.mode=H2.mode="i"; H1.col=H2.col=RING.zoom; H2.show=true;
-        H1.tx=cx+40; H1.ty=cy; H2.tx=cx-40; H2.ty=cy; await wait(700);
-        force=1; H2.tp=1; const d0=dist;
-        say("Both hands pinch · spread to zoom in");
-        await animate(1600,t=>{ const s=40+170*t; H1.tx=cx+s; H2.tx=cx-s; dist=d0*(1-0.42*t); applyCam(); });
-        await wait(350); say("Both hands pinch · bring together to zoom out"); const d1=dist;
-        await animate(1800,t=>{ const s=210-185*t; H1.tx=cx+s; H2.tx=cx-s; dist=d1+(d0*1.35-d1)*t; applyCam(); });
-        await wait(250); await animate(800,t=>{ dist=d0*1.35+(d0-d0*1.35)*t; applyCam(); });
-        force=0; H2.tp=0; await wait(400);
-        // 6 · both hands two-finger pinch and move = orbit; the model follows the hands (move right → it turns right)
-        H1.mode=H2.mode="two"; H1.col=H2.col=RING.orbit; const y0=yaw, p0=pitch;
-        H1.tx=cx-60; H2.tx=cx-240; H1.ty=H2.ty=cy; await wait(600);
-        say("Both hands two-finger pinch · move right, the model turns right"); force=1; H2.tp=1;
-        await animate(2400,t=>{ const dx=300*t; H1.tx=cx-60+dx; H2.tx=cx-240+dx; yaw=y0-dx*0.012*1.4; pitch=p0+0.14*Math.sin(t*Math.PI); applyCam(); });
-        force=0; H2.tp=0; await wait(450);
-        say("… and back to the left"); force=1; H2.tp=1; const y1=yaw;
-        await animate(1700,t=>{ const dx=-200*t; H1.tx=cx+240+dx; H2.tx=cx+60+dx; yaw=y1-dx*0.012*1.4; applyCam(); });
-        force=0; H2.tp=0; idleL(); await wait(900);
-      } finally { live=false; cancelAnimationFrame(raf); svg.remove(); badge.remove(); document.body.classList.remove("handDemo"); spinHold=false;
-        if(hb) hb.classList.remove("handGlow"); { const ha=document.getElementById("handArrow"); if(ha) ha.remove(); } try{ if(typeof exPreview!=="undefined"&&exPreview) endExtrudePreview(false); }catch(e){}
-        const pal=q("#handPrim"); if(pal){ pal.classList.remove("show"); pal.innerHTML=""; } }
+        spinHold=false;
+        fresh(); await wait(350);
+        // left ring-finger tap → Primitives
+        await menu("palette", innerWidth*0.36, innerHeight*0.48, "Left ring-finger tap · Primitives", {items:HM&&HM.PRIM_ITEMS, title:"Primitives", name:"Dodeca"});
+        { const a=q("#tpApply"); if(a&&a.offsetParent) a.click(); } try{ window.__tm.frameAll(1.5); }catch(e){} await wait(1100);
+        // left middle-finger tap → Topology
+        await menu("palette", innerWidth*0.36, innerHeight*0.50, "Left middle-finger tap · Topology", {title:"Topology", name:"Honeycomb"});
+        await wait(1400);
+        // right ring-finger tap → Modifiers
+        await menu("prim", innerWidth*0.64, innerHeight*0.50, "Right ring-finger tap · Modifiers", {title:"Modifiers", name:"Twist"});
+        await wait(1500);
+        await menu("palette", innerWidth*0.36, innerHeight*0.50, "Left middle-finger tap · Topology", {title:"Topology", name:"Wire"});
+        say("Every pick lands in the modifier stack — live and editable"); await wait(2600);
+      } finally { chip.remove(); try{ HM&&HM.closePalette(false); HM&&HM.closePrim(false); }catch(e){} try{ closeToolPop(); }catch(e){} }
     },
     // 1 — "Gem Cuts": the Gem Cut tool shows four cuts, each shown in its matching ray-traced stone view
     async () => {
@@ -18509,6 +18460,8 @@ void main(){
     // 4 — "Bejeweled": Bejewel sets a gem on every face of a buckyball, changes the cut and size, bakes, then Physics throws them
     async () => {
       spinHold=false;
+      // hundreds of tiny flat facets + a sharp clearcoat = facets flashing white/orange as the turntable spins → soften the sheen here
+      const _sh={cc:matFace.clearcoat, ccr:matFace.clearcoatRoughness, r:matFace.roughness}; matFace.clearcoat=0.06; matFace.clearcoatRoughness=0.7; matFace.roughness=0.62; matFace.needsUpdate=true;
       try {
         fresh(); say("New scene"); await wait(400);
         stageLoad(TM.primitives.buckyball()); try{ const L=layers[activeLayer]; L.name="Buckyball"; renderLayerList&&renderLayerList(); window.__tm.frameAll(DUOD()?0.9:1.6); }catch(e){} await wait(700);
@@ -18520,11 +18473,11 @@ void main(){
         await slide("bejSym", 8, 12, 4, "Gem adjust · more facets");
         await slide("bejCrown", 34.5, 40, 8, "Gem adjust · taller crown");
         const bk=q("#bejBake"); if(bk&&alive){ moveCursor(bk); await wait(500); say("Bake the gems to their own layer"); bk.click(); } await wait(900); if(!alive) return; if(DUOD()) try{ window.__tm.frameAll(0.72); }catch(e){}
-        window.__gemOpts=Object.assign(window.__gemOpts||{}, {disp:false, bounces:4}); say("View · Diamond"); setRenderMode("diamond"); try{ window.__eq&&window.__eq.gem("diamond"); }catch(e){} await wait(3200);
-        setRenderMode("solid"); if(!alive) return;
+        window.__gemOpts=Object.assign(window.__gemOpts||{}, {disp:false, bounces:4}); say("View · Diamond"); spinHold=true; setRenderMode("diamond"); try{ window.__eq&&window.__eq.gem("diamond"); }catch(e){} await wait(3200);
+        setRenderMode("solid"); spinHold=false; if(!alive) return;
         const PH=window.__physics; if(PH){ await point('#toolbar [data-act="physics"]', "Simulate · Physics — every gem is a rigid body", 300); PH.open(); await wait(1600); if(!alive) return;
           say("Physics · toss — grab any piece to throw it"); PH.toss(); await wait(4200); }
-      } finally { spinHold=false; try{ window.__physics&&window.__physics.close(); }catch(e){} try{ setRenderMode("solid"); }catch(e){} try{ window.__eq&&window.__eq.op(null); }catch(e){} }
+      } finally { spinHold=false; matFace.clearcoat=_sh.cc; matFace.clearcoatRoughness=_sh.ccr; matFace.roughness=_sh.r; matFace.needsUpdate=true; try{ window.__physics&&window.__physics.close(); }catch(e){} try{ setRenderMode("solid"); }catch(e){} try{ window.__eq&&window.__eq.op(null); }catch(e){} }
     },
     // 2 — torus (sliders) -> wireframe (sliders) -> patent halftone -> normals -> solid -> new
     async () => {
