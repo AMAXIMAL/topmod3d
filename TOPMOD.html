@@ -1251,6 +1251,8 @@ html.inApp [data-act="fullscreen"],html.inApp [data-act="shortcuts"],html.inApp 
       <div class="mi" data-act="topopt">Topology optimisation — carve to the load paths</div>
       <div class="mi" data-act="wrap">Shrink-wrap / Vacuum form</div>
       <div class="mi" data-act="granular">Granular pour — beads pile up</div>
+      <div class="mi" onclick="var b=document.querySelector('#toolbar [data-op=diffGrow]');if(b)b.click();">Differential growth — coral / brain wrinkles</div>
+      <div class="mi" onclick="var b=document.querySelector('#toolbar [data-op=metaballs]');if(b)b.click();">Blobs — metaball fluid surface</div>
     </div></div>
     <div class="menu"><span class="mtitle">Tools</span><div class="mlist">
       <div class="mi" data-op="insertEdge">Insert Edge</div>
@@ -19696,8 +19698,8 @@ window.__tmCore={ get bboxObj(){return bboxObj}, get edgeObj(){return edgeObj}, 
   ["Edit",["Fillet","Chamfer","Move","Scale","Array","Mirror","Ins Edge","Delete"]],
   ["Extrude",["Extrude","Dome","Pinch","Stellate","DblStell","Greeble"]],
   ["Deform",["Twist","Bend","Taper","Bulge","Spherify","Noise"]],
-  ["Generate",["Parametric/Lattice","Blobs","Growth","Sponge","Gyroid","TPMS","Generate/Lattice","Sierp","Hybrid","Rössler","Wave","Cymatics","K=−1","Weave","Chain","Voronoi","Tree","Maze","Maze 3D","Breeze","Text"]],
-  ["Simulate",["Cloth","Physics","Melt","Aero","FEA","TopOpt","Wrap","Pour"]],
+  ["Generate",["Parametric/Lattice","Sponge","Gyroid","TPMS","Generate/Lattice","Sierp","Hybrid","Rössler","Wave","Cymatics","K=−1","Weave","Chain","Voronoi","Tree","Maze","Maze 3D","Breeze","Text"]],
+  ["Simulate",["Cloth","Physics","Melt","Growth","Blobs","Aero","FEA","TopOpt","Wrap","Pour"]],
   ["Boolean",["Union","Diff","Intersect","Split","Drill","Hull","Cut"]],
   ["Clean-up",["Edit/Heal","Fill Holes","Flip","Crease","Triangle","Quad","Simplify","Planarize","Orient","Voxel"]],
   ["Gems",["Gem Cut","GEM","Bejewel"]],
