@@ -19246,7 +19246,7 @@ void main(){
   // WHAT'S NEW card (once per version) — shown under the DEMO card, or on its own
   function whatsNewCard(){ let seen=null; try{ seen=localStorage.getItem("tm_wn_v40"); }catch(e){} if(seen) return null;
     const w=document.createElement("div"); w.id="amxWhatsNew"; w.setAttribute("role","dialog"); w.setAttribute("aria-label","What's new");
-    w.innerHTML='<div class="wnT">WHAT\'S NEW</div><ul><li><b>Claude AI</b> builds models from a sentence — open it from <b>Help &rarr; Ask Claude</b> (or the &#10022; Claude button) and add your own Anthropic key.</li></ul><button type="button" class="wnOk">Got it</button>';
+    w.innerHTML='<div class="wnT">WHAT\'S NEW</div><ul><li><b>AI Builder</b> builds models from a sentence — open it from <b>Help &rarr; AI Builder</b> (or the &#10022; AI button) and add your own Anthropic key.</li></ul><button type="button" class="wnOk">Got it</button>';
     const st=document.createElement("style"); st.textContent="#amxWhatsNew{width:min(280px,calc(100vw - 32px));background:rgba(8,12,18,.94);color:#e8eef4;border:1.5px solid var(--tmAcc,#FF8C22);border-radius:16px;padding:12px 14px 10px;box-shadow:0 18px 50px rgba(0,0,0,.45);font:12px/1.4 var(--font,-apple-system,sans-serif);text-align:left;backdrop-filter:blur(10px);-webkit-backdrop-filter:blur(10px)}"+
       "#amxWhatsNew .wnT{font:900 13px var(--font,inherit);letter-spacing:4px;text-align:center;margin-bottom:6px}#amxWhatsNew ul{margin:0 0 12px;padding-left:18px}#amxWhatsNew li{margin:5px 0}#amxWhatsNew b{color:var(--tmAcc,#FF8C22)}"+
       "#amxWhatsNew .wnOk{display:block;margin:0 auto;cursor:pointer;border-radius:999px;padding:5px 14px;font:700 12px var(--font,inherit);border:1px solid var(--tmAcc,#FF8C22);background:transparent;color:inherit}"+
@@ -20990,10 +20990,10 @@ html body.uiGrey input[type=range]{--sl:#01e1ff;--slt:#8a8a8a}
 body.duo #claudePanel,body.duoBottom #claudePanel{top:calc(var(--duoH,50vh) + 8px);bottom:8px;max-height:none}
 @media (max-width:600px){#claudePanel{left:8px;right:8px;width:auto;bottom:58px}}
 </style>
-<div id="claudePanel" hidden role="dialog" aria-label="Ask Claude"><i class="clGrip"></i>
-  <header><b>&#10022; CLAUDE</b><span id="clAcct"></span><span class="sp"></span><button id="clKey" title="Use / remove your own Anthropic API key">&#128273;</button><button id="clNew" title="New conversation">&#8635;</button><button id="clClose" title="Close">&times;</button></header>
+<div id="claudePanel" hidden role="dialog" aria-label="AI Builder"><i class="clGrip"></i>
+  <header><b>&#10022; AI BUILDER</b><span id="clAcct"></span><span class="sp"></span><button id="clKey" title="Use / remove your own Anthropic API key">&#128273;</button><button id="clNew" title="New conversation">&#8635;</button><button id="clClose" title="Close">&times;</button></header>
   <div id="clSignIn" hidden>
-    <p>Describe what you want and Claude builds it in TopMod: primitives, handles, modifiers, gems, renders.</p>
+    <p>Describe what you want and the AI Builder makes it in TopMod: primitives, handles, modifiers, gems, renders.</p>
     <p style="font-size:12px;color:#c9d6e2">To start, paste your own Anthropic API key. Get one at <a href="https://console.anthropic.com/settings/keys" target="_blank" rel="noopener" style="color:#00E5FF">console.anthropic.com</a> → API Keys.</p>
     <button class="btn" id="clApple">&#63743; Sign in with Apple</button>
     <button class="btn ghost" id="clGuest">Try a few free requests</button>
@@ -21006,7 +21006,7 @@ body.duo #claudePanel,body.duoBottom #claudePanel{top:calc(var(--duoH,50vh) + 8p
   <div id="clChat" hidden style="display:none">
     <div id="clLog"></div>
     <div id="clSugg"></div>
-    <div id="clModelRow"><span>MODEL</span><button type="button" id="clModel" title="Claude model" aria-haspopup="listbox"><b id="clModelName">Haiku 5.5</b><i>&#9662;</i></button><div id="clModelMenu" role="listbox" hidden></div></div>
+    <div id="clModelRow"><span>MODEL</span><button type="button" id="clModel" title="AI model" aria-haspopup="listbox"><b id="clModelName">Haiku 5.5</b><i>&#9662;</i></button><div id="clModelMenu" role="listbox" hidden></div></div>
     <form id="clForm"><textarea id="clIn" rows="1" placeholder="Make a ring with three twisted handles, gemmed…"></textarea><button id="clSend" type="submit">Make</button></form>
   </div>
 </div>
@@ -21034,10 +21034,10 @@ body.duo #claudePanel,body.duoBottom #claudePanel{top:calc(var(--duoH,50vh) + 8p
   function modelName(id){ const f=modelList().concat(BASE_MODELS).find(m=>m[0]===id); return f?f[1]:id; }
   function fillModels(){ const btn=document.getElementById("clModel"); if(!btn) return; const own=!!ls.get("tm_claude_devkey"), cur=curModel();
     document.getElementById("clModelName").textContent=modelName(cur); btn.classList.toggle("locked",!own);
-    btn.title=own?"Choose a Claude model (billed to your Anthropic key)":"Add your Anthropic API key to choose a model"; }
+    btn.title=own?"Choose an AI model (billed to your Anthropic key)":"Add your Anthropic API key to choose a model"; }
   function openModelMenu(){ const m=document.getElementById("clModelMenu"); if(!m.hidden){ m.hidden=true; return; }
     const own=!!ls.get("tm_claude_devkey"), cur=curModel(); m.innerHTML="";
-    if(!own){ const n=document.createElement("div"); n.className="note"; n.textContent="Add your Anthropic API key to use Claude and pick a model."; m.appendChild(n);
+    if(!own){ const n=document.createElement("div"); n.className="note"; n.textContent="Add your Anthropic API key to use the AI Builder and pick a model."; m.appendChild(n);
       const k=document.createElement("button"); k.type="button"; k.className="o"; k.textContent="🔑 Add my own key…"; k.onclick=()=>{ m.hidden=true; keyScreen(); }; m.appendChild(k); m.hidden=false; return; }
     modelList().forEach(([id,name])=>{ const o=document.createElement("button"); o.type="button"; o.className="o"+(id===cur?" on":""); o.setAttribute("role","option"); o.textContent=name||id;
       o.onclick=()=>{ m.hidden=true; if(id!==cur){ ls.set("tm_claude_model",id); fillModels(); add("s","Model: "+(name||id)); } }; m.appendChild(o); });
@@ -21183,7 +21183,7 @@ body.duo #claudePanel,body.duoBottom #claudePanel{top:calc(var(--duoH,50vh) + 8p
       const j=await r.json(); if(!r.ok) throw new Error((j.error&&j.error.message)||("HTTP "+r.status));
       const tu=(j.content||[]).find(c=>c.type==="tool_use"); const tx=(j.content||[]).filter(c=>c.type==="text").map(c=>c.text).join(" ").trim(); return tu?tu.input:{reply:tx||"I couldn't plan that one — try rephrasing.",steps:[]};
     }
-    throw new Error("add your Anthropic API key first (🔑 in the Claude window)");
+    throw new Error("add your Anthropic API key first (🔑 in the AI Builder window)");
   }
 
   /* ---------- UI ---------- */
@@ -21204,7 +21204,7 @@ body.duo #claudePanel,body.duoBottom #claudePanel{top:calc(var(--duoH,50vh) + 8p
     pnl.hidden=false; const ok=signedIn(); { const f=document.getElementById("claudeFab"); f&&f.classList.add("on"); }
     $q("#clSignIn").hidden=ok; $q("#clChat").hidden=!ok; $q("#clChat").style.display=ok?"flex":"none";
     $q("#clApple").hidden=true; $q("#clGuest").hidden=true; $q("#clOwnKey").hidden=true; if(!ok){ $q("#clKeyBox").style.display="grid"; centerPnl(); }
-    setAcct(); fillModels(); if(ls.get("tm_claude_devkey")&&!ls.get("tm_claude_models")) refreshModels(); if(ok){ if(!log.childElementCount) add("s","Describe a form. Claude builds it with TopMod's own tools — ⌘Z undoes the whole build."); setTimeout(()=>inp.focus(),50); }
+    setAcct(); fillModels(); if(ls.get("tm_claude_devkey")&&!ls.get("tm_claude_models")) refreshModels(); if(ok){ if(!log.childElementCount) add("s","Describe a form. The AI Builder makes it with TopMod's own tools — ⌘Z undoes the whole build."); setTimeout(()=>inp.focus(),50); }
     const S=["Ring with 3 twisted handles, gold","Twisted torus vase","Gem-set dodecahedron pendant","Make it smoother","Add a mirror"];
     $q("#clSugg").innerHTML=""; S.forEach(t=>{ const b=document.createElement("button"); b.type="button"; b.textContent=t; b.onclick=()=>{ inp.value=t; send(); }; $q("#clSugg").appendChild(b); });
   }
@@ -21213,7 +21213,7 @@ body.duo #claudePanel,body.duoBottom #claudePanel{top:calc(var(--duoH,50vh) + 8p
     pnl.style.left=Math.max(8,(innerWidth-r.width)/2)+"px"; pnl.style.top=Math.max(8,(innerHeight-r.height)/2)+"px"; }); }
   async function send(){
     const t=inp.value.trim(); if(!t||busy) return; busy=true; $q("#clSend").disabled=true; inp.value="";
-    add("u",t); const th=add("s","Claude is planning…");
+    add("u",t); const th=add("s","Planning…");
     try{
       const plan=await callClaude(t);
       th.remove(); add("a",plan.reply||"Done.");
@@ -21221,7 +21221,7 @@ body.duo #claudePanel,body.duoBottom #claudePanel{top:calc(var(--duoH,50vh) + 8p
       const prog=add("s","Building…");
       const res=await run(plan,(r,ok)=>{ prog.textContent=(ok?"✓ ":"✕ ")+r; });
       prog.textContent=res.filter(x=>!String(x).startsWith("✕")).length+" of "+res.length+" steps · ⌘Z undoes";
-    }catch(e){ th.remove(); add("a err","Couldn't reach Claude: "+(/fetch/i.test(e.message)?"no connection to Claude from this page — check your internet, or use TopMod at amaximal.com/software/topmod":e.message)); }
+    }catch(e){ th.remove(); add("a err","Couldn't reach the AI service: "+(/fetch/i.test(e.message)?"no connection to the AI service from this page — check your internet, or use TopMod at amaximal.com/software/topmod":e.message)); }
     busy=false; $q("#clSend").disabled=false;
   }
   $q("#clForm").addEventListener("submit",e=>{ e.preventDefault(); send(); });
@@ -21257,9 +21257,9 @@ body.duo #claudePanel,body.duoBottom #claudePanel{top:calc(var(--duoH,50vh) + 8p
   // entry points: Help menu item + bottom-bar button next to Hands
   (function(){
     const mi=document.getElementById("miWhatsNew");
-    if(mi&&!document.getElementById("miClaude")){ const c=document.createElement("div"); c.className="mi"; c.id="miClaude"; c.innerHTML="&#10022; Ask Claude&hellip;"; mi.parentNode.insertBefore(c,mi); c.addEventListener("click",()=>{ try{ document.querySelectorAll(".menu.open").forEach(m=>m.classList.remove("open")); }catch(e){} show(); }); }
+    if(mi&&!document.getElementById("miClaude")){ const c=document.createElement("div"); c.className="mi"; c.id="miClaude"; c.innerHTML="&#10022; AI Builder&hellip;"; mi.parentNode.insertBefore(c,mi); c.addEventListener("click",()=>{ try{ document.querySelectorAll(".menu.open").forEach(m=>m.classList.remove("open")); }catch(e){} show(); }); }
     const hf=document.getElementById("handFab");
-    if(hf&&!document.getElementById("claudeFab")){ const b=document.createElement("button"); b.className="cell"; b.id="claudeFab"; b.title="Ask Claude to build or edit the model"; b.innerHTML="&#10022; Claude"; hf.parentNode.insertBefore(b,hf); b.addEventListener("click",()=>pnl.hidden?show():hide()); }
+    if(hf&&!document.getElementById("claudeFab")){ const b=document.createElement("button"); b.className="cell"; b.id="claudeFab"; b.title="AI Builder — build or edit the model from a sentence"; b.innerHTML="&#10022; AI"; hf.parentNode.insertBefore(b,hf); b.addEventListener("click",()=>pnl.hidden?show():hide()); }
   })();
   // drag by the header; size via the corner; position + size remembered
   (function(){ const hd=pnl.querySelector("header"); let d=null;
