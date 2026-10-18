@@ -384,6 +384,9 @@ body.uiMono #toolpop,body.uiMono #modPanel,body.uiMono #layersPanel{--text-dim:r
   background:rgba(0,229,255,0.06);border:1px solid rgba(0,229,255,0.25);border-radius:5px;padding:2px 5px;margin-left:4px;outline:none}
 .param .numbox:focus{border-color:var(--cyan);background:rgba(0,229,255,0.14)}
 .param .numbox:hover{border-color:rgba(0,229,255,0.45)}
+#menubar .mhdr{padding:6px 12px 2px;font:700 9px var(--font,system-ui);letter-spacing:1.2px;text-transform:uppercase;color:var(--text-dim,#8a97a6);pointer-events:none}
+input.tmNb{display:inline-block;width:46px;flex:none;text-align:right;font:10px var(--mono,monospace);color:var(--cyan,#00E5FF);background:rgba(0,229,255,0.06);border:1px solid rgba(0,229,255,0.25);border-radius:5px;padding:2px 5px;margin-left:4px;outline:none;box-sizing:border-box}
+input.tmNb:focus{border-color:var(--cyan,#00E5FF);background:rgba(0,229,255,0.14)}
 #display label{display:block;font-size:12px;padding:3px 0;cursor:pointer;color:var(--text)}
 #display input{accent-color:var(--cyan);margin-right:6px}
 
@@ -626,7 +629,7 @@ body.uiMono #toolpop,body.uiMono #modPanel,body.uiMono #layersPanel{--text-dim:r
 .modCheck{accent-color:var(--cyan)}
 .modEditNote{padding:9px 11px;color:var(--text-dim);font:11px var(--font)}
 .modParam{padding:6px 11px}
-.modParam label{display:block;font:10px var(--font);color:#9fb4c8;margin-bottom:3px}
+.modParam label{display:block;font:600 10.5px var(--font);letter-spacing:.3px;color:#9fb4c8;margin-bottom:3px}
 .modParam input[type=range]{width:150px;vertical-align:middle}
 .modParam .modVal{display:inline-block;width:42px;text-align:right;font:11px var(--mono);color:#dceefc}
 .modParam .numbox{width:48px;background:rgba(255,255,255,0.06);border:1px solid rgba(0,229,255,0.3);border-radius:4px;padding:1px 4px;outline:none;cursor:text}
@@ -874,6 +877,7 @@ body.opCol.opDock.opOpen #ocBar{display:block;position:fixed;top:var(--tbTop,52p
 body.opCol #ocBar::after{content:"";position:absolute;left:1px;top:50%;width:3px;height:34px;margin-top:-17px;border-radius:2px;background:rgba(0,229,255,.45)}
 body.opCol #ocBar:hover,body.opCol #ocBar.drag{background:rgba(0,229,255,.18)}
 body.opCol.fullscreen #ocBar{display:none!important}
+body.duo #ocBar{display:none!important}   /* Duo lays Options out across the lower area — the column-width grip has nothing to resize there */
 /* column width bars: no hard borders around the 3D view — a seamless gutter with a faint grip that lights up on hover / drag */
 #tbDockBar,#opDockBar,#ocBar{background:transparent!important;border:0!important}
 #tbDockBar::after,#opDockBar::after,#ocBar::after{background:rgba(0,229,255,.22)!important}
@@ -958,6 +962,30 @@ body:not(.uiMono):not(.uiMonoDark):not(.uiLight):not(.uiGrey):not(.uiNavy) #menu
 html body.uiMono input[type=range]{filter:none;--sl:#ff00ff;--slt:#3a3a3a}
 html body.uiMono input[type=range]::-webkit-slider-thumb{background:#000!important;box-shadow:0 0 0 1px #45494e!important}
 html body.uiMono input[type=range]::-moz-range-thumb{background:#000!important}
+/* Light theme Options window: styled directly (no SVG inversion filter). WebKit (iPhone app, Safari) drops a parent's
+   SVG filter on scrolling content, which left white text, magenta sliders and black thumbs. Plain colours render the same everywhere. */
+html body.uiMono #toolpop{filter:none!important;background:#f6f7f8!important;color:#1d2126!important;border-color:#d4d7db!important;box-shadow:0 6px 24px rgba(0,0,0,.12)!important;
+  --text:#1d2126;--text-dim:#5d6772;--cyan:var(--tmAcc,#0091AD);--line:#d4d7db;--font-color:#1d2126}
+html body.uiMono #toolpop #tpHead{background:#eceef0!important;border-color:#d4d7db!important}
+html body.uiMono #toolpop #tpTitle{color:var(--tmAcc,#0091AD)!important}
+html body.uiMono #toolpop #tpGrip,html body.uiMono #toolpop #tpClose,html body.uiMono #toolpop #tpHead button{color:#5d6772!important}
+html body.uiMono #toolpop #tpBody{background:transparent!important;color:#1d2126!important}
+html body.uiMono #toolpop #tpBody label,html body.uiMono #toolpop .modParam label,html body.uiMono #toolpop .param label,html body.uiMono #toolpop .clR span,html body.uiMono #toolpop .clC{color:#262b31!important}
+html body.uiMono #toolpop .modEditNote,html body.uiMono #toolpop .clS,html body.uiMono #toolpop .latSub,html body.uiMono #toolpop small{color:#5d6772!important}
+html body.uiMono #toolpop [style*="color:#8fce9b"],html body.uiMono #toolpop [style*="color: #8fce9b"]{color:#2e7d4f!important}
+html body.uiMono #toolpop [style*="color:var(--text-dim)"]{color:#5d6772!important}
+html body.uiMono #toolpop [style*="color:#fff"],html body.uiMono #toolpop [style*="color:#e6fff1"],html body.uiMono #toolpop [style*="color:#cdeaff"],html body.uiMono #toolpop [style*="color:#bff3ff"]{color:#1d2126!important}
+html body.uiMono #toolpop input[type=range]{filter:none!important;--sl:var(--tmAcc,#0091AD);--slt:#c6c8cc}
+html body.uiMono #toolpop input[type=range]::-webkit-slider-thumb{background:#fff!important;box-shadow:0 0 0 1.5px #9aa0a6,0 1px 3px rgba(0,0,0,.18)!important}
+html body.uiMono #toolpop input[type=range]::-moz-range-thumb{background:#fff!important;box-shadow:0 0 0 1.5px #9aa0a6!important}
+html body.uiMono #toolpop input.numbox,html body.uiMono #toolpop .numbox,html body.uiMono #toolpop output{background:#eeeff1!important;border:1.5px solid #5c7480!important;color:var(--tmAcc,#2b7f99)!important;border-radius:7px!important}
+html body.uiMono #toolpop select,html body.uiMono #toolpop .modSelect,html body.uiMono #toolpop input[type=text]:not(.numbox),html body.uiMono #toolpop input[type=number],html body.uiMono #toolpop textarea{background:#fff!important;color:#1d2126!important;border:1px solid #c3c8ce!important}
+html body.uiMono #toolpop input[type=checkbox]{accent-color:var(--tmAcc,#0091AD)}
+html body.uiMono #toolpop button,html body.uiMono #toolpop .mkbtn,html body.uiMono #toolpop .modBtn{background:#e4e7ea!important;color:#1d2126!important;border:1px solid #c3c8ce!important}
+html body.uiMono #toolpop button.on,html body.uiMono #toolpop .modAxis button.on,html body.uiMono #toolpop button.pri{background:var(--tmAcc,#0091AD)!important;color:#fff!important;border-color:var(--tmAcc,#0091AD)!important}
+html body.uiMono #toolpop #tpApply{background:var(--tmAcc,#0091AD)!important;color:#fff!important;border:0!important}
+html body.uiMono #toolpop b,html body.uiMono #toolpop strong{color:inherit}
+html body.uiMono #toolpop hr,html body.uiMono #toolpop .msep{border-color:#d4d7db!important;background:#d4d7db!important}
 html body.uiMono #menubar{background:#f3f4f5!important;border-color:#d6d8db!important}
 html body.uiMonoDark #menubar{background:#0c0d0f!important;border-color:#26282b!important}
 html body.uiMono #wordmark{color:#111!important}
@@ -1172,7 +1200,7 @@ html.inApp [data-act="fullscreen"],html.inApp [data-act="shortcuts"],html.inApp 
   <div id="titlebar"><span class="dot"></span> untitled.obj &mdash; TOPMOD</div>
 
   <div id="menubar">
-    <span id="wordmark"><span class="cy">TOP</span>MOD 3D <span class="ver">v4.0</span></span>
+    <span id="wordmark"><span class="cy">TOP</span>MOD 3D <span class="ver">v4.1</span></span>
     <div class="menu"><span class="mtitle">File</span><div class="mlist">
       <div class="mi" data-act="newProject">New<span class="kbd">&#8679;&#8984;N</span></div>
       <div class="msep"></div>
@@ -1186,7 +1214,7 @@ html.inApp [data-act="fullscreen"],html.inApp [data-act="shortcuts"],html.inApp 
       <div class="mi xHid" style="display:none" data-act="exportWire">Export Wireframe &mdash; edges only (OBJ curves)&hellip;</div>
       <div class="mi xHid" style="display:none" data-act="exportWireDXF">Export Wireframe &mdash; edges only (DXF 3D lines)&hellip;</div>
       <div class="mi xHid" style="display:none" data-act="exportWireSVG">Export Wireframe &mdash; current view (SVG)&hellip;</div>
-      <div class="mi xHid" style="display:none" data-act="lineArt">Export Line Art &mdash; plotter (vpype SVG / HPGL)&hellip;</div>
+      <div class="mi xHid" style="display:none" data-act="lineArt">Export Line Art &mdash; plotter (layered SVG / HPGL)&hellip;</div>
       <div class="mi xHid" style="display:none" data-act="exportGuide">Export Step Guide (PDF) &mdash; every step, auto-compiled&hellip;</div>
       <div class="mi xHid" style="display:none" data-act="spinExport">Export Spin Video (MP4/WebM)&hellip;</div>
     </div></div>
@@ -1432,6 +1460,15 @@ html.inApp [data-act="fullscreen"],html.inApp [data-act="shortcuts"],html.inApp 
       <span class="tgrp" data-label="Generate">
         <button class="tb" data-op="metaballs" title="Metaballs — generate an organic fluid-blob surface (marching/surface-nets isosurface). Options for count, size, threshold, seed."><svg width="22" height="22" viewBox="0 0 22 22"><circle cx="8" cy="10" r="4.5" fill="#00E5FF" fill-opacity="0.5" stroke="#00E5FF" stroke-width="1.1"/><circle cx="13.5" cy="12.5" r="3.6" fill="#00E5FF" fill-opacity="0.5" stroke="#00E5FF" stroke-width="1.1"/><circle cx="13" cy="7.5" r="2.6" fill="#FF8C22" fill-opacity="0.7" stroke="#FF8C22" stroke-width="1"/></svg><span class="tlbl">Blobs</span></button>
         <button class="tb" data-op="diffGrow" title="Differential Growth — grow the active mesh like coral/brain: edges split, the surface inflates along its normals and wrinkles. Grow ×N frames, then Apply to bake."><svg width="22" height="22" viewBox="0 0 22 22"><path d="M11 19V11M11 11C11 8 8 7.5 7 5M11 11c0-3 3-3.5 4-6M7 5c-1.6 0-2.4-1.2-2.4-1.2M15 5c1.6 0 2.4-1.2 2.4-1.2M11 11c-2.2 0-3 1.6-4.6 1.6" fill="none" stroke="#00E5FF" stroke-width="1.3" stroke-linecap="round" stroke-linejoin="round"/><circle cx="7" cy="5" r="1.3" fill="#FF8C22"/><circle cx="15" cy="5" r="1.3" fill="#FF8C22"/></svg><span class="tlbl">Growth</span></button>
+        <button class="tb" data-op="coral" title="Coral — diffusion-limited aggregation: particles wander and stick to grow branching coral. Limit how many connections each node can make. Grow from a point, the ground, or your model's surface."><svg width="22" height="22" viewBox="0 0 22 22"><path d="M11 20V12M11 12L6 7M11 12l5-4M6 7L4 3M6 7l3-4M16 8l1-5M16 8l3-2M11 15l-4-1M11 15l5 0" stroke="#FF8C22" stroke-width="1.6" fill="none" stroke-linecap="round"/><circle cx="4" cy="3" r="1.3" fill="#00E5FF"/><circle cx="9" cy="3" r="1.3" fill="#00E5FF"/><circle cx="17" cy="3" r="1.3" fill="#00E5FF"/><circle cx="19" cy="6" r="1.3" fill="#00E5FF"/></svg><span class="tlbl">Coral</span></button>
+        <button class="tb" data-op="ngBranch" title="Branches — space colonization"><svg width="22" height="22" viewBox="0 0 22 22"><path d="M11 20V11M11 11L5 5M11 11l6-6M8 8L6 9M14 8l2 1M11 14l-3-2M11 14l3-2" stroke="#FF8C22" stroke-width="1.6" fill="none" stroke-linecap="round"/><circle cx="5" cy="5" r="1.5" fill="#00E5FF"/><circle cx="17" cy="5" r="1.5" fill="#00E5FF"/></svg><span class="tlbl">Branches</span></button>
+        <button class="tb" data-op="ngWfc" title="WFC Pipes — 3D wave function collapse"><svg width="22" height="22" viewBox="0 0 22 22"><path d="M3 7h6v8h10M9 7V3M15 15v4" stroke="#FF8C22" stroke-width="2.2" fill="none" stroke-linejoin="round"/><rect x="2" y="2" width="18" height="18" fill="none" stroke="#00E5FF" stroke-width="1" stroke-dasharray="2 2"/></svg><span class="tlbl">WFC Pipes</span></button>
+        <button class="tb" data-op="ngSlime" title="Slime — 3D physarum network"><svg width="22" height="22" viewBox="0 0 22 22"><path d="M4 18c3-4 2-8 7-9s6-5 8-6M11 9c-1 4 2 6 6 9M7 13c-2 0-3-2-4-4" stroke="#FF8C22" stroke-width="1.6" fill="none" stroke-linecap="round"/><circle cx="11" cy="9" r="1.6" fill="#00E5FF"/></svg><span class="tlbl">Slime</span></button>
+        <button class="tb" data-op="ngRD" title="Reaction — 3D reaction-diffusion"><svg width="22" height="22" viewBox="0 0 22 22"><circle cx="11" cy="11" r="8" fill="none" stroke="#00E5FF" stroke-width="1"/><path d="M5 9c2-2 4 2 6 0s4-3 6-1M6 14c2-1 3 1 5 0s3-2 5 0" stroke="#FF8C22" stroke-width="1.6" fill="none" stroke-linecap="round"/></svg><span class="tlbl">Reaction</span></button>
+        <button class="tb" data-op="ngCA" title="Cellular — 3D cellular automata"><svg width="22" height="22" viewBox="0 0 22 22"><g fill="#FF8C22"><rect x="4" y="4" width="4" height="4"/><rect x="9" y="4" width="4" height="4"/><rect x="9" y="9" width="4" height="4"/><rect x="14" y="9" width="4" height="4"/><rect x="4" y="14" width="4" height="4"/><rect x="14" y="14" width="4" height="4"/></g></svg><span class="tlbl">Cellular</span></button>
+        <button class="tb" data-op="ngHyphae" title="Hyphae — non-crossing root networks"><svg width="22" height="22" viewBox="0 0 22 22"><path d="M11 19C10 14 6 12 4 7M11 19c1-5 5-6 7-11M8 13c2-1 2-4 1-6M14 12c-2-2-1-5 1-7" stroke="#FF8C22" stroke-width="1.5" fill="none" stroke-linecap="round"/></svg><span class="tlbl">Hyphae</span></button>
+        <button class="tb" data-op="ngTerrain" title="Terrain — height field + erosion"><svg width="22" height="22" viewBox="0 0 22 22"><path d="M2 17l5-7 3 4 4-8 6 11z" fill="#FF8C22" opacity=".85"/><path d="M2 17h18" stroke="#00E5FF" stroke-width="1.4"/></svg><span class="tlbl">Terrain</span></button>
+        <button class="tb" data-op="ngOrigami" title="Origami — folded tessellations"><svg width="22" height="22" viewBox="0 0 22 22"><path d="M3 6l4 3 4-3 4 3 4-3v10l-4 3-4-3-4 3-4-3z M7 9v10M15 9v10M11 6v10" stroke="#FF8C22" stroke-width="1.3" fill="none" stroke-linejoin="round"/></svg><span class="tlbl">Origami</span></button>
         <button class="tb" data-op="menger" title="Menger sponge"><img class="ticon" alt="Menger sponge"><span class="tlbl">Sponge</span></button>
         <button class="tb" data-op="gyroid" title="Gyroid surface"><img class="ticon" alt="Gyroid"><span class="tlbl">Gyroid</span></button>
         <button class="tb" data-op="latticeFill" title="Lattice Fill — fill the shape with a TPMS lattice (gyroid, Schwarz P, diamond, Neovius, I-WP): sheet or solid, cell size, wall, density grading, outer skin. Shows relative density + estimated stiffness. Live modifier."><svg width="22" height="22" viewBox="0 0 22 22"><rect x="3" y="3" width="16" height="16" rx="3" stroke="#00E5FF" stroke-width="1.3" fill="none"/><path d="M3 9c3-3 5 3 8 0s5 3 8 0M3 15c3-3 5 3 8 0s5 3 8 0M9 3c-3 3 3 5 0 8s3 5 0 8M15 3c-3 3 3 5 0 8s3 5 0 8" stroke="#FF8C22" stroke-width="1.1" fill="none"/></svg><span class="tlbl">Lattice</span></button>
@@ -1464,6 +1501,7 @@ html.inApp [data-act="fullscreen"],html.inApp [data-act="shortcuts"],html.inApp 
         <button class="tb" data-mod="bulge" title="Bulge — non-destructive deformer"><svg width="22" height="22" viewBox="0 0 22 22"><path d="M8 4h6c-2 3.5-2 10.5 0 14H8c-2-3.5-2-10.5 0-14z" stroke="#FF8C22" stroke-width="1.5" fill="none" stroke-linejoin="round"/></svg><span class="tlbl">Bulge</span></button>
         <button class="tb" data-mod="spherify" title="Spherify — non-destructive deformer"><svg width="22" height="22" viewBox="0 0 22 22"><circle cx="11" cy="11" r="6.5" stroke="#FF8C22" stroke-width="1.5" fill="none"/><path d="M11 2.5v3M11 16.5v3M2.5 11h3M16.5 11h3" stroke="#00E5FF" stroke-width="1.3" stroke-linecap="round"/></svg><span class="tlbl">Spherify</span></button>
         <button class="tb" data-mod="noise" title="Displace / Noise — non-destructive deformer"><svg width="22" height="22" viewBox="0 0 22 22"><path d="M3 12l2-5 2 7 2-9 2 11 2-8 2 6 2-4" stroke="#FF8C22" stroke-width="1.4" fill="none" stroke-linecap="round" stroke-linejoin="round"/></svg><span class="tlbl">Noise</span></button>
+        <button class="tb" data-mod="ffd" title="Cage Edit — a lattice box around the object: pick its points (Shift = add) and drag them to morph the shape. Set points in U / V / W and the curve degree (1–3)."><svg width="22" height="22" viewBox="0 0 22 22"><path d="M4 7l7-3 7 3v9l-7 3-7-3z M11 4v15 M4 7l7 3 7-3 M4 11.5l7 3 7-3" stroke="#00E5FF" stroke-width="1.2" fill="none" stroke-linejoin="round"/><circle cx="4" cy="7" r="1.6" fill="#FF8C22"/><circle cx="18" cy="7" r="1.6" fill="#FF8C22"/><circle cx="11" cy="19" r="1.6" fill="#FF8C22"/><circle cx="11" cy="10" r="1.6" fill="#FF8C22"/></svg><span class="tlbl">Cage Edit</span></button>
       </span>
       <span class="tgrp" id="trueform" data-label="TrueForm">
         <button class="tb" data-op="tfUnion" title="Boolean Union — merge the active layer with another layer (A ∪ B)"><svg width="22" height="22" viewBox="0 0 22 22"><circle cx="8.5" cy="11" r="6" fill="#00E5FF" fill-opacity="0.5" stroke="#00E5FF" stroke-width="1.3"/><circle cx="13.5" cy="11" r="6" fill="#00E5FF" fill-opacity="0.5" stroke="#00E5FF" stroke-width="1.3"/></svg><span class="tlbl">Union</span></button>
@@ -1604,6 +1642,11 @@ html.inApp [data-act="fullscreen"],html.inApp [data-act="shortcuts"],html.inApp 
           <input type="range" id="pMetaRadius" min="0.2" max="1.2" step="0.05" value="0.6"><output id="pMetaRadiusV"></output></div>
         <div class="param"><label>Metaballs — seed (drag to re-roll)</label>
           <input type="range" id="pMetaSeed" min="1" max="200" step="1" value="7"><output id="pMetaSeedV"></output></div>
+        <div class="param"><label class="chk"><input type="checkbox" id="pMetaPts" checked> Distance to point — a blob at every ball</label></div>
+        <div class="param"><label class="chk"><input type="checkbox" id="pMetaLines"> Distance to line — tubes chaining the balls in order</label></div>
+        <div class="param"><label class="chk"><input type="checkbox" id="pMetaClosed"> Lines — close the loop (last ball back to first)</label></div>
+        <div class="param"><label>Line thickness</label>
+          <input type="range" id="pMetaLineW" min="0.1" max="1.2" step="0.05" value="0.5"><output id="pMetaLineWV"></output></div>
         <div class="param"><label class="chk"><input type="checkbox" id="pMetaGum" checked> Metaballs — show gumballs (drag to move · orange knob to resize)</label></div>
         <div class="param"><label>Wall thickness target (0 = auto)</label>
           <input type="range" id="pWallT" min="0" max="2" step="0.05" value="0"><output id="pWallTV"></output></div>
@@ -1914,8 +1957,10 @@ html.inApp [data-act="fullscreen"],html.inApp [data-act="shortcuts"],html.inApp 
         <div class="param prm-mail"><div id="pCmClear" style="font-size:11px;color:#8fce9b;padding:2px 0">✓ interlinked</div></div>
 
         <!-- Voronoi -->
+        <div class="param prm-vor"><label>Dimension</label>
+          <select id="pVorDim"><option value="2d">2D — flat pattern</option><option value="3d">3D — random points in a cube</option></select></div>
         <div class="param prm-vor"><label>Region</label>
-          <select id="pVorShape"><option value="square">Square</option><option value="disk">Disk</option></select></div>
+          <select id="pVorShape"><option value="square">Square / Cube</option><option value="disk">Disk / Sphere</option></select></div>
         <div class="param prm-vor"><label>Style</label>
           <select id="pVorMode"><option value="cells">Cells (mosaic tiles)</option><option value="web">Web fill (struts)</option></select></div>
         <div class="param prm-vor"><label>Cell count</label>
@@ -1942,7 +1987,7 @@ html.inApp [data-act="fullscreen"],html.inApp [data-act="shortcuts"],html.inApp 
         <div class="param prm-tree"><label>Length ratio (child / parent)</label>
           <input type="range" id="pTreeLenR" min="0.5" max="0.95" step="0.01" value="0.74"><output id="pTreeLenRV"></output></div>
         <div class="param prm-tree"><label>Trunk radius</label>
-          <input type="range" id="pTreeRad" min="0.04" max="0.5" step="0.01" value="0.16"><output id="pTreeRadV"></output></div>
+          <input type="range" id="pTreeRad" min="0.04" max="1.5" step="0.01" value="0.5"><output id="pTreeRadV"></output></div>
         <div class="param prm-tree"><label>Radius ratio (child / parent)</label>
           <input type="range" id="pTreeRadR" min="0.45" max="0.9" step="0.01" value="0.68"><output id="pTreeRadRV"></output></div>
         <div class="param prm-tree"><label>Branch angle (degrees)</label>
@@ -2238,7 +2283,6 @@ html.inApp [data-act="fullscreen"],html.inApp [data-act="shortcuts"],html.inApp 
     <button class="cell" id="consoleToggle" title="Script console (&#96;)">&gt;_</button>
     <button class="cell" id="arBtn" title="AR — place the model in your room (AR Quick Look on iPhone / iPad)">&#9672; AR</button>
     <button class="cell" id="voiceToggle" title="Voice control — toggle on, then speak a command (e.g. &quot;cube&quot;, &quot;extrude&quot;, &quot;catmull&quot;, &quot;undo&quot;, &quot;zoom to fit&quot;, &quot;face mode&quot;). Say &quot;help&quot; — or right-click — to list all commands.">&#127908; Voice</button>
-    <button class="cell" id="rhinoLink" title="Live-link geometry to Rhino — toggle on to push the visible model to a Rhino receiver on every edit. Right-click to set the receiver URL.">&#8644; Rhino</button>
   </div>
 </div>
 
@@ -2582,6 +2626,48 @@ function _sweepTube(centers, r, sides, verts, faces){
   const capB=[]; for(let j=0;j<sides;j++) capB.push(base+(n-1)*sides+j); faces.push(capB);                 // end cap
 }
 // ---- Voronoi helpers ----
+// 3D Voronoi: random seed points in a cube (or sphere); each cell is a convex polyhedron = the region clipped by the
+// bisector planes to every other seed. "cells" = separated cells (inset by gap), "web" = struts on every cell edge.
+function _clipPoly3(F, n, d){
+  const out=[], cap=[]; const dt=p=>n[0]*p[0]+n[1]*p[1]+n[2]*p[2]-d, E=1e-9;
+  for(const f of F){ const r=[]; for(let i=0;i<f.length;i++){ const a=f[i], b=f[(i+1)%f.length], da=dt(a), db=dt(b);
+      if(da<=E) r.push(a); if((da<=E)!==(db<=E)){ const t=da/(da-db), q=[a[0]+(b[0]-a[0])*t, a[1]+(b[1]-a[1])*t, a[2]+(b[2]-a[2])*t]; r.push(q); cap.push(q); } }
+    if(r.length>=3) out.push(r); }
+  if(cap.length>=3){ const u0=Math.abs(n[0])<0.9?[1,0,0]:[0,1,0]; let u=[n[1]*u0[2]-n[2]*u0[1], n[2]*u0[0]-n[0]*u0[2], n[0]*u0[1]-n[1]*u0[0]]; const ul=Math.hypot(...u); u=u.map(x=>x/ul);
+    const v=[n[1]*u[2]-n[2]*u[1], n[2]*u[0]-n[0]*u[2], n[0]*u[1]-n[1]*u[0]];
+    const c=[0,1,2].map(k=>cap.reduce((s,p)=>s+p[k],0)/cap.length), uniq=[];
+    for(const p of cap){ if(!uniq.some(q=>Math.abs(q[0]-p[0])+Math.abs(q[1]-p[1])+Math.abs(q[2]-p[2])<1e-7)) uniq.push(p); }
+    if(uniq.length>=3){ const ang=a=>Math.atan2((a[0]-c[0])*v[0]+(a[1]-c[1])*v[1]+(a[2]-c[2])*v[2],(a[0]-c[0])*u[0]+(a[1]-c[1])*u[1]+(a[2]-c[2])*u[2]); uniq.sort((a,b)=>ang(a)-ang(b)); out.push(uniq); } }
+  return out;
+}
+function _voronoi3d(n,size,shape,mode,gap,seed,relax){
+  n=Math.max(2,Math.min(200,Math.round(n))); const h=size/2, rnd=_rng(seed), sph=shape==="disk";
+  const P=(x,y,z)=>[x*h,y*h,z*h];
+  let region=[[P(-1,-1,1),P(1,-1,1),P(1,1,1),P(-1,1,1)],[P(-1,-1,-1),P(-1,1,-1),P(1,1,-1),P(1,-1,-1)],[P(-1,1,-1),P(-1,1,1),P(1,1,1),P(1,1,-1)],
+              [P(-1,-1,-1),P(1,-1,-1),P(1,-1,1),P(-1,-1,1)],[P(1,-1,-1),P(1,1,-1),P(1,1,1),P(1,-1,1)],[P(-1,-1,-1),P(-1,-1,1),P(-1,1,1),P(-1,1,-1)]];
+  if(sph){ const K=48; for(let i=0;i<K;i++){ const y=1-2*(i+0.5)/K, r=Math.sqrt(1-y*y), a=i*2.399963229728653; region=_clipPoly3(region,[r*Math.cos(a),y,r*Math.sin(a)],h); } }
+  let pts=[]; while(pts.length<n){ const p=[rnd()*2-1,rnd()*2-1,rnd()*2-1]; if(sph&&p[0]*p[0]+p[1]*p[1]+p[2]*p[2]>1) continue; pts.push([p[0]*h*0.98,p[1]*h*0.98,p[2]*h*0.98]); }
+  const cellOf=(p,off)=>{ let F=region; for(const q of pts){ if(q===p) continue; const dx=q[0]-p[0], dy=q[1]-p[1], dz=q[2]-p[2], L=Math.hypot(dx,dy,dz); if(L<1e-9) continue;
+      const nn=[dx/L,dy/L,dz/L], m=[(p[0]+q[0])/2,(p[1]+q[1])/2,(p[2]+q[2])/2]; F=_clipPoly3(F, nn, nn[0]*m[0]+nn[1]*m[1]+nn[2]*m[2]-off); if(F.length<4) break; } return F; };
+  const cen=F=>{ let c=[0,0,0], k=0; for(const f of F) for(const v of f){ c[0]+=v[0]; c[1]+=v[1]; c[2]+=v[2]; k++; } return k?c.map(x=>x/k):null; };
+  for(let it=0; it<Math.max(0,Math.round(relax)); it++) pts=pts.map(p=>{ const c=cen(cellOf(p,0)); return c||p; });
+  const verts=[], faces=[];
+  if(mode==="web"){ const seen=new Set(), w=Math.max(0.01,gap);
+    for(const p of pts){ for(const f of cellOf(p,0)) for(let i=0;i<f.length;i++){ const a=f[i], b=f[(i+1)%f.length]; const ka=a.map(x=>x.toFixed(3)).join(","), kb=b.map(x=>x.toFixed(3)).join(","); if(ka===kb) continue;
+        const k=ka<kb?ka+";"+kb:kb+";"+ka; if(seen.has(k)) continue; seen.add(k); _strut3(a,b,w,verts,faces); } } }
+  else { for(const p of pts){ const F=cellOf(p,Math.max(0,gap/2)); if(F.length<4) continue; const map=new Map();
+      const id=v=>{ const k=v.map(x=>Math.round(x*1e6)).join(","); let i=map.get(k); if(i==null){ i=verts.length; verts.push(v.slice()); map.set(k,i); } return i; };
+      for(const f of F){ const ix=f.map(id).filter((x,i,a)=>x!==a[(i+1)%a.length]); if(new Set(ix).size>=3) faces.push(ix); } } }
+  return { verts, faces, voronoi:{ cells:pts.length, mode, dim:"3d" } };
+}
+function _strut3(a,b,w,verts,faces){   // square-section bar from a to b (extended w/2 past each end so joints close)
+  let d=[b[0]-a[0],b[1]-a[1],b[2]-a[2]]; const L=Math.hypot(...d); if(L<1e-9) return; d=d.map(x=>x/L);
+  const t=Math.abs(d[1])<0.9?[0,1,0]:[1,0,0]; let u=[d[1]*t[2]-d[2]*t[1], d[2]*t[0]-d[0]*t[2], d[0]*t[1]-d[1]*t[0]]; const ul=Math.hypot(...u); u=u.map(x=>x/ul*w/2);
+  const v=[d[1]*u[2]-d[2]*u[1], d[2]*u[0]-d[0]*u[2], d[0]*u[1]-d[1]*u[0]];
+  const e=w/2, A=[a[0]-d[0]*e,a[1]-d[1]*e,a[2]-d[2]*e], B=[b[0]+d[0]*e,b[1]+d[1]*e,b[2]+d[2]*e], o=verts.length;
+  for(const P0 of [A,B]) for(const [s1,s2] of [[-1,-1],[1,-1],[1,1],[-1,1]]) verts.push([P0[0]+u[0]*s1+v[0]*s2, P0[1]+u[1]*s1+v[1]*s2, P0[2]+u[2]*s1+v[2]*s2]);
+  faces.push([o+3,o+2,o+1,o],[o+4,o+5,o+6,o+7]); for(let i=0;i<4;i++){ const j=(i+1)%4; faces.push([o+i,o+j,o+4+j,o+4+i]); }
+}
 function _rng(seed){ let a=(seed>>>0)||1; return ()=>{ a|=0; a=a+0x6D2B79F5|0; let t=Math.imul(a^a>>>15,1|a); t=t+Math.imul(t^t>>>7,61|t)^t; return ((t^t>>>14)>>>0)/4294967296; }; }
 function _clipHalf(poly, A, N){ const out=[], n=poly.length; for(let i=0;i<n;i++){ const c=poly[i], d=poly[(i+1)%n];
   const dc=(c[0]-A[0])*N[0]+(c[1]-A[1])*N[1], dd=(d[0]-A[0])*N[0]+(d[1]-A[1])*N[1];
@@ -3042,7 +3128,8 @@ const primitives = {
     const flatClear=p-2*R, reach=Rc-(p/2-Math.min(R,Rv));
     return { verts, faces, mail:{ links: reach>0 && flatClear>0, gap: flatClear, collide: flatClear<0, tooFar: reach<=0 } };
   },
-  voronoi(n=40, size=10, shape="square", mode="cells", gap=0.3, thick=0.4, seed=7, relax=1, diskSides=72){
+  voronoi(n=40, size=10, shape="square", mode="cells", gap=0.3, thick=0.4, seed=7, relax=1, diskSides=72, dim="2d"){
+    if(dim==="3d") return _voronoi3d(n,size,shape,mode,gap,seed,relax);
     // Voronoi diagram in the XZ plane, extruded ±thick/2 in Y. mode "cells" = inset convex tiles (mosaic);
     // mode "web" = strut bars along every cell edge (perforated fill). Region square or disk; Lloyd relaxation evens cells.
     n=Math.max(2,Math.min(400,Math.round(n))); const h=size/2, rnd=_rng(seed), ds=Math.max(12,Math.round(diskSides));
@@ -3058,7 +3145,7 @@ const primitives = {
     else { for(const c of cells){ const ins=_insetConvex(c, gap/2); if(ins.length>=3) _prismPoly(ins, thick, verts, faces); } }
     return { verts, faces, voronoi:{ cells:cells.length, mode } };
   },
-  tree(levels=5, splits=3, trunkLen=2.4, lenRatio=0.74, radius=0.16, radiusRatio=0.68, angleDeg=38, twistDeg=130, curveDeg=16, droop=0.18, jitter=0.28, sides=6, segs=4, taper=0.55, leaves=true, leafSize=0.5, seed=7){
+  tree(levels=5, splits=3, trunkLen=2.4, lenRatio=0.74, radius=0.5, radiusRatio=0.68, angleDeg=38, twistDeg=130, curveDeg=16, droop=0.18, jitter=0.28, sides=6, segs=4, taper=0.55, leaves=true, leafSize=0.5, seed=7){
     // Recursive branching tree built from tapered tubes; each branch spawns `splits` children, shorter/thinner, splayed by angle
     // and rotated by twist (phyllotaxis). curve bends each branch, droop adds gravity, jitter+seed give natural variation.
     levels=Math.max(1,Math.min(7,Math.round(levels))); splits=Math.max(1,Math.min(5,Math.round(splits))); sides=Math.max(3,Math.round(sides)); segs=Math.max(2,Math.round(segs));
@@ -3626,15 +3713,35 @@ function dsLike(m, pointFn){
 function dual(m){
   const dmap=directedMap(m);
   const verts=m.faces.map(f=>faceCentroid(m,f));
-  const faces=[];
+  const inc=m.verts.map(()=>[]); m.faces.forEach((f,fi)=>f.forEach((v,i)=>inc[v].push(fi)));
+  const nxt=(f,v)=>{ const i=f.indexOf(v); return f[(i+1)%f.length]; }, prv=(f,v)=>{ const i=f.indexOf(v); return f[(i-1+f.length)%f.length]; };
+  const faces=[], bnd=[]; let hasB=false; const mid=new Map();
+  const midOf=(a,b)=>{ const k=a<b?a+"_"+b:b+"_"+a; let id=mid.get(k); if(id===undefined){ id=verts.length; verts.push(V3.lerp(m.verts[a],m.verts[b],0.5)); mid.set(k,id); } return id; };
+  const vid=new Map(); const vOf=v=>{ let id=vid.get(v); if(id===undefined){ id=verts.length; verts.push(m.verts[v].slice()); vid.set(v,id); } return id; };
   for(let v=0;v<m.verts.length;v++){
-    const fan=fanAroundVertex(m,v,dmap);
-    if(fan.length>=3) faces.push(fan.slice());
+    const fs=inc[v]; if(!fs.length) continue;
+    // sectors start at faces whose outgoing edge v->w has no twin (open boundary); closed fans have none
+    const starts=fs.filter(fi=>!dmap.has(nxt(m.faces[fi],v)+">"+v));
+    if(!starts.length){
+      const out=[]; let f=fs[0], g=0;
+      do{ out.push(f); const u=prv(m.faces[f],v); const r=dmap.get(v+">"+u); if(!r) break; f=r.f; }while(f!==fs[0]&&++g<1000);
+      if(out.length>=3){ faces.push(out); bnd.push(false); }
+      continue;
+    }
+    hasB=true;
+    for(const s0 of starts){
+      const out=[]; let f=s0, g=0, endU=-1;
+      while(g++<1000){ out.push(f); const u=prv(m.faces[f],v); const r=dmap.get(v+">"+u); if(!r){ endU=u; break; } f=r.f; if(f===s0) break; }
+      const w=nxt(m.faces[s0],v);
+      const poly=[vOf(v), midOf(v,w), ...out, midOf(v,endU)];
+      faces.push(poly); bnd.push(true);
+    }
   }
-  let out={verts,faces};
-  if(validate(out)) out={verts,faces:faces.map(f=>f.slice().reverse())};
-  return out;
+  const mk=(fi,fb)=>({verts,faces:faces.map((f,k)=>{ const r=bnd[k]?fb:fi; return r?f.slice().reverse():f.slice(); })});
+  for(const [a,b] of (hasB?[[false,false],[true,true],[false,true],[true,false]]:[[false,false],[true,true]])){ const o=mk(a,b); if(!validate(o)){ return hasB?compactVerts(o):o; } }
+  return hasB?compactVerts(mk(true,true)):mk(true,true);
 }
+function compactVerts(o){ const used=new Int32Array(o.verts.length).fill(-1), verts=[]; const faces=o.faces.map(f=>f.map(v=>{ if(used[v]<0){ used[v]=verts.length; verts.push(o.verts[v]); } return used[v]; })); return {verts,faces}; }
 
 function dooSabin(m){
   return dsLike(m,(mm,f,i,c)=>{
@@ -3688,8 +3795,10 @@ function loopSubdiv(m){
   const E=edges(t), eIdx=new Map();
   E.forEach((e,i)=>eIdx.set(ekey(e.a,e.b),i));
   const dmap=directedMap(t);
-  // edge points
-  const ep=E.map(e=>{
+  const isB=E.map(e=>!(dmap.get(e.a+">"+e.b)&&dmap.get(e.b+">"+e.a)));
+  // edge points: interior 3/8-1/8 mask, open-boundary edges = midpoint
+  const ep=E.map((e,k)=>{
+    if(isB[k]) return V3.lerp(t.verts[e.a],t.verts[e.b],0.5);
     const r1=dmap.get(e.a+">"+e.b), r2=dmap.get(e.b+">"+e.a);
     const f1=t.faces[r1.f], f2=t.faces[r2.f];
     const c=f1.find(x=>x!==e.a&&x!==e.b), d=f2.find(x=>x!==e.a&&x!==e.b);
@@ -3697,11 +3806,13 @@ function loopSubdiv(m){
       V3.mul(V3.add(t.verts[e.a],t.verts[e.b]),3/8),
       V3.mul(V3.add(t.verts[c],t.verts[d]),1/8));
   });
-  // vertex points
-  const nbr=t.verts.map(()=>new Set());
-  E.forEach(e=>{nbr[e.a].add(e.b);nbr[e.b].add(e.a);});
+  // vertex points: interior Loop mask; boundary vertices follow the boundary curve (3/4 v + 1/8 each boundary neighbour)
+  const nbr=t.verts.map(()=>new Set()), bn=t.verts.map(()=>[]);
+  E.forEach((e,k)=>{nbr[e.a].add(e.b);nbr[e.b].add(e.a); if(isB[k]){ bn[e.a].push(e.b); bn[e.b].push(e.a); }});
   const vp=t.verts.map((v,i)=>{
-    const k=nbr[i].size;
+    if(bn[i].length===2){ const a=t.verts[bn[i][0]], b=t.verts[bn[i][1]]; return V3.add(V3.mul(v,3/4),V3.mul(V3.add(a,b),1/8)); }
+    if(bn[i].length) return v.slice();   // corner / pinch: keep
+    const k=nbr[i].size; if(!k) return v.slice();
     const beta=k===3?3/16:3/(8*k);
     let s=[0,0,0]; nbr[i].forEach(j=>s=V3.add(s,t.verts[j]));
     return V3.add(V3.mul(v,1-k*beta),V3.mul(s,beta));
@@ -4088,7 +4199,7 @@ function rindRemove(m, removeSet, scale=0.85){
       if(r && !S.has(r.f)) faces.push([a,b,b+nV,a+nV]); } }
   return compact({verts:cm.verts, faces});
 }
-// The "TopMod look" (after Nathan Ho, "TopMod and Blender"): dodecahedron -> 6 curved handles with a 72° twist ->
+// The "TopMod look" (after Nathan Ho): dodecahedron -> 6 curved handles with a 72° twist ->
 // one Doo-Sabin pass -> rind modeling that removes loops of quads (two rails along every handle) -> smoothing.
 function topmodLook(opt){
   opt=opt||{};
@@ -4203,33 +4314,24 @@ function pentagonalize(m, inset=0.45){
 // ---------- sqrt(3) subdivision (Kobbelt) ----------
 // Centroid-fan every face, smooth original vertices, then flip all original edges.
 function root3(m){
-  let out=clone(m);
-  const orig=edges(m).map(e=>[e.a,e.b]);
-  // Kobbelt smoothing of original vertices
-  const nbr=m.verts.map(()=>new Set());
-  for(const [a,b] of orig){ nbr[a].add(b); nbr[b].add(a); }
-  const smoothed=m.verts.map((v,i)=>{
-    const N=[...nbr[i]]; if(!N.length) return v.slice();
+  // √3 subdivision (Kobbelt): centroid per face, smooth the original vertices, then flip every original
+  // interior edge between the two neighbouring centroids. Open-boundary edges stay (their fan triangle is kept)
+  // and boundary vertices keep their position, so open surfaces subdivide too. Linear time.
+  const dmap=directedMap(m), E=edges(m);
+  const nbr=m.verts.map(()=>new Set()), onB=new Uint8Array(m.verts.length);
+  for(const e of E){ nbr[e.a].add(e.b); nbr[e.b].add(e.a); if(!(dmap.has(e.a+">"+e.b)&&dmap.has(e.b+">"+e.a))){ onB[e.a]=1; onB[e.b]=1; } }
+  const verts=m.verts.map((v,i)=>{
+    const N=[...nbr[i]]; if(!N.length||onB[i]) return v.slice();
     const n=N.length, alpha=(4-2*Math.cos(2*Math.PI/n))/9;
     const avg=[0,0,0]; for(const j of N){ avg[0]+=m.verts[j][0]; avg[1]+=m.verts[j][1]; avg[2]+=m.verts[j][2]; }
     return [ (1-alpha)*v[0]+alpha*avg[0]/n, (1-alpha)*v[1]+alpha*avg[1]/n, (1-alpha)*v[2]+alpha*avg[2]/n ];
   });
-  // centroid fans (centroids from UNsmoothed geometry for shape retention)
-  for(let fi=out.faces.length-1; fi>=0; fi--){
-    const f=out.faces[fi];
-    const ci=out.verts.length; out.verts.push(faceCentroid(out,f));
-    const tris=[]; for(let i=0;i<f.length;i++) tris.push([f[i],f[(i+1)%f.length],ci]);
-    out.faces.splice(fi,1,...tris);
-  }
-  for(let i=0;i<smoothed.length;i++) out.verts[i]=smoothed[i];
-  // flip each original edge: merge the two flanking triangles, re-split between centroids
-  for(const [a,b] of orig){
-    out=deleteEdge(out,a,b);
-    const q=out.faces[out.faces.length-1];
-    const cf=q[(q.indexOf(b)+1)%q.length], cg=q[(q.indexOf(a)+1)%q.length];
-    out=insertEdge(out, out.faces.length-1, cf, cg);
-  }
-  return out;
+  const C0=verts.length; m.faces.forEach(f=>verts.push(faceCentroid(m,f)));   // centroids from the UNsmoothed geometry
+  const faces=[];
+  m.faces.forEach((f,fi)=>{ for(let i=0;i<f.length;i++){ const a=f[i], b=f[(i+1)%f.length], tw=dmap.get(b+">"+a), cf=C0+fi;
+    if(!tw){ faces.push([a,b,cf]); continue; }               // boundary edge: keep the fan triangle
+    if(a<b){ const cg=C0+tw.f; faces.push([a,cg,cf],[cg,b,cf]); } } });   // interior edge, emitted once: flipped pair
+  return {verts,faces};
 }
 
 // ---------- dome extrude ----------
@@ -4380,7 +4482,7 @@ function hybridSurface(inset=0.94, cluster=1){
   return {verts,faces};
 }
 
-// ---------- polygonal gyroid: 12 triangles per cell (user-supplied Rhino module) ----------
+// ---------- polygonal gyroid: 12 triangles per cell (user-supplied module) ----------
 // Cell pattern on a quarter lattice; tiling uses the gyroid's glide symmetry:
 // mirror y when (j+k) odd, mirror z when (i+j) odd (derived from the reference OBJ).
 const GYROID_CELL=[[[2, 1, 4], [0, 2, 3], [2, 2, 2]], [[3, 0, 2], [2, 2, 2], [4, 2, 1]], [[2, 1, 4], [2, 2, 2], [3, 0, 2]], [[2, 2, 2], [2, 3, 0], [4, 2, 1]], [[2, 2, 2], [1, 4, 2], [2, 3, 0]], [[2, 2, 2], [0, 2, 3], [1, 4, 2]], [[0, 0, 4], [0, 2, 3], [2, 1, 4]], [[4, 2, 1], [4, 0, 0], [3, 0, 2]], [[0, 4, 0], [2, 3, 0], [1, 4, 2]], [[2, 1, 4], [3, 0, 2], [4, 0, 4]], [[0, 4, 4], [1, 4, 2], [0, 2, 3]], [[2, 3, 0], [4, 4, 0], [4, 2, 1]]];
@@ -5976,7 +6078,7 @@ function latticeCells(host, opts){
   }
   return { cells, cs, nx:divs[0], ny:divs[1], nz:divs[2], total:divs[0]*divs[1]*divs[2], cell, bbox:hb };
 }
-// Place a copy of `mod` in every lattice cell, affinely stretched from its own bbox to the cell box (Rhino "cage edit" / box-morph).
+// Place a copy of `mod` in every lattice cell, affinely stretched from its own bbox to the cell box (cage edit / box-morph).
 function latticeMorph(host, mod, opts){
   opts=opts||{}; const L=latticeCells(host,opts); const maxInst=opts.maxInst||4000;
   let cells=L.cells, capped=false; if(cells.length>maxInst){ cells=cells.slice(0,maxInst); capped=true; }
@@ -6993,7 +7095,14 @@ function metaballs(opt){
   for(const b of balls){ const rr=Math.abs(b.r)*1.8+0.4; for(let d=0;d<3;d++){ if(b.c[d]-rr<mn[d])mn[d]=b.c[d]-rr; if(b.c[d]+rr>mx[d])mx[d]=b.c[d]+rr; } }
   const lo=Math.min(mn[0],mn[1],mn[2]), hi=Math.max(mx[0],mx[1],mx[2]);
   const step=(hi-lo)/res;
-  const field=(i,j,k)=>{ const x=lo+i*step,y=lo+j*step,z=lo+k*step; let v=0; for(const b of balls){ const dx=x-b.c[0],dy=y-b.c[1],dz=z-b.c[2]; v+=b.r*b.r/(dx*dx+dy*dy+dz*dz+1e-6); } return v; };
+  const usePts=opt.points!==false, useLines=!!opt.lines&&balls.length>1, lw=opt.lineWidth!=null?opt.lineWidth:0.5;
+  const segs=[]; if(useLines){ for(let i=0;i+1<balls.length;i++){ const a=balls[i], b=balls[i+1]; const d=[b.c[0]-a.c[0],b.c[1]-a.c[1],b.c[2]-a.c[2]], L2=d[0]*d[0]+d[1]*d[1]+d[2]*d[2]||1e-9; segs.push({a:a.c,d,L2,r:Math.min(Math.abs(a.r),Math.abs(b.r))*lw}); }
+    if(opt.closed&&balls.length>2){ const a=balls[balls.length-1], b=balls[0]; const d=[b.c[0]-a.c[0],b.c[1]-a.c[1],b.c[2]-a.c[2]], L2=d[0]*d[0]+d[1]*d[1]+d[2]*d[2]||1e-9; segs.push({a:a.c,d,L2,r:Math.min(Math.abs(a.r),Math.abs(b.r))*lw}); } }
+  const field=(i,j,k)=>{ const x=lo+i*step,y=lo+j*step,z=lo+k*step; let v=0;
+    if(usePts) for(const b of balls){ const dx=x-b.c[0],dy=y-b.c[1],dz=z-b.c[2]; v+=b.r*b.r/(dx*dx+dy*dy+dz*dz+1e-6); }                 // distance to point
+    for(const sg of segs){ const px=x-sg.a[0],py=y-sg.a[1],pz=z-sg.a[2]; let t=(px*sg.d[0]+py*sg.d[1]+pz*sg.d[2])/sg.L2; t=t<0?0:t>1?1:t;   // distance to line
+      const qx=px-sg.d[0]*t,qy=py-sg.d[1]*t,qz=pz-sg.d[2]*t; v+=sg.r*sg.r/(qx*qx+qy*qy+qz*qz+1e-6); }
+    return v; };
   const samp=(i,j,k)=> (2*iso - field(i,j,k));   // invert so <iso == inside (high field)
   return surfaceNets(res,res,res, samp, iso, lo, step);
 }
@@ -7066,7 +7175,7 @@ let groupSeq=1;
 let modStackActive=false;
 let layersOn=true;           // bottom-bar Layers: on = live layers/modifiers (default), off = step-by-step baking
 let fabActive=false;  // Fabrication footer node on/off (declared early so init-time renderLayerList can read it)
-let rhinoLink=false, rhinoURL="http://127.0.0.1:8181/mesh", _rhinoT=null;  // live geometry link to Rhino (declared early; rebuild() reads rhinoLink)
+let rhinoLink=false, rhinoURL="http://127.0.0.1:8181/mesh", _rhinoT=null;  // live geometry link (declared early; rebuild() reads rhinoLink)
 let layerObjs=[];     // THREE meshes for INACTIVE visible layers (active uses meshObj)
 function initLayers(){ layers=[{id:layerSeq++,name:"Layer 1",mesh:mesh,visible:true,locked:false,modifiers:[],groups:[]}]; activeLayer=0; }
 function commitActiveToLayer(){ if(layers[activeLayer]) layers[activeLayer].mesh=mesh; }
@@ -7476,6 +7585,8 @@ const MODS={
   dome:    {label:"Dome Extrude", grp:"Topology", params:[{k:"height",l:"Height",min:-1.5,max:2,step:0.01,def:0.6},{k:"rings",l:"Rings",min:1,max:12,step:1,def:3}],
             apply:(m,p)=>{ let out=m; const faces=(p.faces||[]).filter(f=>f<out.faces.length).sort((a,b)=>b-a);
               for(const fi of faces){ try{ out=TM.domeExtrude(out,fi,{height:+p.height,rings:Math.max(1,Math.round(p.rings))}); }catch(e){} } return out; }},
+  ffd:     {label:"Cage Edit", grp:"Deform", params:[{k:"nu",l:"Points U (x)",min:2,max:8,step:1,def:3},{k:"nv",l:"Points V (y)",min:2,max:8,step:1,def:3},{k:"nw",l:"Points W (z)",min:2,max:8,step:1,def:3},{k:"degree",l:"Curve degree (1 linear · 2 · 3 smooth)",min:1,max:3,step:1,def:2}],
+            apply:(m,p)=>ffdApply(m,p)},
   menger:  {label:"Menger Sponge", grp:"Generate", params:[{k:"level",l:"Level",min:1,max:3,step:1,def:2}],
             apply:(m,p)=>_genFit(TM.mengerSponge(Math.max(1,Math.min(3,Math.round(p.level)))), m)},
   sierpinski:{label:"Sierpiński Tetrix", grp:"Generate", params:[{k:"level",l:"Level",min:1,max:7,step:1,def:2},{k:"separate",l:"Separate shells",bool:true,def:false},{k:"gap",l:"Gap",min:0,max:0.4,step:0.02,def:0.08}],
@@ -7512,7 +7623,104 @@ const OP_AS_MOD={ latticeFill:"latfill", catmull:"subdivide", doosabin:"smooth",
   pentagonalize:"pentagon", honeycomb:"honeycomb", planarize:"planarize",
   triangulate:"triangulate", subdivEdge:"subdivedges", quadRemesh:"quadremesh",
   pipe:"pipe", wireframe:"wireframe", simplify:"simplify" };
+let toolReplaceId=null;   // set while a tool modifier is reopened for editing — its Apply replaces that modifier
 const TOOL_FNS=new Map(); let toolSeq=1;     // live tool modifiers: op closures (selection frozen at add time); baked result kept for reload
+// ---------- Coral: diffusion-limited aggregation (after the DLA approach in Michael Fogleman's dlaf, MIT) ----------
+// Walkers spawn on a sphere just outside the cluster, wander, and stick to the first node they touch that still has a free
+// connection (maxConn links per node). Stickiness < 1 lets them slip past and reach deeper; Up bias pulls growth upward.
+function coralNew(o){
+  const rnd=(s=>()=>{ s=(s*1664525+1013904223)>>>0; return s/4294967296; })((o.seed>>>0)||7);
+  const C={o, rnd, nodes:[], free:[], fine:new Map(), coarse:new Map(), cf:o.attract*2, cc:o.attract*8, R:0, ctr:o.center||[0,0,0], ground:o.mode==="ground", tries:0};
+  for(const p of (o.seeds||[[0,0,0]])) coralAdd(C,p,-1);
+  return C;
+}
+const _ck=(x,y,z)=>((x+1048576)*2097152+(y+1048576))*2097152+(z+1048576);   // numeric cell key
+function coralAdd(C,p,parent){ const i=C.nodes.length; C.nodes.push({p, parent, links:0, n:1, fi:-1});
+  const mc=C.o.maxConn, drop=j=>{ const nd=C.nodes[j]; if(nd.fi<0) return; const last=C.free.pop(); if(last!==j){ C.free[nd.fi]=last; C.nodes[last].fi=nd.fi; } nd.fi=-1; };
+  if(parent>=0){ C.nodes[parent].links++; C.nodes[i].links=1; if(C.nodes[parent].links>=mc) drop(parent); }
+  if(C.nodes[i].links<mc){ C.nodes[i].fi=C.free.length; C.free.push(i); }
+  const kf=_ck(Math.floor(p[0]/C.cf),Math.floor(p[1]/C.cf),Math.floor(p[2]/C.cf)); let a=C.fine.get(kf); if(!a) C.fine.set(kf,a=[]); a.push(i);
+  C.coarse.set(_ck(Math.floor(p[0]/C.cc),Math.floor(p[1]/C.cc),Math.floor(p[2]/C.cc)),1);
+  const d=Math.hypot(p[0]-C.ctr[0],p[1]-C.ctr[1],p[2]-C.ctr[2]); if(d>C.R) C.R=d; return i; }
+function _coralEmpty(M,cell,x,y,z){ const cx=Math.floor(x/cell), cy=Math.floor(y/cell), cz=Math.floor(z/cell);
+  for(let a=-1;a<=1;a++) for(let b=-1;b<=1;b++) for(let c=-1;c<=1;c++) if(M.has(_ck(cx+a,cy+b,cz+c))) return false; return true; }
+function _coralNear(C,x,y,z){   // on contact (any node within attraction distance), attach to the nearest node that still has a free connection
+  const r=C.o.attract, cx=Math.floor(x/C.cf), cy=Math.floor(y/C.cf), cz=Math.floor(z/C.cf); let best=-1, bd=(r*2.2)**2, touch=false;
+  for(let a=-1;a<=1;a++) for(let b=-1;b<=1;b++) for(let c=-1;c<=1;c++){ const L=C.fine.get(_ck(cx+a,cy+b,cz+c)); if(!L) continue;
+    for(const i of L){ const q=C.nodes[i].p, d=(q[0]-x)**2+(q[1]-y)**2+(q[2]-z)**2; if(d<r*r) touch=true; if(d<bd&&C.nodes[i].links<C.o.maxConn){ bd=d; best=i; } } }
+  return touch?best:-2; }   // -2 = not touching anything yet
+function _coralDir(C){ const r=C.rnd; let z=r()*2-1, t=r()*Math.PI*2, s=Math.sqrt(1-z*z); return [s*Math.cos(t), z, s*Math.sin(t)]; }
+function coralGrow(C, count){   // add up to `count` particles; returns how many stuck
+  const o=C.o, sp=o.spacing, att=o.attract; let added=0, guard=0;
+  while(added<count && guard<count*40){ guard++;
+    if(!C.free.length) break;                                                          // every node is full: nothing can attach any more
+    const R0=C.R+att*3; let d=_coralDir(C); if(C.ground&&d[1]<0) d[1]=-d[1];
+    let p=[C.ctr[0]+d[0]*R0, C.ctr[1]+d[1]*R0, C.ctr[2]+d[2]*R0];
+    if(C.free.length<C.nodes.length*0.3 || C.miss>3){   // few open nodes (low connection counts): release the walker near a random open node instead
+      const q=C.nodes[C.free[Math.floor(C.rnd()*C.free.length)]].p, e=_coralDir(C); if(C.ground&&e[1]<0) e[1]=-e[1]; p=[q[0]+e[0]*att*3, q[1]+e[1]*att*3, q[2]+e[2]*att*3]; }
+    for(let st=0; st<6000; st++){
+      const dx=p[0]-C.ctr[0], dy=p[1]-C.ctr[1], dz=p[2]-C.ctr[2], dist=Math.hypot(dx,dy,dz);
+      if(dist>C.R*2+att*12) break;                                                    // wandered off — respawn
+      let step;
+      if(dist>C.R+att*2) step=Math.max(sp, dist-C.R-att);                             // outside the coral: jump in
+      else if(_coralEmpty(C.coarse,C.cc,p[0],p[1],p[2])) step=C.cc-att;               // nothing within ~8 attraction radii
+      else if(_coralEmpty(C.fine,C.cf,p[0],p[1],p[2])) step=att;                      // nothing within ~2 radii
+      else { const nb=_coralNear(C,p[0],p[1],p[2]);
+        if(nb===-1){ C.miss=(C.miss||0)+1; break; }                                     // touched only full nodes: this walker is spent, spawn a new one
+        if(nb>=0 && C.rnd()<=o.stick){ const q=C.nodes[nb].p, v=[p[0]-q[0],p[1]-q[1],p[2]-q[2]], l=Math.hypot(v[0],v[1],v[2])||1;
+          coralAdd(C,[q[0]+v[0]/l*sp, q[1]+v[1]/l*sp, q[2]+v[2]/l*sp], nb); added++; C.miss=0; break; }
+        step=sp; }
+      let u=_coralDir(C); if(o.bias){ u=[u[0],u[1]+o.bias,u[2]]; const ul=Math.hypot(...u)||1; u=u.map(x=>x/ul); }
+      p=[p[0]+u[0]*step, p[1]+u[1]*step, p[2]+u[2]*step];
+      if(C.ground && p[1]<C.ctr[1]) p[1]=2*C.ctr[1]-p[1];
+    } }
+  return added; }
+window.__coral={ coralNew:(...a)=>coralNew(...a), coralGrow:(...a)=>coralGrow(...a), coralMesh:(...a)=>coralMesh(...a) };
+function coralMesh(C, thick, sides){   // tapered capped tubes along every link; trunk thicker than the tips
+  const N=C.nodes, sp=C.o.spacing; for(const nd of N) nd.n=1; for(let i=N.length-1;i>0;i--){ const pa=N[i].parent; if(pa>=0) N[pa].n+=N[i].n; }
+  let mx=1; for(const nd of N) if(nd.n>mx) mx=nd.n; const rad=i=>sp*0.42*thick*(0.35+0.65*Math.pow(N[i].n/mx,0.33));
+  const verts=[], faces=[]; sides=sides||6;
+  for(let i=0;i<N.length;i++){ const pa=N[i].parent; if(pa<0) continue; const a=N[pa].p, b=N[i].p; let t=[b[0]-a[0],b[1]-a[1],b[2]-a[2]]; const L=Math.hypot(...t); if(L<1e-9) continue; t=t.map(x=>x/L);
+    const h=Math.abs(t[1])<0.9?[0,1,0]:[1,0,0]; let u=[t[1]*h[2]-t[2]*h[1], t[2]*h[0]-t[0]*h[2], t[0]*h[1]-t[1]*h[0]]; const ul=Math.hypot(...u); u=u.map(x=>x/ul); const w=[t[1]*u[2]-t[2]*u[1], t[2]*u[0]-t[0]*u[2], t[0]*u[1]-t[1]*u[0]];
+    const ra=rad(pa), rb=rad(i), A=[a[0]-t[0]*ra*0.6,a[1]-t[1]*ra*0.6,a[2]-t[2]*ra*0.6], o=verts.length;   // overlap into the parent so joints close
+    for(const [P,r] of [[A,ra],[b,rb]]) for(let s=0;s<sides;s++){ const g=s/sides*Math.PI*2, c=Math.cos(g)*r, d=Math.sin(g)*r; verts.push([P[0]+u[0]*c+w[0]*d, P[1]+u[1]*c+w[1]*d, P[2]+u[2]*c+w[2]*d]); }
+    for(let s=0;s<sides;s++){ const s1=(s+1)%sides; faces.push([o+s,o+s1,o+sides+s1,o+sides+s]); }
+    const c0=[], c1=[]; for(let s=0;s<sides;s++){ c0.push(o+s); c1.push(o+sides+s); } faces.push(c0.reverse(), c1); }
+  return {verts, faces}; }
+// ---------- Cage Edit (free-form deformation): a B-spline lattice around the incoming mesh's bounding box ----------
+// Control points sit at the Greville abscissae of a clamped uniform knot vector, so an untouched cage is exactly the
+// identity; each point stores an offset (fraction of the box size per axis) in p.pts["i,j,k"]. Degree 1 = linear, 2, 3 = smooth.
+function _ffdKnots(n,deg){ const k=[]; for(let i=0;i<=deg;i++) k.push(0); const inner=n-deg-1; for(let i=1;i<=inner;i++) k.push(i/(inner+1)); for(let i=0;i<=deg;i++) k.push(1); return k; }
+function _ffdGrev(n,deg){ const k=_ffdKnots(n,deg), g=[]; for(let i=0;i<n;i++){ let s=0; for(let j=1;j<=deg;j++) s+=k[i+j]; g.push(deg?s/deg:i/(n-1)); } return g; }
+function _ffdBasis(n,deg,t,out){   // all n B-spline basis values at t (Cox–de Boor, clamped)
+  const k=_ffdKnots(n,deg); t=Math.min(1-1e-9,Math.max(0,t)); let N=new Array(n+deg).fill(0);
+  for(let i=0;i<n+deg;i++) N[i]=(t>=k[i]&&t<k[i+1])?1:0;
+  for(let d=1;d<=deg;d++) for(let i=0;i<n+deg-d;i++){ const a=k[i+d]-k[i], b=k[i+d+1]-k[i+1]; N[i]=(a>0?(t-k[i])/a*N[i]:0)+(b>0?(k[i+d+1]-t)/b*N[i+1]:0); }
+  for(let i=0;i<n;i++) out[i]=N[i]; return out; }
+function _ffdFrame(m){   // padded bounding box of the cage's input
+  let a=[1e9,1e9,1e9], b=[-1e9,-1e9,-1e9]; for(const v of m.verts) for(let d=0;d<3;d++){ if(v[d]<a[d])a[d]=v[d]; if(v[d]>b[d])b[d]=v[d]; }
+  const ext=[0,1,2].map(d=>b[d]-a[d]), big=Math.max(...ext,1e-6), pad=big*0.04, size=ext.map(e=>Math.max(e,big*0.08)+2*pad), c=[0,1,2].map(d=>(a[d]+b[d])/2);
+  return {min:c.map((x,d)=>x-size[d]/2), size}; }
+function _ffdCounts(p){ const cl=v=>Math.max(2,Math.min(8,Math.round(+v||2))); const n=[cl(p.nu),cl(p.nv),cl(p.nw)], deg=Math.max(1,Math.min(3,Math.round(+p.degree||2))); return {n, dg:n.map(k=>Math.min(deg,k-1))}; }
+function _ffdField(p,n,dg,s,t,u){   // offset (normalized) at parametric (s,t,u)
+  const Bu=_ffdBasis(n[0],dg[0],s,[]), Bv=_ffdBasis(n[1],dg[1],t,[]), Bw=_ffdBasis(n[2],dg[2],u,[]); const o=[0,0,0];
+  for(const key in (p.pts||{})){ const q=p.pts[key]; const [i,j,k]=key.split(",").map(Number); if(i>=n[0]||j>=n[1]||k>=n[2]) continue; const w=Bu[i]*Bv[j]*Bw[k]; if(!w) continue; o[0]+=w*q[0]; o[1]+=w*q[1]; o[2]+=w*q[2]; }
+  return o; }
+function ffdApply(m,p){
+  const {n,dg}=_ffdCounts(p), key=n.join("x");
+  if(p.pts && p.pn && p.pn!==key){   // point counts changed: resample the old cage's displacement at the new points
+    const on=p.pn.split("x").map(Number), odg=on.map(k=>Math.min(Math.max(1,Math.min(3,Math.round(+p.degree||2))),k-1)), np={};
+    const gu=_ffdGrev(n[0],dg[0]), gv=_ffdGrev(n[1],dg[1]), gw=_ffdGrev(n[2],dg[2]);
+    for(let i=0;i<n[0];i++) for(let j=0;j<n[1];j++) for(let k=0;k<n[2];k++){ const o=_ffdField(p,on,odg,gu[i],gv[j],gw[k]); if(Math.abs(o[0])+Math.abs(o[1])+Math.abs(o[2])>1e-7) np[i+","+j+","+k]=o; }
+    p.pts=np; }
+  p.pn=key;
+  const pts=p.pts||{}; if(!Object.keys(pts).length) return m;
+  const F=_ffdFrame(m), Bu=new Array(n[0]), Bv=new Array(n[1]), Bw=new Array(n[2]);
+  const list=Object.keys(pts).map(k=>{ const [i,j,kk]=k.split(",").map(Number); return [i,j,kk,pts[k]]; }).filter(e=>e[0]<n[0]&&e[1]<n[1]&&e[2]<n[2]);
+  const verts=m.verts.map(v=>{ _ffdBasis(n[0],dg[0],(v[0]-F.min[0])/F.size[0],Bu); _ffdBasis(n[1],dg[1],(v[1]-F.min[1])/F.size[1],Bv); _ffdBasis(n[2],dg[2],(v[2]-F.min[2])/F.size[2],Bw);
+    let x=0,y=0,z=0; for(const [i,j,k,q] of list){ const w=Bu[i]*Bv[j]*Bw[k]; if(w){ x+=w*q[0]; y+=w*q[1]; z+=w*q[2]; } }
+    return [v[0]+x*F.size[0], v[1]+y*F.size[1], v[2]+z*F.size[2]]; });
+  return {verts, faces:m.faces}; }
 function _genFit(g, m){   // generator modifiers: the shape fills the incoming mesh's bounding box (so upstream size/position carry through)
   if(!g||!g.verts||!g.verts.length||!m||!m.verts||!m.verts.length) return g;
   const bb=V=>{ const a=[1e9,1e9,1e9], b=[-1e9,-1e9,-1e9]; for(const v of V) for(let d=0;d<3;d++){ if(v[d]<a[d])a[d]=v[d]; if(v[d]>b[d])b[d]=v[d]; } return [a,b]; };
@@ -7604,7 +7812,7 @@ function addModifier(type, opts){
     if($("#pPinch")){ params.pinch=P("#pPinch"); params.segments=Math.round(P("#pHSeg")); params.curve=P("#pHCurve"); }
   }
   if(type==='bejewel'&&opts&&opts.params) Object.assign(params,opts.params);
-  if(!layersOn && !(opts&&opts.returnMod)){                 // step-by-step mode: bake the operation into the mesh now
+  if(!layersOn && type!=="ffd" && !(opts&&opts.returnMod)){                 // step-by-step mode: bake the operation into the mesh now (a cage stays live — it's edited by hand)
     try{ snapshot(); const r=MODS[type].apply(mesh, params); const err=r&&TM.validate(r); if(!r||!r.faces||!r.faces.length) throw "no result"; if(err&&!/^duplicate directed edge/.test(err)) throw err;
       mesh={verts:r.verts.map(v=>v.slice()),faces:r.faces.map(f=>f.slice())}; L.mesh=mesh; L.steps=(L.steps||[]).concat(MODS[type].label);
       clearSel(false); rebuild(); renderModStack(); try{ window.__guide&&window.__guide.log(MODS[type].label); }catch(e){} toast&&toast(MODS[type].label+" ✓ (baked — Layers is off)"); }
@@ -7804,6 +8012,18 @@ function _modParamRow(md,d){
 function openModEdit(id){
   const L=layers[activeLayer]; if(!L||!L.modifiers) return;
   const md=L.modifiers.find(m=>m.id===id); if(!md) return;
+  if(md.type==="tool" && md.params && md.params.op && (OP_PARAMS[md.params.op]!==undefined)){   // a tool modifier: reopen that tool's full panel with its settings
+    const P0=md.params, op=P0.op; if(typeof closeToolPop==="function") closeToolPop();
+    const restoreSel=()=>{ try{ sel.faces=new Set(P0.selF||[]); sel.edges=new Set(P0.selE||[]); sel.verts=new Set(P0.selV||[]); cornerSel=JSON.parse(JSON.stringify(P0.corners||[])); rebuildOverlay&&rebuildOverlay(); }catch(e){} };
+    restoreSel();
+    const bt=document.querySelector('#toolbar [data-op="'+op+'"]'); if(bt) bt.click(); else openToolPop(op,null);
+    restoreSel();
+    for(const k in (P0.vals||{})){ const el=document.getElementById(k); if(!el) continue; if(el.type==="checkbox"||el.type==="radio") el.checked=!!P0.vals[k]; else el.value=P0.vals[k];
+      try{ el.dispatchEvent(new Event("input",{bubbles:true})); el.dispatchEvent(new Event("change",{bubbles:true})); }catch(e){} }
+    toolReplaceId=md.id; modEditId=null; { const t=$("#tpTitle"); if(t&&(!t.textContent||t.textContent===op)) t.textContent=P0.label; }
+    const b=$("#tpBody"); if(b){ const n=document.createElement("div"); n.className="modEditNote"; n.style.cssText="border-left:3px solid var(--tmAcc,#0091AD);margin:0 0 6px;padding:6px 10px"; n.innerHTML="Editing <b>"+P0.label+"</b> in the stack — change it, then <b>Apply</b> to update this modifier."; b.prepend(n); }
+    renderModStack(); return;
+  }
   if(typeof closeToolPop==="function") closeToolPop();        // share the one Options window
   modEditId=id; const R=MODS[md.type];
   const body=$("#tpBody"); if(!body) return;
@@ -7812,6 +8032,11 @@ function openModEdit(id){
   if(!R.params.length){ const e=document.createElement("div"); e.className="modEditNote"; e.textContent="No parameters — toggle it in the stack to enable/disable."; wrap.appendChild(e); }
   R.params.forEach(d=>wrap.appendChild(_modParamRow(md,d)));
   if(md.type==="subdivide" && typeof osdPanel==="function" && (md.params.osd || (typeof creaseCount==="function" && creaseCount(layers[activeLayer])>0))) wrap.appendChild(osdPanel(md));
+  if(md.type==="ffd"){ const box=document.createElement("div"); box.className="modEditNote"; box.style.lineHeight="1.5";
+    box.innerHTML='<b>Click</b> a cage point to pick it · <b>Shift+click</b> to add · <b>drag</b> to move (on screen) · <b>Alt+drag</b> moves along the view depth · arrow keys nudge.<div id="ffdSelInfo" style="margin-top:4px;color:var(--tmAcc,#FF8C22)"></div>';
+    const row=document.createElement("div"); row.style.cssText="display:flex;gap:6px;flex-wrap:wrap;margin-top:6px";
+    [["All","all"],["None","none"],["Reset picked","resetSel"],["Reset cage","reset"]].forEach(([t,a])=>{ const b=document.createElement("button"); b.className="modBtn"; b.textContent=t; b.style.cssText="flex:1;min-width:60px;padding:5px 6px;border-radius:6px;border:1px solid var(--line,#2a3a48);background:transparent;color:inherit;cursor:pointer;font:600 11px var(--font,system-ui)"; b.onclick=()=>window.__ffd&&window.__ffd.action(a); row.appendChild(b); });
+    box.appendChild(row); wrap.appendChild(box); }
   if(md.type==="latfill"){ const inf=document.createElement("div"); inf.id="latInfo"; inf.className="modEditNote latInfo"; inf.dataset.mod=md.id; wrap.appendChild(inf); updateLatInfo(); }
   const saved=document.createElement("div"); saved.className="modEditNote"; saved.style.color="#8fce9b"; saved.style.marginTop="8px";
   saved.textContent="✓ Live — changes save automatically (no Apply needed).";
@@ -8542,18 +8767,24 @@ function applyWhole(fn,label,keepCrust){
       sel={verts:new Set(fz.verts),edges:new Set(fz.edges),faces:new Set(fz.faces)}; cornerSel=JSON.parse(JSON.stringify(fzC)); orientSel=fzO.slice(); ieFace=fzI;
       try{ return fn(m); } finally{ sel=s0; cornerSel=c0; orientSel=o0; ieFace=i0; } };
     let res;
-    try{ const cur=dispMesh(); res=live({verts:cur.verts.map(v=>v.slice()),faces:cur.faces.map(f=>f.slice())}); const err=TM.validate(res); if(err) throw err; }
+    if(!L.modifiers) L.modifiers=[];
+    const repIdx=(toolReplaceId!=null)? L.modifiers.findIndex(m=>m.id===toolReplaceId) : -1;   // re-editing an existing tool modifier: replace it in place
+    try{ const cur=repIdx>=0? evalMods(mesh, L.modifiers.slice(0,repIdx), L) : dispMesh(); res=live({verts:cur.verts.map(v=>v.slice()),faces:cur.faces.map(f=>f.slice())}); const err=TM.validate(res); if(err) throw err; }
     catch(e){ toast(String(e),true); return; }
     snapshot();
     const key="t"+(toolSeq++)+"_"+Date.now().toString(36);
     TOOL_FNS.set(key, live);
-    if(!L.modifiers) L.modifiers=[];
-    const md={id:modSeq++, type:"tool", on:true, params:{key, label:String(label||"Tool").replace(/\s*✓$/,""), baked:res}};
-    L.modifiers.push(md);
+    // remember which tool made it, its panel settings and the selection, so clicking it in the stack reopens the full tool panel
+    const op=tpState&&tpState.op&&tpState.op!=="modedit"? tpState.op : null, vals={};
+    if(op){ document.querySelectorAll("#tpBody input[id], #tpBody select[id]").forEach(el=>{ if(el.classList.contains("numbox")) return; vals[el.id]=(el.type==="checkbox"||el.type==="radio")? el.checked : el.value; }); }
+    const pr={key, label:String(label||"Tool").replace(/\s*✓$/,""), baked:res, op, vals, selF:[...fz.faces], selE:[...fz.edges], selV:[...fz.verts], corners:fzC};
+    let md;
+    if(repIdx>=0){ md=L.modifiers[repIdx]; try{ TOOL_FNS.delete(md.params.key); }catch(e){} md.params=pr; toolReplaceId=null; toast(pr.label+" ✓ — modifier updated"); }
+    else { md={id:modSeq++, type:"tool", on:true, params:pr}; L.modifiers.push(md); }
     if(!keepCrust){ crustPairs=null; updateCrustUI(); }
     clearSel(false); rebuild(); renderModStack();
     try{ window.__guide&&window.__guide.log(label); }catch(e){}
-    toast(label+" ✓ — added to modifiers");
+    if(repIdx<0) toast(label+" ✓ — added to modifiers");
     return;
   }
   if(modStackActive && fn.length===0 && layers[activeLayer] && !keepCrust){   // generator (no input mesh): becomes the new base, the modifier stack stays on top
@@ -9409,7 +9640,7 @@ const PARAM_PRIMS={
     }
     updateMailClear&&updateMailClear(g.mail); return g;
   },
-  voronoi(){ const g=TM.primitives.voronoi(Math.round(P("#pVorN")), P("#pVorSize"), ($("#pVorShape")&&$("#pVorShape").value)||"square", ($("#pVorMode")&&$("#pVorMode").value)||"cells", P("#pVorGap"), P("#pVorThick"), Math.round(P("#pVorSeed")), Math.round(P("#pVorRelax"))); const el=$("#pVorInfo"); if(el&&g.voronoi){ el.textContent="✓ "+g.voronoi.cells+" cells · "+(g.voronoi.mode==="web"?"web fill (struts)":"cell tiles"); el.style.color="#8fce9b"; } return g; },
+  voronoi(){ const g=TM.primitives.voronoi(Math.round(P("#pVorN")), P("#pVorSize"), ($("#pVorShape")&&$("#pVorShape").value)||"square", ($("#pVorMode")&&$("#pVorMode").value)||"cells", P("#pVorGap"), P("#pVorThick"), Math.round(P("#pVorSeed")), Math.round(P("#pVorRelax")), 72, ($("#pVorDim")&&$("#pVorDim").value)||"2d"); const el=$("#pVorInfo"); if(el&&g.voronoi){ el.textContent="✓ "+g.voronoi.cells+" cells · "+(g.voronoi.dim==="3d"?"3D · ":"")+(g.voronoi.mode==="web"?"web fill (struts)":(g.voronoi.dim==="3d"?"cells":"cell tiles")); el.style.color="#8fce9b"; } return g; },
   tree(){ const g=TM.primitives.tree(Math.round(P("#pTreeLevels")), Math.round(P("#pTreeSplits")), P("#pTreeTrunk"), P("#pTreeLenR"), P("#pTreeRad"), P("#pTreeRadR"), P("#pTreeAngle"), P("#pTreeTwist"), P("#pTreeCurve"), P("#pTreeDroop"), P("#pTreeJit"), Math.round(P("#pTreeSides")), Math.round(P("#pTreeSegs")), P("#pTreeTaper"), $("#pTreeLeaves")&&$("#pTreeLeaves").checked, P("#pTreeLeafSz"), Math.round(P("#pTreeSeed"))); const el=$("#pTreeInfo"); if(el&&g.tree){ el.textContent=(g.tree.capped?"⚠ capped at ":"✓ ")+g.tree.branches+" branches"+(g.tree.leaves?(" · "+g.tree.leaves+" leaves"):""); el.style.color=g.tree.capped?"#ffcf6a":"#8fce9b"; } return g; },
   gem(){ const g=TM.primitives.gem(Math.round(P("#pGemNx")), Math.round(P("#pGemNz")), P("#pGemSpace"), ($("#pGemCell")&&$("#pGemCell").value)||"gem", P("#pGemSize"), P("#pGemHeight"), ($("#pGemField")&&$("#pGemField").value)||"radial", P("#pGemAmp"), P("#pGemFall"), P("#pGemTwist"), Math.round(P("#pGemSides")), Math.round(P("#pGemSeed"))); const el=$("#pGemInfo"); if(el&&g.gem){ el.textContent="✓ "+g.gem.cells+" cells · "+g.gem.cell+" · "+g.gem.field; el.style.color="#8fce9b"; } return g; },
   maze(){ const g=TM.primitives.maze(Math.round(P("#pMazeNx")), Math.round(P("#pMazeNz")), P("#pMazeCell"), P("#pMazeWall"), P("#pMazeHeight"), $("#pMazeBase")&&$("#pMazeBase").checked, P("#pMazeBaseT"), Math.round(P("#pMazeSeed"))); const el=$("#pMazeInfo"); if(el&&g.maze){ el.textContent="✓ "+g.maze.nx+"×"+g.maze.nz+" maze · "+g.maze.cells+" cells"; el.style.color="#8fce9b"; } return g; },
@@ -10368,7 +10599,7 @@ canvas.addEventListener("touchend",e=>{
   tapStart=null;
 },{passive:false});
 
-// ---------- section plane (live clipping) + Rhino-style gumball ----------
+// ---------- section plane (live clipping) + CAD-style gumball ----------
 renderer.localClippingEnabled=true;
 let sectionOn=false, sectionHelper=null, gumball=null;
 const secCenter=new THREE.Vector3(0,0,0);
@@ -10698,6 +10929,7 @@ window.__arrActive=()=>arrPreviewActive;
 ["#pArrX","#pArrY","#pArrZ","#pArrSp","#pArrSpX","#pArrSpY","#pArrSpZ","#pArrCount","#pArrAxis","#pArrSpin","#pArrSph","#pArrFib","#pArrFibAxis"].forEach(id=>{const el=$(id); if(el) el.addEventListener("input",()=>{ if(arrPreviewActive) refreshArrayPreview(); });});
 ["#pTorMajor","#pTorMinor","#pTorNu","#pTorNv","#pTorTwist","#pTorOval","#pCylR","#pCylH","#pCylSides","#pMobR","#pMobW","#pMobSegs","#pMobStrips","#pMobTwists","#pMobThick","#pSpiR","#pSpiRTop","#pSpiTube","#pSpiTubeEnd","#pSpiTurns","#pSpiH","#pSpiSeg","#pSpiSides","#pPolySides","#pPolyR","#pPolyExt"].forEach(id=>{const el=$(id); if(el){ el.addEventListener("input",()=>{ if(primPreviewName) refreshPrimPreview(); }); el.addEventListener("change",()=>{ primSnapDone=false; }); }});
 $("#pCylCap")&&$("#pCylCap").addEventListener("change",()=>{ if(primPreviewName) refreshPrimPreview(); });
+["#pWaveMode","#pCymShape","#pPssKind","#pWvZ","#pCmPlane","#pCmOval","#pTreeLeaves","#pGemCell","#pGemField","#pMazeBase","#pVorDim","#pVorShape","#pVorMode"].forEach(id=>{ const el=$(id); if(el&&!el.dataset.pv){ el.dataset.pv="1"; el.addEventListener("change",()=>{ if(primPreviewName) refreshPrimPreview(); }); } });   // dropdowns / toggles that were missing from their panels
 $("#pSpiCap")&&$("#pSpiCap").addEventListener("change",()=>{ if(primPreviewName) refreshPrimPreview(); });
 ["#pSpiUniform","#pSpiNoGap"].forEach(id=>{ const el=$(id); if(el) el.addEventListener("change",()=>{ if(primPreviewName) refreshPrimPreview(); }); });   // Align turns / Uniform radius: update preview on click
 $("#pSpiFlow")&&$("#pSpiFlow").addEventListener("input",()=>{ if(primPreviewName) refreshPrimPreview(); });   // Twist slider
@@ -10723,7 +10955,7 @@ function syncCmForm(){ const m=($("#pCmMode")&&$("#pCmMode").value)||"box"; cons
 ["#pCmNx","#pCmNz","#pCmSpace","#pCmR","#pCmTube","#pCmTilt","#pCmSeg","#pCmSides","#pCmWire","#pCmRatio","#pCmAngle","#pCmDmin","#pCmCdy","#pCmCut"].forEach(id=>{ const el=$(id); if(el) el.addEventListener("input",()=>{ if(primPreviewName) refreshPrimPreview(); }); });
 ["#pCmOval","#pCmPlane","#pCmMode"].forEach(id=>{ const el=$(id); if(el) el.addEventListener("change",()=>{ syncCmForm(); if(primPreviewName) refreshPrimPreview(); }); });
 ["#pVorN","#pVorSize","#pVorGap","#pVorThick","#pVorRelax","#pVorSeed"].forEach(id=>{ const el=$(id); if(el) el.addEventListener("input",()=>{ if(primPreviewName) refreshPrimPreview(); }); });
-["#pVorShape","#pVorMode"].forEach(id=>{ const el=$(id); if(el) el.addEventListener("change",()=>{ if(primPreviewName) refreshPrimPreview(); }); });
+["#pVorShape","#pVorMode","#pVorDim"].forEach(id=>{ const el=$(id); if(el) el.addEventListener("change",()=>{ if(primPreviewName){ refreshPrimPreview(); if(id==="#pVorDim") setTimeout(()=>{ try{ window.__tm.frameAll(1.2); }catch(e){} },30); } }); });
 ["#pTreeLevels","#pTreeSplits","#pTreeTrunk","#pTreeLenR","#pTreeRad","#pTreeRadR","#pTreeAngle","#pTreeTwist","#pTreeCurve","#pTreeDroop","#pTreeJit","#pTreeSides","#pTreeSegs","#pTreeTaper","#pTreeLeafSz","#pTreeSeed"].forEach(id=>{ const el=$(id); if(el) el.addEventListener("input",()=>{ if(primPreviewName) refreshPrimPreview(); }); });
 $("#pTreeLeaves")&&$("#pTreeLeaves").addEventListener("change",()=>{ if(primPreviewName) refreshPrimPreview(); });
 ["#pGemNx","#pGemNz","#pGemSpace","#pGemSize","#pGemHeight","#pGemAmp","#pGemFall","#pGemTwist","#pGemSides","#pGemSeed"].forEach(id=>{ const el=$(id); if(el) el.addEventListener("input",()=>{ if(primPreviewName) refreshPrimPreview(); }); });
@@ -10866,12 +11098,17 @@ let metaPreviewActive=false, metaBase=null, metaBalls=null, metaGumball=null, me
 const metaRay=new THREE.Raycaster();
 function metaOpts(){
   const gp=(id,d)=>{ const v=P(id); return isFinite(v)?v:d; };
-  return { count:Math.round(gp("#pMetaCount",6)), res:Math.round(gp("#pMetaRes",32)), threshold:gp("#pMetaThresh",1.0), radius:gp("#pMetaRadius",0.6), seed:Math.max(1,Math.round(gp("#pMetaSeed",7))), balls:metaBalls };
+  return { count:Math.round(gp("#pMetaCount",6)), res:Math.round(gp("#pMetaRes",32)), threshold:gp("#pMetaThresh",1.0), radius:gp("#pMetaRadius",0.6), seed:Math.max(1,Math.round(gp("#pMetaSeed",7))), balls:metaBalls,
+    points:!($("#pMetaPts")&&!$("#pMetaPts").checked), lines:!!($("#pMetaLines")&&$("#pMetaLines").checked), closed:!!($("#pMetaClosed")&&$("#pMetaClosed").checked), lineWidth:gp("#pMetaLineW",0.5) };
 }
 function regenMetaBalls(){
   const gp=(id,d)=>{ const v=P(id); return isFinite(v)?v:d; };
   metaBalls=TF.metaballsGen({ count:Math.round(gp("#pMetaCount",6)), radius:gp("#pMetaRadius",0.6), seed:Math.max(1,Math.round(gp("#pMetaSeed",7))) });
 }
+["pMetaPts","pMetaLines","pMetaClosed"].forEach(id=>{ const el=document.getElementById(id); if(el) el.addEventListener("change",()=>{ if(id==="pMetaPts"&&!el.checked&&!(document.getElementById("pMetaLines")||{}).checked){ const l=document.getElementById("pMetaLines"); if(l) l.checked=true; }   // keep at least one source on
+  if(id==="pMetaLines"&&!el.checked&&!(document.getElementById("pMetaPts")||{}).checked){ const q=document.getElementById("pMetaPts"); if(q) q.checked=true; }
+  if(metaPreviewActive) refreshMetaPreview(); }); });
+{ const el=document.getElementById("pMetaLineW"); if(el) el.addEventListener("input",()=>{ if(metaPreviewActive) refreshMetaPreview(); }); }
 function beginMetaPreview(){
   metaPreviewActive=true;
   metaBase={verts:mesh.verts.map(v=>v.slice()),faces:mesh.faces.map(f=>f.slice())};
@@ -10993,7 +11230,7 @@ window.__metaUp=function(){ const had=!!metaDrag; metaDrag=null; return had; };
     }
   }
   async function mcConnect(){
-    if(!("serial" in navigator)){ t2("Web Serial needs Chrome or Edge (over http/https or file://)",true); return; }
+    if(!("serial" in navigator)){ t2("This browser doesn't support Web Serial",true); return; }
     try{ mcPort=await navigator.serial.requestPort(); await mcPort.open({baudRate:115200}); }
     catch(e){ t2("Controller: no port selected",true); return; }
     mcOn=true; mcLast=performance.now(); updateBtn(); t2("Motion controller connected — tilt/rotate the panel to orbit"); readLoop();
@@ -11032,6 +11269,310 @@ const _mhash=m=>{ let h=m.verts.length*31+m.faces.length; m.verts.forEach((v,i)=
 function dgParams(){ const gp=(id,d)=>{ const v=P(id); return isFinite(v)?v:d; };
   return { step:gp("#pDGStep",0.22), splitThreshold:gp("#pDGSplit",1.35), repulsion:gp("#pDGRep",0.62), growth:gp("#pDGGrowth",0.25), jitter:gp("#pDGJit",0.0), seed:Math.max(1,Math.round(gp("#pDGSeed",7))) }; }
 function dgUpdateLabel(){ const el=document.getElementById("dgFrameLbl"); if(el&&dgWork) el.textContent=dgFrames+" frame"+(dgFrames!==1?"s":"")+" · "+dgWork.verts.length+" verts / "+dgWork.faces.length+" faces"; }
+// ===================== NEW: generators (Branches, WFC Pipes, Slime, Reaction, Cellular, Hyphae, Terrain, Origami) =====================
+// Each is a small panel + live preview; Apply keeps the result as its own layer. All algorithms written for TopMod.
+const _ngRng=seed=>{ let s=(seed>>>0)||1; return ()=>{ s=(s*1664525+1013904223)>>>0; return s/4294967296; }; };
+const _ngDir=r=>{ const z=r()*2-1, t=r()*Math.PI*2, q=Math.sqrt(1-z*z); return [q*Math.cos(t), z, q*Math.sin(t)]; };
+const _ngN=v=>{ const l=Math.hypot(v[0],v[1],v[2])||1; return [v[0]/l,v[1]/l,v[2]/l]; };
+function _ngSurfPts(M,n,r){ const tris=[]; let A=0; for(const f of M.faces) for(let k=1;k<f.length-1;k++){ const a=M.verts[f[0]],b=M.verts[f[k]],c=M.verts[f[k+1]], u=[b[0]-a[0],b[1]-a[1],b[2]-a[2]], w=[c[0]-a[0],c[1]-a[1],c[2]-a[2]];
+    A+=0.5*Math.hypot(u[1]*w[2]-u[2]*w[1],u[2]*w[0]-u[0]*w[2],u[0]*w[1]-u[1]*w[0]); tris.push([a,b,c,A]); }
+  const out=[]; for(let i=0;i<n&&tris.length;i++){ const t=r()*A; let lo=0,hi=tris.length-1; while(lo<hi){ const m=(lo+hi)>>1; if(tris[m][3]<t) lo=m+1; else hi=m; } const [a,b,c]=tris[lo]; let x=r(),y=r(); if(x+y>1){ x=1-x; y=1-y; }
+    out.push([a[0]+(b[0]-a[0])*x+(c[0]-a[0])*y, a[1]+(b[1]-a[1])*x+(c[1]-a[1])*y, a[2]+(b[2]-a[2])*x+(c[2]-a[2])*y]); } return out; }
+function _ngBBox(M){ const a=[1e9,1e9,1e9], b=[-1e9,-1e9,-1e9]; for(const v of M.verts) for(let d=0;d<3;d++){ if(v[d]<a[d])a[d]=v[d]; if(v[d]>b[d])b[d]=v[d]; } return {a,b,c:[0,1,2].map(d=>(a[d]+b[d])/2), s:Math.max(b[0]-a[0],b[1]-a[1],b[2]-a[2])||1}; }
+// tapered capped tubes along a node tree (pipe model: thicker where more branches feed in)
+function _ngBranchMesh(nodes, rMax, sides){
+  sides=sides||6; const n=nodes.map(()=>1); for(let i=nodes.length-1;i>0;i--){ const p=nodes[i].parent; if(p>=0) n[p]+=n[i]; }
+  let mx=1; for(const v of n) if(v>mx) mx=v; const rad=i=>rMax*(0.18+0.82*Math.sqrt(n[i]/mx));
+  const verts=[], faces=[];
+  for(let i=0;i<nodes.length;i++){ const pa=nodes[i].parent; if(pa<0) continue; const a=nodes[pa].p, b=nodes[i].p; let t=[b[0]-a[0],b[1]-a[1],b[2]-a[2]]; const L=Math.hypot(...t); if(L<1e-9) continue; t=t.map(x=>x/L);
+    const h=Math.abs(t[1])<0.9?[0,1,0]:[1,0,0]; const u=_ngN([t[1]*h[2]-t[2]*h[1], t[2]*h[0]-t[0]*h[2], t[0]*h[1]-t[1]*h[0]]), w=[t[1]*u[2]-t[2]*u[1], t[2]*u[0]-t[0]*u[2], t[0]*u[1]-t[1]*u[0]];
+    const ra=rad(pa), rb=rad(i), A=[a[0]-t[0]*ra*0.6,a[1]-t[1]*ra*0.6,a[2]-t[2]*ra*0.6], o=verts.length;
+    for(const [P,r] of [[A,ra],[b,rb]]) for(let s=0;s<sides;s++){ const g=s/sides*Math.PI*2, c=Math.cos(g)*r, d=Math.sin(g)*r; verts.push([P[0]+u[0]*c+w[0]*d, P[1]+u[1]*c+w[1]*d, P[2]+u[2]*c+w[2]*d]); }
+    for(let s=0;s<sides;s++){ const s1=(s+1)%sides; faces.push([o+s,o+s1,o+sides+s1,o+sides+s]); }
+    const c0=[], c1=[]; for(let s=0;s<sides;s++){ c0.push(o+s); c1.push(o+sides+s); } faces.push(c0.reverse(), c1); }
+  return {verts, faces}; }
+// closed iso-surface of a scalar grid (values > thr are solid); one empty voxel of padding keeps it watertight
+function _ngIso(G,nx,ny,nz,thr,org,cell){
+  const at=(i,j,k)=>(i<1||j<1||k<1||i>nx||j>ny||k>nz)?0:G[((i-1)*ny+(j-1))*nz+(k-1)];
+  const m=TF.surfaceNets(nx+1,ny+1,nz+1,(i,j,k)=>2*thr-at(i,j,k),thr,0,1);
+  return _ngManifold({verts:m.verts.map(v=>[org[0]+(v[0]-1)*cell, org[1]+(v[1]-1)*cell, org[2]+(v[2]-1)*cell]), faces:m.faces}); }
+// blocky voxels: only the faces between filled and empty cells
+function _ngVoxels(occ,nx,ny,nz,org,cell){
+  const V=[], F=[], map=new Map(), id=(x,y,z)=>{ const k=(x*1031+y)*1031+z; let i=map.get(k); if(i==null){ i=V.length; V.push([org[0]+x*cell,org[1]+y*cell,org[2]+z*cell]); map.set(k,i); } return i; };
+  const on=(i,j,k)=>i>=0&&j>=0&&k>=0&&i<nx&&j<ny&&k<nz&&occ[(i*ny+j)*nz+k];
+  const Q={"1,0,0":[[1,0,0],[1,1,0],[1,1,1],[1,0,1]],"-1,0,0":[[0,0,0],[0,0,1],[0,1,1],[0,1,0]],"0,1,0":[[0,1,0],[0,1,1],[1,1,1],[1,1,0]],"0,-1,0":[[0,0,0],[1,0,0],[1,0,1],[0,0,1]],"0,0,1":[[0,0,1],[1,0,1],[1,1,1],[0,1,1]],"0,0,-1":[[0,0,0],[0,1,0],[1,1,0],[1,0,0]]};
+  const D=Object.keys(Q).map(k=>[k.split(",").map(Number),Q[k]]);
+  for(let i=0;i<nx;i++) for(let j=0;j<ny;j++) for(let k=0;k<nz;k++) if(on(i,j,k)) for(const [d,q] of D) if(!on(i+d[0],j+d[1],k+d[2])) F.push(q.map(o=>id(i+o[0],j+o[1],k+o[2])));
+  return _ngManifold({verts:V, faces:F}); }
+// split vertices where surfaces only touch at a point or edge (voxel corners, thin iso necks) so every edge is used by exactly two faces
+function _ngManifold(m){
+  const F=m.faces.filter(f=>f.length>=3&&new Set(f).size===f.length), V=m.verts.map(v=>v.slice());
+  const und=new Map(), ek=(a,b)=>a<b?a+"_"+b:b+"_"+a;
+  F.forEach((f,fi)=>{ for(let i=0;i<f.length;i++){ const k=ek(f[i],f[(i+1)%f.length]); let a=und.get(k); if(!a) und.set(k,a=[]); a.push(fi); } });
+  const inc=new Map(); F.forEach((f,fi)=>f.forEach(v=>{ let a=inc.get(v); if(!a) inc.set(v,a=[]); a.push(fi); }));
+  for(const [v,fs] of inc){ if(fs.length<2) continue; const par=new Map(fs.map(f=>[f,f])), find=x=>{ while(par.get(x)!==x){ par.set(x,par.get(par.get(x))); x=par.get(x); } return x; };
+    for(const fi of fs){ const f=F[fi], i=f.indexOf(v); for(const w of [f[(i+1)%f.length], f[(i-1+f.length)%f.length]]){ const sh=und.get(ek(v,w)); if(sh&&sh.length===2){ const o=sh[0]===fi?sh[1]:sh[0]; if(par.has(o)) par.set(find(fi),find(o)); } } }
+    const groups=new Map(); for(const fi of fs){ const r=find(fi); if(!groups.has(r)) groups.set(r,[]); groups.get(r).push(fi); }
+    if(groups.size<2) continue; let first=true;
+    for(const g of groups.values()){ if(first){ first=false; continue; } const nv=V.length; V.push(V[v].slice()); for(const fi of g){ const f=F[fi]; F[fi]=f.map(x=>x===v?nv:x); } } }
+  // drop faces that still repeat a directed edge (back-to-back duplicates)
+  const seen=new Set(), out=[]; for(const f of F){ let dup=false; for(let i=0;i<f.length;i++){ if(seen.has(f[i]+">"+f[(i+1)%f.length])){ dup=true; break; } } if(dup) continue; for(let i=0;i<f.length;i++) seen.add(f[i]+">"+f[(i+1)%f.length]); out.push(f); }
+  return {verts:V, faces:out}; }
+function _ngBox(c,h,V,F){ const o=V.length; for(const z of [-1,1]) for(const y of [-1,1]) for(const x of [-1,1]) V.push([c[0]+x*h[0],c[1]+y*h[1],c[2]+z*h[2]]);
+  F.push([o,o+2,o+3,o+1],[o+4,o+5,o+7,o+6],[o,o+1,o+5,o+4],[o+2,o+6,o+7,o+3],[o,o+4,o+6,o+2],[o+1,o+3,o+7,o+5]); }
+
+const NEWGEN={
+  // ---- 1. Branches: space colonization (attraction points pull the tips; reached points are consumed) ----
+  ngBranch:{ label:"Branches", title:"Branches — space colonization", desc:"Attraction points fill a crown; every tip grows toward the points near it, and points are used up as branches reach them. <b>Model surface</b> wraps branches over your shape.",
+    params:[{sel:"shape",l:"Attraction cloud",opts:[["sphere","Sphere crown"],["cone","Cone crown"],["cube","Box crown"],["model","This model's surface"]]},["pts","Attraction points",50,5000,50,900],["infl","Reach (× segment)",1.5,12,0.5,5],["kill","Consume distance (× segment)",0.5,4,0.1,1.4],["seg","Segment length",0.005,0.2,0.005,0.03],["thick","Thickness",0.2,4,0.05,1],["seed","Seed",1,500,1,7]],
+    build(o,M){ const r=_ngRng(o.seed), seg=o.seg, A=[]; let root=[0,0,0], C=[0,1.15,0], R=0.65;
+      if(o.shape==="model"&&M&&M.verts.length){ const B=_ngBBox(M); A.push(..._ngSurfPts(M,o.pts,r)); root=[B.c[0],B.a[1],B.c[2]]; }
+      else { while(A.length<o.pts){ const p=[r()*2-1,r()*2-1,r()*2-1];
+          if(o.shape==="sphere"&&p[0]*p[0]+p[1]*p[1]+p[2]*p[2]>1) continue; if(o.shape==="cone"){ const h=(p[1]+1)/2; if(Math.hypot(p[0],p[2])>1-h) continue; }
+          A.push([C[0]+p[0]*R, C[1]+p[1]*R*(o.shape==="cone"?1.1:0.85), C[2]+p[2]*R]); } }
+      const nodes=[{p:root,parent:-1}], infl=seg*o.infl, kill=seg*o.kill, cell=infl, H=new Map(), key=p=>Math.floor(p[0]/cell)+","+Math.floor(p[1]/cell)+","+Math.floor(p[2]/cell);
+      const addH=i=>{ const k=key(nodes[i].p); let a=H.get(k); if(!a) H.set(k,a=[]); a.push(i); }; addH(0);
+      const near=(p,rad)=>{ const out=[], cx=Math.floor(p[0]/cell), cy=Math.floor(p[1]/cell), cz=Math.floor(p[2]/cell), g=Math.ceil(rad/cell); for(let a=-g;a<=g;a++) for(let b=-g;b<=g;b++) for(let c=-g;c<=g;c++){ const L=H.get((cx+a)+","+(cy+b)+","+(cz+c)); if(L) for(const i of L) out.push(i); } return out; };
+      // trunk: climb until something is in reach
+      for(let s=0;s<400;s++){ const tip=nodes[nodes.length-1].p; if(A.some(a=>Math.hypot(a[0]-tip[0],a[1]-tip[1],a[2]-tip[2])<infl)) break;
+        let best=null,bd=1e9; for(const a of A){ const d=Math.hypot(a[0]-tip[0],a[1]-tip[1],a[2]-tip[2]); if(d<bd){ bd=d; best=a; } } if(!best) break;
+        const d=_ngN([best[0]-tip[0],best[1]-tip[1],best[2]-tip[2]]); nodes.push({p:[tip[0]+d[0]*seg,tip[1]+d[1]*seg,tip[2]+d[2]*seg],parent:nodes.length-1}); addH(nodes.length-1); }
+      let live=A.slice();
+      for(let it=0; it<600 && live.length; it++){
+        const pull=new Map();
+        for(const a of live){ let bi=-1,bd=infl*infl; for(const i of near(a,infl)){ const q=nodes[i].p, d=(q[0]-a[0])**2+(q[1]-a[1])**2+(q[2]-a[2])**2; if(d<bd){ bd=d; bi=i; } }
+          if(bi>=0){ const q=nodes[bi].p, d=_ngN([a[0]-q[0],a[1]-q[1],a[2]-q[2]]), s=pull.get(bi)||[0,0,0,0]; s[0]+=d[0]; s[1]+=d[1]; s[2]+=d[2]; s[3]++; pull.set(bi,s); } }
+        if(!pull.size) break;
+        for(const [i,s] of pull){ const d=_ngN([s[0]+(r()-0.5)*0.05, s[1]+(r()-0.5)*0.05, s[2]+(r()-0.5)*0.05]), q=nodes[i].p; nodes.push({p:[q[0]+d[0]*seg,q[1]+d[1]*seg,q[2]+d[2]*seg],parent:i}); addH(nodes.length-1); }
+        live=live.filter(a=>{ for(const i of near(a,kill)){ const q=nodes[i].p; if((q[0]-a[0])**2+(q[1]-a[1])**2+(q[2]-a[2])**2<kill*kill) return false; } return true; });
+        if(nodes.length>60000) break; }
+      this.info=nodes.length+" segments · "+(A.length-live.length)+" / "+A.length+" points reached";
+      return _ngBranchMesh(nodes, seg*0.9*o.thick, 6); } },
+
+  // ---- 2. WFC Pipes: 3D wave function collapse over pipe tiles (each tile = which of its 6 faces connect) ----
+  ngWfc:{ label:"WFC Pipes", title:"WFC Pipes — 3D wave function collapse", desc:"Every cell picks a pipe tile so that all neighbours connect — straights, elbows and (optionally) tees and crosses — collapsing the least-certain cell first. Nothing leaves the box.",
+    params:[["nx","Cells X",2,16,1,7],["ny","Cells Y",2,16,1,7],["nz","Cells Z",2,16,1,7],["dens","Pipe density",0.05,0.95,0.05,0.55],{chk:"tees",l:"Allow tees (3-way)",def:true},{chk:"cross",l:"Allow crosses (4-way +)",def:false},["thick","Pipe thickness",0.05,0.6,0.01,0.22],["seed","Seed",1,500,1,7]],
+    build(o){ const nx=o.nx|0, ny=o.ny|0, nz=o.nz|0, N=nx*ny*nz, T=[], W=[];
+      for(let m=0;m<64;m++){ let c=0; for(let b=0;b<6;b++) if(m>>b&1) c++; if(c===1) continue; if(c===3&&!o.tees) continue; if(c>=4&&!o.cross) continue; T.push(m); }
+      const nT=T.length, pc=m=>{ let c=0; for(let b=0;b<6;b++) if(m>>b&1) c++; return c; };
+      T.forEach(m=>W.push(m===0? Math.max(0.02,1-o.dens)*nT*0.35 : o.dens*(pc(m)===2?1:0.5)));
+      const DIR=[[1,0,0],[-1,0,0],[0,1,0],[0,-1,0],[0,0,1],[0,0,-1]], idx=(i,j,k)=>(i*ny+j)*nz+k;
+      let res=null;
+      for(let tryN=0; tryN<30 && !res; tryN++){
+        const r=_ngRng(o.seed+tryN*7919), P=new Uint8Array(N*nT).fill(1), cnt=new Int32Array(N).fill(nT); let bad=false;
+        const ban=(c,t)=>{ if(!P[c*nT+t]) return false; P[c*nT+t]=0; cnt[c]--; if(cnt[c]<=0) bad=true; return true; };
+        const stack=[];
+        for(let i=0;i<nx;i++) for(let j=0;j<ny;j++) for(let k=0;k<nz;k++){ const c=idx(i,j,k); let ch=false;   // the box is closed: no pipe may point outside
+          for(let d=0;d<6;d++){ const ii=i+DIR[d][0], jj=j+DIR[d][1], kk=k+DIR[d][2]; if(ii<0||jj<0||kk<0||ii>=nx||jj>=ny||kk>=nz) for(let t=0;t<nT;t++) if(T[t]>>d&1) ch=ban(c,t)||ch; }
+          if(ch) stack.push(c); }
+        const prop=()=>{ while(stack.length&&!bad){ const c=stack.pop(), i=Math.floor(c/(ny*nz)), j=Math.floor(c/nz)%ny, k=c%nz;
+            for(let d=0;d<6;d++){ const ii=i+DIR[d][0], jj=j+DIR[d][1], kk=k+DIR[d][2]; if(ii<0||jj<0||kk<0||ii>=nx||jj>=ny||kk>=nz) continue;
+              let can0=false, can1=false; for(let t=0;t<nT;t++) if(P[c*nT+t]){ if(T[t]>>d&1) can1=true; else can0=true; }
+              const n=idx(ii,jj,kk), od=d^1; let ch=false; for(let t=0;t<nT;t++) if(P[n*nT+t]){ const b=T[t]>>od&1; if((b&&!can1)||(!b&&!can0)) ch=ban(n,t)||ch; }
+              if(ch) stack.push(n); } } };
+        prop();
+        while(!bad){ let best=-1, be=1e9; for(let c=0;c<N;c++) if(cnt[c]>1){ const e=cnt[c]+r()*0.5; if(e<be){ be=e; best=c; } } if(best<0) break;
+          let sw=0; for(let t=0;t<nT;t++) if(P[best*nT+t]) sw+=W[t]; let x=r()*sw, pick=-1; for(let t=0;t<nT;t++) if(P[best*nT+t]){ x-=W[t]; if(x<=0){ pick=t; break; } } if(pick<0) for(let t=nT-1;t>=0;t--) if(P[best*nT+t]){ pick=t; break; }
+          for(let t=0;t<nT;t++) if(t!==pick&&P[best*nT+t]){ P[best*nT+t]=0; cnt[best]--; } stack.push(best); prop(); }
+        if(!bad){ res=new Int32Array(N); for(let c=0;c<N;c++){ for(let t=0;t<nT;t++) if(P[c*nT+t]){ res[c]=T[t]; break; } } this.info="Solved"+(tryN?" after "+(tryN+1)+" tries":"")+" · "+N+" cells"; } }
+      if(!res){ this.info="No solution — try another seed"; return {verts:[],faces:[]}; }
+      const cell=2/Math.max(nx,ny,nz), th=cell*o.thick/2, V=[], F=[], org=[-nx*cell/2, 0, -nz*cell/2]; let pipes=0;
+      for(let i=0;i<nx;i++) for(let j=0;j<ny;j++) for(let k=0;k<nz;k++){ const m=res[idx(i,j,k)]; if(!m) continue; pipes++;
+        const c=[org[0]+(i+0.5)*cell, org[1]+(j+0.5)*cell, org[2]+(k+0.5)*cell]; _ngBox(c,[th*1.15,th*1.15,th*1.15],V,F);
+        for(let d=0;d<6;d++) if(m>>d&1){ const D=DIR[d], hl=cell/4; _ngBox([c[0]+D[0]*hl, c[1]+D[1]*hl, c[2]+D[2]*hl],[D[0]?hl:th, D[1]?hl:th, D[2]?hl:th],V,F); } }
+      this.info+=" · "+pipes+" pipe cells"; return {verts:V, faces:F}; } },
+
+  // ---- 3. Slime: 3D physarum — agents sense trail ahead, turn toward it, move and deposit; the trail is skinned ----
+  ngSlime:{ label:"Slime", title:"Slime — 3D physarum network", desc:"Thousands of agents follow and lay down a scent trail, self-organizing into vein-like networks (after Jeff Jones's Physarum model). The trail volume is turned into a solid.",
+    params:[{sel:"dom",l:"Space",opts:[["sphere","Sphere"],["cube","Cube"]]},["res","Resolution",20,72,2,40],["agents","Agents",500,60000,500,14000],["steps","Steps",10,500,10,160],["sa","Sensor angle °",5,80,1,30],["sd","Sensor distance (voxels)",1,8,0.5,3],["turn","Turn speed",0.05,1,0.05,0.35],["decay","Trail decay",0.5,0.99,0.01,0.86],["thr","Skin level",0.02,0.6,0.01,0.12],["seed","Seed",1,500,1,7]],
+    build(o){ const n=o.res|0, N=n*n*n, G=new Float32Array(N), G2=new Float32Array(N), r=_ngRng(o.seed), c=(n-1)/2, sph=o.dom==="sphere";
+      const inside=(x,y,z)=>sph? ((x-c)**2+(y-c)**2+(z-c)**2<=c*c*0.95) : (x>=1&&y>=1&&z>=1&&x<n-1&&y<n-1&&z<n-1);
+      const A=o.agents|0, P=new Float32Array(A*3), D=new Float32Array(A*3);
+      for(let a=0;a<A;a++){ let x,y,z; do{ x=1+r()*(n-2); y=1+r()*(n-2); z=1+r()*(n-2); }while(!inside(x,y,z)); P[a*3]=x; P[a*3+1]=y; P[a*3+2]=z; const d=_ngDir(r); D[a*3]=d[0]; D[a*3+1]=d[1]; D[a*3+2]=d[2]; }
+      const at=(x,y,z)=>{ const i=x|0,j=y|0,k=z|0; return (i<0||j<0||k<0||i>=n||j>=n||k>=n)?-1:G[(i*n+j)*n+k]; };
+      const ca=Math.cos(o.sa*Math.PI/180), sa=Math.sin(o.sa*Math.PI/180), sd=o.sd;
+      for(let st=0; st<o.steps; st++){
+        for(let a=0;a<A;a++){ const p=[P[a*3],P[a*3+1],P[a*3+2]], d=[D[a*3],D[a*3+1],D[a*3+2]];
+          const h=Math.abs(d[1])<0.9?[0,1,0]:[1,0,0], u=_ngN([d[1]*h[2]-d[2]*h[1], d[2]*h[0]-d[0]*h[2], d[0]*h[1]-d[1]*h[0]]), w=[d[1]*u[2]-d[2]*u[1], d[2]*u[0]-d[0]*u[2], d[0]*u[1]-d[1]*u[0]];
+          const rot=r()*Math.PI*2, cr=Math.cos(rot), sr=Math.sin(rot), U=[u[0]*cr+w[0]*sr,u[1]*cr+w[1]*sr,u[2]*cr+w[2]*sr], Wv=[w[0]*cr-u[0]*sr,w[1]*cr-u[1]*sr,w[2]*cr-u[2]*sr];
+          let best=d, bv=at(p[0]+d[0]*sd,p[1]+d[1]*sd,p[2]+d[2]*sd);
+          for(const q of [U,[-U[0],-U[1],-U[2]],Wv,[-Wv[0],-Wv[1],-Wv[2]]]){ const s=[d[0]*ca+q[0]*sa, d[1]*ca+q[1]*sa, d[2]*ca+q[2]*sa], v=at(p[0]+s[0]*sd,p[1]+s[1]*sd,p[2]+s[2]*sd); if(v>bv){ bv=v; best=s; } }
+          let nd=_ngN([d[0]+(best[0]-d[0])*o.turn+(r()-0.5)*0.08, d[1]+(best[1]-d[1])*o.turn+(r()-0.5)*0.08, d[2]+(best[2]-d[2])*o.turn+(r()-0.5)*0.08]);
+          let q=[p[0]+nd[0], p[1]+nd[1], p[2]+nd[2]];
+          if(!inside(q[0],q[1],q[2])){ nd=_ngDir(r); q=p; }
+          P[a*3]=q[0]; P[a*3+1]=q[1]; P[a*3+2]=q[2]; D[a*3]=nd[0]; D[a*3+1]=nd[1]; D[a*3+2]=nd[2]; G[((q[0]|0)*n+(q[1]|0))*n+(q[2]|0)]+=1; }
+        for(let i=1;i<n-1;i++) for(let j=1;j<n-1;j++) for(let k=1;k<n-1;k++){ const x=(i*n+j)*n+k; G2[x]=(G[x]*2+G[x+1]+G[x-1]+G[x+n]+G[x-n]+G[x+n*n]+G[x-n*n])/8*o.decay; }
+        G.set(G2); }
+      let mx=0; for(let i=0;i<N;i++) if(G[i]>mx) mx=G[i]; if(mx<=0) return {verts:[],faces:[]};
+      for(let i=0;i<N;i++) G[i]/=mx;
+      const cell=2/n, m=_ngIso(G,n,n,n,o.thr,[-1,0,-1],cell); this.info=A+" agents · "+o.steps+" steps · "+m.faces.length+" faces"; return m; } },
+
+  // ---- 4. Reaction: 3D Gray-Scott reaction-diffusion skinned at the V level ----
+  ngRD:{ label:"Reaction", title:"Reaction — 3D reaction-diffusion", desc:"Two chemicals react and spread through a volume (Gray-Scott). Feed/kill presets give coral, worm-maze, sponge and bubble solids.",
+    params:[{sel:"preset",l:"Pattern",opts:[["coral","Coral (f .030 k .060)"],["maze","Worms / maze (f .022 k .051)"],["sponge","Sponge (f .037 k .060)"],["bubbles","Bubbles (f .042 k .065)"]]},{sel:"dom",l:"Space",opts:[["sphere","Sphere"],["cube","Cube"]]},{sel:"init",l:"Start from",opts:[["spots","Random spots (fills the space)"],["center","One blob in the centre (grows out)"]]},{chk:"cut",l:"Cut in half to show the inside",def:false},["res","Resolution",20,64,2,40],["steps","Steps",100,5000,50,1500],["thr","Skin level",0.05,0.45,0.01,0.2],["seed","Seed",1,500,1,7]],
+    build(o){ const n=o.res|0, N=n*n*n, PR={coral:[0.03,0.06],maze:[0.022,0.051],sponge:[0.037,0.06],bubbles:[0.042,0.065]}[o.preset]||[0.03,0.06], f=PR[0], k=PR[1];
+      let U=new Float32Array(N).fill(1), V=new Float32Array(N), U2=new Float32Array(N), V2=new Float32Array(N), M=new Uint8Array(N), r=_ngRng(o.seed), c=(n-1)/2;
+      for(let i=0;i<n;i++) for(let j=0;j<n;j++) for(let l=0;l<n;l++){ const x=(i*n+j)*n+l; M[x]=(i>0&&j>0&&l>0&&i<n-1&&j<n-1&&l<n-1)&&(o.dom!=="sphere"||(i-c)**2+(j-c)**2+(l-c)**2<=c*c*0.92)?1:0; }
+      const blob=(ci,cj,cl,rr)=>{ for(let i=Math.max(1,ci-rr);i<=Math.min(n-2,ci+rr);i++) for(let j=Math.max(1,cj-rr);j<=Math.min(n-2,cj+rr);j++) for(let l=Math.max(1,cl-rr);l<=Math.min(n-2,cl+rr);l++){ const x=(i*n+j)*n+l; if(M[x]){ U[x]=0.5; V[x]=0.25+r()*0.05; } } };
+      if(o.init==="center") blob(c|0,c|0,c|0,Math.max(2,n/10|0)); else for(let s=0;s<Math.max(6,n*n*n/4000|0);s++) blob(1+(r()*(n-2)|0),1+(r()*(n-2)|0),1+(r()*(n-2)|0),2);
+      const Du=0.16, Dv=0.08, nn=n*n;
+      for(let st=0; st<o.steps; st++){
+        for(let x=nn+n+1; x<N-nn-n-1; x++){ if(!M[x]){ U2[x]=1; V2[x]=0; continue; }
+          const u=U[x], v=V[x]; let lu=-6*u, lv=-6*v; for(const y of [x+1,x-1,x+n,x-n,x+nn,x-nn]){ if(M[y]){ lu+=U[y]; lv+=V[y]; } else { lu+=u; lv+=v; } } const uvv=u*v*v;
+          U2[x]=u+Du*lu-uvv+f*(1-u); V2[x]=v+Dv*lv+uvv-(f+k)*v; }
+        let t=U; U=U2; U2=t; t=V; V=V2; V2=t; }
+      for(let x=0;x<N;x++) if(!M[x]) V[x]=0;
+      if(o.cut) for(let i=0;i<n;i++) for(let j=0;j<n;j++) for(let l=(n/2|0);l<n;l++) V[(i*n+j)*n+l]=0;
+      const cell=2/n, m=_ngIso(V,n,n,n,o.thr,[-1,0,-1],cell); this.info=o.steps+" steps · "+n+"³ grid · "+m.faces.length+" faces"; return m; } },
+
+  // ---- 5. Cellular: 3D cellular automata (26-neighbour birth / survival rules) ----
+  ngCA:{ label:"Cellular", title:"Cellular — 3D cellular automata", desc:"A 3D Game of Life: each step, an empty cell is born or a live cell survives depending on how many of its 26 neighbours are alive.",
+    params:[{sel:"rule",l:"Rule",opts:[["amoeba","Amoeba  S9-26 / B5-7,12,13,15,16"],["crystal","Crystal growth  S0-6 / B1,3"],["clouds","Clouds  S13-26 / B13,14,17-19 (density ≥ .5, core 1)"],["arch","Architecture  S4-6 / B3"],["builder","Builder  S2,6,9 / B4,6,8,9"],["coralca","Coral  S5-8 / B6,7,9,12"]]},["res","Grid",8,56,1,30],["steps","Steps",1,80,1,14],["fill","Starting density",0.05,0.9,0.05,0.35],["core","Seed core (fraction of grid)",0.05,1,0.05,0.2],{chk:"smooth",l:"Smooth surface (not blocky)",def:false},["seed","Seed",1,500,1,7]],
+    build(o){ const RU={crystal:[[0,1,2,3,4,5,6],[1,3]],clouds:[[13,14,15,16,17,18,19,20,21,22,23,24,25,26],[13,14,17,18,19]],amoeba:[[9,10,11,12,13,14,15,16,17,18,19,20,21,22,23,24,25,26],[5,6,7,12,13,15,16]],arch:[[4,5,6],[3]],builder:[[2,6,9],[4,6,8,9]],coralca:[[5,6,7,8],[6,7,9,12]]}[o.rule];
+      const S=new Uint8Array(27), B=new Uint8Array(27); RU[0].forEach(v=>S[v]=1); RU[1].forEach(v=>B[v]=1);
+      const n=o.res|0, N=n*n*n, r=_ngRng(o.seed); let A=new Uint8Array(N), A2=new Uint8Array(N); const c=(n-1)/2, h=Math.max(1,o.core*n/2);
+      for(let i=0;i<n;i++) for(let j=0;j<n;j++) for(let k=0;k<n;k++) if(Math.abs(i-c)<=h&&Math.abs(j-c)<=h&&Math.abs(k-c)<=h&&r()<o.fill) A[(i*n+j)*n+k]=1;
+      for(let st=0; st<o.steps; st++){ for(let i=0;i<n;i++) for(let j=0;j<n;j++) for(let k=0;k<n;k++){ let s=0;
+          for(let a=-1;a<=1;a++){ const ii=i+a; if(ii<0||ii>=n) continue; for(let b=-1;b<=1;b++){ const jj=j+b; if(jj<0||jj>=n) continue; for(let d=-1;d<=1;d++){ const kk=k+d; if(kk<0||kk>=n||(!a&&!b&&!d)) continue; s+=A[(ii*n+jj)*n+kk]; } } }
+          const x=(i*n+j)*n+k; A2[x]=A[x]? S[s] : B[s]; }
+        const t=A; A=A2; A2=t; }
+      let live=0; for(let i=0;i<N;i++) live+=A[i]; const cell=2/n;
+      this.info=live+" live cells after "+o.steps+" steps";
+      if(o.smooth){ const G=new Float32Array(N); for(let i=0;i<N;i++) G[i]=A[i]; return _ngIso(G,n,n,n,0.5,[-1,0,-1],cell); }
+      return _ngVoxels(A,n,n,n,[-1,0,-1],cell); } },
+
+  // ---- 6. Hyphae: branching root network whose branches never collide ----
+  ngHyphae:{ label:"Hyphae", title:"Hyphae — non-crossing root networks", desc:"Tips wander forward and split; a tip stops when it would come too close to any existing branch, so the network fills space without ever crossing itself (in the spirit of Anders Hoff's hyphae).",
+    params:[{sel:"from",l:"Grow from",opts:[["point","A point"],["ground","The ground (spreads up)"],["surface","This model's surface"]]},["max","Max segments",100,12000,100,3000],["step","Step length",0.005,0.1,0.005,0.025],["branch","Branching",0,0.6,0.01,0.1],["wander","Wander °",0,60,1,14],["clear","Clearance (× step)",0.6,4,0.1,1.5],["thick","Thickness",0.2,3,0.05,1],["seed","Seed",1,500,1,7]],
+    build(o,M){ const r=_ngRng(o.seed), st=o.step, clr=st*o.clear, nodes=[], H=new Map(), cell=clr, key=(x,y,z)=>Math.floor(x/cell)+","+Math.floor(y/cell)+","+Math.floor(z/cell);
+      const add=(p,pa)=>{ const i=nodes.length; nodes.push({p,parent:pa}); const k=key(...p); let a=H.get(k); if(!a) H.set(k,a=[]); a.push(i); return i; };
+      const blocked=(p,ign1,ign2)=>{ const cx=Math.floor(p[0]/cell), cy=Math.floor(p[1]/cell), cz=Math.floor(p[2]/cell); for(let a=-1;a<=1;a++) for(let b=-1;b<=1;b++) for(let c=-1;c<=1;c++){ const L=H.get((cx+a)+","+(cy+b)+","+(cz+c)); if(L) for(const i of L){ if(i===ign1||i===ign2||nodes[i].parent===ign1) continue; const q=nodes[i].p; if((q[0]-p[0])**2+(q[1]-p[1])**2+(q[2]-p[2])**2<clr*clr) return true; } } return false; };
+      const turn=(d,deg)=>{ const h=Math.abs(d[1])<0.9?[0,1,0]:[1,0,0], u=_ngN([d[1]*h[2]-d[2]*h[1], d[2]*h[0]-d[0]*h[2], d[0]*h[1]-d[1]*h[0]]), w=[d[1]*u[2]-d[2]*u[1], d[2]*u[0]-d[0]*u[2], d[0]*u[1]-d[1]*u[0]], a=r()*Math.PI*2, t=deg*Math.PI/180*(0.5+r()*0.5);
+        return _ngN([d[0]*Math.cos(t)+(u[0]*Math.cos(a)+w[0]*Math.sin(a))*Math.sin(t), d[1]*Math.cos(t)+(u[1]*Math.cos(a)+w[1]*Math.sin(a))*Math.sin(t), d[2]*Math.cos(t)+(u[2]*Math.cos(a)+w[2]*Math.sin(a))*Math.sin(t)]); };
+      let tips=[];
+      if(o.from==="surface"&&M&&M.verts.length){ const B=_ngBBox(M); for(const p of _ngSurfPts(M,24,r)){ const d=_ngN([p[0]-B.c[0],p[1]-B.c[1],p[2]-B.c[2]]); tips.push({i:add(p,-1),d}); } }
+      else if(o.from==="ground"){ for(let s=0;s<5;s++){ const a=s/5*Math.PI*2; tips.push({i:add([Math.cos(a)*0.08,0,Math.sin(a)*0.08],-1),d:_ngN([Math.cos(a),0.6,Math.sin(a)])}); } }
+      else { const i0=add([0,1,0],-1); for(let s=0;s<6;s++) tips.push({i:i0,d:_ngDir(r)}); }
+      let guard=0;
+      while(tips.length && nodes.length<o.max && guard<o.max*20){ guard++;
+        const ti=Math.floor(r()*tips.length), T=tips[ti], q=nodes[T.i].p; let ok=false;
+        for(let att=0;att<4&&!ok;att++){ let d=turn(T.d,o.wander); if(o.from==="ground"&&d[1]<-0.2) d=_ngN([d[0],Math.abs(d[1]),d[2]]); const p=[q[0]+d[0]*st, q[1]+d[1]*st, q[2]+d[2]*st];
+          if(o.from==="ground"&&p[1]<0) continue;
+          if(!blocked(p,T.i,nodes[T.i].parent)){ const ni=add(p,T.i); T.i=ni; T.d=d; ok=true; if(r()<o.branch) tips.push({i:ni,d:turn(d,55)}); } }
+        if(!ok) tips.splice(ti,1); }
+      this.info=nodes.length+" segments · "+tips.length+" tips still growing";
+      return _ngBranchMesh(nodes, st*0.55*o.thick, 6); } },
+
+  // ---- 7. Terrain: fractal height field + droplet hydraulic erosion, as a closed slab ----
+  ngTerrain:{ label:"Terrain", title:"Terrain — height field + erosion", desc:"A fractal height field (or your own grayscale image) carved by thousands of rain droplets that pick up and drop sediment, cutting valleys and ridges. Built as a closed solid you can print.",
+    params:[["res","Resolution",24,256,4,120],["size","Size",0.5,8,0.1,3],["height","Height",0.05,2,0.01,0.7],["scale","Noise scale",0.5,8,0.1,2.5],["oct","Octaves",1,8,1,5],["drops","Rain droplets",0,300000,1000,50000],["erode","Erosion strength",0.05,1,0.05,0.3],["base","Base thickness",0,1,0.01,0.12],["seed","Seed",1,500,1,7]],
+    extraHTML:'<div class="param"><button id="ngTerrImg" class="mkbtn" style="width:100%">Use an image as the height map…</button><input type="file" id="ngTerrFile" accept="image/*" style="display:none"></div>',
+    build(o){ const n=o.res|0, Hm=new Float32Array(n*n), r=_ngRng(o.seed);
+      if(this.img){ const cv=document.createElement("canvas"); cv.width=cv.height=n; const cx=cv.getContext("2d"); cx.drawImage(this.img,0,0,n,n); const d=cx.getImageData(0,0,n,n).data; for(let i=0;i<n*n;i++) Hm[i]=(d[i*4]*0.299+d[i*4+1]*0.587+d[i*4+2]*0.114)/255; }
+      else { const P=new Uint8Array(512); for(let i=0;i<256;i++) P[i]=i; for(let i=255;i>0;i--){ const j=Math.floor(r()*(i+1)); const t=P[i]; P[i]=P[j]; P[j]=t; } for(let i=0;i<256;i++) P[i+256]=P[i];
+        const gr=(h,x,y)=>{ const g=h&7, u=g<4?x:y, v=g<4?y:x; return ((g&1)?-u:u)+((g&2)?-2*v:2*v); }, fd=t=>t*t*t*(t*(t*6-15)+10), L=(a,b,t)=>a+(b-a)*t;
+        const pn=(x,y)=>{ const X=Math.floor(x)&255, Y=Math.floor(y)&255; x-=Math.floor(x); y-=Math.floor(y); const u=fd(x), v=fd(y), A=P[X]+Y, B=P[X+1]+Y; return L(L(gr(P[A],x,y),gr(P[B],x-1,y),u),L(gr(P[A+1],x,y-1),gr(P[B+1],x-1,y-1),u),v)*0.25; };
+        for(let j=0;j<n;j++) for(let i=0;i<n;i++){ let a=0, amp=1, fr=o.scale/n, tot=0; for(let k=0;k<o.oct;k++){ a+=pn(i*fr+31.7*k,j*fr+17.3*k)*amp; tot+=amp; amp*=0.5; fr*=2; } Hm[j*n+i]=a/tot; }
+        let lo=1e9,hi=-1e9; for(const v of Hm){ if(v<lo)lo=v; if(v>hi)hi=v; } for(let i=0;i<n*n;i++) Hm[i]=(Hm[i]-lo)/((hi-lo)||1); }
+      // droplets: roll downhill with inertia, erode when under capacity, deposit when over
+      const get=(x,y)=>{ const i=Math.floor(x), j=Math.floor(y), u=x-i, v=y-j, a=Hm[j*n+i], b=Hm[j*n+i+1], c=Hm[(j+1)*n+i], d=Hm[(j+1)*n+i+1]; return {h:a*(1-u)*(1-v)+b*u*(1-v)+c*(1-u)*v+d*u*v, gx:(b-a)*(1-v)+(d-c)*v, gy:(c-a)*(1-u)+(d-b)*u}; };
+      const er=o.erode, drops=o.drops|0;
+      for(let k=0;k<drops;k++){ let x=r()*(n-2), y=r()*(n-2), dx=0, dy=0, sp=1, w=1, sed=0;
+        for(let life=0; life<40; life++){ const i=Math.floor(x), j=Math.floor(y), u=x-i, v=y-j, g=get(x,y);
+          dx=dx*0.1-g.gx*0.9; dy=dy*0.1-g.gy*0.9; const l=Math.hypot(dx,dy); if(l<1e-9) break; dx/=l; dy/=l; const nx2=x+dx, ny2=y+dy; if(nx2<0||ny2<0||nx2>=n-1||ny2>=n-1) break;
+          const dh=get(nx2,ny2).h-g.h, cap=Math.max(-dh,0.0005)*sp*w*4;
+          if(sed>cap||dh>0){ const dep=dh>0?Math.min(dh,sed):(sed-cap)*0.3; sed-=dep; Hm[j*n+i]+=dep*(1-u)*(1-v); Hm[j*n+i+1]+=dep*u*(1-v); Hm[(j+1)*n+i]+=dep*(1-u)*v; Hm[(j+1)*n+i+1]+=dep*u*v; }
+          else { const e=Math.min((cap-sed)*er,-dh); sed+=e; Hm[j*n+i]-=e*(1-u)*(1-v); Hm[j*n+i+1]-=e*u*(1-v); Hm[(j+1)*n+i]-=e*(1-u)*v; Hm[(j+1)*n+i+1]-=e*u*v; }
+          sp=Math.sqrt(Math.max(0,sp*sp+dh*-4)); w*=0.97; x=nx2; y=ny2; } }
+      const s=o.size, hh=o.height, b=o.base, V=[], F=[], vid=(i,j)=>j*n+i;
+      for(let j=0;j<n;j++) for(let i=0;i<n;i++) V.push([(i/(n-1)-0.5)*s, b+Hm[j*n+i]*hh, (j/(n-1)-0.5)*s]);
+      for(let j=0;j<n-1;j++) for(let i=0;i<n-1;i++) F.push([vid(i,j),vid(i,j+1),vid(i+1,j+1),vid(i+1,j)]);
+      const ring=[]; for(let i=0;i<n-1;i++) ring.push(vid(i,0)); for(let j=0;j<n-1;j++) ring.push(vid(n-1,j)); for(let i=n-1;i>0;i--) ring.push(vid(i,n-1)); for(let j=n-1;j>0;j--) ring.push(vid(0,j));
+      const bot=ring.map(t=>{ V.push([V[t][0],0,V[t][2]]); return V.length-1; });
+      for(let q=0;q<ring.length;q++){ const a=ring[q], c=ring[(q+1)%ring.length], ba=bot[q], bc=bot[(q+1)%ring.length]; F.push([a,c,bc,ba]); }
+      F.push(bot.slice());
+      this.info=n+"×"+n+" grid · "+drops.toLocaleString()+" droplets"+(this.img?" · from image":""); return {verts:V, faces:F}; } },
+
+  // ---- 8. Origami: folded tessellations (Miura-ori, Yoshimura, zig-zag pleat) ----
+  ngOrigami:{ label:"Origami", title:"Origami — folded tessellations", desc:"Rigid-folding crease patterns: <b>Miura-ori</b> (the solar-panel fold), <b>Yoshimura</b> diamonds and a plain <b>zig-zag pleat</b>. Fold from flat to compact; add thickness to print it.",
+    params:[{sel:"pat",l:"Pattern",opts:[["miura","Miura-ori"],["yoshi","Yoshimura (diamond)"],["pleat","Zig-zag pleat"]]},["u","Cells across",2,40,1,10],["v","Cells along",2,40,1,8],["fold","Fold (0 flat → 1 folded)",0,0.98,0.01,0.55],["cell","Cell size",0.05,1,0.01,0.25],["ang","Parallelogram angle °",30,80,1,60],["thick","Thickness (0 = sheet)",0,0.1,0.002,0.01]],
+    build(o){ const U=o.u|0, Vn=o.v|0, a=o.cell, b=o.cell, al=o.ang*Math.PI/180, th=o.fold*Math.PI/2, V=[], F=[];
+      if(o.pat==="miura"){ const H=a*Math.sin(th)*Math.sin(al), L=a*Math.sqrt(Math.max(0,1-(Math.sin(th)*Math.sin(al))**2)), den=Math.sqrt(1+(Math.cos(th)*Math.tan(al))**2), S=b*Math.cos(th)*Math.tan(al)/den, W=b/den;
+        for(let i=0;i<=Vn;i++) for(let j=0;j<=U;j++) V.push([j*W, (i%2)*H, i*L+(j%2)*S]);   // rows alternate height, every row line zig-zags
+        for(let i=0;i<Vn;i++) for(let j=0;j<U;j++){ const p=i*(U+1)+j; F.push([p,p+1,p+U+2,p+U+1]); } }
+      else if(o.pat==="yoshi"){ const H=a*Math.sin(th)*0.8, rowL=a*Math.cos(th*0.6);
+        for(let i=0;i<=Vn;i++) for(let j=0;j<=U;j++) V.push([j*a+(i%2)*a/2, (i%2)*H, i*rowL]);
+        for(let i=0;i<Vn;i++) for(let j=0;j<U;j++){ const p=i*(U+1)+j, q=p+U+1; if(i%2===0){ F.push([p,p+1,q]); F.push([p+1,q+1,q]); } else { F.push([p,q+1,q]); F.push([p,p+1,q+1]); } } }
+      else { const H=a*Math.sin(th), L=a*Math.cos(th);
+        for(let i=0;i<=Vn;i++) for(let j=0;j<=U;j++) V.push([j*L, (j%2)*H, i*b]);
+        for(let i=0;i<Vn;i++) for(let j=0;j<U;j++){ const p=i*(U+1)+j; F.push([p,p+U+1,p+U+2,p+1]); } }
+      let m={verts:V,faces:F}; const B=_ngBBox(m); m.verts=m.verts.map(v=>[v[0]-B.c[0], v[1]-B.a[1], v[2]-B.c[2]]);
+      this.info=F.length+" panels · fold "+Math.round(o.fold*100)+"%";
+      if(o.thick>0){ try{ m=TM.thickenSurface(m,o.thick); }catch(e){} }
+      return m; } }
+};
+let ngActive=null, ngTimer=0, ngBase=null;
+function ngValues(op){ const G=NEWGEN[op], o={}; for(const p of G.params){ if(Array.isArray(p)){ const v=P("#ng_"+p[0]); o[p[0]]=isFinite(v)?v:p[5]; } else if(p.sel){ o[p.sel]=($("#ng_"+p.sel)||{}).value; } else if(p.chk){ const c=$("#ng_"+p.chk); o[p.chk]=c?c.checked:p.def; } } return o; }
+function ngCompute(){ if(!ngActive) return; const op=ngActive, G=NEWGEN[op], lbl=$("#ngInfo"); if(lbl){ lbl.textContent="computing…"; }
+  clearTimeout(ngTimer); ngTimer=setTimeout(()=>{ if(ngActive!==op) return; const t0=performance.now(); let g=null;
+    try{ g=G.build(ngValues(op), ngBase); }catch(e){ if(lbl) lbl.textContent="Error: "+e; return; }
+    G.last=g; const ms=Math.round(performance.now()-t0);
+    if(g&&g.faces&&g.faces.length){ if((ngValues(op).shape==="model"||ngValues(op).from==="surface")&&ngBase){ const off=g.verts.length; setMeshGeometry({verts:g.verts.concat(ngBase.verts), faces:g.faces.concat(ngBase.faces.map(f=>f.map(i=>i+off)))}); } else setMeshGeometry(g); }
+    if(lbl) lbl.textContent=(G.info||"")+" · "+ms+" ms"; }, 60); }
+function ngOpen(op){
+  const G=NEWGEN[op], body=$("#tpBody"); ngActive=op; G.last=null; ngBase=(()=>{ const d=dispMesh(); return d?{verts:d.verts.map(v=>v.slice()),faces:d.faces.map(f=>f.slice())}:null; })();
+  $("#tpTitle").textContent=G.title;
+  let h='<div style="padding:6px 12px;color:var(--text-dim);font-size:11px;line-height:1.5">'+G.desc+'</div>';
+  for(const p of G.params){
+    if(Array.isArray(p)) h+='<div class="param"><label>'+p[1]+'</label><input type="range" id="ng_'+p[0]+'" min="'+p[2]+'" max="'+p[3]+'" step="'+p[4]+'" value="'+p[5]+'"></div>';
+    else if(p.sel) h+='<div class="param"><label>'+p.l+'</label><select id="ng_'+p.sel+'">'+p.opts.map(x=>'<option value="'+x[0]+'">'+x[1]+'</option>').join("")+'</select></div>';
+    else if(p.chk) h+='<div class="param"><label class="chk"><input type="checkbox" id="ng_'+p.chk+'"'+(p.def?" checked":"")+'> '+p.l+'</label></div>'; }
+  h+=(G.extraHTML||'')+'<div id="ngInfo" style="padding:2px 12px 8px;color:#8fce9b;font-size:11px"></div>';
+  body.innerHTML=h; if(window.__numboxify) window.__numboxify(body);
+  body.querySelectorAll("input,select").forEach(el=>{ if(el.type==="file") return; el.addEventListener(el.type==="range"?"change":"change",ngCompute); if(el.type==="range") el.addEventListener("input",()=>{ if(op==="ngOrigami"||op==="ngWfc") ngCompute(); }); });
+  if(op==="ngTerrain"){ const btn=$("#ngTerrImg"), fi=$("#ngTerrFile"); btn&&btn.addEventListener("click",()=>fi.click());
+    fi&&fi.addEventListener("change",()=>{ const f=fi.files&&fi.files[0]; if(!f) return; const img=new Image(); img.onload=()=>{ G.img=img; btn.textContent="Height map: "+f.name+" (click to change)"; ngCompute(); }; img.src=URL.createObjectURL(f); }); }
+  $("#hint")&&($("#hint").textContent=G.title+" — change any setting to regenerate; Apply keeps it as a new layer.");
+  ngCompute(); }
+function ngClose(commit){ if(!ngActive) return; const op=ngActive, G=NEWGEN[op]; ngActive=null; clearTimeout(ngTimer); rebuild();
+  if(commit){ const g=G.last; if(g&&g.faces&&g.faces.length){ addLayer({verts:g.verts.map(v=>v.slice()),faces:g.faces.map(f=>f.slice())},false); try{ layers[activeLayer].name=G.label; renderLayerList&&renderLayerList(); }catch(e){} toast&&toast(G.label+" → new layer"); } else toast&&toast("Nothing to keep yet",true); } }
+window.__newgen={ NEWGEN, ngValues };
+
+let corActive=false, corBase=null, corC=null, corRun=0, corTimer=0;
+const _cv=(id,d)=>{ const v=P(id); return isFinite(v)?v:d; };
+function coralOpts(){
+  const from=($("#pCorFrom")||{}).value||"point", sp=_cv("#pCorSp",0.03);
+  const o={mode:from, spacing:sp, attract:sp*1.15, maxConn:Math.round(_cv("#pCorConn",3)), stick:_cv("#pCorStick",0.8), bias:_cv("#pCorBias",0.15), seed:Math.round(_cv("#pCorSeed",7))};
+  const M=corBase; let mn=[0,0,0], mx=[0,0,0]; if(M&&M.verts.length){ mn=[1e9,1e9,1e9]; mx=[-1e9,-1e9,-1e9]; for(const v of M.verts) for(let d=0;d<3;d++){ if(v[d]<mn[d])mn[d]=v[d]; if(v[d]>mx[d])mx[d]=v[d]; } }
+  const c=[(mn[0]+mx[0])/2,(mn[1]+mx[1])/2,(mn[2]+mx[2])/2];
+  if(from==="surface" && M && M.verts.length){   // seeds scattered evenly over the surface (area-weighted), not just at corners
+    const tris=[]; let A=0; for(const f of M.faces) for(let k=1;k<f.length-1;k++){ const p0=M.verts[f[0]],p1=M.verts[f[k]],p2=M.verts[f[k+1]], u=[p1[0]-p0[0],p1[1]-p0[1],p1[2]-p0[2]], w=[p2[0]-p0[0],p2[1]-p0[1],p2[2]-p0[2]];
+      const a=0.5*Math.hypot(u[1]*w[2]-u[2]*w[1],u[2]*w[0]-u[0]*w[2],u[0]*w[1]-u[1]*w[0]); A+=a; tris.push([p0,p1,p2,A]); }
+    let sd=(o.seed*7919)>>>0||1; const r=()=>{ sd=(sd*1664525+1013904223)>>>0; return sd/4294967296; };
+    const n=Math.max(24,Math.min(400,Math.round(A/(sp*sp*60)))); o.seeds=[];
+    for(let i=0;i<n&&tris.length;i++){ const t=r()*A; let lo=0,hi=tris.length-1; while(lo<hi){ const m=(lo+hi)>>1; if(tris[m][3]<t) lo=m+1; else hi=m; } const [p0,p1,p2]=tris[lo]; let a=r(), b2=r(); if(a+b2>1){ a=1-a; b2=1-b2; }
+      o.seeds.push([p0[0]+(p1[0]-p0[0])*a+(p2[0]-p0[0])*b2, p0[1]+(p1[1]-p0[1])*a+(p2[1]-p0[1])*b2, p0[2]+(p1[2]-p0[2])*a+(p2[2]-p0[2])*b2]); }
+    o.center=c; }
+  else if(from==="ground"){ o.center=[c[0], (M&&M.verts.length)?mn[1]:0, c[2]]; o.seeds=[o.center.slice()]; }
+  else { o.center=c; o.seeds=[c.slice()]; }
+  return o; }
+function coralLbl(){ const el=document.getElementById("corLbl"); if(!el||!corC) return; const target=Math.round(_cv("#pCorN",2500)); el.textContent=(corC.nodes.length-(corC.o.seeds||[1]).length)+" / "+target+" particles stuck"+(corRun>0?" · growing…":""); }
+function coralShow(){ if(!corActive||!corC) return; const g=coralMesh(corC,_cv("#pCorThick",1),6);
+  if(corC.o.mode==="surface"&&corBase){ const off=g.verts.length; setMeshGeometry({verts:g.verts.concat(corBase.verts), faces:g.faces.concat(corBase.faces.map(f=>f.map(i=>i+off)))}); }
+  else if(g.faces.length) setMeshGeometry(g); }
+function coralRun(n){ corRun+=n; clearTimeout(corTimer);
+  let shown=0;
+  const tick=()=>{ if(!corActive||!corC||corRun<=0){ corRun=0; coralShow(); coralLbl(); return; }
+    const t0=performance.now(); while(corRun>0 && performance.now()-t0<40){ const k=Math.min(corRun,25), got=coralGrow(corC,k); corRun-=k; if(!got){ if(++corC.tries>40){ corRun=0; break; } } else corC.tries=0; }   // ~40 ms of growth per frame
+    const now=performance.now(); if(now-shown>350||corRun<=0){ shown=now; coralShow(); } coralLbl(); corTimer=setTimeout(tick,0); };
+  tick(); }
+function coralStart(){ if(!corActive) return; clearTimeout(corTimer); corRun=0; corC=coralNew(coralOpts()); coralShow(); coralRun(Math.round(_cv("#pCorN",2500))); }
+function beginCoralPreview(){ corActive=true; corBase=(()=>{ const d=dispMesh(); return d?{verts:d.verts.map(v=>v.slice()),faces:d.faces.map(f=>f.slice())}:null; })(); coralStart(); }
+function endCoralPreview(commit){
+  if(!corActive) return; corActive=false; clearTimeout(corTimer); corRun=0; const C=corC; corC=null;
+  rebuild();                                                            // drop the preview geometry, back to the layer
+  if(commit&&C&&C.nodes.length>1){ const g=coralMesh(C,_cv("#pCorThick",1),6); if(g.faces.length){ addLayer(g,false); try{ layers[activeLayer].name="Coral"; renderLayerList&&renderLayerList(); }catch(e){} toast&&toast("Coral · "+(C.nodes.length-1)+" particles → new layer"); } }
+}
 function beginDGPreview(){
   dgActive=true; dgFrames=0;
   dgBase={verts:mesh.verts.map(v=>v.slice()),faces:mesh.faces.map(f=>f.slice())};
@@ -11544,8 +12085,10 @@ const OP_PARAMS={
   tfUnion:["pBoolB"], tfSubtract:["pBoolB"], tfIntersect:["pBoolB"], tfInterfere:["pBoolB"],
   extrude:["pExDist","pExScale","pExTwist","pExSeg"], pinch:["pPinchDist","pPinchSeg","pPinchNeck","pPinchBulge"], dome:["pDomeH","pDomeR"],
   handle:["pPinch","pHSeg","pHCurve"], bridge:["pPinch","pHSeg"], insertEdge:[], flipNormals:[], orient:["pOrientTarget"], fillHoles:[], cut:["pCutFlip"], crust:["pCrust"], wireframe:["pWire","pWire2W"], pipe:["pPipeT","pPipeN"], offset:["pOffD","pOffBoth"],
-  metaballs:["pMetaCount","pMetaRes","pMetaThresh","pMetaRadius","pMetaSeed","pMetaGum"],
+  metaballs:["pMetaCount","pMetaRes","pMetaThresh","pMetaRadius","pMetaSeed","pMetaPts","pMetaLines","pMetaClosed","pMetaLineW","pMetaGum"],
   diffGrow:[],
+  coral:[],
+  ngBranch:[], ngWfc:[], ngSlime:[], ngRD:[], ngCA:[], ngHyphae:[], ngTerrain:[], ngOrigami:[],
   tfMeasure:[],
   menger:["pMenger"], gyroid:["pGyro","pGyroRes","pGyroBox"], hybrid:["pHybInset","pHybCluster"], sierpinski:["pSierp","pSierpSep","pSierpGap"], scale:["pScale"],
   mirror:["pMirrorAxis","pMirrorCopy"],
@@ -11566,16 +12109,16 @@ const OP_PARAMS={
   "prim:text":["pTextStr","pTextSize","pTextDepth","pTextWeight","pTextQual","pPrimSX","pPrimSY","pPrimSZ"],
   "prim:buckyball":["pBuckyForm","pBuckyFreq","pBuckyR","pPrimSX","pPrimSY","pPrimSZ"],
   "prim:rossler":["pRosSteps","pRosDt","pRosC","pRosTube","pRosSides","pRosScale","pPrimSX","pPrimSY","pPrimSZ"],
-  "prim:sineWave":["pWaveSize","pWaveSegs","pWaveAmp","pWaveFreq","pWavePhase","pWaveDecay","pWaveThick","pPrimSX","pPrimSY","pPrimSZ"],
-  "prim:cymatics":["pCymM","pCymN","pCymSize","pCymSegs","pCymAmp","pCymThick","pPrimSX","pPrimSY","pPrimSZ"],
-  "prim:pseudospherical":["pPssU","pPssV","pPssScale","pPssP1","pPssP2","pPrimSX","pPrimSY","pPrimSZ"],
-  "prim:weave":["pWvN","pWvSpace","pWvR","pWvAmp","pWvSides","pWvSegs","pPrimSX","pPrimSY","pPrimSZ"],
-  "prim:chainmail":["pCmMode","pCmNx","pCmNz","pCmSpace","pCmR","pCmTube","pCmTilt","pCmWire","pCmRatio","pCmAngle","pCmDmin","pCmCdy","pCmCut","pCmSeg","pCmSides","pPrimSX","pPrimSY","pPrimSZ"],
-  "prim:voronoi":["pVorN","pVorSize","pVorGap","pVorThick","pVorRelax","pVorSeed","pPrimSX","pPrimSY","pPrimSZ"],
-  "prim:tree":["pTreeLevels","pTreeSplits","pTreeTrunk","pTreeLenR","pTreeRad","pTreeRadR","pTreeAngle","pTreeTwist","pTreeCurve","pTreeDroop","pTreeJit","pTreeSides","pTreeSegs","pTreeTaper","pTreeLeafSz","pTreeSeed","pPrimSX","pPrimSY","pPrimSZ"],
+  "prim:sineWave":["pWaveMode","pWaveSize","pWaveSegs","pWaveAmp","pWaveFreq","pWavePhase","pWaveDecay","pWaveThick","pPrimSX","pPrimSY","pPrimSZ"],
+  "prim:cymatics":["pCymShape","pCymM","pCymN","pCymSize","pCymSegs","pCymAmp","pCymThick","pPrimSX","pPrimSY","pPrimSZ"],
+  "prim:pseudospherical":["pPssKind","pPssU","pPssV","pPssScale","pPssP1","pPssP2","pPrimSX","pPrimSY","pPrimSZ"],
+  "prim:weave":["pWvZ","pWvN","pWvSpace","pWvR","pWvAmp","pWvSides","pWvSegs","pPrimSX","pPrimSY","pPrimSZ"],
+  "prim:chainmail":["pCmPlane","pCmOval","pCmMode","pCmNx","pCmNz","pCmSpace","pCmR","pCmTube","pCmTilt","pCmWire","pCmRatio","pCmAngle","pCmDmin","pCmCdy","pCmCut","pCmSeg","pCmSides","pPrimSX","pPrimSY","pPrimSZ"],
+  "prim:voronoi":["pVorDim","pVorShape","pVorMode","pVorN","pVorSize","pVorGap","pVorThick","pVorRelax","pVorSeed","pPrimSX","pPrimSY","pPrimSZ"],
+  "prim:tree":["pTreeLeaves","pTreeLevels","pTreeSplits","pTreeTrunk","pTreeLenR","pTreeRad","pTreeRadR","pTreeAngle","pTreeTwist","pTreeCurve","pTreeDroop","pTreeJit","pTreeSides","pTreeSegs","pTreeTaper","pTreeLeafSz","pTreeSeed","pPrimSX","pPrimSY","pPrimSZ"],
   "prim:diamond":["pDiaCut","pDiaTable","pDiaCrown","pDiaPav","pDiaGirdle","pDiaSym","pDiaStar","pDiaLower","pDiaR","pPrimSX","pPrimSY","pPrimSZ"],
-  "prim:gem":["pGemNx","pGemNz","pGemSpace","pGemSize","pGemHeight","pGemAmp","pGemFall","pGemTwist","pGemSides","pGemSeed","pPrimSX","pPrimSY","pPrimSZ"],
-  "prim:maze":["pMazeNx","pMazeNz","pMazeCell","pMazeWall","pMazeHeight","pMazeBaseT","pMazeSeed","pPrimSX","pPrimSY","pPrimSZ"],
+  "prim:gem":["pGemCell","pGemField","pGemNx","pGemNz","pGemSpace","pGemSize","pGemHeight","pGemAmp","pGemFall","pGemTwist","pGemSides","pGemSeed","pPrimSX","pPrimSY","pPrimSZ"],
+  "prim:maze":["pMazeBase","pMazeNx","pMazeNz","pMazeCell","pMazeWall","pMazeHeight","pMazeBaseT","pMazeSeed","pPrimSX","pPrimSY","pPrimSZ"],
   "prim:maze3d":["pM3Nx","pM3Ny","pM3Nz","pM3Cell","pM3Tube","pM3Sides","pM3Seed","pPrimSX","pPrimSY","pPrimSZ"],
   "prim:tpms":["pTpType","pTpNx","pTpNy","pTpNz","pTpCell","pTpIso","pTpRes","pPrimSX","pPrimSY","pPrimSZ"],
   "prim:breeze":["pBrNx","pBrNy","pBrCell","pBrHole","pBrDepth","pBrSeg","pPrimSX","pPrimSY","pPrimSZ"]
@@ -11978,6 +12521,25 @@ $("#snapToggle")&&$("#snapToggle").addEventListener("click",()=>{ snapToGrid=!sn
     beginDGPreview();
     $("#hint").textContent="Differential growth — press Grow to advance frames, Apply to bake onto this layer.";
   }
+  if(NEWGEN[op]){ ngOpen(op); }
+  if(op==="coral"){
+    const body=$("#tpBody"); $("#tpTitle").textContent="Coral — diffusion-limited aggregation";
+    const row=(id,l,mn,mx,st,v)=>'<div class="param"><label>'+l+'</label><input type="range" id="'+id+'" min="'+mn+'" max="'+mx+'" step="'+st+'" value="'+v+'"><output id="'+id+'V">'+v+'</output></div>';
+    body.innerHTML=
+      '<div style="padding:6px 12px;color:var(--text-dim);font-size:11px;line-height:1.5">Particles wander in and stick where they touch, growing branching coral. <b>Connections</b> caps how many links each node can take — 2 grows long single strands, higher values bush out.</div>'+
+      '<div class="param"><label>Grow from</label><select id="pCorFrom"><option value="point">A point</option><option value="ground">The ground (grows up)</option><option value="surface">This model\'s surface</option></select></div>'+
+      row("pCorN","Particles",50,20000,50,2500)+row("pCorConn","Connections per node",2,8,1,3)+row("pCorSp","Branch spacing",0.005,0.2,0.005,0.03)+
+      row("pCorStick","Stickiness",0.05,1,0.05,0.8)+row("pCorBias","Up bias",0,1,0.05,0.15)+row("pCorThick","Thickness",0.2,3,0.05,1)+row("pCorSeed","Seed",1,500,1,7)+
+      '<div id="corLbl" style="padding:2px 12px 6px;color:#8fce9b;font-size:11px"></div>'+
+      '<div style="display:flex;gap:6px;padding:4px 12px 10px"><button id="corGrow" class="mkbtn" style="flex:1">Regrow</button><button id="corMore" class="mkbtn" style="flex:1">Grow +500</button><button id="corStop" class="mkbtn" style="flex:1">Stop</button></div>';
+    if(window.__numboxify) window.__numboxify(body);
+    ["pCorN","pCorConn","pCorSp","pCorStick","pCorBias","pCorSeed"].forEach(id=>{ const el=$("#"+id); if(el) el.addEventListener("change",()=>coralStart()); });
+    $("#pCorFrom").addEventListener("change",()=>coralStart());
+    $("#pCorThick").addEventListener("input",()=>coralShow());
+    $("#corGrow").addEventListener("click",()=>coralStart()); $("#corMore").addEventListener("click",()=>coralRun(500)); $("#corStop").addEventListener("click",()=>{ corRun=0; coralLbl(); });
+    beginCoralPreview();
+    $("#hint").textContent="Coral grows live — tweak and Regrow, then Apply to keep it as a new layer.";
+  }
   if(op==="greeble"){ beginGreeblePreview(); $("#tpTitle").textContent="Greeble — panels & spikes"; $("#hint").textContent=(sel.faces.size?"Greebling selected faces":"Greebling all faces")+" — tweak panels/spikes, drag Seed to re-roll. Apply to keep."; }
   if(op==="scale"){ beginScalePreview(); $("#hint").textContent="Slide to preview size against the bounding box — Apply freezes it."; }
   if(op==="offset"){ beginOffsetPreview(); $("#hint").textContent="Slide to preview the offset live — Apply to keep it."; }
@@ -11997,12 +12559,15 @@ $("#snapToggle")&&$("#snapToggle").addEventListener("click",()=>{ snapToGrid=!sn
   }
 }
 function closeToolPop(){
-  if(!tpState) return; { const _fl=$("#modFlatten"); if(_fl&&(tpState.op==="lattice"||tpState.op==="bejewel")) _fl.style.display=_fl.disabled?"none":""; }
+  if(!tpState) return; toolReplaceId=null;
+  { const b=document.getElementById("tpBody"); if(b) b.querySelectorAll(":scope > .smCtl").forEach(n=>n.remove()); }   // Simulate windows (Aero, Cloth, FEA…) don't leak into the next tool's Options { const _fl=$("#modFlatten"); if(_fl&&(tpState.op==="lattice"||tpState.op==="bejewel")) _fl.style.display=_fl.disabled?"none":""; }
   if(["slab","sliceEdges","laser"].indexOf(tpState.op)>=0){ setTimeout(()=>{ try{ window.__homeView&&window.__homeView(true); }catch(e){} },60); }   // leaving fabrication: come back from the zoomed-out parts view
   if(tpState.op==="scale") endScalePreview();
   if(tpState.op==="greeble") endGreeblePreview(false);
   if(tpState.op==="metaballs") endMetaPreview(false);
   if(tpState.op==="diffGrow"){ endDGPreview(false); $("#tpBody").innerHTML=""; }
+  if(tpState.op==="coral"){ endCoralPreview(false); $("#tpBody").innerHTML=""; }
+  if(NEWGEN[tpState.op]){ ngClose(false); $("#tpBody").innerHTML=""; }
   if(tpState.op==="tfMeasure"){ measureActive=false; measPts=[]; clearMeasureOverlay(); $("#tpBody").innerHTML=""; }
   if(tpState.op==="tfSolidify") endVoxPreview(false);
   if(tpState.op==="lattice"){ endLatticePreview(); $("#tpBody").innerHTML=""; }
@@ -12030,7 +12595,7 @@ function closeToolPop(){
   if(tpState.op==="spin") $("#tpBody").innerHTML="";
   if(tpState.op==="sliceEdges"){ $("#tpBody").innerHTML=""; buildSeamOverlay(); }   // keep seams shown on the model
   if(tpState.btn===null||tpState.btn===undefined){} 
-  for(const m of tpState.moved) m.parent.insertBefore(m.el,m.next);
+  for(const m of tpState.moved.slice().reverse()){ try{ if(m.next&&m.next.parentNode===m.parent) m.parent.insertBefore(m.el,m.next); else m.parent.appendChild(m.el); }catch(e){} }   // put panel rows back (last first, so each one's neighbour is already home)
   tpState.btn&&tpState.btn.classList.remove("on");
   $("#toolpop").classList.add("empty");
   $("#tpTitle").textContent="Options";
@@ -12053,6 +12618,8 @@ $("#tpApply").addEventListener("click",()=>{
   if(tpState.op==="greeble"){ endGreeblePreview(true); closeToolPop(); return; }
   if(tpState.op==="metaballs"){ endMetaPreview(true); closeToolPop(); return; }
   if(tpState.op==="diffGrow"){ endDGPreview(true); closeToolPop(); return; }
+  if(tpState.op==="coral"){ endCoralPreview(true); closeToolPop(); return; }
+  if(NEWGEN[tpState.op]){ ngClose(true); closeToolPop(); return; }
   if(tpState.op==="tfSolidify"){ endVoxPreview(true); closeToolPop(); return; }
   if(tpState.op==="offset"){ endOffsetPreview(true); closeToolPop(); return; }
   if(OP_PREVIEW[tpState.op] && opPrevBase){ mesh=_opClone(); opPrevBase=null; const op=tpState.op; ops[op](); closeToolPop(); return; }
@@ -12177,6 +12744,39 @@ $$("input[type=range]").forEach(r=>{
     }
   });
 });
+// Every slider anywhere (tool panels, modifiers, Simulate windows, dialogs — including ones built later) gets an editable
+// number box: type any value. A value past the slider's range widens the slider so the exact number is used.
+(function(){
+  const fmt=v=>{ const n=+v; return !isFinite(n)?"":Number.isInteger(n)?String(n):String(+n.toFixed(4)); };
+  function companion(r){ const par=r.parentElement; if(!par) return null; return [...par.querySelectorAll("input")].find(x=>x!==r&&(x.type==="text"||x.type==="number")) || null; }
+  function wire(r){
+    if(r.dataset.nb) return; r.dataset.nb="1";
+    if(r.closest("#splash,#amxSplash,.noNumbox")) return;
+    if(companion(r)) return;                                                // already has a typed box (static panels, modifiers)
+    const box=document.createElement("input"); box.type="text"; box.inputMode="decimal"; box.className="numbox tmNb"; box.title="Type a value";
+    const sib=r.nextElementSibling;
+    if(sib && /^(OUTPUT|EM|SPAN|B|SMALL)$/.test(sib.tagName) && !sib.querySelector("input,button") && /^[\s\-+0-9.,°%×x"″a-z]*$/i.test(sib.textContent||"")){ sib.after(box); sib.style.display="none"; box.dataset.mirror="1"; }
+    else r.after(box);
+    const sync=()=>{ if(document.activeElement!==box) box.value=fmt(r.value); };
+    r.addEventListener("input",sync); r.addEventListener("change",sync); sync(); box._sync=sync;
+    const commit=()=>{ let v=parseFloat(String(box.value).replace(",",".")); if(!isFinite(v)){ sync(); return; }
+      const mn=parseFloat(r.min), mx=parseFloat(r.max);
+      if(isFinite(mx)&&v>mx) r.max=String(v); if(isFinite(mn)&&v<mn) r.min=String(v);
+      const st=parseFloat(r.step); if(isFinite(st)&&st>0){ const base=isFinite(parseFloat(r.min))?parseFloat(r.min):0; if(Math.abs((v-base)/st-Math.round((v-base)/st))>1e-9) r.step="any"; }
+      r.value=String(v); box.value=fmt(r.value);
+      r.dispatchEvent(new Event("input",{bubbles:true})); r.dispatchEvent(new Event("change",{bubbles:true})); };
+    box.addEventListener("change",commit);
+    box.addEventListener("keydown",e=>{ e.stopPropagation();
+      if(e.key==="Enter"){ e.preventDefault(); commit(); box.blur(); }
+      else if(e.key==="ArrowUp"||e.key==="ArrowDown"){ e.preventDefault(); const st=parseFloat(r.step)||((parseFloat(r.max)-parseFloat(r.min))/100)||1; box.value=fmt((parseFloat(box.value)||0)+(e.key==="ArrowUp"?st:-st)); commit(); } });
+  }
+  const sweep=root=>{ (root||document).querySelectorAll&&(root||document).querySelectorAll('input[type="range"]').forEach(wire); };
+  sweep(document);
+  new MutationObserver(ms=>{ for(const m of ms) for(const n of m.addedNodes){ if(n.nodeType!==1) continue; if(n.matches&&n.matches('input[type="range"]')) wire(n); else if(n.querySelector) sweep(n); } }).observe(document.body,{childList:true,subtree:true});
+  // code that moves a slider without firing events: keep the boxes honest
+  setInterval(()=>{ document.querySelectorAll("input.tmNb").forEach(b=>{ if(b.offsetParent!==null&&b._sync) b._sync(); }); }, 400);
+  window.__numboxify=sweep;
+})();
 $("#tgEdges").addEventListener("change",e=>{edgeObj&&(edgeObj.visible=e.target.checked);});
 $("#tgVerts").addEventListener("change",e=>{pointObj&&(pointObj.visible=e.target.checked);});
 $("#tgBBox")&&$("#tgBBox").addEventListener("change",rebuildBBox);
@@ -12232,6 +12832,11 @@ addEventListener("resize",()=>{ if(document.body.classList.contains("fullscreen"
   [30,200,600].forEach(ms=>setTimeout(verifyFullscreenSize,ms));   // the real viewport size is only final once this event fires (enter AND exit)
 }));
 document.querySelectorAll('[data-act="fullscreen"]').forEach(el=>el.addEventListener("click",()=>{ document.querySelectorAll("#menubar .menu.open").forEach(m=>m.classList.remove("open")); toggleFullscreen(); }));
+// Esc leaves full-screen mode (immersive or whole-interface) — not while typing in a field
+addEventListener("keydown",e=>{ if(e.key!=="Escape") return; const t=e.target; if(t&&(t.tagName==="INPUT"||t.tagName==="TEXTAREA"||t.isContentEditable)) return;
+  const inFs=!!(document.fullscreenElement||document.webkitFullscreenElement);
+  if(document.body.classList.contains("fullscreen")) toggleFullscreen(false);
+  else if(inFs){ try{ (document.exitFullscreen||document.webkitExitFullscreen).call(document); }catch(_){} } });
 
 resize(); applyCam(); rebuild(); updateUndoUI(); updateHint();
 // ---------- make a panel draggable by a header and resizable by a grip ----------
@@ -12422,7 +13027,7 @@ $("#optionsToggle")&&$("#optionsToggle").addEventListener("click",()=>{ const tp
   function setOn(v){
     if(v===on) return;
     if(v){
-      if(!SR){ toast&&toast("Voice control needs a browser with Web Speech support (Chrome/Edge/Safari)",true); return; }
+      if(!SR){ toast&&toast("Voice control needs a browser with speech recognition",true); return; }
       if(!cmds) cmds=buildCmds();
       rec=new SR(); rec.continuous=true; rec.interimResults=false; rec.lang="en-US";
       rec.onresult=e=>{ const r=e.results[e.results.length-1]; if(r&&r.isFinal) run(r[0].transcript); };
@@ -12443,22 +13048,22 @@ $("#optionsToggle")&&$("#optionsToggle").addEventListener("click",()=>{ const tp
 $("#optionsToggle")&&$("#optionsToggle").classList.add("on");
 $("#snapToggle")&&$("#snapToggle").addEventListener("click",()=>{ snapToGrid=!snapToGrid; $("#snapToggle").classList.toggle("on",snapToGrid); toast&&toast(snapToGrid?"Snap to grid ON ("+SNAP_STEP+" units)":"Snap to grid OFF"); });
 $("#layerAdd")&&$("#layerAdd").addEventListener("click",()=>addLayer());
-// ---- Live link to Rhino: POST the visible model as OBJ to a local receiver on every edit ----
+// ---- Live link: POST the visible model as OBJ to a local receiver on every edit ----
 function rhinoPush(){
   if(!rhinoLink) return;
   let obj; try{ obj=TM.toOBJ(fabMesh()); }catch(e){ return; }
   fetch(rhinoURL,{method:"POST",headers:{"Content-Type":"text/plain"},body:obj})
     .then(()=>{ const b=$("#rhinoLink"); if(b) b.style.borderColor=""; })
-    .catch(()=>{ const b=$("#rhinoLink"); if(b) b.style.borderColor="#ff5a5a"; toast&&toast("Rhino link: can't reach "+rhinoURL+" — start the receiver in Rhino",true); });
+    .catch(()=>{ const b=$("#rhinoLink"); if(b) b.style.borderColor="#ff5a5a"; toast&&toast("Live link: can't reach "+rhinoURL,true); });
 }
 function maybeRhinoPush(){ if(!rhinoLink) return; clearTimeout(_rhinoT); _rhinoT=setTimeout(rhinoPush,250); }
 function setRhinoLink(on){
   rhinoLink=!!on; const b=$("#rhinoLink"); if(b) b.classList.toggle("on",rhinoLink);
-  if(rhinoLink){ toast&&toast("Rhino link ON \u2192 pushing to "+rhinoURL); rhinoPush(); }
-  else { toast&&toast("Rhino link off"); if(b) b.style.borderColor=""; }
+  if(rhinoLink){ toast&&toast("Live link ON \u2192 pushing to "+rhinoURL); rhinoPush(); }
+  else { toast&&toast("Live link off"); if(b) b.style.borderColor=""; }
 }
 $("#rhinoLink")&&$("#rhinoLink").addEventListener("click",()=>setRhinoLink(!rhinoLink));
-$("#rhinoLink")&&$("#rhinoLink").addEventListener("contextmenu",e=>{ e.preventDefault(); const u=prompt("Rhino receiver URL",rhinoURL); if(u){ rhinoURL=u.trim(); if(rhinoLink) rhinoPush(); } });
+$("#rhinoLink")&&$("#rhinoLink").addEventListener("contextmenu",e=>{ e.preventDefault(); const u=prompt("Live link receiver URL",rhinoURL); if(u){ rhinoURL=u.trim(); if(rhinoLink) rhinoPush(); } });
 // Fabrication footer node: ON flattens every visible layer + its modifiers into the fab input.
 var FAB_NAMES={papercraft:"Papercraft",layers:"Plywood · stacked layers",faces:"Plywood · face panels",laser:"Laser cut · finger joints",waffle:"Plywood · waffle"};
 var fabAdded=false;
@@ -13576,7 +14181,7 @@ function netToPDF(){
   return pdf;
 }
 // Wireframe export: just the edges of the on-screen mesh (base + live modifiers), no faces.
-//  obj -> "v" + "l" polylines (Rhino / Blender / C4D import them as curves), dxf -> 3D LINE entities (inches),
+//  obj -> "v" + "l" polylines (CAD apps import them as curves), dxf -> 3D LINE entities (inches),
 //  svg -> 2D projection of the current camera view (all edges), for plotting / laser / print.
 function exportWireframe(kind){
   const M=(typeof dispMesh==="function")?dispMesh():mesh;
@@ -13614,7 +14219,7 @@ function downloadText(text,fn,mime){
   a.href=URL.createObjectURL(blob); a.download=fn; document.body.appendChild(a); a.click(); a.remove();
   setTimeout(()=>URL.revokeObjectURL(a.href),1500); toast&&toast("Saved "+fn);
 }
-// binary STL of the current mesh, scaled to mm (mm/unit from the MAKE scale). For OrcaSlicer / Bambu Studio.
+// binary STL of the current mesh, scaled to mm (mm/unit from the MAKE scale). For your slicer.
 function meshToSTL(m, mm){
   const tris=[];
   for(const f of m.faces){ const p=f.map(i=>m.verts[i]); for(let i=1;i<p.length-1;i++) tris.push([p[0],p[i],p[i+1]]); }
@@ -13663,7 +14268,7 @@ function buildPrinter(){
 }
 function togglePrinter(){
   if(printerObj){ scene.remove(printerObj); printerObj.traverse(o=>o.geometry&&o.geometry.dispose&&o.geometry.dispose()); printerObj=null; toast&&toast("Printer hidden"); return; }
-  buildPrinter(); if(window.__tm&&window.__tm.frameAll) window.__tm.frameAll(); toast&&toast("FlashForge M5 \u2014 object on print bed");
+  buildPrinter(); if(window.__tm&&window.__tm.frameAll) window.__tm.frameAll(); toast&&toast("3D printer \u2014 object on print bed");
 }
 function sendToSlicer(){
   if(!mesh||!mesh.faces.length){ toast("Nothing to export",true); return; }
@@ -13677,7 +14282,7 @@ function sendToSlicer(){
   const blob=new Blob([buf],{type:"model/stl"}), a=document.createElement("a");
   a.href=URL.createObjectURL(blob); a.download=fn; document.body.appendChild(a); a.click(); a.remove();
   setTimeout(()=>URL.revokeObjectURL(a.href),1500);
-  toast&&toast("Saved "+fn+" — open it in OrcaSlicer or Bambu Studio");
+  toast&&toast("Saved "+fn+" — open it in your slicer");
 }
 // ---- Plywood / stacked-slice fabrication ----
 let slabData=null, slabOverlay=null, slabStack=null;
@@ -14930,7 +15535,7 @@ window.__ek={applyWhole:applyWhole,ops:ops,snapshot:snapshot,rebuild:rebuild,toa
       +rng("laHLevels","Hatch levels",1,4,1,C.hatch.levels)+rng("laHSpace","Hatch spacing",0.4,4,0.05,C.hatch.spacing)+rng("laHAngle","Hatch angle°",0,180,1,C.hatch.angle)+rng("laHTone","Hatch darkness",0.5,1.4,0.02,C.hatch.tone)
       +rng("laCont","Contour count",2,120,1,C.contours)
       +'<div class="laRow"><span>Sketchy</span><input type="checkbox" id="laSketch"></div>'
-      +'<div class="laSec">vpype ops</div>'
+      +'<div class="laSec">Line ops</div>'
       +rng("laMerge","linemerge tol",0,1,0.01,C.merge)+rng("laSimp","linesimplify",0,0.5,0.01,C.simplify)+rng("laMin","filter min len",0,5,0.1,C.minLen)
       +'<div class="laRow"><span>linesort</span><input type="checkbox" id="laSort" checked></div>'
       +'<div class="laSec">Page</div>'
@@ -14938,8 +15543,8 @@ window.__ek={applyWhole:applyWhole,ops:ops,snapshot:snapshot,rebuild:rebuild,toa
       +rng("laMargin","Margin mm",0,60,1,C.margin)
       +rng("laRes","Detail (px)",800,3000,100,C.res)
       +'<div class="laRow"><span>PNG</span><label><input type="checkbox" id="laTransp"> transparent background</label></div>'
-      +'<div class="laBtns"><button id="laSvg" title="Layered SVG — one Inkscape layer per pen; opens in vpype, Inkscape, AxiDraw, Illustrator">SVG (vpype)</button><button id="laHpgl" title="HPGL for vintage pen plotters (SP = layer pen)">HPGL</button><button id="laPng" title="Save the line drawing as a PNG (on-screen view, 2× resolution)">PNG</button></div>'
-      +'<div id="laStats"></div><div id="laCmd"></div></div>';
+      +'<div class="laBtns"><button id="laSvg" title="Layered SVG — one layer per pen; opens in plotter and vector drawing apps">Layered SVG</button><button id="laHpgl" title="HPGL for vintage pen plotters (SP = layer pen)">HPGL</button><button id="laPng" title="Save the line drawing as a PNG (on-screen view, 2× resolution)">PNG</button></div>'
+      +'<div id="laStats"></div><div id="laCmd" style="display:none"></div></div>';
     document.body.appendChild(panel);
     view=document.createElement("div"); view.id="laOver"; document.body.appendChild(view);
     panel.querySelector("#laPaper").addEventListener("change",e=>{ C.paperOn=e.target.checked; if(!C.paperOn) try{ rebuild(); }catch(_){} repaint(); });
@@ -15595,7 +16200,7 @@ window.__ek={applyWhole:applyWhole,ops:ops,snapshot:snapshot,rebuild:rebuild,toa
         {name:"Junction", note:"Where three handles meet — an original dodecahedron vertex (valence 3 → 6).", p:scr(H6.verts[3])}
       ];
       const bytes=await compile(S,{project:"The TopMod Look", title:"The TopMod Look", subtitle:"Dodecahedron → 6 twisted handles → Doo-Sabin → face loops → rind → Catmull-Clark · step-by-step guide",
-        credit:"After Nathan Ho, “TopMod and Blender”. TopMod: Ergun Akleman, Vinod Srinivasan, Jianer Chen (Texas A&M).",
+        credit:"After Nathan Ho. TopMod: Ergun Akleman, Vinod Srinivasan, Jianer Chen (Texas A&M).",
         shortcut:"Shortcut: Tools ▸ The TopMod Look builds the finished form in one click; File ▸ Export Step Guide compiles your own steps the same way."},
         {crop, coverImg:anaImg, anatomy:{img:anaImg, caption:"Catmull-Clark ×1 after rind modeling. Euler–Poincaré: V − E + F = 2 − 2g.", labels}});
       savePDF(bytes,"TopMod_Look_step_guide.pdf");
@@ -16205,6 +16810,7 @@ window.__ek={applyWhole:applyWhole,ops:ops,snapshot:snapshot,rebuild:rebuild,toa
           for(let n=0;n<900;n++){ if(!samp(p[0],p[1],p[2],v)) break; const h=cs*0.6/Math.max(0.15,Math.hypot(v[0],v[1],v[2])); const mid=[p[0]+v[0]*h/2,p[1]+v[1]*h/2,p[2]+v[2]*h/2], v2=[0,0,0]; if(!samp(mid[0],mid[1],mid[2],v2)) break;
             p=[p[0]+v2[0]*h,p[1]+v2[1]*h,p[2]+v2[2]*h]; if(p[1]<floorY+0.005) p[1]=floorY+0.005; const spd=Math.hypot(v2[0],v2[1],v2[2]); maxS=Math.max(maxS,spd); sp.push(spd); pts.push(p.slice()); if(p[0]>o[0]+ext[0]-cs*1.5) break; }
           lines.push({pts,sp}); }
+        A.baked={lines:lines.map(ln=>({pts:ln.pts.map(Ri), sp:ln.sp})), L};   // world-space streamlines, kept for "Bake lines"
         for(const ln of lines){ let s=0; for(let n=1;n<ln.pts.length;n++){ const a=Ri(ln.pts[n-1]), bb=Ri(ln.pts[n]); const t=ln.sp[n-1]/1.35; rainbow(t,c); pos.push(a[0],a[1],a[2],bb[0],bb[1],bb[2]); col.push(c.r,c.g,c.b,c.r,c.g,c.b); const dl=Math.hypot(bb[0]-a[0],bb[1]-a[1],bb[2]-a[2]); arc.push(s/L,(s+dl)/L); s+=dl; } }
         const gl=new THREE.BufferGeometry(); gl.setAttribute("position",new THREE.Float32BufferAttribute(pos,3)); gl.setAttribute("color",new THREE.Float32BufferAttribute(col,3)); gl.setAttribute("arc",new THREE.Float32BufferAttribute(arc,1));
         A.mat=new THREE.ShaderMaterial({transparent:true,depthWrite:false,uniforms:{uT:{value:0},uA:{value:ctl.querySelector("#aeAnim").checked?1:0}},
@@ -16226,15 +16832,39 @@ window.__ek={applyWhole:applyWhole,ops:ops,snapshot:snapshot,rebuild:rebuild,toa
       sweep();
     },30);
   }
+  // Bake lines: every streamline becomes a capped tube (parallel-transport frames), all on one new layer
+  function aeroBake(){
+    const B=A.baked; if(!B||!B.lines.length){ toast&&toast("Run Aero first — then bake its streamlines",true); return; }
+    const k=A.ctl?+A.ctl.querySelector("#aeBakeT").value||1:1, r=B.L*0.004*k, sides=5, minStep=Math.max(r*3,B.L*0.09), verts=[], faces=[];
+    const sub=(a,b)=>[a[0]-b[0],a[1]-b[1],a[2]-b[2]], nrm=a=>{ const l=Math.hypot(a[0],a[1],a[2])||1; return [a[0]/l,a[1]/l,a[2]/l]; }, crs=(a,b)=>[a[1]*b[2]-a[2]*b[1],a[2]*b[0]-a[0]*b[2],a[0]*b[1]-a[1]*b[0]], dt=(a,b)=>a[0]*b[0]+a[1]*b[1]+a[2]*b[2];
+    let tubes=0;
+    for(const ln of B.lines){
+      const P=[ln.pts[0]]; for(let i=1;i<ln.pts.length;i++){ const q=ln.pts[i], l=P[P.length-1]; if(Math.hypot(q[0]-l[0],q[1]-l[1],q[2]-l[2])>=minStep||i===ln.pts.length-1) P.push(q); }
+      if(P.length<2) continue;
+      const T=P.map((p,i)=>nrm(sub(P[Math.min(P.length-1,i+1)],P[Math.max(0,i-1)])));
+      let u=Math.abs(T[0][1])<0.9?[0,1,0]:[1,0,0]; u=nrm(crs(T[0],u));
+      const base=verts.length;
+      for(let i=0;i<P.length;i++){
+        if(i>0){ const proj=dt(u,T[i]); u=nrm([u[0]-T[i][0]*proj,u[1]-T[i][1]*proj,u[2]-T[i][2]*proj]); }   // parallel transport: no twisting
+        const w=crs(T[i],u);
+        for(let s=0;s<sides;s++){ const a=s/sides*Math.PI*2, c=Math.cos(a)*r, d=Math.sin(a)*r; verts.push([P[i][0]+u[0]*c+w[0]*d, P[i][1]+u[1]*c+w[1]*d, P[i][2]+u[2]*c+w[2]*d]); } }
+      for(let i=0;i+1<P.length;i++) for(let s=0;s<sides;s++){ const a=base+i*sides+s, b=base+i*sides+(s+1)%sides; faces.push([a,b,b+sides,a+sides]); }
+      const c0=[], c1=[]; for(let s=0;s<sides;s++){ c0.push(base+s); c1.push(base+(P.length-1)*sides+s); } faces.push(c0.reverse(), c1);
+      tubes++; }
+    if(!faces.length){ toast&&toast("No streamlines to bake",true); return; }
+    addLayer({verts,faces}, false); try{ if(layers[activeLayer]) layers[activeLayer].name="Aero streamlines"; renderLayerList&&renderLayerList(); }catch(e){}
+    toast&&toast("Baked "+tubes+" streamlines → new layer");
+  }
   function aeroOpen(){
     A.ctl=openPanel("aero","Aero — wind tunnel",
       '<div class="clS">Potential-flow solve on a voxel grid with a wake model — quick design feedback, not a CFD certification.</div>'
       +'<label class="clR"><span>Wind from</span><select id="aeDir"><option value="+x">−X → +X</option><option value="-x">+X → −X</option><option value="+z">−Z → +Z</option><option value="-z">+Z → −Z</option></select><em></em></label>'
       +sl("aeRes","Resolution",32,110,2,64)+sl("aeLines","Streamlines",40,600,10,220)+sl("aeTurb","Wake swirl",0,1,0.01,0.45)
       +'<label class="clC"><input type="checkbox" id="aeCp" checked> Surface pressure (Cp)</label><label class="clC"><input type="checkbox" id="aeAnim" checked> Animate flow</label>'
-      +'<div class="clB"><button id="aeRun" class="pri">▶ Run</button><button id="aeClr">Clear</button></div><div class="clS" id="aeStats"></div>', ()=>{ aeroClear(); A.ctl=null; });
+      +sl("aeBakeT","Baked tube thickness",0.1,3,0.05,1)
+      +'<div class="clB"><button id="aeRun" class="pri">▶ Run</button><button id="aeBake" title="Turn the streamlines into solid tubes on a new layer">Bake lines</button><button id="aeClr">Clear</button></div><div class="clS" id="aeStats"></div>', ()=>{ aeroClear(); A.ctl=null; });
     if(!A.ctl) return;
-    A.ctl.querySelector("#aeRun").onclick=aeroRun; A.ctl.querySelector("#aeClr").onclick=aeroClear;
+    A.ctl.querySelector("#aeRun").onclick=aeroRun; A.ctl.querySelector("#aeClr").onclick=aeroClear; A.ctl.querySelector("#aeBake").onclick=aeroBake;
     A.ctl.querySelector("#aeAnim").onchange=e=>{ if(A.mat) A.mat.uniforms.uA.value=e.target.checked?1:0; };
     ["#aeDir","#aeCp"].forEach(s=>A.ctl.querySelector(s).addEventListener("change",aeroRun));
     $("#hint")&&($("#hint").textContent="Aero: streamlines show the air around your model — colour = speed. Surface colour = pressure.");
@@ -16410,7 +17040,7 @@ window.__ek={applyWhole:applyWhole,ops:ops,snapshot:snapshot,rebuild:rebuild,toa
   function toBake(){ if(!O.res){ toast&&toast("Run the optimisation first",true); return; } const m=voxSurface(O.res,+O.ctl.querySelector("#toThr").value); if(!m.faces.length){ toast&&toast("Nothing above the threshold",true); return; }
     toClear(); hideModel(false); addLayer(m,false); if(layers[activeLayer]) layers[activeLayer].name="TopOpt "+layers[activeLayer].id; renderLayerList&&renderLayerList(); toast&&toast("Optimised shape baked to a new layer"); toDraw(); }
   const TO_EX={
-    cantilever:{lab:"Cantilever beam",box:[12,3.75,2.4],sup:b=>grid2(b,"x0",4,4),load:b=>line(b,[b[0]/2,-b[1]/2+0.08,0],2),res:30,vf:0.3,it:40,note:"Wall on the left, weight hanging off the right tip."},
+    cantilever:{lab:"Cantilever beam",box:[12,3.75,2.4],sup:b=>grid2(b,"x0",4,4),load:b=>line(b,[b[0]/2,-b[1]/2+0.08,0],2),res:34,vf:0.3,it:40,note:"Wall on the left, weight hanging off the right tip."},
     bridge:{lab:"Bridge",box:[18,4.8,3],sup:b=>[...pts(b,[-b[0]/2+0.1,-b[1]/2+0.05],3),...pts(b,[b[0]/2-0.1,-b[1]/2+0.05],3)],load:b=>strip(b,b[1]/2-0.05,24),res:36,vf:0.3,it:50,note:"Two piers at the ends, traffic across the top."},
     bracket:{lab:"Wall bracket",box:[9,7.2,2.1],sup:b=>[...pts2(b,[-b[0]/2+0.05,b[1]/2-0.3]),...pts2(b,[-b[0]/2+0.05,-b[1]/2+0.3])],load:b=>line(b,[b[0]/2-0.05,b[1]/2-0.08,0],2),res:28,vf:0.25,it:40,note:"Two bolts in the wall, shelf load at the outer top corner."},
     table:{lab:"Table",box:[9,5.4,9],sup:b=>[[-1,-1],[1,-1],[-1,1],[1,1]].flatMap(([sx,sz])=>[{c:[sx*(b[0]/2-0.15),-b[1]/2+0.04,sz*(b[2]/2-0.15)],n:[0,-1,0]}]),load:b=>{ const o=[]; for(let i=0;i<5;i++) for(let k=0;k<5;k++) o.push({c:[(i/4-0.5)*b[0]*0.9,b[1]/2-0.04,(k/4-0.5)*b[2]*0.9],n:[0,1,0]}); return o; },res:24,vf:0.2,it:35,note:"Four feet on the ground, load spread across the top."}
@@ -16484,12 +17114,12 @@ window.__ek={applyWhole:applyWhole,ops:ops,snapshot:snapshot,rebuild:rebuild,toa
       '<div class="clS">Carves away material that carries little load (SIMP, minimum compliance). Select faces on the model, then use them as supports or loads.</div>'
       +'<div class="clB"><button id="toTutB" class="pri">▶ Step-by-step tutorial</button></div>'
       +'<label class="clR"><span>Example</span><select id="toEx"><option value="">— pick a worked example —</option>'+Object.keys(TO_EX).map(k=>'<option value="'+k+'">'+TO_EX[k].lab+'</option>').join("")+'</select><em></em></label>'
-      +sl("toScale","Size ×",0.25,5,0.05,1)
-      +sl("toVf","Keep volume",0.08,0.8,0.01,0.3)+sl("toRes","Resolution",10,34,1,18)+sl("toIt","Iterations",5,80,1,30)
-      +'<label class="clR"><span>Supports</span><select id="toSup"><option value="base">Base (on the ground)</option><option value="sel">Selected faces</option></select><em></em></label>'
+      +sl("toScale","Size ×",0.25,5,0.05,1.85)
+      +sl("toVf","Keep volume",0.08,0.8,0.01,0.3)+sl("toRes","Resolution",10,34,1,34)+sl("toIt","Iterations",5,80,1,40)
+      +'<label class="clR"><span>Supports</span><select id="toSup"><option value="base">Base (on the ground)</option><option value="sel" selected>Selected faces</option></select><em></em></label>'
       +'<label class="clR"><span>Load</span><select id="toLd"><option value="down">Selected faces · push down</option><option value="push">Selected faces · press in</option><option value="side">Selected faces · push sideways</option><option value="top">Top surface · down</option></select><em></em></label>'
       +'<div class="clB"><button id="toSupB">Supports from selection</button><button id="toLdB">Loads from selection</button></div><div class="clS" id="toSel">No faces assigned — select faces (press 3) and assign them.</div>'
-      +sl("toThr","Threshold",0.1,0.9,0.01,0.5)+sl("toSm","Smooth",0,12,1,4)
+      +sl("toThr","Threshold",0.1,0.9,0.01,0.81)+sl("toSm","Smooth",0,12,1,12)
       +'<div class="clB"><button id="toRun" class="pri">▶ Optimise</button><button id="toBake">Bake</button><button id="toClr">Clear</button></div><div class="clS" id="toStats"></div>', ()=>{ O.run=false; toClear(); hideModel(false); if(O.mk){ scene.remove(O.mk); O.mk=null; } if(TT.card){ TT.card.remove(); TT.card=null; } document.querySelectorAll(".toPulse").forEach(e=>e.classList.remove("toPulse")); O.ctl=null; });
     if(!O.ctl) return;
     const upd=()=>{ toMarkers(); O.ctl.querySelector("#toSel").textContent="Supports: "+(O.sup.length?Math.round(O.sup.length/5)+" face(s)":"base")+" · Loads: "+(O.load.length?Math.round(O.load.length/5)+" face(s)":"top surface"); if(O.res) toDraw(); };
@@ -18485,7 +19115,7 @@ void main(){
         if(DUOD()) await pick("emerald","Gem · Emerald cut"); else { await pick("princess","Gem · Princess cut"); await pick("oval","Gem · Oval cut"); await pick("round","Gem · Round brilliant"); }
         await slide("bejSym", 8, 12, 4, "Gem adjust · more facets");
         await slide("bejCrown", 34.5, 40, 8, "Gem adjust · taller crown");
-        const bk=q("#bejBake"); if(bk&&alive){ moveCursor(bk); await wait(500); say("Bake the gems to their own layer"); bk.click(); } await wait(900); if(!alive) return; if(DUOD()) try{ window.__tm.frameAll(0.72); }catch(e){}
+        const bk=q("#bejMod"); if(bk&&alive){ moveCursor(bk); await wait(500); say("Add Bejewel to the modifier stack — the gems stay live and editable"); clickFx(); bk.click(); } await wait(900); if(!alive) return; if(DUOD()) try{ window.__tm.frameAll(0.72); }catch(e){}
         window.__gemOpts=Object.assign(window.__gemOpts||{}, {disp:false, bounces:4}); say("View · Diamond"); spinHold=true; setRenderMode("diamond"); try{ window.__eq&&window.__eq.gem("diamond"); }catch(e){} await wait(3200);
         setRenderMode("solid"); spinHold=false; if(!alive) return;
         const PH=window.__physics; if(PH){ await point('#toolbar [data-act="physics"]', "Simulate · Physics — every gem is a rigid body", 300); PH.open(); await wait(1600); if(!alive) return;
@@ -18678,6 +19308,73 @@ void main(){
     if (document.readyState === "complete") afterSplash(); else addEventListener("load", afterSplash); }
 })();
 /* Ask Claude bridge: the in-app assistant drives the app through these (read live) */
+/* Cage Edit: while a Cage Edit modifier is open in Options, its lattice is drawn over the model; points are picked and dragged here */
+(function(){
+ const ptMat=new THREE.PointsMaterial({size:11,sizeAttenuation:false,vertexColors:true,depthTest:false,depthWrite:false,transparent:true}); ptMat.userData.tmOverlay=true;
+ const lnMat=new THREE.LineBasicMaterial({color:0x00b4d8,depthTest:false,depthWrite:false,transparent:true,opacity:0.55}); lnMat.userData.tmOverlay=true;
+ const grp=new THREE.Group(); grp.renderOrder=1001; grp.visible=false; scene.add(grp);
+ let pts=null, lns=null, cur=null, frame=null, inKey="", picked=new Set(), drag=null, lastId=null;
+ const C_N=new THREE.Color(0x00e5ff), C_S=new THREE.Color(0xff8c22);
+ function editMod(){ if(tpState&&tpState.op!=="modedit") return null; const L=layers[activeLayer]; if(!L||!L.modifiers||modEditId==null) return null; const md=L.modifiers.find(m=>m.id===modEditId); return (md&&md.type==="ffd"&&md.on)?md:null; }
+ function inputMesh(md){ const L=layers[activeLayer]; const idx=L.modifiers.indexOf(md); return evalMods(mesh, L.modifiers.slice(0,idx), L); }
+ function ptPos(md,i,j,k){ const {n,dg}=_ffdCounts(md.params); const g=[_ffdGrev(n[0],dg[0])[i],_ffdGrev(n[1],dg[1])[j],_ffdGrev(n[2],dg[2])[k]], o=(md.params.pts||{})[i+","+j+","+k]||[0,0,0];
+   return new THREE.Vector3(frame.min[0]+(g[0]+o[0])*frame.size[0], frame.min[1]+(g[1]+o[1])*frame.size[1], frame.min[2]+(g[2]+o[2])*frame.size[2]); }
+ function build(md){
+   if(pts){ grp.remove(pts); pts.geometry.dispose(); } if(lns){ grp.remove(lns); lns.geometry.dispose(); }
+   const {n}=_ffdCounts(md.params); const P=[], col=[], keys=[], idx=(i,j,k)=>(i*n[1]+j)*n[2]+k, L=[];
+   for(let i=0;i<n[0];i++) for(let j=0;j<n[1];j++) for(let k=0;k<n[2];k++){ const v=ptPos(md,i,j,k), key=i+","+j+","+k; P.push(v.x,v.y,v.z); keys.push(key); const c=picked.has(key)?C_S:C_N; col.push(c.r,c.g,c.b); }
+   for(let i=0;i<n[0];i++) for(let j=0;j<n[1];j++) for(let k=0;k<n[2];k++){ const a=idx(i,j,k); if(i+1<n[0]) L.push(a,idx(i+1,j,k)); if(j+1<n[1]) L.push(a,idx(i,j+1,k)); if(k+1<n[2]) L.push(a,idx(i,j,k+1)); }
+   const g=new THREE.BufferGeometry(); g.setAttribute("position",new THREE.Float32BufferAttribute(P,3)); g.setAttribute("color",new THREE.Float32BufferAttribute(col,3));
+   pts=new THREE.Points(g,ptMat); pts.renderOrder=1002; pts.raycast=()=>{}; pts.userData.keys=keys; grp.add(pts);
+   const lg=new THREE.BufferGeometry(); const LP=[]; for(const q of L) LP.push(P[q*3],P[q*3+1],P[q*3+2]); lg.setAttribute("position",new THREE.Float32BufferAttribute(LP,3));
+   lns=new THREE.LineSegments(lg,lnMat); lns.renderOrder=1001; lns.raycast=()=>{}; grp.add(lns);
+   const si=document.getElementById("ffdSelInfo"); if(si) si.textContent=picked.size?(picked.size+" point"+(picked.size>1?"s":"")+" picked"):"No points picked";
+ }
+ function refresh(force){ const md=editMod(); if(!md){ grp.visible=false; if(lastId!=null){ picked.clear(); lastId=null; } cur=null; return; }
+   if(md.id!==lastId){ picked.clear(); lastId=md.id; force=true; }
+   const k=(meshObj?meshObj.uuid:"")+"|"+JSON.stringify(md.params.pts||{})+"|"+md.params.nu+md.params.nv+md.params.nw+md.params.degree;
+   if(force||k!==inKey||!frame){ inKey=k; if(!drag) frame=_ffdFrame(inputMesh(md)); cur=md; build(md); }
+   grp.visible=true; }
+ const ren=renderer, orig=ren.render.bind(ren); ren.render=function(sc,cm){ try{ if(cm===camera) refresh(false); }catch(e){} return orig(sc,cm); };
+ const scr=v=>{ const p=v.clone().project(camera), r=canvas.getBoundingClientRect(); return {x:r.left+(p.x+1)/2*r.width, y:r.top+(1-p.y)/2*r.height, z:p.z}; };
+ function hitKey(x,y){ if(!cur||!grp.visible||!pts) return null; const pos=pts.geometry.attributes.position, keys=pts.userData.keys; let best=null, bd=14*14, bz=9;
+   for(let i=0;i<keys.length;i++){ const q=scr(new THREE.Vector3(pos.getX(i),pos.getY(i),pos.getZ(i))); const d=(q.x-x)**2+(q.y-y)**2; if(d<bd-1||(d<bd+1&&q.z<bz)){ bd=d; bz=q.z; best=keys[i]; } } return best; }
+ const rayPlane=(x,y,pl)=>{ const r=canvas.getBoundingClientRect(), nd=new THREE.Vector2((x-r.left)/r.width*2-1, -((y-r.top)/r.height)*2+1), rc=new THREE.Raycaster(); rc.setFromCamera(nd,camera); const o=new THREE.Vector3(); return rc.ray.intersectPlane(pl,o)?o:null; };
+ function down(e){ const md=editMod(); if(!md) return false; const key=hitKey(e.clientX,e.clientY); if(!key) return false;
+   if(e.shiftKey){ if(picked.has(key)) picked.delete(key); else picked.add(key); } else if(!picked.has(key)){ picked.clear(); picked.add(key); }
+   build(md); if(!picked.has(key)) return true;
+   const [i,j,k]=key.split(",").map(Number), p0=ptPos(md,i,j,k), dir=new THREE.Vector3(); camera.getWorldDirection(dir);
+   const pl=new THREE.Plane().setFromNormalAndCoplanarPoint(dir,p0), start=rayPlane(e.clientX,e.clientY,pl); if(!start) return true;
+   const o0={}; for(const kk of picked) o0[kk]=((md.params.pts||{})[kk]||[0,0,0]).slice();
+   drag={md,pl,start,o0,x:e.clientX,y:e.clientY,dir,moved:false,alt:e.altKey,snap:false}; return true; }
+ function move(e){ if(!drag) return; const md=drag.md; let d;
+   if(drag.alt){ const dy=(e.clientY-drag.y), s=Math.max(...frame.size)*0.004; d=drag.dir.clone().multiplyScalar(-dy*s); }
+   else { const p=rayPlane(e.clientX,e.clientY,drag.pl); if(!p) return; d=p.sub(drag.start); }
+   if(!drag.moved){ if(Math.hypot(e.clientX-drag.x,e.clientY-drag.y)<2) return; drag.moved=true; snapshot(); }
+   md.params.pts=md.params.pts||{};
+   for(const kk in drag.o0){ const o=drag.o0[kk]; md.params.pts[kk]=[o[0]+d.x/frame.size[0], o[1]+d.y/frame.size[1], o[2]+d.z/frame.size[2]]; }
+   md.params.pn=_ffdCounts(md.params).n.join("x"); build(md); scheduleRebuild(); }
+ function up(){ if(!drag) return; const dg=drag; drag=null; if(dg.moved){ rebuild(); renderModStack&&renderModStack(); } }
+ function nudge(dx,dy,dz){ const md=editMod(); if(!md||!picked.size||!frame) return false; snapshot(); md.params.pts=md.params.pts||{};
+   const st=0.02; for(const kk of picked){ const o=md.params.pts[kk]||[0,0,0]; md.params.pts[kk]=[o[0]+dx*st,o[1]+dy*st,o[2]+dz*st]; } md.params.pn=_ffdCounts(md.params).n.join("x"); rebuild(); refresh(true); return true; }
+ function action(a){ const md=editMod(); if(!md) return; const {n}=_ffdCounts(md.params);
+   if(a==="all"){ for(let i=0;i<n[0];i++) for(let j=0;j<n[1];j++) for(let k=0;k<n[2];k++) picked.add(i+","+j+","+k); }
+   else if(a==="none") picked.clear();
+   else if(a==="reset"){ snapshot(); md.params.pts={}; rebuild(); }
+   else if(a==="resetSel"){ if(!picked.size) return; snapshot(); for(const kk of picked) delete (md.params.pts||{})[kk]; rebuild(); }
+   refresh(true); }
+ const wrap=document.getElementById("viewWrap");
+ wrap.addEventListener("pointerdown",e=>{ if(e.button!==0&&e.pointerType!=="touch") return; if(down(e)){ e.stopPropagation(); e.preventDefault(); try{ wrap.setPointerCapture(e.pointerId); }catch(_){} } },true);
+ wrap.addEventListener("touchstart",e=>{ if(drag){ e.stopPropagation(); e.preventDefault(); } },{capture:true,passive:false});
+ addEventListener("pointermove",e=>{ if(drag){ e.stopPropagation(); move(e); } },true);
+ addEventListener("pointerup",e=>{ if(drag){ e.stopPropagation(); up(); } },true);
+ addEventListener("pointercancel",()=>up(),true);
+ addEventListener("keydown",e=>{ if(!editMod()||!picked.size) return; const t=e.target; if(t&&(t.tagName==="INPUT"||t.tagName==="TEXTAREA"||t.isContentEditable)) return;
+   const m={ArrowLeft:[-1,0,0],ArrowRight:[1,0,0],ArrowUp:[0,e.shiftKey?0:1,e.shiftKey?-1:0],ArrowDown:[0,e.shiftKey?0:-1,e.shiftKey?1:0]}[e.key];
+   if(m&&nudge(...m)){ e.preventDefault(); e.stopPropagation(); } else if(e.key==="Escape"){ picked.clear(); refresh(true); } },true);
+ window.__ffd={ action, get picked(){ return [...picked]; }, hitKey, refresh:()=>refresh(true) };
+})();
+
 /* Push / pull handle: select face(s) and an arrow appears on their normal. Drag = push/pull (moves the faces along their normal); Shift+drag = extrude (new side walls). Live; release commits */
 (function(){
  const acc=()=>new THREE.Color(getComputedStyle(document.body).getPropertyValue("--tmAcc").trim()||"#00b4d8");
@@ -18689,14 +19386,17 @@ void main(){
  const knob=new THREE.Mesh(new THREE.SphereGeometry(0.07,16,12),mat); knob.renderOrder=1000;
  [shaft,head,knob].forEach(m=>{ m.raycast=()=>{}; grp.add(m); }); scene.add(grp);
  const tip=document.createElement("div"); tip.id="ppTip"; tip.style.cssText="position:fixed;z-index:46;display:none;transform:translate(-50%,-140%);pointer-events:none;font:700 11px var(--mono,monospace);color:#fff;background:rgba(10,14,20,.85);padding:2px 7px;border-radius:6px"; document.body.appendChild(tip);
- let key="", C=null, N=null, L=1, drag=null;
+ let key="", C=null, N=null, L=1, drag=null, only=null;
  const vec=a=>new THREE.Vector3(a[0],a[1],a[2]);
  function compute(){ const M=dispMesh(); const c=new THREE.Vector3(), n=new THREE.Vector3(), fns=[]; let cnt=0;
-   for(const fi of sel.faces){ const f=M.faces[fi]; if(!f||f.length<3) continue; const fc=new THREE.Vector3(); for(const vi of f) fc.add(vec(M.verts[vi])); fc.divideScalar(f.length); c.add(fc);
+   const order=[...sel.faces]; only=null;
+   const fnOf=fi=>{ const f=M.faces[fi]; if(!f||f.length<3) return null; const fn=new THREE.Vector3(); for(let i=0;i<f.length;i++){ const a=vec(M.verts[f[i]]), b=vec(M.verts[f[(i+1)%f.length]]); fn.x+=(a.y-b.y)*(a.z+b.z); fn.y+=(a.z-b.z)*(a.x+b.x); fn.z+=(a.x-b.x)*(a.y+b.y); } return fn.lengthSq()>0?fn.normalize():null; };
+   /* faces pointing different ways (e.g. a second face clicked on another side): the arrow follows the most recently selected face */
+   { const ns=order.map(fnOf).filter(Boolean); if(ns.length>1){ const avg=ns.reduce((s,q)=>s.add(q),new THREE.Vector3()).normalize(); if(ns.some(q=>q.dot(avg)<0.85)){ for(let i=order.length-1;i>=0;i--) if(fnOf(order[i])){ only=order[i]; break; } } } }
+   for(const fi of (only!=null?[only]:order)){ const f=M.faces[fi]; if(!f||f.length<3) continue; const fc=new THREE.Vector3(); for(const vi of f) fc.add(vec(M.verts[vi])); fc.divideScalar(f.length); c.add(fc);
      const fn=new THREE.Vector3(); for(let i=0;i<f.length;i++){ const a=vec(M.verts[f[i]]), b=vec(M.verts[f[(i+1)%f.length]]); fn.x+=(a.y-b.y)*(a.z+b.z); fn.y+=(a.z-b.z)*(a.x+b.x); fn.z+=(a.x-b.x)*(a.y+b.y); }   // Newell normal
      if(fn.lengthSq()>0){ fn.normalize(); fns.push(fn.clone()); n.add(fn); } cnt++; }
    if(!cnt||n.lengthSq()<1e-12) return false; C=c.divideScalar(cnt); N=n.normalize();
-   if(fns.some(q=>q.dot(N)<0.85)) return false;   // faces pointing different ways (e.g. a pair picked for a Handle): no push/pull arrow
    let mn=[1e9,1e9,1e9],mx=[-1e9,-1e9,-1e9]; for(const v of M.verts) for(let i=0;i<3;i++){ if(v[i]<mn[i]) mn[i]=v[i]; if(v[i]>mx[i]) mx[i]=v[i]; }
    L=Math.max(mx[0]-mn[0],mx[1]-mn[1],mx[2]-mn[2],0.2)*0.32; return true; }
  function active(){ return selMode==="face"&&sel.faces.size>0&&!tpState&&!(window.__demo&&window.__demo.on&&window.__demo.on())&&!(typeof isActiveLocked==="function"&&isActiveLocked()); }
@@ -18704,13 +19404,14 @@ void main(){
  function sync(){ if(drag){ grp.visible=true; return; }
    if(!active()){ grp.visible=false; key=""; return; }
    const mo=(typeof meshObj!=="undefined"&&meshObj)?meshObj.uuid:"", k=[...sel.faces].join(",")+"|"+mo;
-   if(k!==key){ key=k; if(!compute()){ grp.visible=false; return; } place(0); }
+   if(k!==key){ key=k; if(!compute()){ C=null; grp.visible=false; return; } place(0); }
    grp.visible=!!C; mat.color.copy(acc()); }
  const ren=renderer, orig=ren.render.bind(ren); ren.render=function(sc,cm){ try{ if(cm===camera) sync(); }catch(e){} return orig(sc,cm); };
  const scr=p=>{ const v=p.clone().project(camera), r=canvas.getBoundingClientRect(); return {x:r.left+(v.x+1)/2*r.width, y:r.top+(1-v.y)/2*r.height}; };
  function hit(x,y){ if(!grp.visible||!C) return false; const a=scr(grp.position), b=scr(grp.position.clone().addScaledVector(N,L*1.27));
    const dx=b.x-a.x, dy=b.y-a.y, l2=dx*dx+dy*dy||1, t=Math.max(0,Math.min(1,((x-a.x)*dx+(y-a.y)*dy)/l2)), px=a.x+t*dx-x, py=a.y+t*dy-y; return px*px+py*py<(16*16)&&t>0.12; }   // grab the shaft / head, not the base where the face itself is
  function down(x,y,shift){ if(!hit(x,y)) return false;
+   if(only!=null&&sel.faces.size>1){ sel.faces.clear(); sel.faces.add(only); try{ rebuildOverlay(); }catch(_){} try{ updateHint(); }catch(_){} key=[...sel.faces].join(",")+"|"+((typeof meshObj!=="undefined"&&meshObj)?meshObj.uuid:""); }   // pulling one face of a mixed selection: the selection becomes that face
    let kind="pull", vs=null;
    if(shift||dispMesh()!==mesh){ kind="extrude"; if(!beginExtrudePreview()) return false; }   // with live modifiers the base cage differs, so pull via an extrude
    else { const set=new Set(); for(const fi of sel.faces){ const f=mesh.faces[fi]; if(f) for(const vi of f) set.add(vi); } vs=[...set].map(vi=>[vi,mesh.verts[vi].slice()]); snapshot(); }
@@ -19546,7 +20247,7 @@ window.__tmCore={ get bboxObj(){return bboxObj}, get edgeObj(){return edgeObj}, 
 
 </script>
 <script>
-/* Rhino-style command line + autocomplete (self-contained) */
+/* CAD-style command line + autocomplete (self-contained) */
 (function(){
   if(window.__cmdPalette) return; window.__cmdPalette=1;
   const style=document.createElement("style");
@@ -19697,15 +20398,16 @@ window.__tmCore={ get bboxObj(){return bboxObj}, get edgeObj(){return edgeObj}, 
   ["Subdivide",["Catmull","DooSabin","Loop","√3 Subd","Honey","Pentagon","Dual","Truncate"]],
   ["Edit",["Fillet","Chamfer","Move","Scale","Array","Mirror","Ins Edge","Delete"]],
   ["Extrude",["Extrude","Dome","Pinch","Stellate","DblStell","Greeble"]],
-  ["Deform",["Twist","Bend","Taper","Bulge","Spherify","Noise"]],
-  ["Generate",["Parametric/Lattice","Sponge","Gyroid","TPMS","Generate/Lattice","Sierp","Hybrid","Rössler","Wave","Cymatics","K=−1","Weave","Chain","Voronoi","Tree","Maze","Maze 3D","Breeze","Text"]],
-  ["Simulate",["Cloth","Physics","Melt","Growth","Blobs","Aero","FEA","TopOpt","Wrap","Pour"]],
+  ["Deform",["Twist","Bend","Taper","Bulge","Spherify","Noise","Cage Edit"]],
+  ["Generate",["Parametric/Lattice","Sponge","Gyroid","TPMS","Sierp","Hybrid","Rössler","Wave","Cymatics","K=−1","Weave","Chain","Voronoi","Tree","Maze","Maze 3D","Breeze","Text"]],
+  ["Simulate",["Cloth","Physics","Melt","Growth","Coral","Blobs","Generate/Lattice","Aero","FEA","TopOpt","Wrap","Pour"]],
   ["Boolean",["Union","Diff","Intersect","Split","Drill","Hull","Cut"]],
   ["Clean-up",["Edit/Heal","Fill Holes","Flip","Crease","Triangle","Quad","Simplify","Planarize","Orient","Voxel"]],
   ["Gems",["Gem Cut","GEM","Bejewel"]],
   ["Analyze",["Diagnose","Curvature","Section","Interfere","Thickness","Measure","Overhang"]],
   ["Fabricate",["Seam","Paper","Plywood","Faces","Laser","Waffle","Print","Tree Sup"]],
-  ["Render",["Render"]]];
+  ["Render",["Render"]],
+  ["New",["Branches","WFC Pipes","Slime","Reaction","Cellular","Hyphae","Terrain","Origami"]]];
  var HIDE=["TrueForm/Heal"], RENAME={"Parametric/Lattice":"Cage","Generate/Lattice":"Infill"};
  function run(){ var tb=document.getElementById("toolbar"); if(!tb) return; var row=tb.querySelector(".trow"); if(!row) return;
   var map={}; [].slice.call(tb.querySelectorAll("button.tb")).forEach(function(b){ var g=b.closest(".tgrp"), gl=g?g.getAttribute("data-label"):"", l=b.querySelector(".tlbl"), t=l?l.textContent.trim():"";
@@ -19898,6 +20600,51 @@ window.__tmCore={ get bboxObj(){return bboxObj}, get edgeObj(){return edgeObj}, 
  }catch(e){ console.warn(e); sp.innerHTML='<div class="lg">TOP<b>MOD</b> 3D</div>'; } }
  var started=false, start=function(){ if(started) return; started=true; go(); };
  start();
+})();</script>
+<script>/* Spacebar: the shortcut wheel pops up at the mouse — pick a category, then a tool (the same radial menus as hand tracking) */
+(function(){
+  let mx=innerWidth/2, my=innerHeight/2, open=false;
+  addEventListener("pointermove",e=>{ mx=e.clientX; my=e.clientY; },{passive:true});
+  const pal=()=>document.getElementById("handPalette");
+  const isOpen=()=>{ const p=pal(); return !!(p&&p.classList.contains("show")); };
+  function close(){ const H=window.__handMenus; try{ H&&H.closePalette(false); }catch(e){} open=false; }
+  function tools(cat){ const g=[...document.querySelectorAll("#toolbar .tgrp")].find(x=>x.getAttribute("data-label")===cat); if(!g) return [];
+    return [...g.querySelectorAll("button.tb")].filter(b=>!b.dataset.tbHidden&&b.style.display!=="none").map(b=>({label:((b.querySelector(".tlbl")||{}).textContent||"?").trim(), act:()=>{ close(); b.click(); }})); }
+  function wheel(){ const H=window.__handMenus; if(!H) return;
+    const skip=new Set(["File","TrueForm"]), cats=[...document.querySelectorAll("#toolbar .tgrp")].filter(g=>g.offsetParent!==null||g.querySelector("button.tb")).map(g=>g.getAttribute("data-label")).filter((c,i,a)=>c&&!skip.has(c)&&a.indexOf(c)===i&&tools(c).length);
+    H.openPalette(mx,my,cats.map(c=>({label:c, act:()=>{ const t=tools(c); if(t.length===1){ t[0].act(); return; } setTimeout(()=>{ H.openPalette(mx,my,t,c); open=true; },0); }})),"Shortcuts"); open=true; }
+  addEventListener("keydown",e=>{
+    if(e.code!=="Space"&&e.key!==" ") return; if(e.repeat||e.ctrlKey||e.metaKey||e.altKey) return;
+    const t=e.target; if(t&&(t.tagName==="INPUT"||t.tagName==="TEXTAREA"||t.tagName==="SELECT"||t.tagName==="BUTTON"||t.isContentEditable)) return;
+    if(t&&t.closest&&t.closest("#claudePanel,#console")) return;
+    e.preventDefault(); e.stopPropagation();
+    if(isOpen()) close(); else wheel(); },true);
+  window.__spaceWheel={ open:wheel, close };
+})();</script>
+<script>/* Menus mirror the toolbar: any tool that has no menu entry gets one (grouped under its toolbar category), so every tool is reachable from the menu bar too */
+(function(){
+  const MAP={Primitives:"Primitives",Generate:"Generators|Primitives",Topology:"Remeshing",Subdivide:"Remeshing",Edit:"Tools",Extrude:"Tools",Deform:"Tools",Boolean:"Tools","Clean-up":"Tools",Gems:"Make",Analyze:"Make",Fabricate:"Make",Render:"Render",Simulate:"@cloth",New:"New"};
+  function menuList(name){ const mb=document.getElementById("menubar"); if(!mb) return null;
+    if(name==="@cloth"){ const c=mb.querySelector('.mi[data-act="cloth"]'); return c?c.closest(".mlist"):null; }
+    if(name.includes("|")){ for(const nm of name.split("|")){ const L=menuList(nm); if(L) return L; } return null; }
+    let t=[...mb.querySelectorAll(".menu > .mtitle")].find(x=>x.textContent.trim()===name&&x.offsetParent!==null); if(!t&&name!=="New") return null;   // only menus actually shown in the bar
+    if(!t && name==="New"){ const help=[...mb.querySelectorAll(".menu > .mtitle")].find(x=>x.textContent.trim()==="Help"); const m=document.createElement("div"); m.className="menu"; m.innerHTML='<span class="mtitle">New</span><div class="mlist"></div>';
+      if(help) help.parentElement.before(m); else (mb.querySelector(".menu")||mb).parentElement.appendChild(m); t=m.querySelector(".mtitle"); }
+    return t? t.parentElement.querySelector(".mlist") : null; }
+  function known(bt, html){ for(const a of ["op","p","mod","act"]){ const v=bt.dataset[a]; if(!v) continue; if(html.includes('data-'+a+'="'+v+'"')||html.includes('data-'+a+'='+v+']')) return true; } return !!(bt.id&&html.includes(bt.id)); }
+  function run(){ const mb=document.getElementById("menubar"), tb=document.getElementById("toolbar"); if(!mb||!tb) return;
+    const html=[...mb.querySelectorAll(".mi")].map(m=>m.outerHTML).join("\n"), added={};
+    tb.querySelectorAll(".tgrp").forEach(g=>{ const cat=g.getAttribute("data-label"), target=MAP[cat]; if(!target) return;
+      g.querySelectorAll("button.tb").forEach(bt=>{ if(bt.dataset.tbHidden||bt.style.display==="none"||bt.dataset.menued) return; if(known(bt,html)) return;
+        const L=menuList(target); if(!L) return; bt.dataset.menued="1";
+        if(!added[target+"/"+cat]){ added[target+"/"+cat]=1; if(L.children.length){ const sp=document.createElement("div"); sp.className="msep"; L.appendChild(sp); } const h=document.createElement("div"); h.className="mhdr"; h.textContent=cat; L.appendChild(h); }
+        const lab=(bt.querySelector(".tlbl")||{}).textContent||"Tool", tip=(bt.title||"").split(/ — | – |: /)[1]||"";
+        const mi=document.createElement("div"); mi.className="mi mAuto"; mi.textContent=lab+(tip?" — "+tip.slice(0,52).replace(/[.,;(]+$/,""):"");
+        mi.addEventListener("click",e=>{ e.stopPropagation(); document.querySelectorAll("#menubar .menu.open,#menubar .open").forEach(m=>m.classList.remove("open")); bt.click(); });
+        L.appendChild(mi); }); }); }
+  const go=()=>{ try{ run(); }catch(e){} };
+  if(document.readyState==="complete") setTimeout(go,1200); else addEventListener("load",()=>setTimeout(go,1200));
+  window.__menuMirror=go;
 })();</script>
 <script>/* reveal only once every layout pass (docks, stacked panels, phone sizing, restored widths) has run — no flash of the old UI */
 (function(){function reveal(){requestAnimationFrame(function(){requestAnimationFrame(function(){setTimeout(function(){var h=document.documentElement;h.classList.remove("tmBoot");h.classList.add("tmBooted");try{dispatchEvent(new Event("resize"))}catch(e){} var sp=document.getElementById("tmSplash"); if(sp){ setTimeout(function(){ sp.classList.add("out"); setTimeout(function(){ try{ window.__splashEnd&&window.__splashEnd(); }catch(e){} sp.remove(); },800); },7000); } },120);});});}
@@ -20196,7 +20943,7 @@ body.duo #amxDemo{top:calc(var(--duoH,50vh) + (100vh - var(--duoH,50vh))*0.66)!i
 .modRow.modBad .modName{color:#ff9aa5}
 #modList .modRow>.modOn.warn{color:#ffd23f!important;text-shadow:0 0 6px rgba(255,210,63,.8)}
 .modRow.modWarn .modName{color:#ffe08a}
-/* Rhino-style sliders: thick rounded track, orange fill to the value, big white pill thumb (themes re-tint via their panel filters) */
+/* CAD-style sliders: thick rounded track, orange fill to the value, big white pill thumb (themes re-tint via their panel filters) */
 html body input[type=range]{-webkit-appearance:none;appearance:none;height:24px;background:transparent;cursor:pointer;accent-color:auto;--sl:#FF8C22;--slt:#e3e5e8}
 html body input[type=range]:focus{outline:none}
 html body input[type=range]::-webkit-slider-runnable-track{height:10px;border-radius:999px;background:linear-gradient(90deg,var(--sl) 0,var(--sl) var(--p,50%),var(--slt) var(--p,50%),var(--slt) 100%);border:0}
@@ -20862,7 +21609,7 @@ body.duo #claudePanel,body.duoBottom #claudePanel{top:calc(var(--duoH,50vh) + 8p
 <script>/* Screenshot… dialog: name, JPG / PNG, transparent background (PNG), hide grid; Export names also reach the iOS save sheet */
 (function(){
   const C=window.__tmCore; if(!C) return;
-  // file names typed in Export / Screenshot also apply to the native (iOS / Rhino) save bridges
+  // file names typed in Export / Screenshot also apply to the native (iOS / desktop) save bridges
   try{ const mh=window.webkit&&window.webkit.messageHandlers; if(mh){ ["saveOBJ","exportOBJ","saveImage","photoImage","saveFile","saveText","saveData"].forEach(n=>{ const h=mh[n]; if(h&&h.postMessage&&!h.__wrapped){ const op=h.postMessage.bind(h);
       try{ h.postMessage=function(m){ try{ if(window.__expName&&m&&m.filename){ const x=/\.[a-z0-9]+$/i.exec(m.filename); m.filename=window.__expName+(x?x[0]:""); } }catch(e){} return op(m); }; h.__wrapped=1; }catch(e){} } }); } }catch(e){}
   const st=document.createElement("style"); st.textContent=
@@ -20961,15 +21708,71 @@ html body #ncCanvas,html body .mvNc canvas{transform:translateY(-22%)}   /* cube
 #fsBar{display:none;position:fixed;left:10px;top:10px;z-index:70;gap:6px}body.fullscreen #fsBar{display:flex}
 #fsBar button{font:700 11px var(--mono,monospace);letter-spacing:1px;padding:5px 10px;border-radius:999px;border:1px solid var(--tmAcc,#0091AD);background:rgba(255,255,255,.88);color:var(--tmAcc,#0091AD);cursor:pointer}
 #fsBar button.on{background:var(--tmAcc,#0091AD);color:#fff}body:not(.uiMono) #fsBar button:not(.on){background:rgba(10,14,20,.85)}
-html body.fullscreen.fullscreen.fullscreen.fullscreen.fullscreen.fullscreen.fullscreen.fsT #toolbar{display:flex!important;top:48px!important;bottom:48px!important;height:auto!important;z-index:65!important;box-shadow:0 10px 30px rgba(0,0,0,.25)}
-html body.fullscreen.fullscreen.fullscreen.fullscreen.fullscreen.fullscreen.fullscreen.fsO #toolpop{display:flex!important;top:48px!important;bottom:48px!important;height:auto!important;z-index:65!important;box-shadow:0 10px 30px rgba(0,0,0,.25)}
-html body.fullscreen.fullscreen.fullscreen.fullscreen.fullscreen.fullscreen.fullscreen.fsL #layersPanel,html body.fullscreen.fullscreen.fullscreen.fullscreen.fullscreen.fullscreen.fullscreen.fsL #modPanel{display:flex!important;z-index:65!important}
-html body.fullscreen.fullscreen.fullscreen.fullscreen.fullscreen.fullscreen.fullscreen.fsL #layersPanel{top:128px!important}html body.fullscreen.fullscreen.fullscreen.fullscreen.fullscreen.fullscreen.fullscreen.fsL #modPanel{top:164px!important;bottom:48px!important;height:auto!important;box-shadow:0 10px 30px rgba(0,0,0,.25)}
+html body.fullscreen.fullscreen.fullscreen.fullscreen.fullscreen.fullscreen.fullscreen.fsT #toolbar,html body.fullscreen.fullscreen.fullscreen.fullscreen.fullscreen.fullscreen.fullscreen.fsO #toolpop,html body.fullscreen.fullscreen.fullscreen.fullscreen.fullscreen.fullscreen.fullscreen.fsL #layersPanel,html body.fullscreen.fullscreen.fullscreen.fullscreen.fullscreen.fullscreen.fullscreen.fsL #modPanel{display:flex!important;z-index:65!important}
+html body.fullscreen.fullscreen.fullscreen.fullscreen.fullscreen.fullscreen.fullscreen.fsT #toolbar,html body.fullscreen.fullscreen.fullscreen.fullscreen.fullscreen.fullscreen.fullscreen.fsO #toolpop{top:var(--fsTop,45px)!important;bottom:var(--fsBot,38px)!important;height:auto!important}
+html body.fullscreen.fullscreen.fullscreen.fullscreen.fullscreen.fullscreen.fullscreen.fsL #layersPanel{top:var(--fsTop,45px)!important}
+html body.fullscreen.fullscreen.fullscreen.fullscreen.fullscreen.fullscreen.fullscreen.fsL #modPanel{top:var(--fsModTop,82px)!important;bottom:var(--fsBot,38px)!important;height:auto!important}
 </style>
-<div id="fsBar"><button type="button" data-k="fsT">TOOLS</button><button type="button" data-k="fsO">OPTIONS</button><button type="button" data-k="fsL">LAYERS / MODS</button></div>
+<div id="fsBar"><button type="button" data-k="fsT">TOOLS</button><button type="button" data-k="fsO">OPTIONS</button><button type="button" data-k="fsL">LAYERS / MODS</button><button type="button" id="fsWhole" title="Keep full screen but bring back the whole interface (menus, tools, options, layers, status). Shift+F hides it again.">WHOLE UI</button></div>
 <script>(function(){ const bar=document.getElementById("fsBar"); if(!bar) return; const b=document.body.classList;
- bar.querySelectorAll("button").forEach(x=>x.addEventListener("click",e=>{ e.stopPropagation(); const k=x.dataset.k; b.toggle(k); x.classList.toggle("on",b.contains(k)); setTimeout(()=>dispatchEvent(new Event("resize")),30); }));
+ bar.querySelectorAll("button[data-k]").forEach(x=>x.addEventListener("click",e=>{ e.stopPropagation(); const k=x.dataset.k; b.toggle(k); x.classList.toggle("on",b.contains(k)); setTimeout(()=>dispatchEvent(new Event("resize")),30); }));
+
+
+
+ /* 1:1 layout — full-screen panels use the same top / bottom edges as the normal window (recorded while not in full screen) */
+ function rec(){ if(b.contains("fullscreen")) return; const mb=document.getElementById("menubar"), st=document.getElementById("status"), lp=document.getElementById("layersPanel"), mp=document.getElementById("modPanel"), R=document.documentElement.style;
+   if(mb){ const r=mb.getBoundingClientRect(); if(r.height>0) R.setProperty("--fsTop",Math.round(r.bottom)+"px"); }
+   if(st){ const r=st.getBoundingClientRect(); if(r.height>0) R.setProperty("--fsBot",Math.round(r.height)+"px"); }
+   if(lp&&mp){ const a=lp.getBoundingClientRect(), m=mp.getBoundingClientRect(); if(a.height>0&&m.height>0) R.setProperty("--fsModTop",Math.round(m.top)+"px"); } }
+ addEventListener("resize",rec); document.addEventListener("pointerup",()=>setTimeout(rec,60),true);
+ new MutationObserver(()=>{ if(!b.contains("fullscreen")) setTimeout(rec,60); }).observe(document.body,{attributes:true,attributeFilter:["class"]});
+ setTimeout(rec,500); setTimeout(rec,3000); window.__fs11=rec;
  new MutationObserver(()=>{ if(!b.contains("fullscreen")&&(b.contains("fsT")||b.contains("fsO")||b.contains("fsL"))){ b.remove("fsT","fsO","fsL"); bar.querySelectorAll("button").forEach(x=>x.classList.remove("on")); } }).observe(document.body,{attributes:true,attributeFilter:["class"]});
+})();</script>
+<div id="fsTool" aria-live="polite"></div>
+<style>#fsTool{display:none;position:fixed;left:50%;top:12px;transform:translateX(-50%);z-index:72;max-width:min(70vw,640px);padding:6px 16px;border-radius:999px;font:700 12px var(--font,system-ui);letter-spacing:.6px;text-align:center;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;pointer-events:none;
+  background:rgba(10,14,20,.86);color:#fff;border:1px solid var(--tmAcc,#0091AD);box-shadow:0 6px 18px rgba(0,0,0,.25)}
+#fsTool small{font-weight:500;opacity:.75;margin-left:8px;letter-spacing:0}
+body.uiMono #fsTool{background:rgba(255,255,255,.94);color:#1d2126}
+body.fullscreen #fsTool.on{display:block}
+body.fullscreen #toast{top:56px!important}</style>
+<script>/* Options titles never show internal op ids ("tfCurvature", "menger", "Maze3d"): use the tool's own name from its toolbar button */
+(function(){
+  const t=document.getElementById("tpTitle"); if(!t) return; let busy=false;
+  const nice=b=>{ const lab=((b.querySelector(".tlbl")||{}).textContent||"").trim(), first=(b.title||"").split(/ — | – |: |\. /)[0].trim(); return (first&&first.length<=34)?first:(lab||first); };
+  function fix(){ if(busy) return; const txt=(t.textContent||"").trim(); if(!txt||txt==="Options") return; let out=null;
+    if(/^[a-z][A-Za-z0-9]*$/.test(txt)){ const b=document.querySelector('#toolbar [data-op="'+txt+'"],#toolbar [data-p="'+txt+'"],#toolbar [data-mod="'+txt+'"]'); if(b) out=nice(b); }
+    else { const m=txt.match(/^([A-Za-z0-9]+)( — .*)$/); if(m){ const b=document.querySelector('#toolbar [data-p="'+m[1].charAt(0).toLowerCase()+m[1].slice(1)+'"],#toolbar [data-p="'+m[1].toLowerCase()+'"]'); if(b){ const lab=((b.querySelector(".tlbl")||{}).textContent||"").trim(); if(lab&&lab.toLowerCase()!==m[1].toLowerCase()) out=lab+m[2]; } } }
+    if(out&&out!==txt){ busy=true; t.textContent=out; busy=false; } }
+  new MutationObserver(fix).observe(t,{childList:true,characterData:true,subtree:true}); window.__fixTpTitle=fix;
+})();</script>
+<script>/* Full screen: whatever tool is in use shows its name at the top of the screen (open panels persist; one-click tools flash their result) */
+(function(){
+  const hud=document.getElementById("fsTool"); if(!hud) return; let timer=0, sticky="";
+  const clean=t=>String(t||"").replace(/\s+/g," ").trim();
+  function show(txt, sub, ms){ if(!txt){ hud.classList.remove("on"); return; } hud.innerHTML=""; hud.appendChild(document.createTextNode(txt)); if(sub){ const s=document.createElement("small"); s.textContent=sub; hud.appendChild(s); } hud.classList.add("on");
+    clearTimeout(timer); if(ms) timer=setTimeout(()=>{ if(sticky) show(sticky); else hud.classList.remove("on"); }, ms); }
+  const title=document.getElementById("tpTitle"), pop=document.getElementById("toolpop"), toast=document.getElementById("toast");
+  function fromPanel(){ const t=clean(title&&title.textContent); const openPanel=pop&&!pop.classList.contains("empty")&&!pop.classList.contains("hiddenPanel")&&t&&t!=="Options";
+    sticky=openPanel?t:""; if(sticky) show(sticky); else if(!timer) hud.classList.remove("on"); }
+  if(title) new MutationObserver(fromPanel).observe(title,{childList:true,characterData:true,subtree:true});
+  if(pop) new MutationObserver(fromPanel).observe(pop,{attributes:true,attributeFilter:["class"]});
+  if(toast) new MutationObserver(()=>{ const t=clean(toast.textContent); if(t&&toast.classList.contains("show")&&!/^(Full screen|Exited full screen)/i.test(t)) show(t, sticky&&!t.toLowerCase().includes(sticky.toLowerCase())?sticky:"", 2600); }).observe(toast,{childList:true,characterData:true,subtree:true,attributes:true,attributeFilter:["class"]});
+  // toolbar / menu clicks: name the tool immediately, even before its panel or result appears
+  document.addEventListener("click",e=>{ if(!document.body.classList.contains("fullscreen")) return; const b=e.target.closest&&e.target.closest("#toolbar button.tb, #handPalette .pbtn, #menubar .mi");
+    if(!b) return; const lab=clean((b.querySelector&&b.querySelector(".tlbl")||b).textContent); if(lab) show(lab,"",1800); },true);
+  window.__fsTool={show};
+})();</script>
+<script>/* Full screen with the whole interface: browser full screen, every panel and menu still on screen */
+(function(){
+  window.__fsWhole=function(){ const el=document.documentElement, inFs=!!(document.fullscreenElement||document.webkitFullscreenElement);
+    document.body.classList.remove("fullscreen","fsT","fsO","fsL");
+    if(!inFs){ const rf=el.requestFullscreen||el.webkitRequestFullscreen; if(rf){ const p=rf.call(el,{navigationUI:"hide"}); if(p&&p.catch) p.catch(()=>{}); } }
+    [60,300,700].forEach(ms=>setTimeout(()=>dispatchEvent(new Event("resize")),ms)); };
+  const w=document.getElementById("fsWhole"); if(w) w.addEventListener("click",e=>{ e.stopPropagation(); window.__fsWhole(); });
+  const mi=document.querySelector('#menubar .mi[data-act="fullscreen"]');
+  if(mi&&!document.getElementById("miFsWhole")){ const n=document.createElement("div"); n.className="mi"; n.id="miFsWhole"; n.innerHTML="Full Screen — whole interface";
+    n.addEventListener("click",e=>{ e.stopPropagation(); document.querySelectorAll("#menubar .menu.open").forEach(m=>m.classList.remove("open")); window.__fsWhole(); }); mi.after(n); }
 })();</script>
 <div id="duoSplit" title="Drag to resize the viewport · double-click to reset"></div>
 <script>/* Duo: drag the bar between the viewport and the tools to resize them (remembered) */
@@ -21010,7 +21813,7 @@ body:not(.uiMono) #mvMenu{background:#141a24;color:#e8eef4}
 body.vp2 .mvLine.v2,body.vp4 .mvLine.v4{display:block}
 body.vp2 #navcube,body.vp4 #navcube{z-index:31}
 </style>
-<script>/* Rhino-style multiple viewports: View ▸ 1 / 2 / 4 viewports. Click a viewport's title to pick its view (Perspective, Top, Bottom, Front, Back, Left, Right) and its display mode.
+<script>/* CAD-style multiple viewports: View ▸ 1 / 2 / 4 viewports. Click a viewport's title to pick its view (Perspective, Top, Bottom, Front, Back, Left, Right) and its display mode.
    The live viewport (top-right) is the editable one; the others are display views (wheel = zoom, drag = pan, double-click = reset) */
 (function(){
  const core=window.__tmCore; if(!core||!window.THREE) return;
