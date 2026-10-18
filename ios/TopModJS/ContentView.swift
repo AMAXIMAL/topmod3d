@@ -387,9 +387,10 @@ struct TopModWebView: UIViewRepresentable {
         context.coordinator.photos = photos
 
         // TopMod Pro: StoreKit 2 unlock (the page locks Pro tools only when this handler exists).
-        let pro = ProStore()
-        config.userContentController.add(pro, name: "proStore")
-        context.coordinator.pro = pro
+        // Parked: TopMod is free. To re-enable the Pro unlock, uncomment these three lines (and set PRO_LOCK in the HTML).
+        // let pro = ProStore()
+        // config.userContentController.add(pro, name: "proStore")
+        // context.coordinator.pro = pro
 
         // LiDAR depth provider — refines hand-tracking depth when available.
         let lidar = LiDARProvider()

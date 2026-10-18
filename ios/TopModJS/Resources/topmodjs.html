@@ -22086,7 +22086,8 @@ body.uiMono #tmPaywall .pw{background:#fff;color:#111;border-color:#d7dbe0}
 </div></div>
 <script>(function(){
   /* Locks only inside the native iPhone / iPad app (it provides the proStore bridge). The web version stays fully free. */
-  const H=()=>window.webkit&&window.webkit.messageHandlers&&window.webkit.messageHandlers.proStore;
+  const PRO_LOCK=false;   // TopMod stays free: the Pro lock is parked (flip to true to re-enable in the app)
+  const H=()=>PRO_LOCK&&window.webkit&&window.webkit.messageHandlers&&window.webkit.messageHandlers.proStore;
   const LOCK_GROUPS=["Deform","Generate","Simulate","Boolean","Gems","Analyze","Fabricate","Render","New"];
   const KEYS=new Set(); let enabled=false, pro=true, price="$3.99";
   try{ pro=localStorage.getItem("tm_pro")==="1"; }catch(e){ pro=false; }
