@@ -386,6 +386,11 @@ struct TopModWebView: UIViewRepresentable {
         config.userContentController.add(photos, name: "photoVideo")
         context.coordinator.photos = photos
 
+        // TopMod Pro: StoreKit 2 unlock (the page locks Pro tools only when this handler exists).
+        let pro = ProStore()
+        config.userContentController.add(pro, name: "proStore")
+        context.coordinator.pro = pro
+
         // LiDAR depth provider — refines hand-tracking depth when available.
         let lidar = LiDARProvider()
         let lidarBridge = LiDARBridge()
@@ -397,6 +402,7 @@ struct TopModWebView: UIViewRepresentable {
         let webView = WKWebView(frame: .zero, configuration: config)
         lidar.webView = webView
         lidarBridge.webView = webView
+        context.coordinator.pro?.webView = webView
         context.coordinator.photos?.webView = webView
 
         // Grant camera/mic capture requests from the page (see WebUIDelegate).
@@ -449,6 +455,7 @@ struct TopModWebView: UIViewRepresentable {
         var lidarBridge: LiDARBridge?
         var photos: PhotosBridge?
         var arBridge: ARQuickLookBridge?
+        var pro: ProStore?
         var uiDelegate: WebUIDelegate?
         var server: LocalServer?
         var didFallback = false

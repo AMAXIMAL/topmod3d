@@ -7811,7 +7811,7 @@ function addModifier(type, opts){
     else { const fs=[...sel.faces]; if(fs.length!==2){ toast&&toast("Select exactly 2 faces for a handle",true); return; } params.fa=fs[0]; params.fb=fs[1]; }
     if($("#pPinch")){ params.pinch=P("#pPinch"); params.segments=Math.round(P("#pHSeg")); params.curve=P("#pHCurve"); }
   }
-  if(type==='bejewel'&&opts&&opts.params) Object.assign(params,opts.params);
+  if((type==='bejewel'||type==='coral'||/^gen_/.test(type))&&opts&&opts.params) Object.assign(params,opts.params);
   if(!layersOn && type!=="ffd" && !(opts&&opts.returnMod)){                 // step-by-step mode: bake the operation into the mesh now (a cage stays live — it's edited by hand)
     try{ snapshot(); const r=MODS[type].apply(mesh, params); const err=r&&TM.validate(r); if(!r||!r.faces||!r.faces.length) throw "no result"; if(err&&!/^duplicate directed edge/.test(err)) throw err;
       mesh={verts:r.verts.map(v=>v.slice()),faces:r.faces.map(f=>f.slice())}; L.mesh=mesh; L.steps=(L.steps||[]).concat(MODS[type].label);
@@ -11278,6 +11278,27 @@ function _ngSurfPts(M,n,r){ const tris=[]; let A=0; for(const f of M.faces) for(
     A+=0.5*Math.hypot(u[1]*w[2]-u[2]*w[1],u[2]*w[0]-u[0]*w[2],u[0]*w[1]-u[1]*w[0]); tris.push([a,b,c,A]); }
   const out=[]; for(let i=0;i<n&&tris.length;i++){ const t=r()*A; let lo=0,hi=tris.length-1; while(lo<hi){ const m=(lo+hi)>>1; if(tris[m][3]<t) lo=m+1; else hi=m; } const [a,b,c]=tris[lo]; let x=r(),y=r(); if(x+y>1){ x=1-x; y=1-y; }
     out.push([a[0]+(b[0]-a[0])*x+(c[0]-a[0])*y, a[1]+(b[1]-a[1])*x+(c[1]-a[1])*y, a[2]+(b[2]-a[2])*x+(c[2]-a[2])*y]); } return out; }
+// Voxel mask of a mesh in an n³ grid: inside (ray parity along x) or a thin shell on its surface. Returns {mask, org, cell}.
+function _ngMeshMask(M,n,mode,r){
+  const B=_ngBBox(M), cell=B.s*1.1/(n-3), org=[0,1,2].map(d=>B.c[d]-cell*(n-1)/2), mask=new Uint8Array(n*n*n);
+  if(mode==="surface"){
+    const P=_ngSurfPts(M,Math.max(4000,n*n*12),r);
+    for(const p of P){ const i=Math.round((p[0]-org[0])/cell), j=Math.round((p[1]-org[1])/cell), k=Math.round((p[2]-org[2])/cell);
+      for(let a=-1;a<=1;a++) for(let b=-1;b<=1;b++) for(let c=-1;c<=1;c++){ const x=i+a,y=j+b,z=k+c; if(x>0&&y>0&&z>0&&x<n-1&&y<n-1&&z<n-1) mask[(x*n+y)*n+z]=1; } }
+    return {mask,org,cell}; }
+  // triangles bucketed by (j,k) row they can cross
+  const rows=new Map();
+  for(const f of M.faces) for(let t=1;t<f.length-1;t++){ const T=[M.verts[f[0]],M.verts[f[t]],M.verts[f[t+1]]];
+    const y0=Math.min(T[0][1],T[1][1],T[2][1]), y1=Math.max(T[0][1],T[1][1],T[2][1]), z0=Math.min(T[0][2],T[1][2],T[2][2]), z1=Math.max(T[0][2],T[1][2],T[2][2]);
+    for(let j=Math.max(0,Math.ceil((y0-org[1])/cell));j<=Math.min(n-1,Math.floor((y1-org[1])/cell));j++)
+      for(let k=Math.max(0,Math.ceil((z0-org[2])/cell));k<=Math.min(n-1,Math.floor((z1-org[2])/cell));k++){ const key=j*n+k; let a=rows.get(key); if(!a) rows.set(key,a=[]); a.push(T); } }
+  for(const [key,tris] of rows){ const j=Math.floor(key/n), k=key%n, y=org[1]+j*cell+1e-7, z=org[2]+k*cell+1.3e-7, xs=[];
+    for(const T of tris){ const [a,b,c]=T, d1=(b[1]-a[1])*(c[2]-a[2])-(b[2]-a[2])*(c[1]-a[1]); if(Math.abs(d1)<1e-14) continue;
+      const u=((y-a[1])*(c[2]-a[2])-(z-a[2])*(c[1]-a[1]))/d1, v=((b[1]-a[1])*(z-a[2])-(b[2]-a[2])*(y-a[1]))/d1;
+      if(u<0||v<0||u+v>1) continue; xs.push(a[0]+u*(b[0]-a[0])+v*(c[0]-a[0])); }
+    xs.sort((p,q)=>p-q);
+    for(let t=0;t+1<xs.length;t+=2){ const i0=Math.max(1,Math.ceil((xs[t]-org[0])/cell)), i1=Math.min(n-2,Math.floor((xs[t+1]-org[0])/cell)); for(let i=i0;i<=i1;i++) if(j>0&&k>0&&j<n-1&&k<n-1) mask[(i*n+j)*n+k]=1; } }
+  return {mask,org,cell}; }
 function _ngBBox(M){ const a=[1e9,1e9,1e9], b=[-1e9,-1e9,-1e9]; for(const v of M.verts) for(let d=0;d<3;d++){ if(v[d]<a[d])a[d]=v[d]; if(v[d]>b[d])b[d]=v[d]; } return {a,b,c:[0,1,2].map(d=>(a[d]+b[d])/2), s:Math.max(b[0]-a[0],b[1]-a[1],b[2]-a[2])||1}; }
 // tapered capped tubes along a node tree (pipe model: thicker where more branches feed in)
 function _ngBranchMesh(nodes, rMax, sides){
@@ -11384,11 +11405,16 @@ const NEWGEN={
 
   // ---- 3. Slime: 3D physarum — agents sense trail ahead, turn toward it, move and deposit; the trail is skinned ----
   ngSlime:{ label:"Slime", title:"Slime — 3D physarum network", desc:"Thousands of agents follow and lay down a scent trail, self-organizing into vein-like networks (after Jeff Jones's Physarum model). The trail volume is turned into a solid.",
-    params:[{sel:"dom",l:"Space",opts:[["sphere","Sphere"],["cube","Cube"]]},["res","Resolution",20,72,2,40],["agents","Agents",500,60000,500,14000],["steps","Steps",10,500,10,160],["sa","Sensor angle °",5,80,1,30],["sd","Sensor distance (voxels)",1,8,0.5,3],["turn","Turn speed",0.05,1,0.05,0.35],["decay","Trail decay",0.5,0.99,0.01,0.86],["thr","Skin level",0.02,0.6,0.01,0.12],["seed","Seed",1,500,1,7]],
-    build(o){ const n=o.res|0, N=n*n*n, G=new Float32Array(N), G2=new Float32Array(N), r=_ngRng(o.seed), c=(n-1)/2, sph=o.dom==="sphere";
-      const inside=(x,y,z)=>sph? ((x-c)**2+(y-c)**2+(z-c)**2<=c*c*0.95) : (x>=1&&y>=1&&z>=1&&x<n-1&&y<n-1&&z<n-1);
+    params:[{sel:"dom",l:"Space",opts:[["sphere","Sphere"],["cube","Cube"],["inside","Inside current layer (with modifiers)"],["surface","On current layer surface (with modifiers)"]]},["res","Resolution",20,72,2,40],["agents","Agents",500,60000,500,14000],["steps","Steps",10,500,10,160],["sa","Sensor angle °",5,80,1,30],["sd","Sensor distance (voxels)",1,8,0.5,3],["turn","Turn speed",0.05,1,0.05,0.35],["decay","Trail decay",0.5,0.99,0.01,0.86],["thr","Skin level",0.02,0.6,0.01,0.12],["seed","Seed",1,500,1,7]],
+    build(o,M){ const n=o.res|0, N=n*n*n, G=new Float32Array(N), G2=new Float32Array(N), r=_ngRng(o.seed), c=(n-1)/2; let sph=o.dom==="sphere";
+      // Space from the current layer: its evaluated mesh (base + live modifiers) becomes the container or the surface the slime grows on
+      let MK=null; if((o.dom==="inside"||o.dom==="surface")&&M&&M.faces&&M.faces.length){ MK=_ngMeshMask(M,n,o.dom,_ngRng(o.seed+7)); let cnt=0; for(let i=0;i<N;i++) cnt+=MK.mask[i]; if(cnt<8) MK=null; }
+      if(!MK&&(o.dom==="inside"||o.dom==="surface")) sph=true;
+      const inside=MK? (x,y,z)=>{ const i=x|0,j=y|0,k=z|0; return i>0&&j>0&&k>0&&i<n-1&&j<n-1&&k<n-1&&MK.mask[(i*n+j)*n+k]===1; }
+                     : (x,y,z)=>sph? ((x-c)**2+(y-c)**2+(z-c)**2<=c*c*0.95) : (x>=1&&y>=1&&z>=1&&x<n-1&&y<n-1&&z<n-1);
       const A=o.agents|0, P=new Float32Array(A*3), D=new Float32Array(A*3);
-      for(let a=0;a<A;a++){ let x,y,z; do{ x=1+r()*(n-2); y=1+r()*(n-2); z=1+r()*(n-2); }while(!inside(x,y,z)); P[a*3]=x; P[a*3+1]=y; P[a*3+2]=z; const d=_ngDir(r); D[a*3]=d[0]; D[a*3+1]=d[1]; D[a*3+2]=d[2]; }
+      const CELLS=MK?(()=>{ const L=[]; for(let i=0;i<N;i++) if(MK.mask[i]) L.push(i); return L; })():null;
+      for(let a=0;a<A;a++){ let x,y,z; if(CELLS){ const id=CELLS[(r()*CELLS.length)|0]; x=Math.floor(id/(n*n))+r(); y=Math.floor(id/n)%n+r(); z=id%n+r(); } else do{ x=1+r()*(n-2); y=1+r()*(n-2); z=1+r()*(n-2); }while(!inside(x,y,z)); P[a*3]=x; P[a*3+1]=y; P[a*3+2]=z; const d=_ngDir(r); D[a*3]=d[0]; D[a*3+1]=d[1]; D[a*3+2]=d[2]; }
       const at=(x,y,z)=>{ const i=x|0,j=y|0,k=z|0; return (i<0||j<0||k<0||i>=n||j>=n||k>=n)?-1:G[(i*n+j)*n+k]; };
       const ca=Math.cos(o.sa*Math.PI/180), sa=Math.sin(o.sa*Math.PI/180), sd=o.sd;
       for(let st=0; st<o.steps; st++){
@@ -11405,16 +11431,18 @@ const NEWGEN={
         G.set(G2); }
       let mx=0; for(let i=0;i<N;i++) if(G[i]>mx) mx=G[i]; if(mx<=0) return {verts:[],faces:[]};
       for(let i=0;i<N;i++) G[i]/=mx;
-      const cell=2/n, m=_ngIso(G,n,n,n,o.thr,[-1,0,-1],cell); this.info=A+" agents · "+o.steps+" steps · "+m.faces.length+" faces"; return m; } },
+      const cell=MK?MK.cell:2/n, m=_ngIso(G,n,n,n,o.thr,MK?MK.org:[-1,0,-1],cell); this.info=A+" agents · "+o.steps+" steps · "+m.faces.length+" faces"+((o.dom==="inside"||o.dom==="surface")&&!MK?" · no current layer — used a sphere":""); return m; } },
 
   // ---- 4. Reaction: 3D Gray-Scott reaction-diffusion skinned at the V level ----
   ngRD:{ label:"Reaction", title:"Reaction — 3D reaction-diffusion", desc:"Two chemicals react and spread through a volume (Gray-Scott). Feed/kill presets give coral, worm-maze, sponge and bubble solids.",
-    params:[{sel:"preset",l:"Pattern",opts:[["coral","Coral (f .030 k .060)"],["maze","Worms / maze (f .022 k .051)"],["sponge","Sponge (f .037 k .060)"],["bubbles","Bubbles (f .042 k .065)"]]},{sel:"dom",l:"Space",opts:[["sphere","Sphere"],["cube","Cube"]]},{sel:"init",l:"Start from",opts:[["spots","Random spots (fills the space)"],["center","One blob in the centre (grows out)"]]},{chk:"cut",l:"Cut in half to show the inside",def:false},["res","Resolution",20,64,2,40],["steps","Steps",100,5000,50,1500],["thr","Skin level",0.05,0.45,0.01,0.2],["seed","Seed",1,500,1,7]],
-    build(o){ const n=o.res|0, N=n*n*n, PR={coral:[0.03,0.06],maze:[0.022,0.051],sponge:[0.037,0.06],bubbles:[0.042,0.065]}[o.preset]||[0.03,0.06], f=PR[0], k=PR[1];
+    params:[{sel:"preset",l:"Pattern",opts:[["coral","Coral (f .030 k .060)"],["maze","Worms / maze (f .022 k .051)"],["sponge","Sponge (f .037 k .060)"],["bubbles","Bubbles (f .042 k .065)"]]},{sel:"dom",l:"Space",opts:[["sphere","Sphere"],["cube","Cube"],["inside","Inside current layer (with modifiers)"],["surface","On current layer surface (with modifiers)"]]},{sel:"init",l:"Start from",opts:[["spots","Random spots (fills the space)"],["center","One blob in the centre (grows out)"]]},{chk:"cut",l:"Cut in half to show the inside",def:false},["res","Resolution",20,64,2,40],["steps","Steps",100,5000,50,1500],["thr","Skin level",0.05,0.45,0.01,0.2],["seed","Seed",1,500,1,7]],
+    build(o,MM){ const n=o.res|0, N=n*n*n, PR={coral:[0.03,0.06],maze:[0.022,0.051],sponge:[0.037,0.06],bubbles:[0.042,0.065]}[o.preset]||[0.03,0.06], f=PR[0], k=PR[1];
       let U=new Float32Array(N).fill(1), V=new Float32Array(N), U2=new Float32Array(N), V2=new Float32Array(N), M=new Uint8Array(N), r=_ngRng(o.seed), c=(n-1)/2;
-      for(let i=0;i<n;i++) for(let j=0;j<n;j++) for(let l=0;l<n;l++){ const x=(i*n+j)*n+l; M[x]=(i>0&&j>0&&l>0&&i<n-1&&j<n-1&&l<n-1)&&(o.dom!=="sphere"||(i-c)**2+(j-c)**2+(l-c)**2<=c*c*0.92)?1:0; }
+      let MK=null; if((o.dom==="inside"||o.dom==="surface")&&MM&&MM.faces&&MM.faces.length){ MK=_ngMeshMask(MM,n,o.dom,_ngRng(o.seed+11)); let cnt=0; for(let q=0;q<N;q++) cnt+=MK.mask[q]; if(cnt<8) MK=null; }
+      const sphD=o.dom==="sphere"||(!MK&&(o.dom==="inside"||o.dom==="surface"));
+      for(let i=0;i<n;i++) for(let j=0;j<n;j++) for(let l=0;l<n;l++){ const x=(i*n+j)*n+l; M[x]=MK? MK.mask[x] : ((i>0&&j>0&&l>0&&i<n-1&&j<n-1&&l<n-1)&&(!sphD||(i-c)**2+(j-c)**2+(l-c)**2<=c*c*0.92)?1:0); }
       const blob=(ci,cj,cl,rr)=>{ for(let i=Math.max(1,ci-rr);i<=Math.min(n-2,ci+rr);i++) for(let j=Math.max(1,cj-rr);j<=Math.min(n-2,cj+rr);j++) for(let l=Math.max(1,cl-rr);l<=Math.min(n-2,cl+rr);l++){ const x=(i*n+j)*n+l; if(M[x]){ U[x]=0.5; V[x]=0.25+r()*0.05; } } };
-      if(o.init==="center") blob(c|0,c|0,c|0,Math.max(2,n/10|0)); else for(let s=0;s<Math.max(6,n*n*n/4000|0);s++) blob(1+(r()*(n-2)|0),1+(r()*(n-2)|0),1+(r()*(n-2)|0),2);
+      if(o.init==="center"&&MK){ let bi=-1,bd=1e9; for(let q=0;q<N;q++) if(M[q]){ const d=(Math.floor(q/(n*n))-c)**2+(Math.floor(q/n)%n-c)**2+(q%n-c)**2; if(d<bd){ bd=d; bi=q; } } if(bi>=0) blob(Math.floor(bi/(n*n)),Math.floor(bi/n)%n,bi%n,Math.max(2,n/10|0)); } else if(o.init==="center") blob(c|0,c|0,c|0,Math.max(2,n/10|0)); else if(MK){ const L=[]; for(let q=0;q<N;q++) if(M[q]) L.push(q); for(let s2=0;s2<Math.max(6,L.length/600|0);s2++){ const id=L[(r()*L.length)|0]; blob(Math.floor(id/(n*n)),Math.floor(id/n)%n,id%n,2); } } else for(let s=0;s<Math.max(6,n*n*n/4000|0);s++) blob(1+(r()*(n-2)|0),1+(r()*(n-2)|0),1+(r()*(n-2)|0),2);
       const Du=0.16, Dv=0.08, nn=n*n;
       for(let st=0; st<o.steps; st++){
         for(let x=nn+n+1; x<N-nn-n-1; x++){ if(!M[x]){ U2[x]=1; V2[x]=0; continue; }
@@ -11423,7 +11451,7 @@ const NEWGEN={
         let t=U; U=U2; U2=t; t=V; V=V2; V2=t; }
       for(let x=0;x<N;x++) if(!M[x]) V[x]=0;
       if(o.cut) for(let i=0;i<n;i++) for(let j=0;j<n;j++) for(let l=(n/2|0);l<n;l++) V[(i*n+j)*n+l]=0;
-      const cell=2/n, m=_ngIso(V,n,n,n,o.thr,[-1,0,-1],cell); this.info=o.steps+" steps · "+n+"³ grid · "+m.faces.length+" faces"; return m; } },
+      const cell=MK?MK.cell:2/n, m=_ngIso(V,n,n,n,o.thr,MK?MK.org:[-1,0,-1],cell); this.info=o.steps+" steps · "+n+"³ grid · "+m.faces.length+" faces"; return m; } },
 
   // ---- 5. Cellular: 3D cellular automata (26-neighbour birth / survival rules) ----
   ngCA:{ label:"Cellular", title:"Cellular — 3D cellular automata", desc:"A 3D Game of Life: each step, an empty cell is born or a live cell survives depending on how many of its 26 neighbours are alive.",
@@ -11515,7 +11543,7 @@ let ngActive=null, ngTimer=0, ngBase=null;
 function ngValues(op){ const G=NEWGEN[op], o={}; for(const p of G.params){ if(Array.isArray(p)){ const v=P("#ng_"+p[0]); o[p[0]]=isFinite(v)?v:p[5]; } else if(p.sel){ o[p.sel]=($("#ng_"+p.sel)||{}).value; } else if(p.chk){ const c=$("#ng_"+p.chk); o[p.chk]=c?c.checked:p.def; } } return o; }
 function ngCompute(){ if(!ngActive) return; const op=ngActive, G=NEWGEN[op], lbl=$("#ngInfo"); if(lbl){ lbl.textContent="computing…"; }
   clearTimeout(ngTimer); ngTimer=setTimeout(()=>{ if(ngActive!==op) return; const t0=performance.now(); let g=null;
-    try{ g=G.build(ngValues(op), ngBase); }catch(e){ if(lbl) lbl.textContent="Error: "+e; return; }
+    try{ G._lastVals=ngValues(op); g=G.build(G._lastVals, ngBase); }catch(e){ if(lbl) lbl.textContent="Error: "+e; return; }
     G.last=g; const ms=Math.round(performance.now()-t0);
     if(g&&g.faces&&g.faces.length){ if((ngValues(op).shape==="model"||ngValues(op).from==="surface")&&ngBase){ const off=g.verts.length; setMeshGeometry({verts:g.verts.concat(ngBase.verts), faces:g.faces.concat(ngBase.faces.map(f=>f.map(i=>i+off)))}); } else setMeshGeometry(g); }
     if(lbl) lbl.textContent=(G.info||"")+" · "+ms+" ms"; }, 60); }
@@ -11532,18 +11560,50 @@ function ngOpen(op){
   body.querySelectorAll("input,select").forEach(el=>{ if(el.type==="file") return; el.addEventListener(el.type==="range"?"change":"change",ngCompute); if(el.type==="range") el.addEventListener("input",()=>{ if(op==="ngOrigami"||op==="ngWfc") ngCompute(); }); });
   if(op==="ngTerrain"){ const btn=$("#ngTerrImg"), fi=$("#ngTerrFile"); btn&&btn.addEventListener("click",()=>fi.click());
     fi&&fi.addEventListener("change",()=>{ const f=fi.files&&fi.files[0]; if(!f) return; const img=new Image(); img.onload=()=>{ G.img=img; btn.textContent="Height map: "+f.name+" (click to change)"; ngCompute(); }; img.src=URL.createObjectURL(f); }); }
-  $("#hint")&&($("#hint").textContent=G.title+" — change any setting to regenerate; Apply keeps it as a new layer.");
+  $("#hint")&&($("#hint").textContent=G.title+" — change any setting to regenerate; Apply adds it to the modifier stack.");
   ngCompute(); }
 function ngClose(commit){ if(!ngActive) return; const op=ngActive, G=NEWGEN[op]; ngActive=null; clearTimeout(ngTimer); rebuild();
+  if(commit&&_genToStack(NG_MOD_KEY(op), ngModFromVals(G,G._lastVals||{}), G.label)) return;
   if(commit){ const g=G.last; if(g&&g.faces&&g.faces.length){ addLayer({verts:g.verts.map(v=>v.slice()),faces:g.faces.map(f=>f.slice())},false); try{ layers[activeLayer].name=G.label; renderLayerList&&renderLayerList(); }catch(e){} toast&&toast(G.label+" → new layer"); } else toast&&toast("Nothing to keep yet",true); } }
 window.__newgen={ NEWGEN, ngValues };
+/* New-category generators + Coral as live modifiers: each one regenerates from the incoming mesh (base + modifiers above it).
+   Shapes that don't read the input fill its bounding box (like Menger / Gyroid); "this model / current layer" options use it directly. */
+const NG_MOD_KEY=op=>"gen_"+op;
+function ngParamsToMod(G){ return G.params.map(p=>Array.isArray(p)? {k:p[0],l:p[1],min:p[2],max:p[3],step:p[4],def:p[5]}
+  : p.sel? {k:p.sel,l:p.l,opts:p.opts.map(x=>x[1]),def:0} : {k:p.chk,l:p.l,bool:true,def:!!p.def}); }
+function ngValsFromMod(G,pp){ const o={}; G.params.forEach(p=>{ if(Array.isArray(p)){ const v=+pp[p[0]]; o[p[0]]=isFinite(v)?v:p[5]; }
+  else if(p.sel){ const i=Math.max(0,Math.min(p.opts.length-1,Math.round(+pp[p.sel]||0))); o[p.sel]=p.opts[i][0]; } else if(p.chk) o[p.chk]=!!pp[p.chk]; }); return o; }
+function ngModFromVals(G,o){ const pp={}; G.params.forEach(p=>{ if(Array.isArray(p)) pp[p[0]]=+o[p[0]]; else if(p.sel){ const i=p.opts.findIndex(x=>x[0]===o[p.sel]); pp[p.sel]=i<0?0:i; } else if(p.chk) pp[p.chk]=!!o[p.chk]; }); return pp; }
+const _ngUsesInput=o=>o.shape==="model"||o.from==="surface"||o.dom==="inside"||o.dom==="surface";
+for(const op in NEWGEN){ const G=NEWGEN[op];
+  MODS[NG_MOD_KEY(op)]={label:G.label, grp:"Generate", heavy:true, params:ngParamsToMod(G),
+    apply:(m,pp)=>{ const o=ngValsFromMod(G,pp); const g=G.build.call(G,o,m); if(!g||!g.faces||!g.faces.length) return m;
+      if(!_ngUsesInput(o)) return _genFit(g,m);
+      if((o.shape==="model"||o.from==="surface")&&m&&m.faces.length){ const off=g.verts.length; return {verts:g.verts.concat(m.verts.map(v=>v.slice())), faces:g.faces.concat(m.faces.map(f=>f.map(i=>i+off)))}; }
+      return g; } }; }
+MODS.coral={label:"Coral", grp:"Generate", heavy:true,
+  params:[{k:"from",l:"Grow from",opts:["A point","The ground (grows up)","This model's surface"],def:0},{k:"n",l:"Particles",min:50,max:20000,step:50,def:2500},{k:"conn",l:"Connections per node",min:2,max:8,step:1,def:3},
+    {k:"sp",l:"Branch spacing",min:0.005,max:0.2,step:0.005,def:0.03},{k:"stick",l:"Stickiness",min:0.05,max:1,step:0.05,def:0.8},{k:"bias",l:"Up bias",min:0,max:1,step:0.05,def:0.15},
+    {k:"thick",l:"Thickness",min:0.2,max:3,step:0.05,def:1},{k:"seed",l:"Seed",min:1,max:500,step:1,def:7}],
+  apply:(m,pp)=>{ const from=["point","ground","surface"][Math.max(0,Math.min(2,Math.round(+pp.from||0)))];
+    const C=coralNew(coralOptsFrom(Object.assign({},pp,{from}), m)); const target=Math.round(+pp.n||2500); let tries=0;
+    while(C.nodes.length-(C.o.seeds||[1]).length<target && tries<40){ const got=coralGrow(C,Math.min(200,target)); tries=got?0:tries+1; }
+    const g=coralMesh(C,+pp.thick||1,6); if(!g.faces.length) return m;
+    if(from==="surface"&&m&&m.faces.length){ const off=g.verts.length; return {verts:g.verts.concat(m.verts.map(v=>v.slice())), faces:g.faces.concat(m.faces.map(f=>f.map(i=>i+off)))}; }
+    return g; } };
+function _genToStack(type, params, label){
+  if(!(layersOn&&layers[activeLayer])) return false;
+  if(typeof isActiveLocked==="function"&&isActiveLocked()){ toast&&toast("Layer is locked",true); return true; }
+  const md=addModifier(type,{params, silent:true, returnMod:true}); if(md){ toast&&toast(label+" added to the modifier stack — edit it there any time"); } return true; }
+
 
 let corActive=false, corBase=null, corC=null, corRun=0, corTimer=0;
 const _cv=(id,d)=>{ const v=P(id); return isFinite(v)?v:d; };
-function coralOpts(){
-  const from=($("#pCorFrom")||{}).value||"point", sp=_cv("#pCorSp",0.03);
-  const o={mode:from, spacing:sp, attract:sp*1.15, maxConn:Math.round(_cv("#pCorConn",3)), stick:_cv("#pCorStick",0.8), bias:_cv("#pCorBias",0.15), seed:Math.round(_cv("#pCorSeed",7))};
-  const M=corBase; let mn=[0,0,0], mx=[0,0,0]; if(M&&M.verts.length){ mn=[1e9,1e9,1e9]; mx=[-1e9,-1e9,-1e9]; for(const v of M.verts) for(let d=0;d<3;d++){ if(v[d]<mn[d])mn[d]=v[d]; if(v[d]>mx[d])mx[d]=v[d]; } }
+function coralVals(){ return {from:($("#pCorFrom")||{}).value||"point", n:Math.round(_cv("#pCorN",2500)), conn:Math.round(_cv("#pCorConn",3)), sp:_cv("#pCorSp",0.03), stick:_cv("#pCorStick",0.8), bias:_cv("#pCorBias",0.15), thick:_cv("#pCorThick",1), seed:Math.round(_cv("#pCorSeed",7))}; }
+function coralOpts(){ return coralOptsFrom(coralVals(), corBase); }
+function coralOptsFrom(v, M){
+  const from=v.from||"point", sp=+v.sp||0.03;
+  const o={mode:from, spacing:sp, attract:sp*1.15, maxConn:Math.round(+v.conn||3), stick:+v.stick, bias:+v.bias, seed:Math.round(+v.seed||7)}; let mn=[0,0,0], mx=[0,0,0]; if(M&&M.verts.length){ mn=[1e9,1e9,1e9]; mx=[-1e9,-1e9,-1e9]; for(const v of M.verts) for(let d=0;d<3;d++){ if(v[d]<mn[d])mn[d]=v[d]; if(v[d]>mx[d])mx[d]=v[d]; } }
   const c=[(mn[0]+mx[0])/2,(mn[1]+mx[1])/2,(mn[2]+mx[2])/2];
   if(from==="surface" && M && M.verts.length){   // seeds scattered evenly over the surface (area-weighted), not just at corners
     const tris=[]; let A=0; for(const f of M.faces) for(let k=1;k<f.length-1;k++){ const p0=M.verts[f[0]],p1=M.verts[f[k]],p2=M.verts[f[k+1]], u=[p1[0]-p0[0],p1[1]-p0[1],p1[2]-p0[2]], w=[p2[0]-p0[0],p2[1]-p0[1],p2[2]-p0[2]];
@@ -11571,6 +11631,7 @@ function beginCoralPreview(){ corActive=true; corBase=(()=>{ const d=dispMesh();
 function endCoralPreview(commit){
   if(!corActive) return; corActive=false; clearTimeout(corTimer); corRun=0; const C=corC; corC=null;
   rebuild();                                                            // drop the preview geometry, back to the layer
+  if(commit&&C&&C.nodes.length>1&&_genToStack("coral", Object.assign(coralVals(),{from:["point","ground","surface"].indexOf(coralVals().from)}), "Coral")) return;
   if(commit&&C&&C.nodes.length>1){ const g=coralMesh(C,_cv("#pCorThick",1),6); if(g.faces.length){ addLayer(g,false); try{ layers[activeLayer].name="Coral"; renderLayerList&&renderLayerList(); }catch(e){} toast&&toast("Coral · "+(C.nodes.length-1)+" particles → new layer"); } }
 }
 function beginDGPreview(){
@@ -21995,6 +22056,67 @@ body.vp2 #navcube,body.vp4 #navcube{z-index:31}
    if(!t||t.closest("#mvMenu")) return; setTimeout(()=>{ if(t.id==="miSil") syncAll("sil",!!(window.__sil&&window.__sil.on)); else if(t.id==="miDims") syncAll("dims",window.__dimsOn===true); else if(t.dataset&&t.dataset.act==="tgB"){ const bb=document.getElementById("tgBBox"); syncAll("bbox",!!(bb&&bb.checked)); } else { const eo=core.edgeObj; syncAll("edges",!!(eo&&eo.visible)); } },60); },true);   // live title follows orbiting / render-mode changes
  window.__vp={set,draw,slots,get mode(){return mode;}};
  let sv=1; try{ sv=+localStorage.getItem("tmVp")||1; }catch(e){} if(sv!==1&&!document.body.classList.contains("duoBottom")) set(sv,true); else set(1,true);
+})();</script>
+<style>
+/* TopMod Pro (iPhone / iPad app only): locked tools wear a small lock; the unlock sheet */
+body.tmLock [data-pro="1"]{position:relative}
+body.tmLock button.tb[data-pro="1"]::after{content:"";position:absolute;right:3px;top:3px;width:11px;height:11px;border-radius:50%;background:var(--tmAcc,#0091AD) url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 16 16'%3E%3Crect x='4' y='7' width='8' height='6' rx='1.2' fill='white'/%3E%3Cpath d='M5.6 7V5.4a2.4 2.4 0 0 1 4.8 0V7' stroke='white' stroke-width='1.6' fill='none'/%3E%3C/svg%3E") center/9px no-repeat;pointer-events:none}
+body.tmLock .mi[data-pro="1"]::after{content:" \1F512";font-size:10px;opacity:.6}
+#tmPaywall{position:fixed;inset:0;z-index:9000;display:none;align-items:center;justify-content:center;background:rgba(5,8,12,.55);backdrop-filter:blur(3px);-webkit-backdrop-filter:blur(3px)}
+#tmPaywall.on{display:flex}
+#tmPaywall .pw{width:min(420px,92vw);background:#0e141c;color:#e8eef4;border:1px solid rgba(0,229,255,.25);border-radius:18px;padding:22px 22px 16px;box-shadow:0 20px 60px rgba(0,0,0,.5);font:14px/1.45 var(--font,system-ui)}
+body.uiMono #tmPaywall .pw{background:#fff;color:#111;border-color:#d7dbe0}
+#tmPaywall h3{margin:0 0 4px;font:800 20px var(--font,system-ui);letter-spacing:.5px}
+#tmPaywall .why{margin:0 0 12px;opacity:.75;font-size:13px}
+#tmPaywall ul{margin:0 0 14px;padding-left:18px;font-size:13px}
+#tmPaywall li{margin:2px 0}
+#tmPaywall .buy{display:block;width:100%;padding:12px;border:0;border-radius:12px;background:var(--tmAcc,#0091AD);color:#fff;font:700 15px var(--font,system-ui);cursor:pointer}
+#tmPaywall .row{display:flex;gap:8px;margin-top:8px}
+#tmPaywall .row button{flex:1;padding:9px;border-radius:10px;border:1px solid rgba(127,140,155,.45);background:transparent;color:inherit;font:600 13px var(--font,system-ui);cursor:pointer}
+#tmPaywall .note{margin:10px 0 0;font-size:11px;opacity:.6;text-align:center}
+#tmPaywall .msg{min-height:16px;margin-top:8px;font-size:12px;text-align:center;color:#ff8c22}
+</style>
+<div id="tmPaywall" role="dialog" aria-label="TopMod Pro"><div class="pw">
+  <h3>TopMod Pro</h3><p class="why" id="tmPwWhy">This tool is part of TopMod Pro.</p>
+  <ul><li>Generate — sponges, gyroids, TPMS, Voronoi, mazes, trees, text…</li><li>Deform, Boolean and Analyze tools</li><li>Simulate — cloth, physics, melt, coral, aero, FEA, topology optimisation…</li><li>Gems, Fabricate (paper, plywood, laser, print) and Render</li><li>The New generators and the AI Builder</li></ul>
+  <button type="button" class="buy" id="tmPwBuy">Unlock everything — $3.99</button>
+  <div class="row"><button type="button" id="tmPwRestore">Restore purchase</button><button type="button" id="tmPwClose">Not now</button></div>
+  <div class="msg" id="tmPwMsg"></div>
+  <p class="note">One-time purchase. The original TopMod tools — primitives, topology, subdivision, edit, extrude and clean-up — stay free.</p>
+</div></div>
+<script>(function(){
+  /* Locks only inside the native iPhone / iPad app (it provides the proStore bridge). The web version stays fully free. */
+  const H=()=>window.webkit&&window.webkit.messageHandlers&&window.webkit.messageHandlers.proStore;
+  const LOCK_GROUPS=["Deform","Generate","Simulate","Boolean","Gems","Analyze","Fabricate","Render","New"];
+  const KEYS=new Set(); let enabled=false, pro=true, price="$3.99";
+  try{ pro=localStorage.getItem("tm_pro")==="1"; }catch(e){ pro=false; }
+  const keysOf=el=>{ const d=el.dataset||{}, k=[]; if(d.op) k.push("op:"+d.op); if(d.p) k.push("p:"+d.p); if(d.act) k.push("act:"+d.act); if(d.mod) k.push("mod:"+d.mod); if(el.id) k.push("id:"+el.id); return k; };
+  function collect(){
+    document.querySelectorAll("#toolbar .tgrp").forEach(g=>{ if(!LOCK_GROUPS.includes(g.dataset.label)) return;
+      g.querySelectorAll("button.tb").forEach(b=>{ b.dataset.pro="1"; keysOf(b).forEach(k=>KEYS.add(k)); }); });
+    ["id:claudeFab","id:miClaude"].forEach(k=>KEYS.add(k));
+    // menus and other shortcuts to the same tools get the lock too
+    document.querySelectorAll("[data-op],[data-p],[data-act],[data-mod],#claudeFab,#miClaude").forEach(el=>{ if(el.closest("#toolbar .tgrp")&&!el.dataset.pro) return; if(keysOf(el).some(k=>KEYS.has(k))) el.dataset.pro="1"; }); }
+  const isLocked=el=>el.dataset.pro==="1"||keysOf(el).some(k=>KEYS.has(k));
+  const pw=document.getElementById("tmPaywall"), msg=document.getElementById("tmPwMsg");
+  function show(name){ document.getElementById("tmPwWhy").textContent=(name?name+" is":"This tool is")+" part of TopMod Pro."; msg.textContent=""; pw.classList.add("on");
+    document.querySelectorAll("#menubar .menu.open").forEach(m=>m.classList.remove("open")); }
+  function hide(){ pw.classList.remove("on"); }
+  function apply(){ document.body.classList.toggle("tmLock", enabled&&!pro); document.getElementById("tmPwBuy").textContent="Unlock everything — "+price; }
+  window.addEventListener("click",e=>{ if(!enabled||pro) return; const el=e.target.closest&&e.target.closest("[data-op],[data-p],[data-act],[data-mod],[data-pro],[id]"); if(!el||el.closest("#tmPaywall")) return;
+    let n=el; while(n&&n!==document.body){ if(n.nodeType===1&&isLocked(n)){ e.preventDefault(); e.stopImmediatePropagation(); const l=n.querySelector&&n.querySelector(".tlbl"); show((l?l.textContent:n.textContent||"").replace(/[……]|\s+$/g,"").trim().slice(0,32)); return; } n=n.parentElement; if(n&&(n.id==="toolbar"||n.id==="menubar")) break; } },true);
+  document.getElementById("tmPwBuy").onclick=()=>{ const h=H(); if(!h){ hide(); return; } msg.textContent="Contacting the App Store…"; h.postMessage({action:"buy"}); };
+  document.getElementById("tmPwRestore").onclick=()=>{ const h=H(); if(!h) return; msg.textContent="Restoring…"; h.postMessage({action:"restore"}); };
+  document.getElementById("tmPwClose").onclick=hide; pw.addEventListener("click",e=>{ if(e.target===pw) hide(); });
+  window.__tmPro={
+    set(owned,pr){ const was=pro; pro=!!owned; if(pr) price=pr; try{ localStorage.setItem("tm_pro",pro?"1":"0"); }catch(e){} apply();
+      if(pro&&pw.classList.contains("on")){ msg.textContent=""; hide(); if(!was) try{ toast&&toast("TopMod Pro unlocked — thank you!"); }catch(e){} }
+      else if(!pro&&pw.classList.contains("on")&&msg.textContent==="Restoring…") msg.textContent="No previous purchase found for this Apple Account."; },
+    err(m){ msg.textContent=m||"Something went wrong — try again."; },
+    pending(){ msg.textContent="Purchase pending approval."; },
+    get pro(){ return pro; }, get enabled(){ return enabled; }, show };
+  function init(){ if(!H()){ enabled=false; apply(); return; } enabled=true; collect(); apply(); setTimeout(collect,1500); setTimeout(collect,4000); try{ H().postMessage({action:"status"}); }catch(e){} }
+  if(document.readyState==="loading") document.addEventListener("DOMContentLoaded",init); else setTimeout(init,0);
 })();</script>
 </body>
 </html>
