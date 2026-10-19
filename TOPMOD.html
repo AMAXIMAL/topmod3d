@@ -1200,7 +1200,7 @@ html.inApp [data-act="fullscreen"],html.inApp [data-act="shortcuts"],html.inApp 
   <div id="titlebar"><span class="dot"></span> untitled.obj &mdash; TOPMOD</div>
 
   <div id="menubar">
-    <span id="wordmark"><span class="cy">TOP</span>MOD 3D <span class="ver">v4.1</span></span>
+    <span id="wordmark"><span class="cy">TOP</span>MOD 3D <span class="ver">v4.2</span></span>
     <div class="menu"><span class="mtitle">File</span><div class="mlist">
       <div class="mi" data-act="newProject">New<span class="kbd">&#8679;&#8984;N</span></div>
       <div class="msep"></div>
@@ -1298,7 +1298,7 @@ html.inApp [data-act="fullscreen"],html.inApp [data-act="shortcuts"],html.inApp 
       <div class="msep"></div>
       <div class="mi" data-op="fillHoles">Fill Holes</div>
       <div class="msep"></div>
-      <div class="mi" data-op="handle">Add Handle (2 faces)</div>
+            <div class="mi" data-op="handle">Add Handle (2 faces)</div>
       <div class="mi" data-op="crust">Create Rind / Crust</div>
       <div class="mi" data-op="wireframe">Wireframe Modeling</div>
       <div class="mi" data-op="latticeFill">Lattice Fill (TPMS infill)&hellip;</div>
@@ -1339,6 +1339,10 @@ html.inApp [data-act="fullscreen"],html.inApp [data-act="shortcuts"],html.inApp 
       <div class="mi" data-rm="ruby">Ruby (ray-traced gem)</div>
       <div class="mi" data-rm="sapphire">Sapphire (ray-traced gem)</div>
       <div class="mi" data-rm="emerald">Emerald (ray-traced gem)</div>
+      <div class="mi" id="miAset">ASET tool (light-return map)&hellip;</div>
+      <div class="mi" data-rm="plastic">Plastic</div>
+      <div class="mi" data-rm="metal">Metal</div>
+      <div class="mi" data-rm="wood">Wood</div>
       <div class="mi" data-act="lineArt">Line Art (pen-plotter styles)</div>
       <div class="mi" data-act="liveEq">Live Equations (math overlay)</div>
       <div class="msep"></div>
@@ -1494,6 +1498,7 @@ html.inApp [data-act="fullscreen"],html.inApp [data-act="shortcuts"],html.inApp 
       <span class="tgrp" data-label="Parametric">
         <button class="tb" data-op="lattice" title="Lattice (Cage Morph) — pick a host shape, voxelize it into cells with the offset slider (x-ray), then populate every cell with a copy of a second layer stretched to the cell box; bake to a new layer"><img class="ticon" alt="lattice"><span class="tlbl">Lattice</span></button>
         <button class="tb" data-op="bejewel" title="Bejewel — set a gem on every face centroid (or vertex) of a host shape, table facing out along the normal; slider scales the gems; bake to a new layer"><img class="ticon" alt="bejewel"><span class="tlbl">Bejewel</span></button>
+        <button class="tb" id="tbAset" title="ASET — modifier: slices the shape coming into it (base geometry + the modifiers listed above it) into stacked plates, each showing its 2D light-return map. PDF: Tools ▸ ASET diagram"><svg width="22" height="22" viewBox="0 0 22 22"><path d="M7 2.5h8l4.5 4.5v8L15 19.5H7L2.5 15V7z" fill="#0dcc1f"/><path d="M8.6 6.4h4.8l2.2 2.2v4.8l-2.2 2.2H8.6l-2.2-2.2V8.6z" fill="#eb1010"/><path d="M11 6.4v9.2M6.4 11h9.2" stroke="#1a4dff" stroke-width="1.6"/><path d="M7 2.5h8l4.5 4.5v8L15 19.5H7L2.5 15V7z" fill="none" stroke="#222" stroke-width="1"/></svg><span class="tlbl">ASET</span></button>
       </span>
       <span class="tgrp" data-label="Modifiers">
         <button class="tb" data-mod="twist" title="Twist — non-destructive deformer added to the active layer's stack"><svg width="22" height="22" viewBox="0 0 22 22"><path d="M6 4c5 2 5 4 0 6s-5 4 0 6" stroke="#FF8C22" stroke-width="1.5" fill="none" stroke-linecap="round"/><path d="M16 4c-5 2-5 4 0 6s5 4 0 6" stroke="#00E5FF" stroke-width="1.5" fill="none" stroke-linecap="round"/></svg><span class="tlbl">Twist</span></button>
@@ -1959,7 +1964,7 @@ html.inApp [data-act="fullscreen"],html.inApp [data-act="shortcuts"],html.inApp 
 
         <!-- Voronoi -->
         <div class="param prm-vor"><label>Dimension</label>
-          <select id="pVorDim"><option value="2d">2D — flat pattern</option><option value="3d">3D — random points in a cube</option></select></div>
+          <select id="pVorDim"><option value="2d">2D — flat pattern</option><option value="3d" selected>3D — random points in a cube</option></select></div>
         <div class="param prm-vor"><label>Region</label>
           <select id="pVorShape"><option value="square">Square / Cube</option><option value="disk">Disk / Sphere</option></select></div>
         <div class="param prm-vor"><label>Style</label>
@@ -8038,6 +8043,7 @@ function openModEdit(id){
     const row=document.createElement("div"); row.style.cssText="display:flex;gap:6px;flex-wrap:wrap;margin-top:6px";
     [["All","all"],["None","none"],["Reset picked","resetSel"],["Reset cage","reset"]].forEach(([t,a])=>{ const b=document.createElement("button"); b.className="modBtn"; b.textContent=t; b.style.cssText="flex:1;min-width:60px;padding:5px 6px;border-radius:6px;border:1px solid var(--line,#2a3a48);background:transparent;color:inherit;cursor:pointer;font:600 11px var(--font,system-ui)"; b.onclick=()=>window.__ffd&&window.__ffd.action(a); row.appendChild(b); });
     box.appendChild(row); wrap.appendChild(box); }
+  if(md.type==="aset"){ try{ wrap.appendChild(asetInfoPanel()); }catch(e){} }
   if(md.type==="latfill"){ const inf=document.createElement("div"); inf.id="latInfo"; inf.className="modEditNote latInfo"; inf.dataset.mod=md.id; wrap.appendChild(inf); updateLatInfo(); }
   const saved=document.createElement("div"); saved.className="modEditNote"; saved.style.color="#8fce9b"; saved.style.marginTop="8px";
   saved.textContent="✓ Live — changes save automatically (no Apply needed).";
@@ -8595,6 +8601,7 @@ function rebuild(opts){
   matEdge.color.setHex(rm.edge[0]); matEdge.opacity=rm.edge[1];
   let _mat=rm.mat; if(dm.smoothFrom!=null&&_mat&&_mat.flatShading){ if(!_mat.userData.smoothTwin){ const t=_mat.clone(); t.flatShading=false; t.needsUpdate=true; _mat.userData.smoothTwin=t; } _mat=_mat.userData.smoothTwin; _mat.color&&_mat.color.copy(rm.mat.color); }   // per-vertex normals only show without flat shading
   meshObj=new THREE.Mesh(g,_mat); scene.add(meshObj);
+  try{ asetOverlaySync(dm); }catch(e){}
   rebuildBBox();   // also while dragging, so the box follows the live result
 
   // OpenSubdiv cage editing: edges/points (and so picking) come from the control cage, the surface stays subdivided
@@ -8978,39 +8985,191 @@ function gemPerfGuard(now){
       toast&&toast(RMODES[renderMode].label+" view was struggling — now 2 bounces with fire on"); return; }
     const was=RMODES[renderMode].label; g.stepped=false; setRenderMode("solid"); toast&&toast(was+" view is too heavy for this device — back to the standard view",true); }
 }
-// ASET diagram: top (table-up) and angled views in ASET colours on one landscape page, with legend → PDF download
+// ASET tool (Angular Spectrum Evaluation Tool) — CPU-traced 2D light-return maps of the current stone (convex Gem Cut).
+// A viewer looks straight down; each sight line refracts into the stone, bounces (total internal reflection, n=2.417)
+// and leaves; its colour is the elevation it leaves toward: black <0° leakage · green 0–45° · red 45–80° · blue 80–90° (viewer's head).
+// Face-up map = the whole stone. Layers = N horizontal slices; each slice map is what you'd see looking down onto that cut.
+const ASET_N=2.417, ASET_COL=e=> e<0?[0,0,0]: e<45?[13,204,31]: e<80?[235,15,15]:[26,77,255];
+function _asetMesh(){ return mesh; }   // ASET reads the base geometry
+function _asetPlanes(M){ const V=M.verts; let cx=0,cy=0,cz=0; for(const v of V){ cx+=v[0]; cy+=v[1]; cz+=v[2]; } cx/=V.length; cy/=V.length; cz/=V.length;
+  const P=[]; for(const f of M.faces){ let nx=0,ny=0,nz=0;
+    for(let k=0;k<f.length;k++){ const a=V[f[k]], b=V[f[(k+1)%f.length]]; nx+=(a[1]-b[1])*(a[2]+b[2]); ny+=(a[2]-b[2])*(a[0]+b[0]); nz+=(a[0]-b[0])*(a[1]+b[1]); }
+    const l=Math.hypot(nx,ny,nz); if(l<1e-12) continue; nx/=l; ny/=l; nz/=l; const p=V[f[0]]; let d=nx*p[0]+ny*p[1]+nz*p[2];
+    if(nx*cx+ny*cy+nz*cz>d){ nx=-nx; ny=-ny; nz=-nz; d=-d; } P.push([nx,ny,nz,d]); }
+  return P; }
+function _asetBounds(M){ let x0=1e9,x1=-1e9,y0=1e9,y1=-1e9,z0=1e9,z1=-1e9; for(const v of M.verts){ x0=Math.min(x0,v[0]); x1=Math.max(x1,v[0]); y0=Math.min(y0,v[1]); y1=Math.max(y1,v[1]); z0=Math.min(z0,v[2]); z1=Math.max(z1,v[2]); }
+  return {x0,x1,y0,y1,z0,z1,mx:(x0+x1)/2,mz:(z0+z1)/2,ext:Math.max(x1-x0,z1-z0)*1.04}; }
+// h=null → face-up map of the whole stone; h=number → the stone below a cut at height h, seen from above. Same square frame for every map.
+function asetMap(M, h, res, P, B){
+  P=P||_asetPlanes(M); B=B||_asetBounds(M); if(h!=null) P=P.concat([[0,1,0,h]]);
+  const cv=document.createElement("canvas"); cv.width=cv.height=res; const g=cv.getContext("2d"), img=g.createImageData(res,res), D=img.data, oy=B.y1+1;
+  for(let j=0;j<res;j++) for(let i=0;i<res;i++){
+    const x=B.mx-B.ext/2+(i+0.5)/res*B.ext, z=B.mz-B.ext/2+(j+0.5)/res*B.ext, o=(j*res+i)*4;
+    let tin=-1e9, nin=null, tout=1e9, miss=false;
+    for(const p of P){ const dn=-p[1], num=p[3]-(p[0]*x+p[1]*oy+p[2]*z);
+      if(Math.abs(dn)<1e-12){ if(num<0){ miss=true; break; } continue; }
+      const t=num/dn; if(dn<0){ if(t>tin){ tin=t; nin=p; } } else if(t<tout) tout=t; }
+    if(miss||!nin||tin>tout){ D[o+3]=0; continue; }
+    let px=x, py=oy-tin, pz=z, dx=0, dy=-1, dz=0;
+    { const eta=1/ASET_N, ci=-(dx*nin[0]+dy*nin[1]+dz*nin[2]), s2=eta*eta*(1-ci*ci), k=eta*ci-Math.sqrt(1-s2);
+      dx=eta*dx+k*nin[0]; dy=eta*dy+k*nin[1]; dz=eta*dz+k*nin[2]; }
+    let c=[0,0,0];
+    for(let b=0;b<16;b++){ let tb=1e9, nb=null;
+      for(const p of P){ const dn=p[0]*dx+p[1]*dy+p[2]*dz; if(dn>1e-9){ const t=(p[3]-(p[0]*px+p[1]*py+p[2]*pz))/dn; if(t<tb){ tb=t; nb=p; } } }
+      if(!nb) break; tb=Math.max(tb,0); px+=dx*tb; py+=dy*tb; pz+=dz*tb;
+      const ci=dx*nb[0]+dy*nb[1]+dz*nb[2], s2=ASET_N*ASET_N*(1-ci*ci);
+      if(s2>1){ dx-=2*ci*nb[0]; dy-=2*ci*nb[1]; dz-=2*ci*nb[2]; px-=nb[0]*1e-7; py-=nb[1]*1e-7; pz-=nb[2]*1e-7; continue; }
+      const ey=ASET_N*dy+(Math.sqrt(1-s2)-ASET_N*ci)*nb[1]; c=ASET_COL(Math.asin(Math.max(-1,Math.min(1,ey)))*180/Math.PI); break; }
+    D[o]=c[0]; D[o+1]=c[1]; D[o+2]=c[2]; D[o+3]=255; }
+  g.putImageData(img,0,0); return cv; }
+const asetCfg={layers:5};
+function _asetLayerHeights(B,n){ const a=[]; for(let k=1;k<=n;k++) a.push(B.y1-(B.y1-B.y0)*k/(n+1)); return a; }
+function asetCompute(M,n,pos){ M=M||_asetMesh(); if(!M||!M.verts||!M.verts.length||!M.faces.length) return null; n=n==null?asetCfg.layers:n;
+  const P=_asetPlanes(M), B=_asetBounds(M);
+  // pos (0–0.95) = depth of the top slice; the other slices spread evenly from there to the bottom. No pos → evenly through the stone.
+  const hs=pos==null? _asetLayerHeights(B,n) : Array.from({length:n},(_,k)=>B.y1-(B.y1-B.y0)*(pos+(1-pos)*k/n));
+  return { M, B, P, faceUp:asetMap(M,null,220,P,B), layers:hs.map(h=>({h, pct:(B.y1-h)/(B.y1-B.y0), map:asetMap(M,h,128,P,B)})) }; }
+// clip convex point-polygons to the half-space n·p ≤ d and cap the cut (copy of the Voronoi helper)
+function _asetClip(F, n, d){
+  const out=[], cap=[]; const dt=p=>n[0]*p[0]+n[1]*p[1]+n[2]*p[2]-d, E=1e-9;
+  for(const f of F){ const r=[]; for(let i=0;i<f.length;i++){ const a=f[i], b=f[(i+1)%f.length], da=dt(a), db=dt(b);
+      if(da<=E) r.push(a); if((da<=E)!==(db<=E)){ const t=da/(da-db), q=[a[0]+(b[0]-a[0])*t, a[1]+(b[1]-a[1])*t, a[2]+(b[2]-a[2])*t]; r.push(q); cap.push(q); } }
+    if(r.length>=3) out.push(r); }
+  if(cap.length>=3){ const u0=Math.abs(n[0])<0.9?[1,0,0]:[0,1,0]; let u=[n[1]*u0[2]-n[2]*u0[1], n[2]*u0[0]-n[0]*u0[2], n[0]*u0[1]-n[1]*u0[0]]; const ul=Math.hypot(...u); u=u.map(x=>x/ul);
+    const v=[n[1]*u[2]-n[2]*u[1], n[2]*u[0]-n[0]*u[2], n[0]*u[1]-n[1]*u[0]];
+    const c=[0,1,2].map(k=>cap.reduce((s,p)=>s+p[k],0)/cap.length), uniq=[];
+    for(const p of cap){ if(!uniq.some(q=>Math.abs(q[0]-p[0])+Math.abs(q[1]-p[1])+Math.abs(q[2]-p[2])<1e-7)) uniq.push(p); }
+    if(uniq.length>=3){ const ang=a=>Math.atan2((a[0]-c[0])*v[0]+(a[1]-c[1])*v[1]+(a[2]-c[2])*v[2],(a[0]-c[0])*u[0]+(a[1]-c[1])*u[1]+(a[2]-c[2])*u[2]); uniq.sort((a,b)=>ang(a)-ang(b)); out.push(uniq); } }
+  return out;
+}
+// weld a list of point-polygons into an indexed mesh
+function _asetWeld(F){ const verts=[], faces=[], map=new Map();
+  const id=v=>{ const k=v.map(x=>Math.round(x*1e6)).join(","); let i=map.get(k); if(i==null){ i=verts.length; verts.push(v.slice()); map.set(k,i); } return i; };
+  for(const f of F){ const ix=f.map(id).filter((x,i,a)=>x!==a[(i+1)%a.length]); if(new Set(ix).size>=3) faces.push(ix); } return {verts,faces}; }
+// ASET modifier: the stone (base geometry) → the stone cut at the top layer + N stacked slice plates; each plate's top face carries that layer's 2D ASET map
+MODS.aset={label:"ASET", grp:"Gems", heavy:true,
+  params:[{k:"layers",l:"Layers (stacked slices)",min:1,max:12,step:1,def:5},
+    {k:"pos",l:"Slice position (depth %) — or drag the handle",min:0,max:95,step:1,def:17},
+    {k:"show",l:"Show stone (cut at the top layer)",bool:true,def:true}],
+  apply:(m,pp)=>{ if(!m||!m.faces||!m.faces.length) return m;
+    const n=Math.max(1,Math.min(12,Math.round(+pp.layers||5))), pos=Math.max(0,Math.min(0.95,(pp.pos==null?17:+pp.pos)/100)), R=asetCompute(m,n,pos); if(!R) return m;
+    const B=R.B, H=B.y1-B.y0, t=Math.max(1e-4,0.01*H), show=pp.show!==false;
+    const poly=m.faces.map(f=>f.map(i=>m.verts[i]));
+    const segs=[], over=[];
+    if(show) segs.push(["Stone",_asetWeld(_asetClip(poly,[0,1,0],R.layers[0].h))]);
+    R.layers.forEach((L,k)=>{
+      let F=_asetClip(_asetClip(poly,[0,1,0],L.h),[0,-1,0],-(L.h-t));          // the slab of the stone between h−t and h
+      const pm=_asetWeld(F); if(pm.faces.length) segs.push(["Layer "+(k+1)+" · "+Math.round(L.pct*100)+"%",pm]);
+      over.push({y:L.h, map:L.map}); });
+    if(!segs.length) return m;
+    const out=withParts(segs); out.aset={B, layers:over, faceUp:R.faceUp, wire:null, top:R.layers[0].h}; window._asetLast=R; setTimeout(asetInfoSync,0); return out; } };
+// colour overlay: ASET images on the plates' top faces (the mesh itself has no per-face colour)
+let _asetOv=null;
+function asetOverlaySync(dm){
+  if(_asetOv){ scene.remove(_asetOv); _asetOv.traverse(o=>{ if(o.geometry) o.geometry.dispose(); if(o.material){ o.material.map&&o.material.map.dispose(); o.material.dispose(); } }); _asetOv=null; }
+  const A=dm&&dm.aset; if(!A||!A.layers||!A.layers.length) return; const B=A.B;
+  _asetOv=new THREE.Group(); _asetOv.name="asetOverlay";
+  for(const L of A.layers){ const tex=new THREE.CanvasTexture(L.map); tex.magFilter=THREE.NearestFilter;
+    const q=new THREE.Mesh(new THREE.PlaneGeometry(B.ext,B.ext).rotateX(-Math.PI/2), new THREE.MeshBasicMaterial({map:tex, transparent:true, alphaTest:0.5, side:THREE.DoubleSide, polygonOffset:true, polygonOffsetFactor:-2, polygonOffsetUnits:-2}));
+    q.position.set(B.mx, L.y+Math.max(1e-4,(B.y1-B.y0)*1e-3), B.mz); q.renderOrder=5; _asetOv.add(q); }
+  if(A.wire){ const W=A.wire, pos=[], seen=new Set();   // stone shown as a wireframe
+    for(const f of W.faces) for(let k=0;k<f.length;k++){ const a=f[k], b=f[(k+1)%f.length], key=a<b?a+"_"+b:b+"_"+a; if(seen.has(key)) continue; seen.add(key); pos.push(...W.verts[a],...W.verts[b]); }
+    const g=new THREE.BufferGeometry(); g.setAttribute("position",new THREE.Float32BufferAttribute(pos,3));
+    const ln=new THREE.LineSegments(g,new THREE.LineBasicMaterial({color:0x2a3a46,transparent:true,opacity:0.75})); ln.renderOrder=4; _asetOv.add(ln); }
+  // slice handle: a track beside the stone and a grip at the top slice — drag it up/down to move the slice
+  { const x=B.mx+B.ext*0.62, H=B.y1-B.y0, r=Math.max(B.ext*0.035,1e-3);
+    const tg=new THREE.BufferGeometry(); tg.setAttribute("position",new THREE.Float32BufferAttribute([x,B.y0,B.mz, x,B.y1,B.mz],3));
+    _asetOv.add(new THREE.Line(tg,new THREE.LineBasicMaterial({color:0x0091ad})));
+    const grip=new THREE.Group(); grip.position.set(x,A.top,B.mz); grip.name="asetGrip";
+    const mat=new THREE.MeshBasicMaterial({color:0x0091ad, depthTest:false});
+    const s=new THREE.Mesh(new THREE.SphereGeometry(r,16,12),mat); grip.add(s);
+    const up=new THREE.Mesh(new THREE.ConeGeometry(r*0.8,r*1.6,12),mat); up.position.y=r*2.1; grip.add(up);
+    const dn=up.clone(); dn.rotation.x=Math.PI; dn.position.y=-r*2.1; grip.add(dn);
+    const lg=new THREE.BufferGeometry(); lg.setAttribute("position",new THREE.Float32BufferAttribute([B.mx-x,0,0, 0,0,0],3));
+    grip.add(new THREE.Line(lg,new THREE.LineBasicMaterial({color:0x0091ad})));
+    grip.traverse(o=>{ o.renderOrder=9; }); _asetOv.add(grip); _asetOv.userData={grip, B, x}; }
+  scene.add(_asetOv); }
+// drag the slice handle (captures the pointer before the camera controls see it)
+(function(){ let drag=null, last=0, tm=0; const ray=new THREE.Raycaster(), ndc=new THREE.Vector2();
+  const md=()=>{ const L=layers[activeLayer]; return L&&(L.modifiers||[]).find(x=>x.type==="aset"&&x.on); };
+  const setNdc=e=>{ const r=renderer.domElement.getBoundingClientRect(); ndc.set((e.clientX-r.left)/r.width*2-1,-(e.clientY-r.top)/r.height*2+1); ray.setFromCamera(ndc,camera); };
+  const apply=(final)=>{ const now=performance.now(); clearTimeout(tm);
+    if(!final&&now-last<140){ tm=setTimeout(()=>apply(false),150); return; } last=now; try{ rebuild(); }catch(e){}
+    if(final){ try{ renderModStack&&renderModStack(); if(typeof modEditId!=="undefined"&&drag&&modEditId===drag.id) openModEdit(drag.id); }catch(e){} } };
+  addEventListener("pointerdown",e=>{ if(e.target!==renderer.domElement||!_asetOv||!_asetOv.userData.grip) return; const m=md(); if(!m) return;
+    setNdc(e); const hit=ray.intersectObject(_asetOv.userData.grip,true); if(!hit.length) return;
+    e.stopImmediatePropagation(); e.preventDefault(); const U=_asetOv.userData;
+    const n=new THREE.Vector3(); camera.getWorldDirection(n); n.y=0; if(n.lengthSq()<1e-8) n.set(0,0,1); n.normalize();
+    drag={id:m.id, m, B:U.B, plane:new THREE.Plane().setFromNormalAndCoplanarPoint(n, U.grip.position.clone())};
+    try{ renderer.domElement.setPointerCapture(e.pointerId); }catch(_){} renderer.domElement.style.cursor="ns-resize"; },true);
+  addEventListener("pointermove",e=>{ if(!drag) return; e.stopImmediatePropagation(); e.preventDefault(); setNdc(e);
+    const p=new THREE.Vector3(); if(!ray.ray.intersectPlane(drag.plane,p)) return; const B=drag.B;
+    const pct=Math.round(Math.max(0,Math.min(95,(B.y1-p.y)/(B.y1-B.y0)*100))); if(pct===drag.m.params.pos) return;
+    drag.m.params.pos=pct; if(_asetOv&&_asetOv.userData.grip) _asetOv.userData.grip.position.y=B.y1-(B.y1-B.y0)*pct/100; apply(false); },true);
+  const end=e=>{ if(!drag) return; e.stopImmediatePropagation(); apply(true); drag=null; renderer.domElement.style.cursor=""; };
+  addEventListener("pointerup",end,true); addEventListener("pointercancel",end,true);
+  ["mousedown","touchstart"].forEach(t=>addEventListener(t,e=>{ if(drag) e.stopImmediatePropagation(); },true));
+})();
+// toolbar ASET → put the ASET modifier on the current layer's stack
+function openAsetTool(){
+  if(!(layersOn&&layers[activeLayer])){ toast&&toast("ASET needs a layer — make or select a stone first",true); return; }
+  const L=layers[activeLayer], have=(L.modifiers||[]).find(x=>x.type==="aset");
+  const md=have||addModifier("aset",{silent:true, returnMod:true});
+  if(md&&md.id!=null) setTimeout(()=>{ try{ openModEdit(md.id); }catch(e){} },50); }
+// ASET panel inside the modifier's Options: face-up map, one thumbnail per layer, legend, PDF
+function asetInfoSync(){ const box=document.getElementById("asetInfo"), R=window._asetLast; if(!box||!R) return;
+  const fc=box.querySelector("#asFace"); if(fc){ const g=fc.getContext("2d"); g.clearRect(0,0,220,220); g.drawImage(R.faceUp,0,0); }
+  const grid=box.querySelector("#asGrid"); if(grid){ grid.innerHTML="";
+    R.layers.forEach(L=>{ const w=document.createElement("div"); w.style.cssText="text-align:center;font-size:10px";
+      const c=document.createElement("canvas"); c.width=c.height=128; c.style.cssText="width:100%;aspect-ratio:1;display:block;background:#fff;border:1px solid #ddd;border-radius:4px;image-rendering:pixelated"; c.getContext("2d").drawImage(L.map,0,0);
+      w.append(c, document.createTextNode(Math.round(L.pct*100)+"% deep")); grid.appendChild(w); }); } }
+function asetInfoPanel(){ const d=document.createElement("div"); d.id="asetInfo";
+  d.innerHTML='<div style="font-size:11px;opacity:.75;padding:2px 0 6px">Light-return map of the stone, traced looking straight down. Works on convex stones (Gem Cut).</div>'
+    +'<canvas id="asFace" width="220" height="220" style="width:100%;max-width:220px;aspect-ratio:1;display:block;margin:0 auto;background:#fff;border:1px solid #ddd;border-radius:6px;image-rendering:pixelated"></canvas><div style="text-align:center;font-size:11px;margin:3px 0 8px">Face up (whole stone)</div>'
+    +'<div id="asGrid" style="display:grid;grid-template-columns:repeat(3,1fr);gap:6px;padding:4px 0 8px"></div>'
+    +'<div style="font-size:11px;line-height:1.6;padding:2px 0 6px"><span style="color:#eb1010">■</span> 45–80° high-angle light · <span style="color:#0dcc1f">■</span> 0–45° low-angle · <span style="color:#1a4dff">■</span> blocked by viewer (contrast) · <b>■</b> leakage</div>'
+    +'<button type="button" class="mkbtn" id="asPdf" style="width:100%">ASET → PDF (this stone)</button>';
+  d.querySelector("#asPdf").onclick=()=>exportAsetPDF(); setTimeout(asetInfoSync,0); return d; }
+function asetToolEnd(){}
+function _asetPage(cutName){ let nL=asetCfg.layers, M=mesh;
+  // same input as the ASET modifier: the base geometry plus every modifier listed above ASET in the stack
+  try{ const L=layers[activeLayer], mods=(L&&L.modifiers)||[], i=mods.findIndex(x=>x.type==="aset"&&x.on);
+    if(i>=0){ nL=Math.round(+mods[i].params.layers||nL); M=evalMods(mesh, mods.slice(0,i), L); } else { const d=dispMesh(); if(d&&d.faces&&d.faces.length) M=d; } }catch(e){}
+  const R=asetCompute(M,nL); if(!R) throw "no stone";
+  const W=1650, H=1275, pg=document.createElement("canvas"); pg.width=W; pg.height=H; const g=pg.getContext("2d"); g.imageSmoothingEnabled=false;
+  g.fillStyle="#fff"; g.fillRect(0,0,W,H); g.fillStyle="#111"; g.font="700 40px Helvetica,Arial"; g.fillText("ASET diagram",70,95);
+  g.font="400 24px Helvetica,Arial"; g.fillStyle="#555"; g.fillText(cutName+" · face up + "+R.layers.length+" layer"+(R.layers.length===1?"":"s")+" · TopMod 3D",70,135);
+  const sz=640; g.drawImage(R.faceUp,70,180,sz,sz); g.strokeStyle="#ccc"; g.strokeRect(70,180,sz,sz);
+  g.fillStyle="#333"; g.font="600 22px Helvetica,Arial"; g.fillText("Face up (whole stone)",70,850);
+  const n=R.layers.length, cols=n<=4?2:n<=9?3:4, gx=780, gw=W-70-gx, cell=Math.floor(gw/cols)-12;
+  R.layers.forEach((L,k)=>{ const x=gx+(k%cols)*(cell+12), y=180+Math.floor(k/cols)*(cell+40); g.drawImage(L.map,x,y,cell,cell); g.strokeRect(x,y,cell,cell);
+    g.fillStyle="#333"; g.font="400 18px Helvetica,Arial"; g.fillText("Layer "+(k+1)+" · "+Math.round(L.pct*100)+"% deep",x,y+cell+24); });
+  const LG=[["#eb1010","Red — high-angle light, 45–80° (brightness)"],["#0dcc1f","Green — low-angle light, 0–45°"],["#1a4dff","Blue — blocked by the viewer's head, 80–90° (contrast)"],["#000000","Black — leakage (light escaping through the pavilion)"]];
+  LG.forEach((l,i)=>{ const yy=930+i*58; g.fillStyle=l[0]; g.fillRect(70,yy-30,36,36); g.fillStyle="#222"; g.font="400 24px Helvetica,Arial"; g.fillText(l[1],124,yy-3); });
+  return pg; }
+function _asetPdf(pages, fn){
+  const enc=new TextEncoder(), parts=[], offs=[]; let len=0; const push=d=>{ const b=typeof d==="string"?enc.encode(d):d; parts.push(b); len+=b.length; };
+  const PW=792, PH=612, n=pages.length; push("%PDF-1.4\n");
+  const kids=[]; for(let i=0;i<n;i++) kids.push((3+i*3+2)+" 0 R");
+  offs[1]=len; push("1 0 obj\n<< /Type /Catalog /Pages 2 0 R >>\nendobj\n");
+  offs[2]=len; push("2 0 obj\n<< /Type /Pages /Count "+n+" /Kids ["+kids.join(" ")+"] >>\nendobj\n");
+  pages.forEach((c,i)=>{ const io=3+i*3, co=io+1, po=io+2, jpg=c.toDataURL("image/jpeg",0.92).split(",")[1], bin=atob(jpg), u=new Uint8Array(bin.length); for(let k=0;k<bin.length;k++) u[k]=bin.charCodeAt(k);
+    offs[io]=len; push(io+" 0 obj\n<< /Type /XObject /Subtype /Image /Width "+c.width+" /Height "+c.height+" /ColorSpace /DeviceRGB /BitsPerComponent 8 /Filter /DCTDecode /Length "+u.length+" >>\nstream\n"); push(u); push("\nendstream\nendobj\n");
+    const cs="q "+PW+" 0 0 "+PH+" 0 0 cm /Im"+i+" Do Q"; offs[co]=len; push(co+" 0 obj\n<< /Length "+cs.length+" >>\nstream\n"+cs+"\nendstream\nendobj\n");
+    offs[po]=len; push(po+" 0 obj\n<< /Type /Page /Parent 2 0 R /MediaBox [0 0 "+PW+" "+PH+"] /Resources << /XObject << /Im"+i+" "+io+" 0 R >> >> /Contents "+co+" 0 R >>\nendobj\n"); });
+  const N=3+n*3, xref=len; let x="xref\n0 "+N+"\n0000000000 65535 f \n"; for(let i=1;i<N;i++) x+=String(offs[i]).padStart(10,"0")+" 00000 n \n";
+  push(x+"trailer\n<< /Size "+N+" /Root 1 0 R >>\nstartxref\n"+xref+"\n%%EOF");
+  const blob=new Blob(parts,{type:"application/pdf"});
+  if(typeof saveBlob==="function") saveBlob(blob,fn); else { const a=document.createElement("a"); a.href=URL.createObjectURL(blob); a.download=fn; document.body.appendChild(a); a.click(); setTimeout(()=>{ URL.revokeObjectURL(a.href); a.remove(); },1500); }
+  toast&&toast("ASET diagram saved — "+fn+" ("+n+" page"+(n>1?"s":"")+")"); }
 function exportAsetPDF(){
-  const o=window.__gemOpts||(window.__gemOpts={}); const wasA=!!o.aset, y0=yaw, p0=pitch; o.aset=true;
-  const snap=(yw,pt)=>{ yaw=yw; pitch=pt; applyCam(); try{ window.__tm&&window.__tm.frameAll&&window.__tm.frameAll(1.45); }catch(e){}
-    const gv=grid&&grid.visible, ov=overlay&&overlay.visible, bg=scene.background; if(grid) grid.visible=false; if(overlay) overlay.visible=false; scene.background=new THREE.Color(0xffffff);
-    renderer.render(scene,camera); const c=document.createElement("canvas"), src=renderer.domElement, S=Math.min(src.width,src.height);
-    c.width=c.height=S; c.getContext("2d").drawImage(src,(src.width-S)/2,(src.height-S)/2,S,S,0,0,S,S);
-    if(grid) grid.visible=gv; if(overlay) overlay.visible=ov; scene.background=bg; return c; };
-  setTimeout(()=>{ try{
-    const top=snap(0,Math.PI/2-0.001), side=snap(0.6,0.5);
-    const W=1650, H=1275, pg=document.createElement("canvas"); pg.width=W; pg.height=H; const g=pg.getContext("2d");
-    g.fillStyle="#fff"; g.fillRect(0,0,W,H); g.fillStyle="#111"; g.font="700 40px Helvetica,Arial"; g.fillText("ASET diagram",70,95);
-    const cut=(document.getElementById("pDiaCut")||{}); const cutName=cut.options&&cut.selectedIndex>=0?cut.options[cut.selectedIndex].text:"Current stone";
-    g.font="400 24px Helvetica,Arial"; g.fillStyle="#555"; g.fillText(cutName+" · "+(RMODES[renderMode]?RMODES[renderMode].label:"")+" · "+(o.bounces||4)+" bounces · TopMod 3D",70,135);
-    const sz=640; g.drawImage(top,70,180,sz,sz); g.drawImage(side,W-70-sz,180,sz,sz); g.strokeStyle="#ccc"; g.strokeRect(70,180,sz,sz); g.strokeRect(W-70-sz,180,sz,sz);
-    g.fillStyle="#333"; g.font="600 22px Helvetica,Arial"; g.fillText("Face up (table view)",70,850); g.fillText("Angled",W-70-sz,850);
-    const L=[["#eb1010","Red — high-angle light, 45–80° (brightness)"],["#0dcc1f","Green — low-angle light, 0–45°"],["#1a4dff","Blue — blocked by the viewer's head, 80–90° (contrast)"],["#000000","Black — leakage (light escaping through the pavilion)"]];
-    L.forEach((l,i)=>{ const yy=930+i*58; g.fillStyle=l[0]; g.fillRect(70,yy-30,36,36); g.fillStyle="#222"; g.font="400 24px Helvetica,Arial"; g.fillText(l[1],124,yy-3); });
-    const jpg=pg.toDataURL("image/jpeg",0.92).split(",")[1], bin=atob(jpg), u=new Uint8Array(bin.length); for(let i=0;i<bin.length;i++) u[i]=bin.charCodeAt(i);
-    const enc=new TextEncoder(), parts=[], offs=[]; let len=0; const push=d=>{ const b=typeof d==="string"?enc.encode(d):d; parts.push(b); len+=b.length; };
-    const PW=792, PH=612; push("%PDF-1.4\n");
-    offs[1]=len; push("1 0 obj\n<< /Type /Catalog /Pages 2 0 R >>\nendobj\n");
-    offs[2]=len; push("2 0 obj\n<< /Type /Pages /Count 1 /Kids [5 0 R] >>\nendobj\n");
-    offs[3]=len; push("3 0 obj\n<< /Type /XObject /Subtype /Image /Width "+W+" /Height "+H+" /ColorSpace /DeviceRGB /BitsPerComponent 8 /Filter /DCTDecode /Length "+u.length+" >>\nstream\n"); push(u); push("\nendstream\nendobj\n");
-    const cs="q "+PW+" 0 0 "+PH+" 0 0 cm /Im0 Do Q"; offs[4]=len; push("4 0 obj\n<< /Length "+cs.length+" >>\nstream\n"+cs+"\nendstream\nendobj\n");
-    offs[5]=len; push("5 0 obj\n<< /Type /Page /Parent 2 0 R /MediaBox [0 0 "+PW+" "+PH+"] /Resources << /XObject << /Im0 3 0 R >> >> /Contents 4 0 R >>\nendobj\n");
-    const xref=len; let x="xref\n0 6\n0000000000 65535 f \n"; for(let i=1;i<=5;i++) x+=String(offs[i]).padStart(10,"0")+" 00000 n \n";
-    push(x+"trailer\n<< /Size 6 /Root 1 0 R >>\nstartxref\n"+xref+"\n%%EOF");
-    const blob=new Blob(parts,{type:"application/pdf"}), fn="TopMod_ASET_"+cutName.replace(/[^\w]+/g,"_")+".pdf";
-    if(typeof saveBlob==="function") saveBlob(blob,fn); else { const a=document.createElement("a"); a.href=URL.createObjectURL(blob); a.download=fn; document.body.appendChild(a); a.click(); setTimeout(()=>{ URL.revokeObjectURL(a.href); a.remove(); },1500); }
-    toast&&toast("ASET diagram saved — "+fn);
-  }catch(e){ toast&&toast("ASET export failed: "+e,true); }
-  o.aset=wasA; yaw=y0; pitch=p0; applyCam(); },60); }
+  try{ const cut=document.getElementById("pDiaCut"); const nm=cut&&cut.options&&cut.selectedIndex>=0?cut.options[cut.selectedIndex].text:"Current stone";
+    _asetPdf([_asetPage(nm)], "TopMod_ASET_"+nm.replace(/[^\w]+/g,"_")+".pdf"); }
+  catch(e){ toast&&toast("ASET export failed: "+e,true); } }
+window.__aset={exportAsetPDF, openAsetTool, asetMap, asetCfg};
+setTimeout(()=>{ const c=()=>document.querySelectorAll("#menubar .menu.open").forEach(m=>m.classList.remove("open"));
+  const a=document.getElementById("miAset"); a&&a.addEventListener("click",()=>{ c(); openAsetTool(); });
+  const t=document.getElementById("tbAset"); t&&t.addEventListener("click",e=>{ e.stopPropagation(); openAsetTool(); }); },0);
 // Gem view options (Options window): quality preset (Fast = no fire · 4 bounces ≈ 3× the frame rate), bounces, fire, fallback
 window.__gemOpts=Object.assign({disp:false,bounces:4}, window.__gemOpts||{});
 function openGemOptions(m){
@@ -9021,9 +9180,6 @@ function openGemOptions(m){
     +'<div class="param"><label>Bounces <output id="gbV"></output></label><input type="range" id="gb" min="2" max="12" step="1"></div>'
     +'<div class="param"><label class="chk"><input type="checkbox" id="gf"> Fire (dispersion — 3× slower)</label></div>'
     +'<div class="param"><label>Fall back to standard view below <output id="gfbV"></output> fps</label><input type="range" id="gfb" min="1" max="15" step="1"></div>'
-    +'<div class="param"><label class="chk"><input type="checkbox" id="gaset"> ASET view (light-return map)</label></div>'
-    +'<div id="gasetLeg" style="display:none;font-size:11px;line-height:1.6;padding:2px 12px 6px"><span style="color:#eb1010">■</span> 45–80° high-angle light · <span style="color:#0dcc1f">■</span> 0–45° low-angle · <span style="color:#1a4dff">■</span> blocked by viewer (contrast) · <b>■</b> leakage</div>'
-    +'<div class="param"><button type="button" id="gasetPdf" class="mkbtn" style="width:100%">Export ASET diagram (PDF)</button></div>'
     +'<div class="modEditNote">Light: bottom bar 💡 (1-point · 3-point · off). Fast is the default.</div></div>';
   const q=id=>body.querySelector("#"+id), labs={1:"Fast",2:"Balanced",3:"Full (fire)"};
   const syncLbl=()=>{ q("gbV").textContent=o.bounces; q("gf").checked=!!o.disp; q("gfbV").textContent=Math.round(1000/(window.__gemFallbackMs||330)); };
@@ -9032,9 +9188,6 @@ function openGemOptions(m){
   q("gb").oninput=e=>{ o.bounces=+e.target.value; syncLbl(); _gemGuard.t0=performance.now(); };
   q("gf").onchange=e=>{ o.disp=e.target.checked; syncLbl(); _gemGuard.t0=performance.now(); };
   q("gfb").oninput=e=>{ window.__gemFallbackMs=1000/Math.max(1,+e.target.value); syncLbl(); };
-  q("gaset").checked=!!o.aset; q("gasetLeg").style.display=o.aset?"block":"none";
-  q("gaset").onchange=e=>{ o.aset=e.target.checked; q("gasetLeg").style.display=o.aset?"block":"none"; _gemGuard.t0=performance.now(); };
-  q("gasetPdf").onclick=()=>exportAsetPDF();
   $("#tpTitle").textContent=(RMODES[m]&&RMODES[m].label||"Gem")+" view"; $("#tpApply")&&($("#tpApply").style.display="none");
   const pop=$("#toolpop"); pop.classList.remove("hiddenPanel","empty"); $("#optionsToggle")&&$("#optionsToggle").classList.add("on");
   tpState={op:"gemview",btn:null,moved:[]};
@@ -9738,7 +9891,7 @@ const PARAM_PRIMS={
     }
     updateMailClear&&updateMailClear(g.mail); return g;
   },
-  voronoi(){ const g=TM.primitives.voronoi(Math.round(P("#pVorN")), P("#pVorSize"), ($("#pVorShape")&&$("#pVorShape").value)||"square", ($("#pVorMode")&&$("#pVorMode").value)||"cells", P("#pVorGap"), P("#pVorThick"), Math.round(P("#pVorSeed")), Math.round(P("#pVorRelax")), 72, ($("#pVorDim")&&$("#pVorDim").value)||"2d"); const el=$("#pVorInfo"); if(el&&g.voronoi){ el.textContent="✓ "+g.voronoi.cells+" cells · "+(g.voronoi.dim==="3d"?"3D · ":"")+(g.voronoi.mode==="web"?"web fill (struts)":(g.voronoi.dim==="3d"?"cells":"cell tiles")); el.style.color="#8fce9b"; } return g; },
+  voronoi(){ const g=TM.primitives.voronoi(Math.round(P("#pVorN")), P("#pVorSize"), ($("#pVorShape")&&$("#pVorShape").value)||"square", ($("#pVorMode")&&$("#pVorMode").value)||"cells", P("#pVorGap"), P("#pVorThick"), Math.round(P("#pVorSeed")), Math.round(P("#pVorRelax")), 72, ($("#pVorDim")&&$("#pVorDim").value)||"3d"); const el=$("#pVorInfo"); if(el&&g.voronoi){ el.textContent="✓ "+g.voronoi.cells+" cells · "+(g.voronoi.dim==="3d"?"3D · ":"")+(g.voronoi.mode==="web"?"web fill (struts)":(g.voronoi.dim==="3d"?"cells":"cell tiles")); el.style.color="#8fce9b"; } return g; },
   tree(){ const g=TM.primitives.tree(Math.round(P("#pTreeLevels")), Math.round(P("#pTreeSplits")), P("#pTreeTrunk"), P("#pTreeLenR"), P("#pTreeRad"), P("#pTreeRadR"), P("#pTreeAngle"), P("#pTreeTwist"), P("#pTreeCurve"), P("#pTreeDroop"), P("#pTreeJit"), Math.round(P("#pTreeSides")), Math.round(P("#pTreeSegs")), P("#pTreeTaper"), $("#pTreeLeaves")&&$("#pTreeLeaves").checked, P("#pTreeLeafSz"), Math.round(P("#pTreeSeed"))); const el=$("#pTreeInfo"); if(el&&g.tree){ el.textContent=(g.tree.capped?"⚠ capped at ":"✓ ")+g.tree.branches+" branches"+(g.tree.leaves?(" · "+g.tree.leaves+" leaves"):""); el.style.color=g.tree.capped?"#ffcf6a":"#8fce9b"; } return g; },
   gem(){ const g=TM.primitives.gem(Math.round(P("#pGemNx")), Math.round(P("#pGemNz")), P("#pGemSpace"), ($("#pGemCell")&&$("#pGemCell").value)||"gem", P("#pGemSize"), P("#pGemHeight"), ($("#pGemField")&&$("#pGemField").value)||"radial", P("#pGemAmp"), P("#pGemFall"), P("#pGemTwist"), Math.round(P("#pGemSides")), Math.round(P("#pGemSeed"))); const el=$("#pGemInfo"); if(el&&g.gem){ el.textContent="✓ "+g.gem.cells+" cells · "+g.gem.cell+" · "+g.gem.field; el.style.color="#8fce9b"; } return g; },
   maze(){ const g=TM.primitives.maze(Math.round(P("#pMazeNx")), Math.round(P("#pMazeNz")), P("#pMazeCell"), P("#pMazeWall"), P("#pMazeHeight"), $("#pMazeBase")&&$("#pMazeBase").checked, P("#pMazeBaseT"), Math.round(P("#pMazeSeed"))); const el=$("#pMazeInfo"); if(el&&g.maze){ el.textContent="✓ "+g.maze.nx+"×"+g.maze.nz+" maze · "+g.maze.cells+" cells"; el.style.color="#8fce9b"; } return g; },
@@ -18566,16 +18719,10 @@ uniform sampler2D uTri; uniform sampler2D uNrm; uniform sampler2D uBvh; uniform 
 uniform vec3 uCam; uniform vec3 uIor; uniform vec3 uAbs; uniform int uBounces; uniform float uEps; uniform float uDisp;
 uniform float uSmooth; uniform float uBg; uniform float uRot; uniform float uGain; uniform float uTone;
 uniform vec3 uCenter; uniform float uCore; uniform float uCoreR; uniform vec3 uCoreCol;
-uniform float uKey; uniform vec3 uKeyDir; uniform vec3 uFillDir; uniform vec3 uRimDir; uniform float uAset;
+uniform float uKey; uniform vec3 uKeyDir; uniform vec3 uFillDir; uniform vec3 uRimDir;
 vec4 tfetch(sampler2D t,int w,int i){ return texelFetch(t, ivec2(i-(i/w)*w, i/w), 0); }
 // studio for stones: black void + overhead softbox + a ring of strip lights + warm/cool kickers (contrast = sparkle)
 vec3 env(vec3 d){
-  // ASET (Angular Spectrum Evaluation Tool) map: colour = the angle the light arrives from, measured up from the girdle plane
-  if(uAset>0.5){ float e=degrees(asin(clamp(d.y,-1.0,1.0)));
-    if(e<0.0) return vec3(0.0);                         // black: leakage (light from below)
-    if(e<45.0) return vec3(0.05,0.80,0.12);             // green: low-angle light (0–45°)
-    if(e<80.0) return vec3(0.92,0.06,0.06);             // red: high-angle light (45–80°) — the brightest return
-    return vec3(0.10,0.30,1.0); }                       // blue: blocked by the viewer's head (80–90°) — contrast
   // studio environment (softbox + strip lights + kickers) is always there; the 💡 modes ADD lights on top of it
   vec3 d0=d;
   float c=cos(uRot), s=sin(uRot); d=vec3(c*d.x-s*d.z, d.y, s*d.x+c*d.z);
@@ -18652,8 +18799,8 @@ void main(){
   vec3 c;
   if(uDisp>0.5){ c=vec3(gem(uIor.r,V,N).r, gem(uIor.g,V,N).g, gem(uIor.b,V,N).b); }
   else c=gem(uIor.g,V,N);
-  if(uAset<0.5) c*=uGain;
-  if(uTone>0.5&&uAset<0.5){ c=clamp((c*(2.51*c+0.03))/(c*(2.43*c+0.59)+0.14),0.0,1.0); }   // viewport has no tone mapping: ACES fit here
+  c*=uGain;
+  if(uTone>0.5){ c=clamp((c*(2.51*c+0.03))/(c*(2.43*c+0.59)+0.14),0.0,1.0); }   // viewport has no tone mapping: ACES fit here
   gl_FragColor=vec4(c,1.0);
   #include <tonemapping_fragment>
   #include <encodings_fragment>
@@ -18713,7 +18860,7 @@ void main(){
     const U={ uTri:{value:null}, uNrm:{value:null}, uBvh:{value:null}, uTriW:{value:2048}, uBvhW:{value:2048}, uCam:{value:new THREE.Vector3()},
       uIor:{value:new THREE.Vector3(...G.ior)}, uAbs:{value:new THREE.Vector3(...G.abs)}, uBounces:{value:7}, uEps:{value:1e-4}, uDisp:{value:1},
       uSmooth:{value:0}, uBg:{value:bg==="white"?1:0}, uRot:{value:0}, uGain:{value:1}, uTone:{value:0},
-      uAset:{value:0}, uKey:{value:1}, uKeyDir:{value:new THREE.Vector3(0.5,0.8,0.3).normalize()}, uFillDir:{value:new THREE.Vector3(-0.7,0.2,0.6).normalize()}, uRimDir:{value:new THREE.Vector3(0,0.6,-0.8).normalize()},
+      uKey:{value:1}, uKeyDir:{value:new THREE.Vector3(0.5,0.8,0.3).normalize()}, uFillDir:{value:new THREE.Vector3(-0.7,0.2,0.6).normalize()}, uRimDir:{value:new THREE.Vector3(0,0.6,-0.8).normalize()},
       uCenter:{value:new THREE.Vector3()}, uCore:{value:0}, uCoreR:{value:0.2}, uCoreCol:{value:new THREE.Vector3(1.0,0.86,0.62)} };
     const m=new THREE.ShaderMaterial({ uniforms:U, vertexShader:GEM_VS, fragmentShader:GEM_FS, glslVersion:THREE.GLSL3, side:THREE.FrontSide, clipping:true });
     m.userData.gem=id; m.userData.absBase=G.abs.slice();
@@ -18725,7 +18872,7 @@ void main(){
       U.uTri.value=d.tri; U.uNrm.value=d.nrm; U.uBvh.value=d.bvh; U.uTriW.value=d.W; U.uBvhW.value=d.W;
       inv.copy(obj.matrixWorld).invert(); cam.getWorldPosition(cp); U.uCam.value.copy(cp.applyMatrix4(inv));
       U.uKey.value=(window.__gemLight==null)?1:window.__gemLight;
-      U.uAset.value=o.aset?1:0; if(o.aset) U.uKey.value=0;
+
       if(U.uKey.value>0.5){ const R=new THREE.Vector3().setFromMatrixColumn(cam.matrixWorld,0), B=new THREE.Vector3().setFromMatrixColumn(cam.matrixWorld,2), Up=new THREE.Vector3(0,1,0);
         const mk=(a,b,c)=>R.clone().multiplyScalar(a).add(Up.clone().multiplyScalar(b)).add(B.clone().multiplyScalar(c)).transformDirection(inv).normalize();
         U.uKeyDir.value.copy(mk(0.28,0.95,0.12)); U.uFillDir.value.copy(mk(-0.75,0.22,0.6)); U.uRimDir.value.copy(mk(0.1,0.6,-0.8)); }
@@ -20569,7 +20716,7 @@ window.__tmCore={ get bboxObj(){return bboxObj}, get edgeObj(){return edgeObj}, 
   ["Simulate",["Cloth","Physics","Melt","Growth","Coral","Blobs","Generate/Lattice","Aero","FEA","TopOpt","Wrap","Pour"]],
   ["Boolean",["Union","Diff","Intersect","Split","Drill","Hull","Cut"]],
   ["Clean-up",["Edit/Heal","Fill Holes","Flip","Crease","Triangle","Quad","Simplify","Planarize","Orient","Voxel"]],
-  ["Gems",["Gem Cut","GEM","Bejewel"]],
+  ["Gems",["Gem Cut","GEM","Bejewel","ASET"]],
   ["Analyze",["Diagnose","Curvature","Section","Interfere","Thickness","Measure","Overhang"]],
   ["Fabricate",["Seam","Paper","Plywood","Faces","Laser","Waffle","Print","Tree Sup"]],
   ["Render",["Render"]],
@@ -22249,10 +22396,11 @@ body.uiMono #tmPaywall .pw{background:#fff;color:#111;border-color:#d7dbe0}
 @media (max-width:700px){ #tmDonate .dn{flex-direction:column} #tmDonate .dnL{padding:24px 22px} #tmDonate .dnL h2{font-size:32px} #tmDonate .dnL p{font-size:14px} }
 </style>
 <div id="tmDonate" role="dialog" aria-label="Donate to TopMod"><div class="dn">
-  <div class="dnL"><h2>Join the few</h2>
-    <p>Help keep TopMod free.</p>
-    <p><b>Only a small fraction of people who use TopMod ever donate.</b> Your contribution makes a real difference.</p>
-    <p>We don't show advertisements or sell your data. TopMod is funded by people like you.</p></div>
+  <div class="dnL"><h2>Keep TopMod free</h2>
+    <p><b>TopMod has been free software for everyone to use.</b></p>
+    <p>Contributions make a real difference.</p>
+    <p>Please share, comment, donate and like to spread the word.</p>
+    <button type="button" id="dnShare" style="margin-top:8px;padding:10px 18px;border-radius:999px;border:1.5px solid rgba(255,255,255,.7);background:transparent;color:#fff;font:600 15px var(--font,system-ui);cursor:pointer">Share TopMod &#8599;</button></div>
   <div class="dnR">
     <div class="dnAmts"><button type="button" data-t="1">$1</button><button type="button" data-t="5">$5</button><button type="button" data-t="25" class="on">$25</button><button type="button" data-t="100">$100</button>
       <button type="button" class="dnOther" id="dnOther">Other amount</button></div>
@@ -22267,7 +22415,13 @@ body.uiMono #tmPaywall .pw{background:#fff;color:#111;border-color:#d7dbe0}
      on the web the button opens TM_DONATE_URL when one is set. Shown after "No" on the demo prompt (at most once a week) and from Help ▸ Donate. */
   const D=document.getElementById("tmDonate"), go=document.getElementById("dnGo"), msg=document.getElementById("dnMsg"); let tier=25, prices={};
   const H=()=>window.webkit&&window.webkit.messageHandlers&&window.webkit.messageHandlers.tipStore;
+  // Web donations: set TM_DONATE_URL (below) to either
+  //   · one link with {amount} in it — e.g. "https://www.paypal.com/paypalme/NAME/{amount}USD"; or
+  //   · one link per amount — e.g. Stripe Payment Links {1:"https://buy.stripe.com/…",5:"…",10:"…",25:"…",50:"…",100:"…",250:"…"}
+  if(window.TM_DONATE_URL==null) window.TM_DONATE_URL="";   // ← paste the donation link here
   const WEB_URL=()=>window.TM_DONATE_URL||"";
+  const webLink=t=>{ const u=WEB_URL(); if(!u) return ""; if(typeof u==="object") return u[t]||u.other||"";
+    return u.includes("{amount}")? u.replace(/\{amount\}/g,t) : u+(u.includes("?")?"&":"?")+"amount="+t; };
   const label=t=>prices[t]||("$"+t);
   function pick(t){ tier=t; D.querySelectorAll("[data-t]").forEach(b=>b.classList.toggle("on",+b.dataset.t===t)); go.innerHTML="Donate "+label(t)+" &#9829;"; msg.textContent=""; }
   D.querySelectorAll("[data-t]").forEach(b=>b.onclick=()=>pick(+b.dataset.t));
@@ -22276,8 +22430,11 @@ body.uiMono #tmPaywall .pw{background:#fff;color:#111;border-color:#d7dbe0}
   function close(){ D.classList.remove("on"); }
   go.onclick=()=>{ const h=H();
     if(h){ go.disabled=true; msg.style.color="#6b7480"; msg.textContent="Contacting the App Store…"; h.postMessage({action:"tip",amount:tier}); return; }
-    const u=WEB_URL(); if(u){ window.open(u+(u.includes("?")?"&":"?")+"amount="+tier,"_blank","noopener"); close(); return; }
+    const u=webLink(tier); if(u){ window.open(u,"_blank","noopener"); msg.style.color="#2e7d32"; msg.textContent="Thank you — your support keeps TopMod free! ♥"; try{ localStorage.setItem("tm_donated",String(Date.now())); }catch(e){} setTimeout(close,2200); return; }
     msg.style.color="#6b7480"; msg.textContent="Donations are available in the TopMod 3D app on iPhone and iPad."; };
+  document.getElementById("dnShare").onclick=async()=>{ const d={title:"TopMod 3D",text:"TopMod 3D — free topological 3D modeling",url:"https://amaximal.com/software/topmod"};
+    try{ if(navigator.share){ await navigator.share(d); return; } }catch(e){ if(e&&e.name==="AbortError") return; }
+    try{ await navigator.clipboard.writeText(d.url); msg.style.color="#2e7d32"; msg.textContent="Link copied — thanks for spreading the word!"; }catch(e){ msg.textContent=d.url; } };
   document.getElementById("dnLater").onclick=close; D.addEventListener("click",e=>{ if(e.target===D) close(); });
   window.__tmTip={ open, close,
     prices(p){ prices=p||{}; D.querySelectorAll("[data-t]").forEach(b=>{ const t=+b.dataset.t; if(prices[t]) b.textContent=prices[t]; }); pick(tier); },
