@@ -11597,8 +11597,14 @@ const NEWGEN={
   // ---- 1. Branches: space colonization (attraction points pull the tips; reached points are consumed) ----
   ngBranch:{ label:"Branches", title:"Branches — space colonization", desc:"Attraction points fill a crown; every tip grows toward the points near it, and points are used up as branches reach them. <b>Model surface</b> wraps branches over your shape.",
     params:[{sel:"shape",l:"Attraction cloud",opts:[["sphere","Sphere crown"],["cone","Cone crown"],["cube","Box crown"],["model","This model's surface"]]},["pts","Attraction points",50,5000,50,900],["infl","Reach (× segment)",1.5,12,0.5,5],["kill","Consume distance (× segment)",0.5,4,0.1,1.4],["seg","Segment length",0.005,0.2,0.005,0.03],["thick","Thickness",0.2,4,0.05,1],["seed","Seed",1,500,1,7]],
-    build(o,M){ const r=_ngRng(o.seed), seg=o.seg, A=[]; let root=[0,0,0], C=[0,1.15,0], R=0.65;
-      if(o.shape==="model"&&M&&M.verts.length){ const B=_ngBBox(M); A.push(..._ngSurfPts(M,o.pts,r)); root=[B.c[0],B.a[1],B.c[2]]; }
+    build(o,M,CM){ const r=_ngRng(o.seed); let seg=o.seg; const A=[]; let root=[0,0,0], C=[0,1.15,0], R=0.65;
+      let FK=null; if(o.shape==="fill"&&CM&&CM.faces&&CM.faces.length){ const n=48; FK=_ngMeshMask(CM,n,"inside",_ngRng(o.seed+9)); const cells=[]; for(let q=0;q<FK.mask.length;q++) if(FK.mask[q]) cells.push(q);
+        if(cells.length<8) FK=null; else { const B=_ngBBox(CM); seg*=Math.cbrt(cells.length*FK.cell**3/0.9); /* same point density as the default crown */ const K=FK, pos=(q,j)=>[K.org[0]+(Math.floor(q/(n*n))+(j?r()-0.5:0))*K.cell, K.org[1]+((Math.floor(q/n)%n)+(j?r()-0.5:0))*K.cell, K.org[2]+((q%n)+(j?r()-0.5:0))*K.cell];
+          for(let t=0;t<o.pts;t++) A.push(pos(cells[Math.floor(r()*cells.length)],true));   // attraction points fill the layer's volume
+          let lo=1e9; for(const q of cells) lo=Math.min(lo,Math.floor(q/n)%n); let best=null, bd=1e18;
+          for(const q of cells){ if(Math.floor(q/n)%n!==lo) continue; const pp=pos(q,false), d=(pp[0]-B.c[0])**2+(pp[2]-B.c[2])**2; if(d<bd){ bd=d; best=pp; } } root=best||[B.c[0],B.a[1],B.c[2]]; } }
+      if(FK){}
+      else if(o.shape==="model"&&M&&M.verts.length){ const B=_ngBBox(M); A.push(..._ngSurfPts(M,o.pts,r)); root=[B.c[0],B.a[1],B.c[2]]; }
       else { while(A.length<o.pts){ const p=[r()*2-1,r()*2-1,r()*2-1];
           if(o.shape==="sphere"&&p[0]*p[0]+p[1]*p[1]+p[2]*p[2]>1) continue; if(o.shape==="cone"){ const h=(p[1]+1)/2; if(Math.hypot(p[0],p[2])>1-h) continue; }
           A.push([C[0]+p[0]*R, C[1]+p[1]*R*(o.shape==="cone"?1.1:0.85), C[2]+p[2]*R]); } }
@@ -11722,21 +11728,35 @@ const NEWGEN={
 
   // ---- 6. Hyphae: branching root network whose branches never collide ----
   ngHyphae:{ label:"Hyphae", title:"Hyphae — non-crossing root networks", desc:"Tips wander forward and split; a tip stops when it would come too close to any existing branch, so the network fills space without ever crossing itself (in the spirit of Anders Hoff's hyphae).",
-    params:[{sel:"from",l:"Grow from",opts:[["point","A point"],["ground","The ground (spreads up)"],["surface","This model's surface"]]},["max","Max segments",100,12000,100,3000],["step","Step length",0.005,0.1,0.005,0.025],["branch","Branching",0,0.6,0.01,0.1],["wander","Wander °",0,60,1,14],["clear","Clearance (× step)",0.6,4,0.1,1.5],["thick","Thickness",0.2,3,0.05,1],["seed","Seed",1,500,1,7]],
-    build(o,M){ const r=_ngRng(o.seed), st=o.step, clr=st*o.clear, nodes=[], H=new Map(), cell=clr, key=(x,y,z)=>Math.floor(x/cell)+","+Math.floor(y/cell)+","+Math.floor(z/cell);
+    params:[{sel:"from",l:"Grow from",opts:[["point","A point"],["ground","The ground (spreads up)"],["surface","This model's surface"]]},{sel:"box",l:"Container",opts:[["none","None (open space)"],["sphere","Sphere"],["cube","Cube"],["inside","Inside current layer (with modifiers)"]]},["max","Max segments",100,12000,100,3000],["step","Step length",0.005,0.1,0.005,0.025],["branch","Branching",0,0.6,0.01,0.1],["wander","Wander °",0,60,1,14],["clear","Clearance (× step)",0.6,4,0.1,1.5],["thick","Thickness",0.2,3,0.05,1],["seed","Seed",1,500,1,7]],
+    build(o,M,CM){ const r=_ngRng(o.seed);
+      // Container: tips may only grow inside it. A mesh container (current layer or any layer) sets the working space and scale.
+      let inC=()=>true, S=1, MKc=null, CB=null; const box=o.box||"none";
+      if(box==="sphere") inC=p=>p[0]*p[0]+(p[1]-1)**2+p[2]*p[2]<=1;
+      else if(box==="cube") inC=p=>Math.abs(p[0])<=1&&Math.abs(p[1]-1)<=1&&Math.abs(p[2])<=1;
+      else if(box==="inside"&&CM&&CM.faces&&CM.faces.length){ const n=56; MKc=_ngMeshMask(CM,n,"inside",_ngRng(o.seed+5)); let cnt=0; for(let q=0;q<MKc.mask.length;q++) cnt+=MKc.mask[q];
+        if(cnt<8) MKc=null; else { CB=_ngBBox(CM); S=CB.s/2; const K=MKc; inC=p=>{ const i=Math.floor((p[0]-K.org[0])/K.cell+0.5), j=Math.floor((p[1]-K.org[1])/K.cell+0.5), k=Math.floor((p[2]-K.org[2])/K.cell+0.5); return i>0&&j>0&&k>0&&i<n-1&&j<n-1&&k<n-1&&K.mask[(i*n+j)*n+k]===1; }; } }
+      const st=o.step*S, clr=st*o.clear, nodes=[], H=new Map(), cell=clr, key=(x,y,z)=>Math.floor(x/cell)+","+Math.floor(y/cell)+","+Math.floor(z/cell);
       const add=(p,pa)=>{ const i=nodes.length; nodes.push({p,parent:pa}); const k=key(...p); let a=H.get(k); if(!a) H.set(k,a=[]); a.push(i); return i; };
       const blocked=(p,ign1,ign2)=>{ const cx=Math.floor(p[0]/cell), cy=Math.floor(p[1]/cell), cz=Math.floor(p[2]/cell); for(let a=-1;a<=1;a++) for(let b=-1;b<=1;b++) for(let c=-1;c<=1;c++){ const L=H.get((cx+a)+","+(cy+b)+","+(cz+c)); if(L) for(const i of L){ if(i===ign1||i===ign2||nodes[i].parent===ign1) continue; const q=nodes[i].p; if((q[0]-p[0])**2+(q[1]-p[1])**2+(q[2]-p[2])**2<clr*clr) return true; } } return false; };
       const turn=(d,deg)=>{ const h=Math.abs(d[1])<0.9?[0,1,0]:[1,0,0], u=_ngN([d[1]*h[2]-d[2]*h[1], d[2]*h[0]-d[0]*h[2], d[0]*h[1]-d[1]*h[0]]), w=[d[1]*u[2]-d[2]*u[1], d[2]*u[0]-d[0]*u[2], d[0]*u[1]-d[1]*u[0]], a=r()*Math.PI*2, t=deg*Math.PI/180*(0.5+r()*0.5);
         return _ngN([d[0]*Math.cos(t)+(u[0]*Math.cos(a)+w[0]*Math.sin(a))*Math.sin(t), d[1]*Math.cos(t)+(u[1]*Math.cos(a)+w[1]*Math.sin(a))*Math.sin(t), d[2]*Math.cos(t)+(u[2]*Math.cos(a)+w[2]*Math.sin(a))*Math.sin(t)]); };
       let tips=[];
-      if(o.from==="surface"&&M&&M.verts.length){ const B=_ngBBox(M); for(const p of _ngSurfPts(M,24,r)){ const d=_ngN([p[0]-B.c[0],p[1]-B.c[1],p[2]-B.c[2]]); tips.push({i:add(p,-1),d}); } }
+      if(MKc&&o.from!=="surface"){ const n=56, K=MKc, cells=[]; for(let q=0;q<K.mask.length;q++) if(K.mask[q]) cells.push(q);
+        const pos=q=>[K.org[0]+Math.floor(q/(n*n))*K.cell, K.org[1]+(Math.floor(q/n)%n)*K.cell, K.org[2]+(q%n)*K.cell];
+        if(o.from==="ground"){ let lo=1e9; for(const q of cells) lo=Math.min(lo,Math.floor(q/n)%n); const bot=cells.filter(q=>Math.floor(q/n)%n===lo);
+          for(let s=0;s<5;s++){ const pp=pos(bot[Math.floor(r()*bot.length)]); tips.push({i:add(pp,-1),d:_ngN([r()-0.5,0.8,r()-0.5])}); } }
+        else { let best=cells[0], bd=1e18; for(const q of cells){ const pp=pos(q), d=(pp[0]-CB.c[0])**2+(pp[1]-CB.c[1])**2+(pp[2]-CB.c[2])**2; if(d<bd){ bd=d; best=q; } }
+          const i0=add(pos(best),-1); for(let s=0;s<6;s++) tips.push({i:i0,d:_ngDir(r)}); } }
+      else if(o.from==="surface"&&M&&M.verts.length){ const B=_ngBBox(M); for(const p of _ngSurfPts(M,24,r)){ const d=_ngN([p[0]-B.c[0],p[1]-B.c[1],p[2]-B.c[2]]); tips.push({i:add(p,-1),d}); } }
       else if(o.from==="ground"){ for(let s=0;s<5;s++){ const a=s/5*Math.PI*2; tips.push({i:add([Math.cos(a)*0.08,0,Math.sin(a)*0.08],-1),d:_ngN([Math.cos(a),0.6,Math.sin(a)])}); } }
       else { const i0=add([0,1,0],-1); for(let s=0;s<6;s++) tips.push({i:i0,d:_ngDir(r)}); }
       let guard=0;
       while(tips.length && nodes.length<o.max && guard<o.max*20){ guard++;
         const ti=Math.floor(r()*tips.length), T=tips[ti], q=nodes[T.i].p; let ok=false;
-        for(let att=0;att<4&&!ok;att++){ let d=turn(T.d,o.wander); if(o.from==="ground"&&d[1]<-0.2) d=_ngN([d[0],Math.abs(d[1]),d[2]]); const p=[q[0]+d[0]*st, q[1]+d[1]*st, q[2]+d[2]*st];
-          if(o.from==="ground"&&p[1]<0) continue;
+        const boxed=box!=="none"; for(let att=0;att<(boxed?8:4)&&!ok;att++){ let d=turn(T.d,o.wander*(boxed?1+att*0.6:1)); if(o.from==="ground"&&d[1]<-0.2) d=_ngN([d[0],Math.abs(d[1]),d[2]]); const p=[q[0]+d[0]*st, q[1]+d[1]*st, q[2]+d[2]*st];
+          if(o.from==="ground"&&!MKc&&p[1]<0) continue;
+          if(!inC(p)){ const cc=CB?CB.c:[0,1,0]; T.d=_ngN([cc[0]-q[0]+(r()-0.5)*S, cc[1]-q[1]+(r()-0.5)*S, cc[2]-q[2]+(r()-0.5)*S]); continue; }   // at the container wall: turn back inward
           if(!blocked(p,T.i,nodes[T.i].parent)){ const ni=add(p,T.i); T.i=ni; T.d=d; ok=true; if(r()<o.branch) tips.push({i:ni,d:turn(d,55)}); } }
         if(!ok) tips.splice(ti,1); }
       this.info=nodes.length+" segments · "+tips.length+" tips still growing";
@@ -11819,13 +11839,41 @@ function ngClose(commit){ if(!ngActive) return; const op=ngActive, G=NEWGEN[op];
 window.__newgen={ NEWGEN, ngValues };
 /* New-category generators + Coral as live modifiers: each one regenerates from the incoming mesh (base + modifiers above it).
    Shapes that don't read the input fill its bounding box (like Menger / Gyroid); "this model / current layer" options use it directly. */
+// Space dropdown (Slime, Reaction): besides Sphere / Cube / the current layer, every layer in the Layers list can be the container or the surface
+let _ngSpaceGuard=false;
+function _ngSpaceOpts(){ const o=[["sphere","Sphere"],["cube","Cube"],["inside","Inside current layer (with modifiers)"],["surface","On current layer surface (with modifiers)"]];
+  try{ (layers||[]).forEach((L,i)=>{ if(!L) return; const nm=(L.name||("Layer "+(i+1)))+(i===activeLayer?" (current)":"");
+    o.push(["in:"+L.id,"Inside “"+nm+"”"],["on:"+L.id,"On “"+nm+"” surface"]); }); }catch(e){}
+  return o; }
+function _ngResolveSpace(o,M){ const m=/^(in|on):(.+)$/.exec(o.dom||""); if(!m) return {o,M};
+  const L=(layers||[]).find(x=>String(x.id)===m[2]); let MX=null;
+  if(L&&!_ngSpaceGuard){ _ngSpaceGuard=true; try{ MX=layerEval(L); }catch(e){} finally{ _ngSpaceGuard=false; } }
+  return { o:Object.assign({},o,{dom:m[1]==="in"?"inside":"surface"}), M:MX&&MX.faces&&MX.faces.length?MX:null }; }
+{ const G=NEWGEN.ngBranch; if(G){ const p=G.params.find(x=>x&&x.sel==="shape");
+  if(p){ Object.defineProperty(p,"opts",{get:()=>{ const o=[["sphere","Sphere crown"],["cone","Cone crown"],["cube","Box crown"],["model","This model's surface"],["fill","Fill current layer (with modifiers)"]];
+      try{ (layers||[]).forEach((L,i)=>{ if(L) o.push(["fill:"+L.id,"Fill “"+(L.name||("Layer "+(i+1)))+(i===activeLayer?" (current)":"")+"”"]); }); }catch(e){} return o; }, configurable:true}); p.dyn=true; }
+  const b=G.build; G.build=function(o,M){ let CM=null, oo=o;
+    if(o.shape==="fill") CM=M;
+    else { const m=/^fill:(.+)$/.exec(o.shape||""); if(m){ const L=(layers||[]).find(x=>String(x.id)===m[1]); if(L&&!_ngSpaceGuard){ _ngSpaceGuard=true; try{ CM=layerEval(L); }catch(e){} finally{ _ngSpaceGuard=false; } } oo=Object.assign({},o,{shape:"fill"}); } }
+    return b.call(this,oo,M,CM); }; } }
+{ const G=NEWGEN.ngHyphae; if(G){ const p=G.params.find(x=>x&&x.sel==="box");
+  if(p){ Object.defineProperty(p,"opts",{get:()=>{ const o=[["none","None (open space)"],["sphere","Sphere"],["cube","Cube"],["inside","Inside current layer (with modifiers)"]];
+      try{ (layers||[]).forEach((L,i)=>{ if(L) o.push(["in:"+L.id,"Inside “"+(L.name||("Layer "+(i+1)))+(i===activeLayer?" (current)":"")+"”"]); }); }catch(e){} return o; }, configurable:true}); p.dyn=true; }
+  const b=G.build; G.build=function(o,M){ let CM=null, oo=o;
+    if(o.box==="inside") CM=M;
+    else { const m=/^in:(.+)$/.exec(o.box||""); if(m){ const L=(layers||[]).find(x=>String(x.id)===m[1]); if(L&&!_ngSpaceGuard){ _ngSpaceGuard=true; try{ CM=layerEval(L); }catch(e){} finally{ _ngSpaceGuard=false; } } oo=Object.assign({},o,{box:"inside"}); } }
+    return b.call(this,oo,M,CM); }; } }
+["ngSlime","ngReaction"].forEach(op=>{ const G=NEWGEN[op]; if(!G) return; const p=G.params.find(x=>x&&x.sel==="dom"); if(!p) return;
+  Object.defineProperty(p,"opts",{get:_ngSpaceOpts, configurable:true}); p.dyn=true;
+  const b=G.build; G.build=function(o,M){ const r=_ngResolveSpace(o,M); return b.call(this,r.o,r.M); }; });
 const NG_MOD_KEY=op=>"gen_"+op;
 function ngParamsToMod(G){ return G.params.map(p=>Array.isArray(p)? {k:p[0],l:p[1],min:p[2],max:p[3],step:p[4],def:p[5]}
+  : (p.sel&&p.dyn)? Object.defineProperty({k:p.sel,l:p.l,def:0},"opts",{get:()=>p.opts.map(x=>x[1]),enumerable:true})
   : p.sel? {k:p.sel,l:p.l,opts:p.opts.map(x=>x[1]),def:0} : {k:p.chk,l:p.l,bool:true,def:!!p.def}); }
 function ngValsFromMod(G,pp){ const o={}; G.params.forEach(p=>{ if(Array.isArray(p)){ const v=+pp[p[0]]; o[p[0]]=isFinite(v)?v:p[5]; }
   else if(p.sel){ const i=Math.max(0,Math.min(p.opts.length-1,Math.round(+pp[p.sel]||0))); o[p.sel]=p.opts[i][0]; } else if(p.chk) o[p.chk]=!!pp[p.chk]; }); return o; }
 function ngModFromVals(G,o){ const pp={}; G.params.forEach(p=>{ if(Array.isArray(p)) pp[p[0]]=+o[p[0]]; else if(p.sel){ const i=p.opts.findIndex(x=>x[0]===o[p.sel]); pp[p.sel]=i<0?0:i; } else if(p.chk) pp[p.chk]=!!o[p.chk]; }); return pp; }
-const _ngUsesInput=o=>o.shape==="model"||o.from==="surface"||o.dom==="inside"||o.dom==="surface";
+const _ngUsesInput=o=>o.shape==="model"||o.from==="surface"||o.dom==="inside"||o.dom==="surface"||/^(in|on):/.test(o.dom||"")||o.box==="inside"||/^in:/.test(o.box||"")||o.shape==="fill"||/^fill:/.test(o.shape||"");
 for(const op in NEWGEN){ const G=NEWGEN[op];
   MODS[NG_MOD_KEY(op)]={label:G.label, grp:"Generate", heavy:true, params:ngParamsToMod(G),
     apply:(m,pp)=>{ const o=ngValsFromMod(G,pp); const g=G.build.call(G,o,m); if(!g||!g.faces||!g.faces.length) return m;
@@ -16972,8 +17020,8 @@ window.__ek={applyWhole:applyWhole,ops:ops,snapshot:snapshot,rebuild:rebuild,toa
   let S=null, obj=null, ctl=null, raf=0, lastT=0, hid=false;
   const $=s=>document.querySelector(s);
   function src(){ const base=(typeof dispMesh==="function")?dispMesh():mesh; return base&&base.verts.length?base:null; }
-  function build(){
-    stopObj(); const b=src(); if(!b){ toast&&toast("Melt: nothing to melt",true); return; }
+  // pure simulation state from a mesh (shared by the live tool and the Melt modifier)
+  function makeSim(b,C,rnd,floorY){
     let m={verts:b.verts.map(v=>v.slice()),faces:b.faces.map(f=>f.slice())};
     const lin=M=>{ const V=M.verts.map(v=>v.slice()), E=new Map(), F=[]; const mid=(a,b)=>{ const k=a<b?a+"_"+b:b+"_"+a; if(!E.has(k)){ E.set(k,V.length); V.push([(V[a][0]+V[b][0])/2,(V[a][1]+V[b][1])/2,(V[a][2]+V[b][2])/2]); } return E.get(k); };
       for(const f of M.faces){ const c=[0,0,0]; for(const i of f){ c[0]+=M.verts[i][0]/f.length; c[1]+=M.verts[i][1]/f.length; c[2]+=M.verts[i][2]/f.length; } const ci=V.length; V.push(c);
@@ -16983,18 +17031,23 @@ window.__ek={applyWhole:applyWhole,ops:ops,snapshot:snapshot,rebuild:rebuild,toa
     m.verts.forEach((v,i)=>{ P[i*3]=v[0]; P[i*3+1]=v[1]; P[i*3+2]=v[2]; });
     for(const f of m.faces) for(let k=0;k<f.length;k++){ const a=f[k], c=f[(k+1)%f.length]; nb[a].add(c); nb[c].add(a); }
     let mnY=Infinity,mxY=-Infinity,cx=0,cz=0; for(let i=0;i<n;i++){ mnY=Math.min(mnY,P[i*3+1]); mxY=Math.max(mxY,P[i*3+1]); cx+=P[i*3]; cz+=P[i*3+2]; }
-    const floor=(typeof grid!=="undefined"&&grid)?Math.min(grid.position.y,mnY):mnY, H=Math.max(1e-3,mxY-floor);
+    const floor=floorY==null?mnY:Math.min(floorY,mnY), H=Math.max(1e-3,mxY-floor);
     const sn=(x,z)=>Math.sin(x*3.1+Math.sin(z*1.7)*2)*Math.sin(z*2.3+Math.cos(x*1.3)*2);   // smooth streak noise → coherent drips
-    const L0=new Float32Array(n); for(let i=0;i<n;i++){ const h0=(P[i*3+1]-mnY)/Math.max(1e-6,mxY-mnY); L0[i]=h0; F[i]=0.6+C.drips*1.6*Math.max(0,sn(P[i*3]*2/H,P[i*3+2]*2/H))+0.15*Math.random(); }
+    const L0=new Float32Array(n); for(let i=0;i<n;i++){ const h0=(P[i*3+1]-mnY)/Math.max(1e-6,mxY-mnY); L0[i]=h0; F[i]=0.6+C.drips*1.6*Math.max(0,sn(P[i*3]*2/H,P[i*3+2]*2/H))+0.15*rnd(); }
     const tris=[]; for(const f of m.faces) for(let k=1;k<f.length-1;k++) tris.push(f[0],f[k],f[k+1]);
-    S={n, P, V, F, L0, nb:nb.map(s=>[...s]), floor, H, cx:cx/n, cz:cz/n, t:0, faces:m.faces, P0:P.slice()};
+    return {n, P, V, F, L0, nb:nb.map(s=>[...s]), floor, H, cx:cx/n, cz:cz/n, t:0, faces:m.faces, P0:P.slice(), tris};
+  }
+  function build(){
+    stopObj(); const b=src(); if(!b){ toast&&toast("Melt: nothing to melt",true); return; }
+    S=makeSim(b,C,Math.random,(typeof grid!=="undefined"&&grid)?grid.position.y:null); const P=S.P, tris=S.tris;
     const g=new THREE.BufferGeometry(); g.setAttribute("position",new THREE.BufferAttribute(P,3)); g.setIndex(tris); g.computeVertexNormals();
     const pm=MP[C.preset]||MP.plastic; obj=new THREE.Mesh(g,new THREE.MeshStandardMaterial({color:pm.col,metalness:pm.metal,roughness:pm.rough,transparent:pm.op<1,opacity:pm.op,side:THREE.DoubleSide})); scene.add(obj);
     [meshObj,edgeObj,pointObj].forEach(o=>{ if(o) o.visible=false; }); hid=true; stats();
   }
   function stopObj(){ if(obj){ scene.remove(obj); obj.geometry.dispose(); obj.material.dispose(); obj=null; } S=null; }
   function restore(){ if(!hid) return; hid=false; [meshObj,edgeObj,pointObj].forEach(o=>{ if(o) o.visible=true; }); }
-  function step(dt){
+  function step(dt){ stepSim(S,C,dt); }
+  function stepSim(S,C,dt){
     const {n,P,V,F,L0,nb,floor,H}=S; S.t+=dt; const ramp=Math.min(1,S.t*0.35*C.heat), g=-1.1*C.heat*ramp, T=0.16*H/(0.6+C.spread*0.5);
     const decay=Math.exp(-S.t*0.25);   // the puddle slows and sets
     for(let i=0;i<n;i++){ const soft=Math.min(1,Math.max(0,(ramp*1.25-(1-L0[i])*0.6)));    // top softens first
@@ -17024,10 +17077,10 @@ window.__ek={applyWhole:applyWhole,ops:ops,snapshot:snapshot,rebuild:rebuild,toa
     ctl.innerHTML='<style>#mtCtl{font:12px var(--font,system-ui);color:#dbe8f3;display:flex;flex-direction:column;gap:7px}#mtCtl .clR{display:grid;grid-template-columns:78px 1fr 34px;align-items:center;gap:6px}#mtCtl .clR em{font-style:normal;color:#8fd8ff;text-align:right}#mtCtl input[type=range]{width:100%}#mtCtl .clB{display:flex;gap:5px}#mtCtl .clB button{flex:1;padding:7px 4px;border-radius:7px;border:1px solid #2a4a5a;background:#0f2430;color:#bff3ff;font:600 11.5px var(--font,system-ui);cursor:pointer}#mtCtl .clB button.pri{background:#00E5FF;border-color:#00E5FF;color:#04121a}#mtCtl .clS{color:#8fa6b8;font-size:11px;line-height:1.4}</style>'
       +'<div class="clB" id="mtPre">'+Object.keys(MP).map(k=>'<button data-pre="'+k+'">'+MP[k].lab+'</button>').join("")+'</div>'
       +slider("mtHeat","Heat",0.1,3,0.05,"heat")+slider("mtVisc","Viscosity",0,1,0.01,"visc")+slider("mtSpread","Spread",0,2,0.05,"spread")+slider("mtDrip","Drips",0,1,0.01,"drips")+slider("mtDet","Detail ×",0,3,1,"detail")
-      +'<div class="clB"><button id="mtPlay" class="pri">▶ Play</button><button id="mtReset">↺ Reset</button><button id="mtBake">Bake</button></div><div class="clS" id="mtStats"></div>';
+      +'<div class="clB"><button id="mtPlay" class="pri">▶ Play</button><button id="mtReset">↺ Reset</button><button id="mtBake">Bake</button></div><div class="clB"><button id="mtMod">＋ Add as modifier</button></div><div class="clS" id="mtStats"></div>';
     ctl.querySelectorAll("input[type=range]").forEach(r=>r.oninput=()=>{ C[r.dataset.k]=+r.value; ui(); if(r.dataset.k==="detail"||r.dataset.k==="drips") reset(); });
     ctl.querySelectorAll("#mtPre button").forEach(b=>b.onclick=()=>{ const m=MP[b.dataset.pre]; C.preset=b.dataset.pre; ["heat","visc","spread","drips","spring"].forEach(k=>C[k]=m[k]); reset(); C.playing=true; ui(); });
-    ctl.querySelector("#mtPlay").onclick=()=>C.playing?pause():play(); ctl.querySelector("#mtReset").onclick=reset; ctl.querySelector("#mtBake").onclick=bake; return ctl; }
+    ctl.querySelector("#mtPlay").onclick=()=>C.playing?pause():play(); ctl.querySelector("#mtReset").onclick=reset; ctl.querySelector("#mtBake").onclick=bake; ctl.querySelector("#mtMod").onclick=toModifier; return ctl; }
   function ui(){ if(!ctl) return; ctl.querySelectorAll("input[type=range]").forEach(r=>{ r.value=C[r.dataset.k]; const e=ctl.querySelector("#"+r.id+"V"); if(e) e.textContent=(+C[r.dataset.k]).toFixed(2).replace(/\.?0+$/,"")||"0"; });
     ctl.querySelector("#mtPlay").textContent=C.playing?"❚❚ Pause":"▶ Play"; ctl.querySelectorAll("#mtPre button").forEach(b=>b.classList.toggle("pri",b.dataset.pre===C.preset)); stats(); }
   function stats(){ const el=ctl&&ctl.querySelector("#mtStats"); if(el) el.textContent=S?S.n.toLocaleString()+" vertices · Bake keeps the current frame":"Press Play to melt the form."; }
@@ -17039,7 +17092,25 @@ window.__ek={applyWhole:applyWhole,ops:ops,snapshot:snapshot,rebuild:rebuild,toa
     $("#hint")&&($("#hint").textContent="Melt: the form slumps, drips and pools. Pause on the frame you like and Bake."); }
   function close(){ C.playing=false; cancelAnimationFrame(raf); raf=0; stopObj(); restore(); }
   new MutationObserver(()=>{ if(ctl&&!ctl.isConnected&&(S||raf)){ close(); try{ $("#tpApply")&&($("#tpApply").style.display=""); }catch(e){} } }).observe(document.body,{childList:true,subtree:true});
-  window.__melt={open,close,play,pause,reset,bake,cfg:C,get sim(){ return S; }};
+  // Melt as a live modifier: the same simulation run to a chosen time, from the shape coming into it (base geometry + modifiers above)
+  const PRE=Object.keys(MP);
+  MODS.melt={label:"Melt", grp:"Simulate", heavy:true,
+    params:[{k:"preset",l:"Material",opts:PRE.map(k=>MP[k].lab),def:PRE.indexOf("plastic")},{k:"time",l:"Time (s) — how far it has melted",min:0,max:12,step:0.1,def:4},
+      {k:"heat",l:"Heat",min:0.1,max:3,step:0.05,def:1},{k:"visc",l:"Viscosity",min:0,max:1,step:0.01,def:0.4},{k:"spread",l:"Spread",min:0,max:2,step:0.05,def:0.55},
+      {k:"drips",l:"Drips",min:0,max:1,step:0.01,def:0.65},{k:"detail",l:"Detail ×",min:0,max:3,step:1,def:1},{k:"seed",l:"Seed",min:1,max:500,step:1,def:7}],
+    apply:(m,pp)=>{ if(!m||!m.verts||!m.verts.length) return m;
+      const pm=MP[PRE[Math.max(0,Math.min(PRE.length-1,Math.round(+pp.preset||0)))]]||MP.plastic;
+      const cfg={heat:+pp.heat, visc:+pp.visc, spread:+pp.spread, drips:+pp.drips, detail:Math.round(+pp.detail||0), spring:pm.spring};
+      let sd=Math.round(+pp.seed||7)>>>0||7; const rnd=()=>{ sd=(sd*1664525+1013904223)>>>0; return sd/4294967296; };
+      const Sx=makeSim(m,cfg,rnd,null); const dt=1/90, N=Math.round(Math.max(0,+pp.time||0)/dt);
+      for(let i=0;i<N;i++) stepSim(Sx,cfg,dt);
+      const verts=[]; for(let i=0;i<Sx.n;i++) verts.push([Sx.P[i*3],Sx.P[i*3+1],Sx.P[i*3+2]]);
+      return {verts, faces:Sx.faces.map(f=>f.slice())}; } };
+  function toModifier(){ if(!(layersOn&&layers[activeLayer])){ toast&&toast("Melt modifier needs a layer",true); return; }
+    const t=S?Math.round(S.t*10)/10:4, params={preset:Math.max(0,PRE.indexOf(C.preset)), time:Math.min(12,t||4), heat:C.heat, visc:C.visc, spread:C.spread, drips:C.drips, detail:C.detail, seed:7};
+    C.playing=false; close(); try{ $("#tpApply")&&($("#tpApply").style.display=""); }catch(e){}
+    const md=addModifier("melt",{silent:true, returnMod:true}); if(md){ Object.assign(md.params,params); rebuild(); renderModStack&&renderModStack(); try{ openModEdit(md.id); }catch(e){} toast&&toast("Melt added to the modifier stack — change Time to melt more or less"); } }
+  window.__melt={open,close,play,pause,reset,bake,toModifier,cfg:C,get sim(){ return S; }};
   document.querySelectorAll('[data-act="melt"]').forEach(el=>el.addEventListener("click",e=>{ e.stopPropagation(); document.querySelectorAll("#menubar .menu.open").forEach(m=>m.classList.remove("open")); open(); }));
 })();
 
