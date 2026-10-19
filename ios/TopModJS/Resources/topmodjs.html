@@ -1358,6 +1358,7 @@ html.inApp [data-act="fullscreen"],html.inApp [data-act="shortcuts"],html.inApp 
       <div class="mi" id="miWhatsNew">&#10024; What&rsquo;s New in 3.9</div>
       <div class="mi" id="miHandGuide">&#9995; Hand controls &mdash; visual guide</div>
       <div class="mi" id="creditsBtn">&#9733; Credits &mdash; the TopMod team</div>
+      <div class="mi" id="donateBtn">&#9829; Donate &mdash; keep TopMod free</div>
       <div class="mi" data-act="controls">Controls &amp; Gestures</div>
       <div class="mi" data-act="shortcuts">Keyboard Shortcuts</div>
       <div class="mi" data-act="about">About TopMod 3D</div>
@@ -8198,6 +8199,33 @@ const envTex=pmrem.fromScene(envScene,0.04).texture;
 const matGloss=new THREE.MeshPhysicalMaterial(Object.assign({color:0xff7a1a,clearcoat:1,clearcoatRoughness:0.06,roughness:0.22,metalness:0,envMap:envTex,envMapIntensity:0.9,flatShading:true},PO));
 const matSteel=new THREE.MeshStandardMaterial(Object.assign({color:0x9ea4ab,metalness:1,roughness:0.42,envMap:envTex,envMapIntensity:1.0,flatShading:true},PO));
 const matChrome=new THREE.MeshStandardMaterial(Object.assign({color:0xf2f5f7,metalness:1,roughness:0.05,envMap:envTex,envMapIntensity:1.2,flatShading:true},PO));
+// Studio material views (View style ▸ Plastic / Metal / Wood) — colour + settings in the Options window
+window.__matOpts=Object.assign({ plastic:{color:"#e8463c",rough:0.32,coat:0.6,flat:false},
+  metal:{preset:"steel",color:"#b8bec6",rough:0.28,flat:false},
+  wood:{a:"#d6a66a",b:"#8a5a2b",scale:6,grain:0.5,rough:0.62,flat:false} }, window.__matOpts||{});
+const matPlastic=new THREE.MeshPhysicalMaterial(Object.assign({color:0xe8463c,roughness:0.32,metalness:0,clearcoat:0.6,clearcoatRoughness:0.12,envMap:envTex,envMapIntensity:0.9},PO));
+const matMetal=new THREE.MeshStandardMaterial(Object.assign({color:0xb8bec6,metalness:1,roughness:0.28,envMap:envTex,envMapIntensity:1.25},PO));
+const matWood=new THREE.MeshStandardMaterial(Object.assign({color:0xffffff,metalness:0,roughness:0.62,envMap:envTex,envMapIntensity:0.45},PO));
+matWood.userData.u={uWA:{value:new THREE.Color(0xd6a66a)},uWB:{value:new THREE.Color(0x8a5a2b)},uWS:{value:6},uWG:{value:0.5}};
+matWood.onBeforeCompile=sh=>{ Object.assign(sh.uniforms,matWood.userData.u);
+  sh.vertexShader=sh.vertexShader.replace("#include <common>","#include <common>\nvarying vec3 vWoodP;").replace("#include <begin_vertex>","#include <begin_vertex>\nvWoodP=position;");
+  sh.fragmentShader=sh.fragmentShader.replace("#include <common>",`#include <common>
+varying vec3 vWoodP; uniform vec3 uWA; uniform vec3 uWB; uniform float uWS; uniform float uWG;
+float wh(vec3 p){ return fract(sin(dot(p,vec3(12.9898,78.233,37.719)))*43758.5453); }
+float wn(vec3 p){ vec3 i=floor(p), f=fract(p); f=f*f*(3.0-2.0*f);
+  return mix(mix(mix(wh(i),wh(i+vec3(1,0,0)),f.x),mix(wh(i+vec3(0,1,0)),wh(i+vec3(1,1,0)),f.x),f.y),mix(mix(wh(i+vec3(0,0,1)),wh(i+vec3(1,0,1)),f.x),mix(wh(i+vec3(0,1,1)),wh(i+vec3(1,1,1)),f.x),f.y),f.z); }`)
+   .replace("vec4 diffuseColor = vec4( diffuse, opacity );",`vec3 wp=vWoodP*uWS; float n=wn(wp*vec3(0.6,3.0,0.6))*uWG + wn(wp*vec3(2.0,14.0,2.0))*0.25*uWG;
+  float ring=fract(length(wp.xz+vec2(wn(wp*0.35),wn(wp*0.35+7.1))*0.8*uWG)+n);
+  float t=smoothstep(0.0,0.55,ring)*(1.0-smoothstep(0.75,1.0,ring));
+  vec4 diffuseColor = vec4( mix(uWB,uWA,t)*(0.88+0.24*wn(wp*vec3(30.0,2.0,30.0))), opacity );`); };
+const METAL_PRESETS={steel:["#b8bec6",0.28],chrome:["#f2f5f7",0.04],gold:["#ffc35a",0.18],rosegold:["#f0a58a",0.2],copper:["#e8875a",0.22],brass:["#d8b25a",0.25],titanium:["#8f9399",0.35],black:["#2a2c30",0.3]};
+function applyMatOpts(){ const o=window.__matOpts;
+  matPlastic.color.set(o.plastic.color); matPlastic.roughness=+o.plastic.rough; matPlastic.clearcoat=+o.plastic.coat; matPlastic.flatShading=!!o.plastic.flat;
+  matMetal.color.set(o.metal.color); matMetal.roughness=+o.metal.rough; matMetal.flatShading=!!o.metal.flat;
+  const u=matWood.userData.u; u.uWA.value.set(o.wood.a); u.uWB.value.set(o.wood.b); u.uWS.value=+o.wood.scale; u.uWG.value=+o.wood.grain; matWood.roughness=+o.wood.rough; matWood.flatShading=!!o.wood.flat;
+  [matPlastic,matMetal,matWood].forEach(m=>m.needsUpdate=true); }
+[matPlastic,matMetal,matWood].forEach(m=>m.userData.keepColor=true);
+applyMatOpts();
 
 // ---------- ShaderClaw-style animated shader materials ----------
 const SHADER_MATS=[]; // collected so we can advance their u_time each frame
@@ -8357,7 +8385,10 @@ const RMODES={
   reddiamond:{mat:matXray, edge:[0xff6b6b,0.10], label:"Red Diamond"},
   ruby:{mat:matXray, edge:[0xff3355,0.10], label:"Ruby"},
   sapphire:{mat:matXray, edge:[0x4d7dff,0.10], label:"Sapphire"},
-  emerald:{mat:matXray, edge:[0x3dff8f,0.10], label:"Emerald"}
+  emerald:{mat:matXray, edge:[0x3dff8f,0.10], label:"Emerald"},
+  plastic:{mat:matPlastic, edge:[0x2a0a08,0.35], label:"Plastic"},
+  metal:{mat:matMetal, edge:[0x1a1d22,0.3], label:"Metal"},
+  wood:{mat:matWood, edge:[0x2a1806,0.35], label:"Wood"}
 };
 const NEON=[0x00E5FF,0xFF2FA6,0x00E676,0xFFE14D,0xFF8C22,0xB26BFF];
 const matVert=new THREE.PointsMaterial({color:0x9fb3c8,size:0.055});
@@ -8940,8 +8971,46 @@ function gemPerfGuard(now){
   if(!g.last||now-g.t0<1500){ g.last=now; g.ema=0; g.slow=0; return; }          // grace period: shader compile + BVH build
   const dt=now-g.last; g.last=now; g.ema=g.ema? g.ema*0.85+dt*0.15 : dt;
   if(g.ema>(window.__gemFallbackMs||330)){ g.slow+=dt; } else g.slow=Math.max(0,g.slow-dt);   // ~3 fps or worse (3× more tolerant)
-  if(g.slow>1800){ const was=RMODES[renderMode].label; setRenderMode("solid"); toast&&toast(was+" view is too heavy for this device — back to the standard view",true); }
+  if(g.slow>1800){ const o=window.__gemOpts||(window.__gemOpts={});
+    if(!g.stepped && (o.bounces||4)>2){   // first try: keep the gem view, drop to 2 bounces with fire on, before giving up
+      g.stepped=true; o.bounces=2; o.disp=true; g.slow=0; g.ema=0; g.t0=now; g.last=0;
+      try{ const gb=document.getElementById("gb"), gf=document.getElementById("gf"), gv=document.getElementById("gbV"); if(gb) gb.value=2; if(gv) gv.textContent=2; if(gf) gf.checked=true; }catch(e){}
+      toast&&toast(RMODES[renderMode].label+" view was struggling — now 2 bounces with fire on"); return; }
+    const was=RMODES[renderMode].label; g.stepped=false; setRenderMode("solid"); toast&&toast(was+" view is too heavy for this device — back to the standard view",true); }
 }
+// ASET diagram: top (table-up) and angled views in ASET colours on one landscape page, with legend → PDF download
+function exportAsetPDF(){
+  const o=window.__gemOpts||(window.__gemOpts={}); const wasA=!!o.aset, y0=yaw, p0=pitch; o.aset=true;
+  const snap=(yw,pt)=>{ yaw=yw; pitch=pt; applyCam(); try{ window.__tm&&window.__tm.frameAll&&window.__tm.frameAll(1.45); }catch(e){}
+    const gv=grid&&grid.visible, ov=overlay&&overlay.visible, bg=scene.background; if(grid) grid.visible=false; if(overlay) overlay.visible=false; scene.background=new THREE.Color(0xffffff);
+    renderer.render(scene,camera); const c=document.createElement("canvas"), src=renderer.domElement, S=Math.min(src.width,src.height);
+    c.width=c.height=S; c.getContext("2d").drawImage(src,(src.width-S)/2,(src.height-S)/2,S,S,0,0,S,S);
+    if(grid) grid.visible=gv; if(overlay) overlay.visible=ov; scene.background=bg; return c; };
+  setTimeout(()=>{ try{
+    const top=snap(0,Math.PI/2-0.001), side=snap(0.6,0.5);
+    const W=1650, H=1275, pg=document.createElement("canvas"); pg.width=W; pg.height=H; const g=pg.getContext("2d");
+    g.fillStyle="#fff"; g.fillRect(0,0,W,H); g.fillStyle="#111"; g.font="700 40px Helvetica,Arial"; g.fillText("ASET diagram",70,95);
+    const cut=(document.getElementById("pDiaCut")||{}); const cutName=cut.options&&cut.selectedIndex>=0?cut.options[cut.selectedIndex].text:"Current stone";
+    g.font="400 24px Helvetica,Arial"; g.fillStyle="#555"; g.fillText(cutName+" · "+(RMODES[renderMode]?RMODES[renderMode].label:"")+" · "+(o.bounces||4)+" bounces · TopMod 3D",70,135);
+    const sz=640; g.drawImage(top,70,180,sz,sz); g.drawImage(side,W-70-sz,180,sz,sz); g.strokeStyle="#ccc"; g.strokeRect(70,180,sz,sz); g.strokeRect(W-70-sz,180,sz,sz);
+    g.fillStyle="#333"; g.font="600 22px Helvetica,Arial"; g.fillText("Face up (table view)",70,850); g.fillText("Angled",W-70-sz,850);
+    const L=[["#eb1010","Red — high-angle light, 45–80° (brightness)"],["#0dcc1f","Green — low-angle light, 0–45°"],["#1a4dff","Blue — blocked by the viewer's head, 80–90° (contrast)"],["#000000","Black — leakage (light escaping through the pavilion)"]];
+    L.forEach((l,i)=>{ const yy=930+i*58; g.fillStyle=l[0]; g.fillRect(70,yy-30,36,36); g.fillStyle="#222"; g.font="400 24px Helvetica,Arial"; g.fillText(l[1],124,yy-3); });
+    const jpg=pg.toDataURL("image/jpeg",0.92).split(",")[1], bin=atob(jpg), u=new Uint8Array(bin.length); for(let i=0;i<bin.length;i++) u[i]=bin.charCodeAt(i);
+    const enc=new TextEncoder(), parts=[], offs=[]; let len=0; const push=d=>{ const b=typeof d==="string"?enc.encode(d):d; parts.push(b); len+=b.length; };
+    const PW=792, PH=612; push("%PDF-1.4\n");
+    offs[1]=len; push("1 0 obj\n<< /Type /Catalog /Pages 2 0 R >>\nendobj\n");
+    offs[2]=len; push("2 0 obj\n<< /Type /Pages /Count 1 /Kids [5 0 R] >>\nendobj\n");
+    offs[3]=len; push("3 0 obj\n<< /Type /XObject /Subtype /Image /Width "+W+" /Height "+H+" /ColorSpace /DeviceRGB /BitsPerComponent 8 /Filter /DCTDecode /Length "+u.length+" >>\nstream\n"); push(u); push("\nendstream\nendobj\n");
+    const cs="q "+PW+" 0 0 "+PH+" 0 0 cm /Im0 Do Q"; offs[4]=len; push("4 0 obj\n<< /Length "+cs.length+" >>\nstream\n"+cs+"\nendstream\nendobj\n");
+    offs[5]=len; push("5 0 obj\n<< /Type /Page /Parent 2 0 R /MediaBox [0 0 "+PW+" "+PH+"] /Resources << /XObject << /Im0 3 0 R >> >> /Contents 4 0 R >>\nendobj\n");
+    const xref=len; let x="xref\n0 6\n0000000000 65535 f \n"; for(let i=1;i<=5;i++) x+=String(offs[i]).padStart(10,"0")+" 00000 n \n";
+    push(x+"trailer\n<< /Size 6 /Root 1 0 R >>\nstartxref\n"+xref+"\n%%EOF");
+    const blob=new Blob(parts,{type:"application/pdf"}), fn="TopMod_ASET_"+cutName.replace(/[^\w]+/g,"_")+".pdf";
+    if(typeof saveBlob==="function") saveBlob(blob,fn); else { const a=document.createElement("a"); a.href=URL.createObjectURL(blob); a.download=fn; document.body.appendChild(a); a.click(); setTimeout(()=>{ URL.revokeObjectURL(a.href); a.remove(); },1500); }
+    toast&&toast("ASET diagram saved — "+fn);
+  }catch(e){ toast&&toast("ASET export failed: "+e,true); }
+  o.aset=wasA; yaw=y0; pitch=p0; applyCam(); },60); }
 // Gem view options (Options window): quality preset (Fast = no fire · 4 bounces ≈ 3× the frame rate), bounces, fire, fallback
 window.__gemOpts=Object.assign({disp:false,bounces:4}, window.__gemOpts||{});
 function openGemOptions(m){
@@ -8952,6 +9021,9 @@ function openGemOptions(m){
     +'<div class="param"><label>Bounces <output id="gbV"></output></label><input type="range" id="gb" min="2" max="12" step="1"></div>'
     +'<div class="param"><label class="chk"><input type="checkbox" id="gf"> Fire (dispersion — 3× slower)</label></div>'
     +'<div class="param"><label>Fall back to standard view below <output id="gfbV"></output> fps</label><input type="range" id="gfb" min="1" max="15" step="1"></div>'
+    +'<div class="param"><label class="chk"><input type="checkbox" id="gaset"> ASET view (light-return map)</label></div>'
+    +'<div id="gasetLeg" style="display:none;font-size:11px;line-height:1.6;padding:2px 12px 6px"><span style="color:#eb1010">■</span> 45–80° high-angle light · <span style="color:#0dcc1f">■</span> 0–45° low-angle · <span style="color:#1a4dff">■</span> blocked by viewer (contrast) · <b>■</b> leakage</div>'
+    +'<div class="param"><button type="button" id="gasetPdf" class="mkbtn" style="width:100%">Export ASET diagram (PDF)</button></div>'
     +'<div class="modEditNote">Light: bottom bar 💡 (1-point · 3-point · off). Fast is the default.</div></div>';
   const q=id=>body.querySelector("#"+id), labs={1:"Fast",2:"Balanced",3:"Full (fire)"};
   const syncLbl=()=>{ q("gbV").textContent=o.bounces; q("gf").checked=!!o.disp; q("gfbV").textContent=Math.round(1000/(window.__gemFallbackMs||330)); };
@@ -8960,12 +9032,38 @@ function openGemOptions(m){
   q("gb").oninput=e=>{ o.bounces=+e.target.value; syncLbl(); _gemGuard.t0=performance.now(); };
   q("gf").onchange=e=>{ o.disp=e.target.checked; syncLbl(); _gemGuard.t0=performance.now(); };
   q("gfb").oninput=e=>{ window.__gemFallbackMs=1000/Math.max(1,+e.target.value); syncLbl(); };
+  q("gaset").checked=!!o.aset; q("gasetLeg").style.display=o.aset?"block":"none";
+  q("gaset").onchange=e=>{ o.aset=e.target.checked; q("gasetLeg").style.display=o.aset?"block":"none"; _gemGuard.t0=performance.now(); };
+  q("gasetPdf").onclick=()=>exportAsetPDF();
   $("#tpTitle").textContent=(RMODES[m]&&RMODES[m].label||"Gem")+" view"; $("#tpApply")&&($("#tpApply").style.display="none");
   const pop=$("#toolpop"); pop.classList.remove("hiddenPanel","empty"); $("#optionsToggle")&&$("#optionsToggle").classList.add("on");
   tpState={op:"gemview",btn:null,moved:[]};
 }
+const MAT_RM=/^(plastic|metal|wood)$/;
+function openMatOptions(m){
+  if(typeof closeToolPop==="function" && tpState && tpState.op!=="matview") try{ closeToolPop(); }catch(e){}
+  const body=$("#tpBody"); if(!body) return; const o=window.__matOpts[m];
+  const col=(k,l)=>'<div class="param"><label>'+l+'</label><input type="color" data-k="'+k+'" value="'+o[k]+'" style="width:100%;height:30px;border:0;background:none"></div>';
+  const rng=(k,l,mn,mx,st)=>'<div class="param"><label>'+l+'</label><input type="range" data-k="'+k+'" min="'+mn+'" max="'+mx+'" step="'+st+'" value="'+o[k]+'"></div>';
+  const chk=(k,l)=>'<div class="param"><label class="chk"><input type="checkbox" data-k="'+k+'"'+(o[k]?" checked":"")+'> '+l+'</label></div>';
+  let h='<div class="gemOpt">';
+  if(m==="plastic") h+=col("color","Colour")+rng("rough","Roughness (gloss ↔ matte)",0,1,0.01)+rng("coat","Clear coat",0,1,0.01)+chk("flat","Faceted (flat shading)");
+  if(m==="metal") h+='<div class="param"><label>Metal</label><select data-k="preset">'+Object.keys(METAL_PRESETS).map(k=>'<option value="'+k+'"'+(k===o.preset?" selected":"")+'>'+k.replace("rosegold","rose gold").replace(/^./,c=>c.toUpperCase())+'</option>').join("")+'</select></div>'
+      +col("color","Colour")+rng("rough","Roughness (polished ↔ brushed)",0,1,0.01)+chk("flat","Faceted (flat shading)");
+  if(m==="wood") h+=col("a","Light wood")+col("b","Dark grain")+rng("scale","Ring size (small ↔ large)",1,20,0.5)+rng("grain","Grain wobble",0,1.5,0.05)+rng("rough","Roughness",0,1,0.01)+chk("flat","Faceted (flat shading)");
+  h+='<div class="modEditNote">Changes apply live.</div></div>';
+  body.innerHTML=h; if(window.__numboxify) window.__numboxify(body);
+  body.querySelectorAll("[data-k]").forEach(el=>el.addEventListener("input",()=>{ const k=el.dataset.k; o[k]=el.type==="checkbox"?el.checked:(el.type==="range"?+el.value:el.value);
+    if(m==="metal"&&k==="preset"){ const P=METAL_PRESETS[el.value]; o.color=P[0]; o.rough=P[1]; const c=body.querySelector('[data-k="color"]'), r=body.querySelector('[data-k="rough"]'); if(c) c.value=P[0]; if(r){ r.value=P[1]; r.dispatchEvent(new Event("change")); } }
+    applyMatOpts(); try{ rebuild(); }catch(e){} }));
+  body.querySelectorAll('input[type="checkbox"][data-k],select[data-k]').forEach(el=>el.addEventListener("change",()=>el.dispatchEvent(new Event("input"))));
+  $("#tpTitle").textContent=RMODES[m].label+" view"; $("#tpApply")&&($("#tpApply").style.display="none");
+  const pop=$("#toolpop"); pop.classList.remove("hiddenPanel","empty"); $("#optionsToggle")&&$("#optionsToggle").classList.add("on");
+  tpState={op:"matview",btn:null,moved:[]};
+}
 function setRenderMode(m){
   if(!RMODES[m]) return;
+  if(MAT_RM.test(m)) setTimeout(()=>openMatOptions(m),0); else if(tpState&&tpState.op==="matview") try{ closeToolPop(); }catch(e){}
   { const vs=document.getElementById("viewStyleSel"); if(vs && vs.value!==m) vs.value=m; }
   if(GEM_RM.test(m) && !(window.__demo&&window.__demo.on&&window.__demo.on())) setTimeout(()=>openGemOptions(m),0);
   if(GEM_RM.test(m)) try{ setTimeout(()=>window.__guide&&window.__guide.log("View · "+RMODES[m].label,{key:"gem"}),400); }catch(e){}
@@ -18468,10 +18566,16 @@ uniform sampler2D uTri; uniform sampler2D uNrm; uniform sampler2D uBvh; uniform 
 uniform vec3 uCam; uniform vec3 uIor; uniform vec3 uAbs; uniform int uBounces; uniform float uEps; uniform float uDisp;
 uniform float uSmooth; uniform float uBg; uniform float uRot; uniform float uGain; uniform float uTone;
 uniform vec3 uCenter; uniform float uCore; uniform float uCoreR; uniform vec3 uCoreCol;
-uniform float uKey; uniform vec3 uKeyDir; uniform vec3 uFillDir; uniform vec3 uRimDir;
+uniform float uKey; uniform vec3 uKeyDir; uniform vec3 uFillDir; uniform vec3 uRimDir; uniform float uAset;
 vec4 tfetch(sampler2D t,int w,int i){ return texelFetch(t, ivec2(i-(i/w)*w, i/w), 0); }
 // studio for stones: black void + overhead softbox + a ring of strip lights + warm/cool kickers (contrast = sparkle)
 vec3 env(vec3 d){
+  // ASET (Angular Spectrum Evaluation Tool) map: colour = the angle the light arrives from, measured up from the girdle plane
+  if(uAset>0.5){ float e=degrees(asin(clamp(d.y,-1.0,1.0)));
+    if(e<0.0) return vec3(0.0);                         // black: leakage (light from below)
+    if(e<45.0) return vec3(0.05,0.80,0.12);             // green: low-angle light (0–45°)
+    if(e<80.0) return vec3(0.92,0.06,0.06);             // red: high-angle light (45–80°) — the brightest return
+    return vec3(0.10,0.30,1.0); }                       // blue: blocked by the viewer's head (80–90°) — contrast
   // studio environment (softbox + strip lights + kickers) is always there; the 💡 modes ADD lights on top of it
   vec3 d0=d;
   float c=cos(uRot), s=sin(uRot); d=vec3(c*d.x-s*d.z, d.y, s*d.x+c*d.z);
@@ -18548,8 +18652,8 @@ void main(){
   vec3 c;
   if(uDisp>0.5){ c=vec3(gem(uIor.r,V,N).r, gem(uIor.g,V,N).g, gem(uIor.b,V,N).b); }
   else c=gem(uIor.g,V,N);
-  c*=uGain;
-  if(uTone>0.5){ c=clamp((c*(2.51*c+0.03))/(c*(2.43*c+0.59)+0.14),0.0,1.0); }   // viewport has no tone mapping: ACES fit here
+  if(uAset<0.5) c*=uGain;
+  if(uTone>0.5&&uAset<0.5){ c=clamp((c*(2.51*c+0.03))/(c*(2.43*c+0.59)+0.14),0.0,1.0); }   // viewport has no tone mapping: ACES fit here
   gl_FragColor=vec4(c,1.0);
   #include <tonemapping_fragment>
   #include <encodings_fragment>
@@ -18603,13 +18707,13 @@ void main(){
     if(g){ g.tri.dispose(); g.nrm.dispose(); g.bvh.dispose(); }
     g=_gemBuild(geo); g.ver=ver; _gemCache.set(geo,g); return g;
   }
-  function gemSettings(){ const s=window.__gemOpts||{}; return { bounces:s.bounces||4, disp:!!s.disp, smooth:s.smooth, spin:s.spin!==false, gain:s.gain||1 }; }
+  function gemSettings(){ const s=window.__gemOpts||{}; return { aset:!!s.aset, bounces:s.bounces||4, disp:!!s.disp, smooth:s.smooth, spin:s.spin!==false, gain:s.gain||1 }; }
   function makeGemMaterial(id, bg){
     const G=GEMS[id]||GEMS.diamond;
     const U={ uTri:{value:null}, uNrm:{value:null}, uBvh:{value:null}, uTriW:{value:2048}, uBvhW:{value:2048}, uCam:{value:new THREE.Vector3()},
       uIor:{value:new THREE.Vector3(...G.ior)}, uAbs:{value:new THREE.Vector3(...G.abs)}, uBounces:{value:7}, uEps:{value:1e-4}, uDisp:{value:1},
       uSmooth:{value:0}, uBg:{value:bg==="white"?1:0}, uRot:{value:0}, uGain:{value:1}, uTone:{value:0},
-      uKey:{value:1}, uKeyDir:{value:new THREE.Vector3(0.5,0.8,0.3).normalize()}, uFillDir:{value:new THREE.Vector3(-0.7,0.2,0.6).normalize()}, uRimDir:{value:new THREE.Vector3(0,0.6,-0.8).normalize()},
+      uAset:{value:0}, uKey:{value:1}, uKeyDir:{value:new THREE.Vector3(0.5,0.8,0.3).normalize()}, uFillDir:{value:new THREE.Vector3(-0.7,0.2,0.6).normalize()}, uRimDir:{value:new THREE.Vector3(0,0.6,-0.8).normalize()},
       uCenter:{value:new THREE.Vector3()}, uCore:{value:0}, uCoreR:{value:0.2}, uCoreCol:{value:new THREE.Vector3(1.0,0.86,0.62)} };
     const m=new THREE.ShaderMaterial({ uniforms:U, vertexShader:GEM_VS, fragmentShader:GEM_FS, glslVersion:THREE.GLSL3, side:THREE.FrontSide, clipping:true });
     m.userData.gem=id; m.userData.absBase=G.abs.slice();
@@ -18621,6 +18725,7 @@ void main(){
       U.uTri.value=d.tri; U.uNrm.value=d.nrm; U.uBvh.value=d.bvh; U.uTriW.value=d.W; U.uBvhW.value=d.W;
       inv.copy(obj.matrixWorld).invert(); cam.getWorldPosition(cp); U.uCam.value.copy(cp.applyMatrix4(inv));
       U.uKey.value=(window.__gemLight==null)?1:window.__gemLight;
+      U.uAset.value=o.aset?1:0; if(o.aset) U.uKey.value=0;
       if(U.uKey.value>0.5){ const R=new THREE.Vector3().setFromMatrixColumn(cam.matrixWorld,0), B=new THREE.Vector3().setFromMatrixColumn(cam.matrixWorld,2), Up=new THREE.Vector3(0,1,0);
         const mk=(a,b,c)=>R.clone().multiplyScalar(a).add(Up.clone().multiplyScalar(b)).add(B.clone().multiplyScalar(c)).transformDirection(inv).normalize();
         U.uKeyDir.value.copy(mk(0.28,0.95,0.12)); U.uFillDir.value.copy(mk(-0.75,0.22,0.6)); U.uRimDir.value.copy(mk(0.1,0.6,-0.8)); }
@@ -21571,7 +21676,7 @@ body.duo #claudePanel,body.duoBottom #claudePanel{top:calc(var(--duoH,50vh) + 8p
 <script>/* Mono mode: models go neutral grey (no colour on models); other modes restore the original material colour */
 (function(){ let saved=null;
   window.__monoModel=function(on){ try{ const S=window.__tmCore&&window.__tmCore.scene; if(!S) { setTimeout(()=>window.__monoModel(on),400); return; }
-    S.traverse(o=>{ const mats=o.isMesh?(Array.isArray(o.material)?o.material:[o.material]):[]; mats.forEach(m=>{ if(!m||!m.color||m.depthTest===false||m.depthWrite===false||o.renderOrder>0||(m.transparent&&!(m.transmission>0))||(m.polygonOffset&&m.polygonOffsetFactor<0)) return;   /* never recolour selection / hover / overlay materials */ if(m.vertexColors){ if(on&&m.userData.__monoVC==null){ m.userData.__monoVC=1; m.vertexColors=false; m.needsUpdate=true; } }
+    S.traverse(o=>{ const mats=o.isMesh?(Array.isArray(o.material)?o.material:[o.material]):[]; mats.forEach(m=>{ if(!m||!m.color||(m.userData&&m.userData.keepColor)||m.depthTest===false||m.depthWrite===false||o.renderOrder>0||(m.transparent&&!(m.transmission>0))||(m.polygonOffset&&m.polygonOffsetFactor<0)) return;   /* never recolour selection / hover / overlay materials */ if(m.vertexColors){ if(on&&m.userData.__monoVC==null){ m.userData.__monoVC=1; m.vertexColors=false; m.needsUpdate=true; } }
       if(on){ if(m.userData.__monoOrig==null){ m.userData.__monoOrig=m.color.getHex(); } m.color.set(window.__shaderColor||"#FF8C22"); }
       else if(m.userData.__monoOrig!=null){ m.color.setHex(m.userData.__monoOrig); delete m.userData.__monoOrig; if(m.userData.__monoVC){ m.vertexColors=true; m.needsUpdate=true; delete m.userData.__monoVC; } } }); }); }catch(e){} };
   // new meshes created while in Mono get the grey too
@@ -22118,6 +22223,73 @@ body.uiMono #tmPaywall .pw{background:#fff;color:#111;border-color:#d7dbe0}
     get pro(){ return pro; }, get enabled(){ return enabled; }, show };
   function init(){ if(!H()){ enabled=false; apply(); return; } enabled=true; collect(); apply(); setTimeout(collect,1500); setTimeout(collect,4000); try{ H().postMessage({action:"status"}); }catch(e){} }
   if(document.readyState==="loading") document.addEventListener("DOMContentLoaded",init); else setTimeout(init,0);
+})();</script>
+<style>
+#tmDonate{position:fixed;inset:0;z-index:10050;display:none;align-items:center;justify-content:center;padding:16px;background:rgba(4,7,11,.55);backdrop-filter:blur(4px);-webkit-backdrop-filter:blur(4px)}
+#tmDonate.on{display:flex}
+#tmDonate .dn{display:flex;width:min(920px,100%);border-radius:22px;overflow:hidden;box-shadow:0 24px 70px rgba(0,0,0,.55);font:15px/1.45 var(--font,-apple-system,system-ui)}
+#tmDonate .dnL{flex:1.1;padding:40px 38px;color:#fff;background:radial-gradient(120% 90% at 20% 0%,#6d8f8c 0%,rgba(40,60,70,0) 55%),radial-gradient(90% 80% at 90% 90%,#5a4a52 0%,rgba(30,40,50,0) 60%),linear-gradient(135deg,#2a3c46,#22303a 55%,#2b2d34)}
+#tmDonate .dnL h2{margin:0 0 18px;font:800 46px/1.05 var(--font,-apple-system,system-ui);letter-spacing:-.5px}
+#tmDonate .dnL p{margin:0 0 14px;color:rgba(255,255,255,.88);font-size:16px}
+#tmDonate .dnL b{color:#fff}
+#tmDonate .dnR{flex:1;background:#f7f8fa;color:#2a2f36;padding:28px 26px;display:flex;flex-direction:column;justify-content:center}
+#tmDonate .dnAmts{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+#tmDonate .dnAmts button,#tmDonate .dnMore button{padding:12px 0;border-radius:10px;border:2px solid #6b7480;background:#fff;color:#4a525c;font:600 20px var(--font,system-ui);cursor:pointer}
+#tmDonate .dnAmts button.on,#tmDonate .dnMore button.on{background:#4396f0;border-color:#4396f0;color:#fff}
+#tmDonate .dnMore{display:none;grid-template-columns:1fr 1fr 1fr;gap:10px;margin-top:10px}
+#tmDonate .dnMore.on{display:grid}
+#tmDonate .dnOther{grid-column:1/-1;font-size:16px!important}
+#tmDonate .dnOnce{margin:16px 0 12px;font-size:22px;color:#444}
+#tmDonate .dnOnce b{color:#333}
+#tmDonate .dnGo{width:100%;padding:14px;border:0;border-radius:10px;background:#4396f0;color:#fff;font:600 19px var(--font,system-ui);cursor:pointer}
+#tmDonate .dnGo:disabled{opacity:.6}
+#tmDonate .dnFoot{display:flex;justify-content:space-between;align-items:center;margin-top:14px;font-size:13px;color:#6b7480}
+#tmDonate .dnFoot button{background:none;border:0;color:#6b7480;text-decoration:underline;cursor:pointer;font:13px var(--font,system-ui)}
+#tmDonate .dnMsg{min-height:18px;margin-top:8px;font-size:13px;text-align:center;color:#2e7d32}
+@media (max-width:700px){ #tmDonate .dn{flex-direction:column} #tmDonate .dnL{padding:24px 22px} #tmDonate .dnL h2{font-size:32px} #tmDonate .dnL p{font-size:14px} }
+</style>
+<div id="tmDonate" role="dialog" aria-label="Donate to TopMod"><div class="dn">
+  <div class="dnL"><h2>Join the few</h2>
+    <p>Help keep TopMod free.</p>
+    <p><b>Only a small fraction of people who use TopMod ever donate.</b> Your contribution makes a real difference.</p>
+    <p>We don't show advertisements or sell your data. TopMod is funded by people like you.</p></div>
+  <div class="dnR">
+    <div class="dnAmts"><button type="button" data-t="1">$1</button><button type="button" data-t="5">$5</button><button type="button" data-t="25" class="on">$25</button><button type="button" data-t="100">$100</button>
+      <button type="button" class="dnOther" id="dnOther">Other amount</button></div>
+    <div class="dnMore" id="dnMore"><button type="button" data-t="10">$10</button><button type="button" data-t="50">$50</button><button type="button" data-t="250">$250</button></div>
+    <div class="dnOnce">Donate, just <b>once</b></div>
+    <button type="button" class="dnGo" id="dnGo">Donate $25 &#9829;</button>
+    <div class="dnMsg" id="dnMsg"></div>
+    <div class="dnFoot"><button type="button" id="dnLater">Not now</button><span>One-time · no subscription</span></div>
+  </div></div></div>
+<script>(function(){
+  /* Donate prompt. In the iPhone/iPad app a donation is a one-time tip through the App Store (tipStore bridge, consumable in-app purchases);
+     on the web the button opens TM_DONATE_URL when one is set. Shown after "No" on the demo prompt (at most once a week) and from Help ▸ Donate. */
+  const D=document.getElementById("tmDonate"), go=document.getElementById("dnGo"), msg=document.getElementById("dnMsg"); let tier=25, prices={};
+  const H=()=>window.webkit&&window.webkit.messageHandlers&&window.webkit.messageHandlers.tipStore;
+  const WEB_URL=()=>window.TM_DONATE_URL||"";
+  const label=t=>prices[t]||("$"+t);
+  function pick(t){ tier=t; D.querySelectorAll("[data-t]").forEach(b=>b.classList.toggle("on",+b.dataset.t===t)); go.innerHTML="Donate "+label(t)+" &#9829;"; msg.textContent=""; }
+  D.querySelectorAll("[data-t]").forEach(b=>b.onclick=()=>pick(+b.dataset.t));
+  document.getElementById("dnOther").onclick=()=>{ document.getElementById("dnMore").classList.toggle("on"); };
+  function open(){ msg.textContent=""; go.disabled=false; pick(tier); D.classList.add("on"); document.querySelectorAll("#menubar .menu.open").forEach(m=>m.classList.remove("open")); try{ H()&&H().postMessage({action:"prices"}); }catch(e){} }
+  function close(){ D.classList.remove("on"); }
+  go.onclick=()=>{ const h=H();
+    if(h){ go.disabled=true; msg.style.color="#6b7480"; msg.textContent="Contacting the App Store…"; h.postMessage({action:"tip",amount:tier}); return; }
+    const u=WEB_URL(); if(u){ window.open(u+(u.includes("?")?"&":"?")+"amount="+tier,"_blank","noopener"); close(); return; }
+    msg.style.color="#6b7480"; msg.textContent="Donations are available in the TopMod 3D app on iPhone and iPad."; };
+  document.getElementById("dnLater").onclick=close; D.addEventListener("click",e=>{ if(e.target===D) close(); });
+  window.__tmTip={ open, close,
+    prices(p){ prices=p||{}; D.querySelectorAll("[data-t]").forEach(b=>{ const t=+b.dataset.t; if(prices[t]) b.textContent=prices[t]; }); pick(tier); },
+    done(ok,m){ go.disabled=false; msg.style.color=ok?"#2e7d32":"#c62828"; msg.textContent=m||(ok?"Thank you — your support keeps TopMod free! ♥":"");
+      if(ok){ try{ localStorage.setItem("tm_donated",String(Date.now())); }catch(e){} setTimeout(close,2200); } } };
+  const can=()=>!!(H()||WEB_URL());   // web: only once a donation link (TM_DONATE_URL) is configured
+  const btn=document.getElementById("donateBtn"); if(btn){ btn.addEventListener("click",open); const sync=()=>{ btn.style.display=can()?"":"none"; }; sync(); setTimeout(sync,1500); }
+  // after "No" on the demo prompt: at most once a week, never right after someone donated
+  document.addEventListener("click",e=>{ if(!(e.target.closest&&e.target.closest("#amxDemoAsk .dqNo"))||!can()) return;
+    let last=0, gave=0; try{ last=+localStorage.getItem("tm_donate_shown")||0; gave=+localStorage.getItem("tm_donated")||0; }catch(_){}
+    const now=Date.now(); if(now-last<7*864e5||now-gave<60*864e5) return;
+    try{ localStorage.setItem("tm_donate_shown",String(now)); }catch(_){} setTimeout(open,700); },true);
 })();</script>
 </body>
 </html>

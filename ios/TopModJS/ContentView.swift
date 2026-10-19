@@ -392,6 +392,11 @@ struct TopModWebView: UIViewRepresentable {
         // config.userContentController.add(pro, name: "proStore")
         // context.coordinator.pro = pro
 
+        // Donations: one-time tips through the App Store (Help ▸ Donate, and after "No" on the demo prompt).
+        let tips = TipStore()
+        config.userContentController.add(tips, name: "tipStore")
+        context.coordinator.tips = tips
+
         // LiDAR depth provider — refines hand-tracking depth when available.
         let lidar = LiDARProvider()
         let lidarBridge = LiDARBridge()
@@ -404,6 +409,7 @@ struct TopModWebView: UIViewRepresentable {
         lidar.webView = webView
         lidarBridge.webView = webView
         context.coordinator.pro?.webView = webView
+        context.coordinator.tips?.webView = webView
         context.coordinator.photos?.webView = webView
 
         // Grant camera/mic capture requests from the page (see WebUIDelegate).
@@ -457,6 +463,7 @@ struct TopModWebView: UIViewRepresentable {
         var photos: PhotosBridge?
         var arBridge: ARQuickLookBridge?
         var pro: ProStore?
+        var tips: TipStore?
         var uiDelegate: WebUIDelegate?
         var server: LocalServer?
         var didFallback = false
