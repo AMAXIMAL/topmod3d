@@ -1344,6 +1344,7 @@ html.inApp [data-act="fullscreen"],html.inApp [data-act="shortcuts"],html.inApp 
       <div class="mi" data-rm="plastic">Plastic</div>
       <div class="mi" data-rm="metal">Metal</div>
       <div class="mi" data-rm="wood">Wood</div>
+      <div class="mi" data-rm="liquid">Liquid metal (animated)</div>
       <div class="mi" data-act="lineArt">Line Art (pen-plotter styles)</div>
       <div class="mi" data-act="liveEq">Live Equations (math overlay)</div>
       <div class="msep"></div>
@@ -8211,7 +8212,8 @@ const matChrome=new THREE.MeshStandardMaterial(Object.assign({color:0xf2f5f7,met
 // Studio material views (View style ▸ Plastic / Metal / Wood) — colour + settings in the Options window
 window.__matOpts=Object.assign({ plastic:{color:"#e8463c",rough:0.32,coat:0.6,flat:false},
   metal:{preset:"steel",color:"#b8bec6",rough:0.28,flat:false},
-  wood:{a:"#d6a66a",b:"#8a5a2b",scale:6,grain:0.5,rough:0.62,flat:false} }, window.__matOpts||{});
+  wood:{a:"#d6a66a",b:"#8a5a2b",scale:6,grain:0.5,rough:0.62,flat:false},
+  liquid:{tint:"#e9eef5",scale:1.8,speed:0.3,liquid:0.35,refract:0.02,edge:0.5,blur:0.35,flat:false} }, window.__matOpts||{});
 const matPlastic=new THREE.MeshPhysicalMaterial(Object.assign({color:0xe8463c,roughness:0.32,metalness:0,clearcoat:0.6,clearcoatRoughness:0.12,envMap:envTex,envMapIntensity:0.9},PO));
 const matMetal=new THREE.MeshStandardMaterial(Object.assign({color:0xb8bec6,metalness:1,roughness:0.28,envMap:envTex,envMapIntensity:1.25},PO));
 const matWood=new THREE.MeshStandardMaterial(Object.assign({color:0xffffff,metalness:0,roughness:0.62,envMap:envTex,envMapIntensity:0.45},PO));
@@ -8232,12 +8234,45 @@ function applyMatOpts(){ const o=window.__matOpts;
   matPlastic.color.set(o.plastic.color); matPlastic.roughness=+o.plastic.rough; matPlastic.clearcoat=+o.plastic.coat; matPlastic.flatShading=!!o.plastic.flat;
   matMetal.color.set(o.metal.color); matMetal.roughness=+o.metal.rough; matMetal.flatShading=!!o.metal.flat;
   const u=matWood.userData.u; u.uWA.value.set(o.wood.a); u.uWB.value.set(o.wood.b); u.uWS.value=+o.wood.scale; u.uWG.value=+o.wood.grain; matWood.roughness=+o.wood.rough; matWood.flatShading=!!o.wood.flat;
-  [matPlastic,matMetal,matWood].forEach(m=>m.needsUpdate=true); }
+  [matPlastic,matMetal,matWood].forEach(m=>m.needsUpdate=true);
+  if(window.__matLiquid){ const L=o.liquid, U=window.__matLiquid.uniforms; U.uTint.value.set(L.tint); U.uScale.value=+L.scale; U.uSpeed.value=+L.speed; U.uLiquid.value=+L.liquid; U.uRefr.value=+L.refract; U.uEdge.value=+L.edge; U.uBlur.value=+L.blur; U.uFlat.value=L.flat?1:0; } }
 [matPlastic,matMetal,matWood].forEach(m=>m.userData.keepColor=true);
 applyMatOpts();
 
 // ---------- ShaderClaw-style animated shader materials ----------
 const SHADER_MATS=[]; // collected so we can advance their u_time each frame
+// Liquid metal view: polished chrome whose reflected light runs in soft bands that flow over the surface; the bands split slightly
+// into colour at their edges (like light through a thin liquid layer) and brighten toward the silhouette. Animated.
+const matLiquid=new THREE.ShaderMaterial({ uniforms:{ u_time:{value:0}, uTint:{value:new THREE.Color(0xe9eef5)}, uScale:{value:2.2}, uSpeed:{value:0.3}, uLiquid:{value:0.35}, uRefr:{value:0.06}, uEdge:{value:0.5}, uBlur:{value:0.25}, uFlat:{value:0} },
+  vertexShader:`attribute vec3 aSN; varying vec3 vN; varying vec3 vV; varying vec3 vP;
+    void main(){ vec4 mv=modelViewMatrix*vec4(position,1.0); vN=normalize(normalMatrix*(dot(aSN,aSN)>0.5?aSN:normal)); vV=-mv.xyz; vP=position; gl_Position=projectionMatrix*mv; }`,
+  fragmentShader:`precision highp float;
+    uniform float u_time; uniform vec3 uTint; uniform float uScale, uSpeed, uLiquid, uRefr, uEdge, uBlur, uFlat;
+    varying vec3 vN; varying vec3 vV; varying vec3 vP;
+    float h3(vec3 p){ return fract(sin(dot(p,vec3(127.1,311.7,74.7)))*43758.5453); }
+    float n3(vec3 p){ vec3 i=floor(p), f=fract(p); f=f*f*(3.0-2.0*f);
+      return mix(mix(mix(h3(i),h3(i+vec3(1,0,0)),f.x),mix(h3(i+vec3(0,1,0)),h3(i+vec3(1,1,0)),f.x),f.y),
+                 mix(mix(h3(i+vec3(0,0,1)),h3(i+vec3(1,0,1)),f.x),mix(h3(i+vec3(0,1,1)),h3(i+vec3(1,1,1)),f.x),f.y),f.z); }
+    float flow(vec3 p){ return n3(p)*0.6+n3(p*2.07+3.1)*0.3+n3(p*4.3+7.7)*0.1; }
+    // one light band per unit: bright crest, dark trough, softness set by uBlur
+    float band(float x){ float c=0.5+0.5*cos(6.28318*x); float w=mix(0.04,0.45,uBlur); return smoothstep(0.5-w,0.5+w,c); }
+    void main(){
+      vec3 n=normalize(vN); if(uFlat>0.5) n=normalize(cross(dFdx(-vV),dFdy(-vV))); vec3 v=normalize(vV); if(dot(n,v)<0.0) n=-n;   // face the viewer (winding can vary between faces)
+      vec3 r=reflect(-v,n);
+      float t=u_time*uSpeed;
+      // where the reflected ray points decides the band; flowing noise bends it so the bands move like liquid
+      vec3 q=r*uScale+vP*0.35*uScale;
+      float wob=(flow(q*0.9+vec3(0.0,t,t*0.6))-0.5)*2.0*uLiquid*2.2;
+      float s=dot(r,normalize(vec3(0.25,1.0,0.15)))*uScale+wob+t*0.15;
+      vec3 col=vec3(band(s-uRefr), band(s), band(s+uRefr));          // slight colour split at band edges
+      vec3 dark=vec3(0.06,0.065,0.08), lite=vec3(0.98);
+      col=mix(dark,lite,col);
+      float fr=pow(1.0-max(dot(n,v),0.0),3.0);                      // brighter toward the silhouette
+      col=mix(col,lite,fr*uEdge);
+      col*=uTint; col+=0.05*pow(max(r.y,0.0),8.0);                   // soft sky glint from above
+      gl_FragColor=vec4(col,1.0);
+    }`, side:THREE.DoubleSide, extensions:{derivatives:true} });
+matLiquid.userData.keepColor=true; SHADER_MATS.push(matLiquid); window.__matLiquid=matLiquid; try{ applyMatOpts(); }catch(e){}
 function makeShader(frag, opts){
   const m=new THREE.ShaderMaterial(Object.assign({
     uniforms:{ u_time:{value:0} },
@@ -8397,7 +8432,8 @@ const RMODES={
   emerald:{mat:matXray, edge:[0x3dff8f,0.10], label:"Emerald"},
   plastic:{mat:matPlastic, edge:[0x2a0a08,0.35], label:"Plastic"},
   metal:{mat:matMetal, edge:[0x1a1d22,0.3], label:"Metal"},
-  wood:{mat:matWood, edge:[0x2a1806,0.35], label:"Wood"}
+  wood:{mat:matWood, edge:[0x2a1806,0.35], label:"Wood"},
+  liquid:{mat:matLiquid, edge:[0x111318,0.25], label:"Liquid metal"}
 };
 const NEON=[0x00E5FF,0xFF2FA6,0x00E676,0xFFE14D,0xFF8C22,0xB26BFF];
 const matVert=new THREE.PointsMaterial({color:0x9fb3c8,size:0.055});
@@ -8591,6 +8627,11 @@ function rebuild(opts){
   const uvs=[]; for(let i=0;i<pos.length;i+=3){ uvs.push(pos[i]*0.5+0.5, pos[i+1]*0.5+0.5); }
   g.setAttribute("uv",new THREE.Float32BufferAttribute(uvs,2));
   g.computeVertexNormals();
+  if(renderMode==="liquid"){ try{   // liquid metal reads smooth normals (averaged across shared corners) so its light bands flow instead of tiling per face
+    const P=g.attributes.position, N=g.attributes.normal, cnt=P.count, acc=new Map(), key=k=>Math.round(P.getX(k)*1e5)+","+Math.round(P.getY(k)*1e5)+","+Math.round(P.getZ(k)*1e5), keys=new Array(cnt);
+    for(let k=0;k<cnt;k++){ const kk=keys[k]=key(k); let a=acc.get(kk); if(!a) acc.set(kk,a=[0,0,0]); a[0]+=N.getX(k); a[1]+=N.getY(k); a[2]+=N.getZ(k); }
+    const sn=new Float32Array(cnt*3); for(let k=0;k<cnt;k++){ const a=acc.get(keys[k]), l=Math.hypot(a[0],a[1],a[2])||1; sn[k*3]=a[0]/l; sn[k*3+1]=a[1]/l; sn[k*3+2]=a[2]/l; }
+    g.setAttribute("aSN",new THREE.BufferAttribute(sn,3)); }catch(e){} }
   if(dm.smoothFrom!=null){ try{   // fillet rounds: crease-angle vertex normals (smooth across the blend, crisp where it meets flat faces)
     const FN=dm.faces.map(f=>{ const n=TM.faceNormal(dm,f), l=Math.hypot(n[0],n[1],n[2])||1; return [n[0]/l,n[1]/l,n[2]/l]; }), around=new Map();
     dm.faces.forEach((f,fi)=>f.forEach(v=>{ let a=around.get(v); if(!a){ a=[]; around.set(v,a); } a.push(fi); }));
@@ -9196,7 +9237,7 @@ function openGemOptions(m){
   const pop=$("#toolpop"); pop.classList.remove("hiddenPanel","empty"); $("#optionsToggle")&&$("#optionsToggle").classList.add("on");
   tpState={op:"gemview",btn:null,moved:[]};
 }
-const MAT_RM=/^(plastic|metal|wood)$/;
+const MAT_RM=/^(plastic|metal|wood|liquid)$/;
 function openMatOptions(m){
   if(typeof closeToolPop==="function" && tpState && tpState.op!=="matview") try{ closeToolPop(); }catch(e){}
   const body=$("#tpBody"); if(!body) return; const o=window.__matOpts[m];
@@ -9207,6 +9248,8 @@ function openMatOptions(m){
   if(m==="plastic") h+=col("color","Colour")+rng("rough","Roughness (gloss ↔ matte)",0,1,0.01)+rng("coat","Clear coat",0,1,0.01)+chk("flat","Faceted (flat shading)");
   if(m==="metal") h+='<div class="param"><label>Metal</label><select data-k="preset">'+Object.keys(METAL_PRESETS).map(k=>'<option value="'+k+'"'+(k===o.preset?" selected":"")+'>'+k.replace("rosegold","rose gold").replace(/^./,c=>c.toUpperCase())+'</option>').join("")+'</select></div>'
       +col("color","Colour")+rng("rough","Roughness (polished ↔ brushed)",0,1,0.01)+chk("flat","Faceted (flat shading)");
+  if(m==="liquid") h+=col("tint","Tint")+rng("scale","Band size (wide ↔ fine)",0.5,6,0.1)+rng("speed","Flow speed",0,1.5,0.01)+rng("liquid","Liquid (how much the bands ripple)",0,1,0.01)
+      +rng("refract","Colour split at band edges",0,0.2,0.005)+rng("edge","Edge glow",0,1,0.01)+rng("blur","Softness",0,1,0.01)+chk("flat","Faceted (flat shading)");
   if(m==="wood") h+=col("a","Light wood")+col("b","Dark grain")+rng("scale","Ring size (small ↔ large)",1,20,0.5)+rng("grain","Grain wobble",0,1.5,0.05)+rng("rough","Roughness",0,1,0.01)+chk("flat","Faceted (flat shading)");
   h+='<div class="modEditNote">Changes apply live.</div></div>';
   body.innerHTML=h; if(window.__numboxify) window.__numboxify(body);
@@ -13254,7 +13297,7 @@ function setLayersOn(on){
 $("#layersToggle")&&$("#layersToggle").addEventListener("click",()=>{ document.body.classList.toggle("rightTucked"); document.body.classList.add("rtForce"); $("#layersToggle").classList.toggle("on",!document.body.classList.contains("rightTucked")); });
 // View-style dropdown under the navigation cube
 (function(){ const vs=document.getElementById("viewStyleSel"); if(!vs) return;
-  const groups=[["Shading",["solid","normals","xray","galaxy","matrix","water","carbon","laser","patent","patent3d"]],["Gems (ray-traced)",["diamond","reddiamond","ruby","sapphire","emerald"]]];
+  const groups=[["Shading",["solid","normals","xray","galaxy","matrix","water","carbon","laser","patent","patent3d"]],["Materials",["plastic","metal","wood","liquid"]],["Gems (ray-traced)",["diamond","reddiamond","ruby","sapphire","emerald"]]];
   vs.innerHTML=groups.map(([g,ks])=>'<optgroup label="'+g+'">'+ks.filter(k=>RMODES[k]).map(k=>'<option value="'+k+'">'+RMODES[k].label+'</option>').join("")+'</optgroup>').join("")+'<optgroup label="Drawing"><option value="__lineart">Line Art</option></optgroup>';
   vs.value=renderMode;
   vs.addEventListener("change",()=>{ const v=vs.value; if(v==="__lineart"){ if(window.__lineart) window.__lineart.open(); } else setRenderMode(v); });
