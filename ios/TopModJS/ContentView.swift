@@ -430,6 +430,16 @@ struct TopModWebView: UIViewRepresentable {
         webView.scrollView.pinchGestureRecognizer?.isEnabled = false
         webView.scrollView.contentInsetAdjustmentBehavior = .never
 
+        // Mac (iPad app on Apple silicon) and iPad with a mouse/trackpad: the scroll wheel / two-finger scroll zooms the
+        // 3D view (over a panel it scrolls the panel). Scroll input only — touches stay with the page.
+        let scrollPan = UIPanGestureRecognizer(target: context.coordinator, action: #selector(Coordinator.scrollZoom(_:)))
+        scrollPan.allowedScrollTypesMask = .all
+        scrollPan.allowedTouchTypes = []
+        scrollPan.cancelsTouchesInView = false
+        scrollPan.delegate = context.coordinator
+        webView.addGestureRecognizer(scrollPan)
+        context.coordinator.webView = webView
+
         #if DEBUG
         if #available(iOS 16.4, *) { webView.isInspectable = true }
         #endif
@@ -457,7 +467,23 @@ struct TopModWebView: UIViewRepresentable {
     }
 
     func makeCoordinator() -> Coordinator { Coordinator() }
-    final class Coordinator: NSObject, WKNavigationDelegate {
+    final class Coordinator: NSObject, WKNavigationDelegate, UIGestureRecognizerDelegate {
+        weak var webView: WKWebView?
+        private var lastScroll: CGPoint = .zero
+        @objc func scrollZoom(_ g: UIPanGestureRecognizer) {
+            guard let wv = webView else { return }
+            let t = g.translation(in: wv)
+            if g.state == .began { lastScroll = .zero }
+            let dy = t.y - lastScroll.y
+            lastScroll = t
+            if g.state == .ended || g.state == .cancelled { lastScroll = .zero }
+            guard dy != 0 else { return }
+            let p = g.location(in: wv)
+            // fingers/wheel moving content down (dy > 0) = wheel deltaY < 0 = zoom in
+            let js = String(format: "window.__tmWheel&&window.__tmWheel(%.2f,%.1f,%.1f)", -dy * 2.0, p.x, p.y)
+            wv.evaluateJavaScript(js, completionHandler: nil)
+        }
+        func gestureRecognizer(_ g: UIGestureRecognizer, shouldRecognizeSimultaneouslyWith other: UIGestureRecognizer) -> Bool { true }
         var lidar: LiDARProvider?
         var lidarBridge: LiDARBridge?
         var photos: PhotosBridge?

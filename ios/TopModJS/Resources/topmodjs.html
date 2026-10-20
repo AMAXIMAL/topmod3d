@@ -4378,6 +4378,7 @@ function doubleStellate(m, height=0.5, faceSel=null){
 // ---------- Menger sponge ----------
 // Voxel construction + boundary surface extraction. Closed manifold; genus 5 at level 1.
 function mengerSponge(level=1){
+  level=Math.max(0,Math.min(3,Math.round(level)||0));   // 20^level cubes — capped so the browser doesn't run out of memory
   let cells=[[0,0,0]], size=1;
   for(let l=0;l<level;l++){
     const next=[];
@@ -5308,7 +5309,7 @@ function offsetMesh(m, d=0.1){
 // Every edge becomes an n-sided tube; at each vertex the tube ends are joined by the convex hull of their
 // end rings (no balls), with the rings shared between tube and joint — so the result is ONE closed solid.
 function pipes(m, {thickness=0.1, sides=6, joint=1}={}){   // joint: 0 faceted hull · 1 star point (tube edges run on to a point) · 2 round
-  sides=Math.max(3,Math.min(12,Math.round(sides))); joint=Math.round(joint)||0;
+  sides=Math.max(3,Math.min(64,Math.round(sides))); joint=Math.round(joint)||0;
   const r=thickness, E=edges(m), V=m.verts;
   const sub3=(a,b)=>[a[0]-b[0],a[1]-b[1],a[2]-b[2]], dot3=(a,b)=>a[0]*b[0]+a[1]*b[1]+a[2]*b[2], cr3=(a,b)=>[a[1]*b[2]-a[2]*b[1],a[2]*b[0]-a[0]*b[2],a[0]*b[1]-a[1]*b[0]];
   const nrm3=a=>{ const l=Math.hypot(a[0],a[1],a[2])||1; return [a[0]/l,a[1]/l,a[2]/l]; };
@@ -8009,7 +8010,7 @@ function _modParamRow(md,d){
       if(v!==md.params[d.k]) snapshot();                                   // typed values are undoable too
       md.params[d.k]=v;                                            // honour the exact typed value (may exceed slider range)
       const mn=parseFloat(d.min), mx=parseFloat(d.max);
-      s.value=(isFinite(mx)&&v>mx)?mx:((isFinite(mn)&&v<mn)?mn:v);  // park the thumb at the nearest end
+      s.value=(isFinite(mx)&&v>mx)?mx:((isFinite(mn)&&v<mn)?mn:v);  // park the thumb at the nearest end (slider range unchanged)
       box.value=fmtN(v); scheduleRebuild(); };
     box.addEventListener("change",commit);
     box.addEventListener("keydown",e=>{ if(e.key==="Enter"){ e.preventDefault(); commit(); box.blur(); }
@@ -10820,10 +10821,19 @@ canvas.addEventListener("contextmenu",e=>e.preventDefault());
   const end=()=>{ pad=null; }; vw.addEventListener("pointerup",end); vw.addEventListener("pointercancel",end);
 })();
 canvas.addEventListener("wheel",e=>{
-  e.preventDefault();
+  e.preventDefault(); window.__realWheel=Date.now();
   dist=Math.max(0.02,Math.min(60,dist*(1+e.deltaY*0.0012)));
   applyCam();
 },{passive:false});
+// Native app (iPad app on a Mac, iPad with a mouse/trackpad): the web view doesn't always get wheel events, so the app
+// forwards scroll-wheel / two-finger scroll here. Over the 3D view it zooms; over a panel it scrolls that panel.
+window.__tmWheel=(deltaY,x,y)=>{ try{
+  if(window.__realWheel && Date.now()-window.__realWheel<400) return;          // real wheel events are arriving — don't double up
+  const el=(x!=null&&y!=null)?document.elementFromPoint(x,y):canvas;
+  if(!el||el===canvas||el.closest("canvas")===canvas||el.id==="gizmoCanvas"){ dist=Math.max(0.02,Math.min(60,dist*(1+deltaY*0.0012))); applyCam(); return; }
+  let n=el; while(n&&n!==document.body){ const cs=getComputedStyle(n); if(/(auto|scroll)/.test(cs.overflowY)&&n.scrollHeight>n.clientHeight+1){ n.scrollTop+=deltaY; return; } n=n.parentElement; }
+  if(el.tagName==="CANVAS"){ el.dispatchEvent(new WheelEvent("wheel",{deltaY,clientX:x,clientY:y,bubbles:true,cancelable:true})); }
+}catch(e){} };
 
 // touch: 1 finger rotate (tap=select), 2 finger pinch/pan — scoped to canvas only
 const touches=new Map();
@@ -13109,6 +13119,19 @@ $$("[data-op]").filter(b=>!b.closest("#menubar")).forEach(b=>b.addEventListener(
   ops[op]();
 }));
 $$("[data-rm]").forEach(b=>b.addEventListener("click",()=>setRenderMode(b.dataset.rm)));
+// Typed values past a slider's range: the slider keeps its own min/max (thumb parks at the end) but the input reports the
+// exact typed number to every reader (P(), .value, valueAsNumber). Dragging the slider or code setting .value drops it.
+window.__tmHoldTyped=function(r,v){
+  const D=Object.getOwnPropertyDescriptor(HTMLInputElement.prototype,"value");
+  if(!r._holdTyped){ r._holdTyped=true;
+    Object.defineProperty(r,"value",{configurable:true,get(){ return r._typed!=null? String(r._typed) : D.get.call(r); }, set(x){ r._typed=null; delete r.dataset.override; D.set.call(r,x); }});
+    Object.defineProperty(r,"valueAsNumber",{configurable:true,get(){ return r._typed!=null? +r._typed : parseFloat(D.get.call(r)); }, set(x){ r.value=String(x); }});
+    const drop=()=>{ r._typed=null; delete r.dataset.override; };
+    r.addEventListener("pointerdown",drop); r.addEventListener("keydown",e=>{ if(/^(Arrow|Page|Home|End)/.test(e.key)) drop(); }); }
+  const mn=parseFloat(r.min), mx=parseFloat(r.max);
+  D.set.call(r, String(isFinite(mx)&&v>mx?mx:(isFinite(mn)&&v<mn?mn:v)));   // thumb at the nearest end; range unchanged
+  r._typed=v; r.dataset.override=String(v);
+};
 $$("input[type=range]").forEach(r=>{
   const out=$("#"+r.id+"V");
   if(!out) return;
@@ -13134,7 +13157,7 @@ $$("input[type=range]").forEach(r=>{
     const inRange=(!isFinite(mn)||v>=mn)&&(!isFinite(mx)||v<=mx);
     const onStep=!isFinite(st)||st<=0||!isFinite(mn)||Math.abs((v-mn)/st-Math.round((v-mn)/st))<1e-9;
     if(inRange&&onStep){ delete r.dataset.override; r.value=v; }
-    else{ r.dataset.override=String(v); r.value=isFinite(mx)&&v>mx?mx:(isFinite(mn)&&v<mn?mn:v); }
+    else window.__tmHoldTyped(r,v);   // keep the slider's range; every reader gets the exact typed number
     box.value=fmt(r.dataset.override!==undefined&&r.dataset.override!==""?r.dataset.override:r.value);
     r.dispatchEvent(new Event("input",{bubbles:true}));   // drive any live-preview listeners
     r.dispatchEvent(new Event("change",{bubbles:true}));
@@ -13168,9 +13191,10 @@ $$("input[type=range]").forEach(r=>{
     r.addEventListener("input",sync); r.addEventListener("change",sync); sync(); box._sync=sync;
     const commit=()=>{ let v=parseFloat(String(box.value).replace(",",".")); if(!isFinite(v)){ sync(); return; }
       const mn=parseFloat(r.min), mx=parseFloat(r.max);
-      if(isFinite(mx)&&v>mx) r.max=String(v); if(isFinite(mn)&&v<mn) r.min=String(v);
-      const st=parseFloat(r.step); if(isFinite(st)&&st>0){ const base=isFinite(parseFloat(r.min))?parseFloat(r.min):0; if(Math.abs((v-base)/st-Math.round((v-base)/st))>1e-9) r.step="any"; }
-      r.value=String(v); box.value=fmt(r.value);
+      const st=parseFloat(r.step), base=isFinite(mn)?mn:0, off=isFinite(st)&&st>0&&Math.abs((v-base)/st-Math.round((v-base)/st))>1e-9;
+      if((isFinite(mx)&&v>mx)||(isFinite(mn)&&v<mn)||off) window.__tmHoldTyped(r,v);   // slider range stays as designed; readers get the typed number
+      else r.value=String(v);
+      box.value=fmt(r.value);
       r.dispatchEvent(new Event("input",{bubbles:true})); r.dispatchEvent(new Event("change",{bubbles:true})); };
     box.addEventListener("change",commit);
     box.addEventListener("keydown",e=>{ e.stopPropagation();
