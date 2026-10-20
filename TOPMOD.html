@@ -1323,6 +1323,7 @@ html.inApp [data-act="fullscreen"],html.inApp [data-act="shortcuts"],html.inApp 
       <div class="mi" data-act="fabFaces">Plywood &mdash; face panels&hellip;</div>
       <div class="mi" data-act="fabLaser">Laser cut &mdash; finger joints&hellip;</div>
       <div class="mi" data-act="fabWaffle">Plywood &mdash; waffle (slice grid)&hellip;</div>
+      <div class="mi" id="miLego">LEGO &mdash; build from bricks&hellip;</div>
       <div class="mi" data-act="nestOpt">Nest Optimizer (laser)</div>
       <div class="mi" data-act="showPrinter">Show 3D Printer (object on bed)</div>
       <div class="mi" data-act="sendPrinter">Send to 3D Printer (STL)&hellip;</div>
@@ -1459,6 +1460,7 @@ html.inApp [data-act="fullscreen"],html.inApp [data-act="shortcuts"],html.inApp 
         <button class="tb" data-op="slab" data-style="faces" title="Faces — one flat panel per face (Fabricate → Plywood faces)"><svg width="22" height="22" viewBox="0 0 22 22"><path d="M4 6l7-2.5L18 6l-7 2.5z" stroke="#CBA15A" stroke-width="1.3" fill="none" stroke-linejoin="round"/><path d="M4 6v6l7 2.5V8.5M18 6v6l-7 2.5" stroke="#8a6f3e" stroke-width="1.2" fill="none" stroke-linejoin="round"/></svg><span class="tlbl">Faces</span></button>
         <button class="tb" data-op="slab" data-style="laser" title="Laser — lay every face flat for laser cutting, with interlocking finger joints on shared edges (Fabricate → Laser cut)"><svg width="22" height="22" viewBox="0 0 22 22"><rect x="3.5" y="6.5" width="6" height="6" stroke="#00E5FF" stroke-width="1.3" fill="none"/><path d="M9.5 8.2h2v1.6h-2M9.5 10.4h2v1.6h-2" stroke="#FF8C22" stroke-width="1.1" fill="none"/><path d="M14 4.5l4.5 4.5M18.5 4.5L14 9" stroke="#ff3b6b" stroke-width="1.3" stroke-linecap="round"/></svg><span class="tlbl">Laser</span></button>
         <button class="tb" data-op="slab" data-style="waffle" title="Waffle — interlocking slice grid (Fabricate → Plywood waffle): two perpendicular slice sets notch together egg-crate style with dogbone corner relief"><svg width="22" height="22" viewBox="0 0 22 22"><path d="M5 4v14M9 4v14M13 4v14M17 4v14" stroke="#CBA15A" stroke-width="1.2"/><path d="M4 6h14M4 10h14M4 14h14" stroke="#8a6f3e" stroke-width="1.2"/></svg><span class="tlbl">Waffle</span></button>
+        <button class="tb" id="tbLego" title="LEGO — modifier: builds the shape from LEGO-compatible bricks or plates, with ramp edges, a bigger parts library, build steps, a parts list and .ldr export"><svg width="22" height="22" viewBox="0 0 22 22"><rect x="2.5" y="9" width="17" height="9" rx="1" fill="#FE8A18" stroke="#7a3d00" stroke-width="1"/><rect x="4.5" y="5.5" width="4" height="3.5" rx="1" fill="#FE8A18" stroke="#7a3d00" stroke-width="1"/><rect x="13.5" y="5.5" width="4" height="3.5" rx="1" fill="#FE8A18" stroke="#7a3d00" stroke-width="1"/></svg><span class="tlbl">LEGO</span></button>
         <button class="tb" id="tb3dprint" title="3D Print — show the build plate, scale the model, and send the on-screen object to the printer"><svg width="22" height="22" viewBox="0 0 22 22"><rect x="4" y="9" width="14" height="7" rx="1" stroke="#00E5FF" stroke-width="1.4" fill="none"/><path d="M6 9V4.5h10V9" stroke="#CBA15A" stroke-width="1.3" fill="none" stroke-linejoin="round"/><rect x="7.5" y="12.5" width="7" height="5" rx="0.5" stroke="#FF8C22" stroke-width="1.3" fill="none"/><circle cx="15.4" cy="11.4" r="0.85" fill="#00E5FF"/></svg><span class="tlbl">Print</span></button>
         <button class="tb" id="tbRender" title="Render — save a high-res studio render (PNG): glass, metal, ceramic, wood, gems"><svg width="22" height="22" viewBox="0 0 22 22"><circle cx="11" cy="11" r="4.8" stroke="#00E5FF" stroke-width="1.4" fill="none"/><circle cx="9.2" cy="9.2" r="1.3" fill="#FF8C22"/><path d="M11 2.6v2M11 17.4v2M2.6 11h2M17.4 11h2M5.1 5.1l1.4 1.4M15.5 15.5l1.4 1.4M16.9 5.1l-1.4 1.4M6.5 15.5l-1.4 1.4" stroke="#CBA15A" stroke-width="1.2" stroke-linecap="round"/></svg><span class="tlbl">Render</span></button>
       </span>
@@ -8044,6 +8046,7 @@ function openModEdit(id){
     [["All","all"],["None","none"],["Reset picked","resetSel"],["Reset cage","reset"]].forEach(([t,a])=>{ const b=document.createElement("button"); b.className="modBtn"; b.textContent=t; b.style.cssText="flex:1;min-width:60px;padding:5px 6px;border-radius:6px;border:1px solid var(--line,#2a3a48);background:transparent;color:inherit;cursor:pointer;font:600 11px var(--font,system-ui)"; b.onclick=()=>window.__ffd&&window.__ffd.action(a); row.appendChild(b); });
     box.appendChild(row); wrap.appendChild(box); }
   if(md.type==="aset"){ try{ wrap.appendChild(asetInfoPanel()); }catch(e){} }
+  if(md.type==="lego"){ try{ wrap.appendChild(window.legoInfoPanel()); }catch(e){} }
   if(md.type==="latfill"){ const inf=document.createElement("div"); inf.id="latInfo"; inf.className="modEditNote latInfo"; inf.dataset.mod=md.id; wrap.appendChild(inf); updateLatInfo(); }
   const saved=document.createElement("div"); saved.className="modEditNote"; saved.style.color="#8fce9b"; saved.style.marginTop="8px";
   saved.textContent="✓ Live — changes save automatically (no Apply needed).";
@@ -8602,6 +8605,7 @@ function rebuild(opts){
   let _mat=rm.mat; if(dm.smoothFrom!=null&&_mat&&_mat.flatShading){ if(!_mat.userData.smoothTwin){ const t=_mat.clone(); t.flatShading=false; t.needsUpdate=true; _mat.userData.smoothTwin=t; } _mat=_mat.userData.smoothTwin; _mat.color&&_mat.color.copy(rm.mat.color); }   // per-vertex normals only show without flat shading
   meshObj=new THREE.Mesh(g,_mat); scene.add(meshObj);
   try{ asetOverlaySync(dm); }catch(e){}
+  try{ window.legoOverlaySync&&window.legoOverlaySync(dm); }catch(e){}
   rebuildBBox();   // also while dragging, so the box follows the live result
 
   // OpenSubdiv cage editing: edges/points (and so picking) come from the control cage, the surface stays subdivided
@@ -9147,7 +9151,7 @@ function _asetPage(cutName){ let nL=asetCfg.layers, M=mesh;
   const LG=[["#eb1010","Red — high-angle light, 45–80° (brightness)"],["#0dcc1f","Green — low-angle light, 0–45°"],["#1a4dff","Blue — blocked by the viewer's head, 80–90° (contrast)"],["#000000","Black — leakage (light escaping through the pavilion)"]];
   LG.forEach((l,i)=>{ const yy=930+i*58; g.fillStyle=l[0]; g.fillRect(70,yy-30,36,36); g.fillStyle="#222"; g.font="400 24px Helvetica,Arial"; g.fillText(l[1],124,yy-3); });
   return pg; }
-function _asetPdf(pages, fn){
+function _asetPdf(pages, fn, label){
   const enc=new TextEncoder(), parts=[], offs=[]; let len=0; const push=d=>{ const b=typeof d==="string"?enc.encode(d):d; parts.push(b); len+=b.length; };
   const PW=792, PH=612, n=pages.length; push("%PDF-1.4\n");
   const kids=[]; for(let i=0;i<n;i++) kids.push((3+i*3+2)+" 0 R");
@@ -9161,7 +9165,7 @@ function _asetPdf(pages, fn){
   push(x+"trailer\n<< /Size "+N+" /Root 1 0 R >>\nstartxref\n"+xref+"\n%%EOF");
   const blob=new Blob(parts,{type:"application/pdf"});
   if(typeof saveBlob==="function") saveBlob(blob,fn); else { const a=document.createElement("a"); a.href=URL.createObjectURL(blob); a.download=fn; document.body.appendChild(a); a.click(); setTimeout(()=>{ URL.revokeObjectURL(a.href); a.remove(); },1500); }
-  toast&&toast("ASET diagram saved — "+fn+" ("+n+" page"+(n>1?"s":"")+")"); }
+  toast&&toast((label||"ASET diagram")+" saved — "+fn+" ("+n+" page"+(n>1?"s":"")+")"); }
 function exportAsetPDF(){
   try{ const cut=document.getElementById("pDiaCut"); const nm=cut&&cut.options&&cut.selectedIndex>=0?cut.options[cut.selectedIndex].text:"Current stone";
     _asetPdf([_asetPage(nm)], "TopMod_ASET_"+nm.replace(/[^\w]+/g,"_")+".pdf"); }
@@ -17009,6 +17013,297 @@ window.__ek={applyWhole:applyWhole,ops:ops,snapshot:snapshot,rebuild:rebuild,toa
   document.querySelectorAll('[data-act="physics"]').forEach(el=>el.addEventListener("click",e=>{ e.stopPropagation(); document.querySelectorAll("#menubar .menu.open").forEach(m=>m.classList.remove("open")); open(); }));
 })();
 
+// ---------- LEGO: a live modifier that builds the shape coming into it (base geometry + modifiers above) from LEGO-compatible parts ----------
+// Voxelizes on a stud grid (1 stud = 8 mm, brick 9.6 mm / plate 3.2 mm), optionally puts 45° slope bricks on top edges (ramp edges),
+// packs each layer with the largest parts that fit (direction turns every layer so joints overlap), and lists every part.
+// Exports LDraw .ldr (1 stud = 20 LDU, brick 24, plate 8; −Y up; parts modelled long along X, slopes fall toward −Z) and a parts list.
+(function(){
+  const COLORS=[["Orange",25,0xFE8A18],["Red",4,0xC91A09],["Yellow",14,0xF2CD37],["White",15,0xF4F4F4],["Black",0,0x1B2A34],["Blue",1,0x0055BF],
+    ["Green",2,0x237841],["Light bluish gray",71,0xA0A5A9],["Dark bluish gray",72,0x6C6E68],["Tan",19,0xE4CD9E],["Dark blue",272,0x0A3463],["Lime",27,0xBBE90B]];
+  // "By part type": every kind of part gets its own colour (most-used part first)
+  const TYPECOL=[["Orange",25,0xFE8A18],["Blue",1,0x0055BF],["Lime",27,0xBBE90B],["Red",4,0xC91A09],["Medium azure",322,0x36AEBF],["Yellow",14,0xF2CD37],["Bright pink",29,0xE4ADC8],
+    ["Dark green",288,0x184632],["Medium lavender",324,0xAC78BA],["Tan",19,0xE4CD9E],["Dark red",320,0x720E0F],["Light bluish gray",71,0xA0A5A9],["Medium blue",73,0x5A93DB],["Reddish brown",70,0x582A12],
+    ["Sand green",378,0xA0BCAC],["Dark orange",484,0xA95500],["Magenta",26,0x923978],["Bright light orange",191,0xF8BB3D],["Dark blue",272,0x0A3463],["Light aqua",323,0xADC3C0],
+    ["Dark tan",28,0x958A73],["Bright light yellow",226,0xFFF03A],["Dark bluish gray",72,0x6C6E68],["Green",2,0x237841],["White",15,0xF4F4F4],["Black",0,0x1B2A34]];
+  // [w (studs along x), d (studs along z), brick part, plate part, extended-library only]
+  const LIB=[[16,8,"4204","92438",1],[24,6,null,"3026",1],[16,6,null,"3027",1],[14,6,null,"3456",1],[18,4,"30400",null,1],[12,4,"4202",null,1],[10,4,"6212",null,1],[6,4,"2356",null,1],[14,2,null,"91988",1],[8,8,null,"41539",1],[12,6,null,"3028",1],[10,6,null,"3033",1],[8,6,null,"3036",1],[6,6,null,"3958",1],[12,4,null,"3029",1],[10,4,null,"3030",1],[8,4,null,"3035",1],[6,4,null,"3032",1],[4,4,null,"3031",1],
+    [16,2,null,"4282",1],[12,2,null,"2445",1],[10,2,"3006","3832",1],[8,2,"3007","3034",0],[6,2,"2456","3795",0],[4,2,"3001","3020",0],[3,2,"3002","3021",0],[2,2,"3003","3022",0],
+    [16,1,"2465",null,1],[12,1,"6112","60479",1],[10,1,"6111","4477",1],[8,1,"3008","3460",0],[6,1,"3009","3666",0],[4,1,"3010","3710",0],[3,1,"3622","3623",0],[2,1,"3004","3023",0],[1,1,"3005","3024",0]];
+  const SLOPES={1:"3040",2:"3039",3:"3038",4:"3037"};   // slope 45° bricks w×2: high row at the part origin, falls toward −Z
+  const NAMES={"3040":"Slope 45° 2×1","3039":"Slope 45° 2×2","3038":"Slope 45° 2×3","3037":"Slope 45° 2×4","3045":"Slope 45° 2×2 double convex (corner)","3665":"Slope 45° 2×1 inverted","3660":"Slope 45° 2×2 inverted","3676":"Slope 45° 2×2 inverted double convex (corner)"};
+  const INV={1:"3665",2:"3660"};   // inverted slopes for bottom edges (same footprint/orientation convention as 3040/3039)
+  let LAST=null, ov=null;
+  // ---- voxelize: inside (ray parity along x) ∪ surface (triangle sampling), on an anisotropic stud grid ----
+  function voxelize(M,studs,unit,off){ off=off||[0,0,0];
+    let a=[1e9,1e9,1e9], b=[-1e9,-1e9,-1e9]; for(const v of M.verts) for(let d=0;d<3;d++){ if(v[d]<a[d]) a[d]=v[d]; if(v[d]>b[d]) b[d]=v[d]; }
+    const span=Math.max(b[0]-a[0], b[2]-a[2], (b[1]-a[1])*0.5, 1e-6), s=span/studs, h=s*(unit==="plate"?0.4:1.2);
+    // grid shift (fractions of a stud / a layer): moves where the grid lines fall on the shape — the optimizer searches these
+    const sx=(+off[0]||0)*s, sy=(+off[1]||0)*h, sz=(+off[2]||0)*s;
+    const NX=Math.max(1,Math.ceil((b[0]-a[0]+sx)/s)), NZ=Math.max(1,Math.ceil((b[2]-a[2]+sz)/s)), NY=Math.max(1,Math.ceil((b[1]-a[1]+sy)/h));
+    if(NX*NY*NZ>4e6) throw "too many bricks — lower the size";
+    const ox=sx?a[0]-sx:a[0]+((b[0]-a[0])-NX*s)/2, oz=sz?a[2]-sz:a[2]+((b[2]-a[2])-NZ*s)/2, oy=a[1]-sy;
+    const V=new Uint8Array(NX*NY*NZ), id=(i,j,k)=>(j*NZ+k)*NX+i;
+    const tris=[]; for(const f of M.faces) for(let t=1;t<f.length-1;t++) tris.push([M.verts[f[0]],M.verts[f[t]],M.verts[f[t+1]]]);
+    // inside: for each (j,k) row, cast a ray along +x and fill between crossing pairs
+    const rows=new Map();
+    for(const T of tris){ const y0=Math.min(T[0][1],T[1][1],T[2][1]), y1=Math.max(T[0][1],T[1][1],T[2][1]), z0=Math.min(T[0][2],T[1][2],T[2][2]), z1=Math.max(T[0][2],T[1][2],T[2][2]);
+      for(let j=Math.max(0,Math.ceil((y0-oy)/h-0.5));j<=Math.min(NY-1,Math.floor((y1-oy)/h-0.5));j++)
+        for(let k=Math.max(0,Math.ceil((z0-oz)/s-0.5));k<=Math.min(NZ-1,Math.floor((z1-oz)/s-0.5));k++){ const key=j*NZ+k; let L=rows.get(key); if(!L) rows.set(key,L=[]); L.push(T); } }
+    for(const [key,L] of rows){ const j=Math.floor(key/NZ), k=key%NZ, y=oy+(j+0.5)*h+1.1e-7*s, z=oz+(k+0.5)*s+1.3e-7*s, xs=[];
+      for(const [p,q,r] of L){ const d1=(q[1]-p[1])*(r[2]-p[2])-(q[2]-p[2])*(r[1]-p[1]); if(Math.abs(d1)<1e-18) continue;
+        const u=((y-p[1])*(r[2]-p[2])-(z-p[2])*(r[1]-p[1]))/d1, w=((q[1]-p[1])*(z-p[2])-(q[2]-p[2])*(y-p[1]))/d1; if(u<0||w<0||u+w>1) continue;
+        xs.push(p[0]+u*(q[0]-p[0])+w*(r[0]-p[0])); }
+      xs.sort((m,n)=>m-n); for(let t=0;t+1<xs.length;t+=2){ const i0=Math.max(0,Math.ceil((xs[t]-ox)/s-0.5)), i1=Math.min(NX-1,Math.floor((xs[t+1]-ox)/s-0.5)); for(let i=i0;i<=i1;i++) V[id(i,j,k)]=1; } }
+    // surface: sample each triangle finely so thin or open shells still get bricks
+    const st=Math.min(s,h)*0.5;
+    for(const [p,q,r] of tris){ const e1=Math.hypot(q[0]-p[0],q[1]-p[1],q[2]-p[2]), e2=Math.hypot(r[0]-p[0],r[1]-p[1],r[2]-p[2]), n=Math.min(200,Math.ceil(Math.max(e1,e2)/st)+1);
+      for(let u=0;u<=n;u++) for(let w=0;w<=n-u;w++){ const U=u/n, W=w/n, x=p[0]+U*(q[0]-p[0])+W*(r[0]-p[0]), yy=p[1]+U*(q[1]-p[1])+W*(r[1]-p[1]), zz=p[2]+U*(q[2]-p[2])+W*(r[2]-p[2]);
+        const i=Math.min(NX-1,Math.max(0,Math.floor((x-ox)/s))), j=Math.min(NY-1,Math.max(0,Math.floor((yy-oy)/h))), k=Math.min(NZ-1,Math.max(0,Math.floor((zz-oz)/s))); V[id(i,j,k)]=1; } }
+    return {V,NX,NY,NZ,s,h,ox,oy,oz,id};
+  }
+  // hollow: keep only voxels within `wall` studs of an empty neighbour (top and bottom layers stay solid so it closes)
+  function hollow(G,wall){ const {V,NX,NY,NZ,id}=G, D=new Int16Array(V.length).fill(9999), Q=[];
+    for(let j=0;j<NY;j++) for(let k=0;k<NZ;k++) for(let i=0;i<NX;i++){ const q=id(i,j,k); if(!V[q]) continue;
+      if(i===0||k===0||i===NX-1||k===NZ-1||!V[id(i-1,j,k)]||!V[id(i+1,j,k)]||!V[id(i,j,k-1)]||!V[id(i,j,k+1)]){ D[q]=1; Q.push(q); } }
+    for(let h=0;h<Q.length;h++){ const q=Q[h], i=q%NX, k=Math.floor(q/NX)%NZ, j=Math.floor(q/(NX*NZ)); if(D[q]>=wall) continue;
+      for(const [di,dk] of [[1,0],[-1,0],[0,1],[0,-1]]){ const a=i+di, c=k+dk; if(a<0||c<0||a>=NX||c>=NZ) continue; const n=id(a,j,c); if(V[n]&&D[n]>D[q]+1){ D[n]=D[q]+1; Q.push(n); } } }
+    let top=-1, bot=NY; for(let q=0;q<V.length;q++) if(V[q]){ const j=Math.floor(q/(NX*NZ)); top=Math.max(top,j); bot=Math.min(bot,j); }
+    for(let q=0;q<V.length;q++){ const j=Math.floor(q/(NX*NZ)); if(V[q]&&D[q]>wall&&j!==top&&j!==bot) V[q]=0; } }
+  function pack(G,unit,ext,ramps){ const {V,NX,NY,NZ,id}=G, used=new Uint8Array(V.length), parts=[]; const plate=unit==="plate";
+    const lib=LIB.filter(z=>(plate?z[3]:z[2])&&(ext||!z[4]));
+    const filled=(i,j,k)=>i>=0&&k>=0&&j>=0&&i<NX&&k<NZ&&j<NY&&V[id(i,j,k)]===1; let prevOwn=null;
+    for(let j=0;j<NY;j++){
+      // ramp edges: an outer cell with nothing above and nothing outside, backed by a filled cell inward → slope falling outward
+      if(ramps&&!plate){
+        // convex corners first: a 2×2 whose outer corner sticks out in two directions → double-convex corner slope (peak at the inner cell)
+        for(const [ax,az] of [[1,1],[1,-1],[-1,1],[-1,-1]]) for(let k=0;k<NZ;k++) for(let i=0;i<NX;i++){
+          const C=[[i,k],[i+ax,k],[i,k+az],[i+ax,k+az]];
+          if(!C.every(([a,c])=>filled(a,j,c)&&!used[id(a,j,c)]&&!filled(a,j+1,c))) continue;
+          // the outer corner cell must stick out both ways; the two side cells need at least their outward side open
+          if(filled(i+2*ax,j,k+az)||filled(i+ax,j,k+2*az)) continue; if(filled(i+2*ax,j,k)&&filled(i,j,k+2*az)) continue;
+          for(const [a,c] of C) used[id(a,j,c)]=1; parts.push({corner:true,i,k,j,dx:ax,dz:az,part:"3045"}); }
+        for(const [dx,dz] of [[1,0],[-1,0],[0,1],[0,-1]]){ const px=Math.abs(dz), pz=Math.abs(dx);
+        for(let k=0;k<NZ;k++) for(let i=0;i<NX;i++){ const ok=(a,c)=>{ const q=id(a,j,c), n=id(a-dx,j,c-dz); return filled(a,j,c)&&!used[q]&&!filled(a,j+1,c)&&!filled(a+dx,j,c+dz)&&filled(a-dx,j,c-dz)&&!used[n]; };
+          if(!ok(i,k)) continue; let w=1; while(w<4&&ok(i+px*w,k+pz*w)) w++;
+          for(let t=0;t<w;t++){ const a=i+px*t, c=k+pz*t; used[id(a,j,c)]=1; used[id(a-dx,j,c-dz)]=1; }
+          parts.push({slope:true,i,k,j,w,dx,dz,part:SLOPES[w]}); } }
+        // bottom corners: same test underneath → inverted double-convex corner slope
+        if(j>0) for(const [ax,az] of [[1,1],[1,-1],[-1,1],[-1,-1]]) for(let k=0;k<NZ;k++) for(let i=0;i<NX;i++){
+          const C=[[i,k],[i+ax,k],[i,k+az],[i+ax,k+az]];
+          if(!C.every(([a,c])=>filled(a,j,c)&&!used[id(a,j,c)])) continue; if(!C.slice(1).every(([a,c])=>!filled(a,j-1,c))) continue;
+          if(filled(i+2*ax,j,k+az)||filled(i+ax,j,k+2*az)) continue; if(filled(i+2*ax,j,k)&&filled(i,j,k+2*az)) continue;
+          for(const [a,c] of C) used[id(a,j,c)]=1; parts.push({corner:true,inv:true,i,k,j,dx:ax,dz:az,part:"3676"}); }
+        // bottom edges: an outer cell with nothing below and nothing outside → inverted slope (the underside bevels in)
+        for(const [dx,dz] of [[1,0],[-1,0],[0,1],[0,-1]]){ const px=Math.abs(dz), pz=Math.abs(dx);
+          for(let k=0;k<NZ;k++) for(let i=0;i<NX;i++){ const ok=(a,c)=>{ const q=id(a,j,c), n=id(a-dx,j,c-dz); return j>0&&filled(a,j,c)&&!used[q]&&!filled(a,j-1,c)&&!filled(a+dx,j,c+dz)&&filled(a-dx,j,c-dz)&&!used[n]; };
+            if(!ok(i,k)) continue; let w=1; if(ok(i+px,k+pz)) w=2;
+            for(let t=0;t<w;t++){ const a=i+px*t, c=k+pz*t; used[id(a,j,c)]=1; used[id(a-dx,j,c-dz)]=1; }
+            parts.push({slope:true,inv:true,i,k,j,w,dx,dz,part:INV[w]}); } } }
+      // rectangles: largest parts first over the whole layer, tried in several orientations/offsets; keep the layout with the
+      // fewest parts and the fewest seams lined up with the layer below (so it holds together)
+      const pref=(j%2===0), area=S=>S[0]*S[1];
+      const sizes=[...lib].sort((A,B)=>area(B)-area(A)||Math.max(B[0],B[1])-Math.max(A[0],A[1]));
+      let best=null;
+      for(const mode of ['big','corner']) for(const alongX of [pref,!pref]) for(const off of [0,1]){ const U=used.slice(), own=new Int32Array(NX*NZ).fill(-1), got=[];
+        // keep earlier slopes' cells as their own owners so seams around them count too
+        for(let q=0;q<NX*NZ;q++) if(U[j*NX*NZ+q]) own[q]=-2;
+        const tryPlace=(w,d,S,rot)=>{ for(let kk=0;kk<NZ;kk++) for(let ii=0;ii<NX;ii++){ const i=(ii+off)%NX, k=(kk+off)%NZ; if(i+w>NX||k+d>NZ) continue; let ok=true;
+            for(let c=0;c<d&&ok;c++) for(let a=0;a<w;a++){ const n=id(i+a,j,k+c); if(!V[n]||U[n]){ ok=false; break; } }
+            if(!ok) continue; const idx=got.length; for(let c=0;c<d;c++) for(let a=0;a<w;a++){ U[id(i+a,j,k+c)]=1; own[(k+c)*NX+i+a]=idx; }
+            got.push({i,j,k,w,d,rot,part:plate?S[3]:S[2],S}); } };
+        if(mode==='big'){ for(const S of sizes){ const o1=alongX?[S[0],S[1],false]:[S[1],S[0],true], o2=alongX?[S[1],S[0],true]:[S[0],S[1],false];
+          tryPlace(o1[0],o1[1],S,o1[2]); if(S[0]!==S[1]) tryPlace(o2[0],o2[1],S,o2[2]); } }
+        else { // corner: walk the layer cell by cell and drop the largest part that fits at each free corner
+          const ord=[]; for(const S of sizes){ ord.push(alongX?[S[0],S[1],S,false]:[S[1],S[0],S,true]); if(S[0]!==S[1]) ord.push(alongX?[S[1],S[0],S,true]:[S[0],S[1],S,false]); }
+          for(let kk=0;kk<NZ;kk++) for(let ii=0;ii<NX;ii++){ const i=(ii+off)%NX, k=(kk+off)%NZ, q0=id(i,j,k); if(!V[q0]||U[q0]) continue;
+            for(const [w,d,S,rot] of ord){ if(i+w>NX||k+d>NZ) continue; let ok=true; for(let c=0;c<d&&ok;c++) for(let a=0;a<w;a++){ const n=id(i+a,j,k+c); if(!V[n]||U[n]){ ok=false; break; } }
+              if(!ok) continue; const idx=got.length; for(let c=0;c<d;c++) for(let a=0;a<w;a++){ U[id(i+a,j,k+c)]=1; own[(k+c)*NX+i+a]=idx; } got.push({i,j,k,w,d,rot,part:plate?S[3]:S[2],S}); break; } } }
+        let seams=0; if(prevOwn){ for(let k=0;k<NZ;k++) for(let i=0;i<NX;i++){ const q=k*NX+i;
+            if(i+1<NX&&own[q]>=0&&own[q+1]>=0&&own[q]!==own[q+1]&&prevOwn[q]>=0&&prevOwn[q+1]>=0&&prevOwn[q]!==prevOwn[q+1]) seams++;
+            if(k+1<NZ&&own[q]>=0&&own[q+NX]>=0&&own[q]!==own[q+NX]&&prevOwn[q]>=0&&prevOwn[q+NX]>=0&&prevOwn[q]!==prevOwn[q+NX]) seams++; } }
+        const score=got.length+0.5*seams+(alongX===pref?0:0.25);
+        if(!best||score<best.score) best={score,got,U,own}; }
+      for(let q=0;q<V.length;q++) used[q]=best.U[q]; parts.push(...best.got); prevOwn=best.own;
+      const kinds=new Set(best.got.map(p=>p.part)); void kinds; }
+    return parts; }
+  const colorOf=(br,G,pal,ci,tm)=>{ if(pal==="type"&&tm) return TYPECOL[(tm[br.part]||0)%TYPECOL.length]; if(pal==="height"){ const t=G.NY>1?br.j/(G.NY-1):0, P=[0,2,7,3]; return COLORS[P[Math.min(P.length-1,Math.floor(t*P.length))]]; } return COLORS[ci]||COLORS[0]; };
+  function nameOf(p,unit){ if(p.slope||p.corner) return NAMES[p.part]; const S=p.S; return S[1]+" × "+S[0]+" "+(unit==="plate"?"plate":"brick"); }
+  // geometry: boxes + 8-sided studs on top of every cell with nothing above it; slopes as wedges (stud only on the high row)
+  function geom(G,parts,showTop){ const {s,h,ox,oy,oz,NY,NX,NZ,id}=G, verts=[], faces=[], g=s*0.01, top=showTop<0?NY-1:showTop;
+    const occ=new Uint8Array(G.V.length); for(const p of parts){ if(p.j>top) continue; if(p.corner){ for(const [a,c] of [[p.i,p.k],[p.i+p.dx,p.k],[p.i,p.k+p.dz],[p.i+p.dx,p.k+p.dz]]) occ[id(a,p.j,c)]=1; } else if(p.slope){ for(let t=0;t<p.w;t++){ const a=p.i+Math.abs(p.dz)*t, c=p.k+Math.abs(p.dx)*t; occ[id(a,p.j,c)]=1; occ[id(a-p.dx,p.j,c-p.dz)]=1; } } else for(let c=0;c<p.d;c++) for(let a=0;a<p.w;a++) occ[id(p.i+a,p.j,p.k+c)]=1; }
+    const free=(a,j,c)=>j+1>top||j+1>=NY||!occ[id(a,j+1,c)];
+    const quad=(A,B,C,D)=>{ const b=verts.length; verts.push(A,B,C,D); faces.push([b,b+1,b+2,b+3]); };
+    const box=(x0,y0,z0,x1,y1,z1)=>{ quad([x0,y0,z0],[x0,y0,z1],[x1,y0,z1],[x1,y0,z0]); quad([x0,y1,z0],[x1,y1,z0],[x1,y1,z1],[x0,y1,z1]);
+      quad([x0,y0,z0],[x1,y0,z0],[x1,y1,z0],[x0,y1,z0]); quad([x1,y0,z1],[x0,y0,z1],[x0,y1,z1],[x1,y1,z1]); quad([x0,y0,z1],[x0,y0,z0],[x0,y1,z0],[x0,y1,z1]); quad([x1,y0,z0],[x1,y0,z1],[x1,y1,z1],[x1,y1,z0]); };
+    const stud=(cx,y0,cz)=>{ const n=8, r=s*0.3, ht=s*0.22, b=verts.length; for(let t=0;t<n;t++){ const a=t/n*Math.PI*2; verts.push([cx+Math.cos(a)*r,y0,cz-Math.sin(a)*r],[cx+Math.cos(a)*r,y0+ht,cz-Math.sin(a)*r]); }
+      for(let t=0;t<n;t++){ const p=b+t*2, q=b+((t+1)%n)*2; faces.push([p,q,q+1,p+1]); } const tp=[]; for(let t=0;t<n;t++) tp.push(b+t*2+1); faces.push(tp); };
+    for(const p of parts){ if(p.j>top) continue; const y0=oy+p.j*h, y1=y0+h;
+      if(!p.slope&&!p.corner){ const x0=ox+p.i*s+g, z0=oz+p.k*s+g, x1=ox+(p.i+p.w)*s-g, z1=oz+(p.k+p.d)*s-g; box(x0,y0,z0,x1,y1,z1);
+        for(let c=0;c<p.d;c++) for(let a=0;a<p.w;a++) if(free(p.i+a,p.j,p.k+c)) stud(ox+(p.i+a+0.5)*s, y1, oz+(p.k+c+0.5)*s); continue; }
+      if(p.corner&&p.inv){ const C=[[p.i,p.k],[p.i+p.dx,p.k],[p.i,p.k+p.dz],[p.i+p.dx,p.k+p.dz]];
+        C.forEach(([a,c],n)=>{ box(ox+a*s+g, n===0?y0:y0+h*0.45, oz+c*s+g, ox+(a+1)*s-g, y1, oz+(c+1)*s-g); if(free(a,p.j,c)) stud(ox+(a+0.5)*s,y1,oz+(c+0.5)*s); }); continue; }
+      if(p.corner){ // height field over the 2×2: the inner (peak) cell stays full height, the outer half drops to the lip
+        const lip=h*0.18, xs=[p.i,p.i+1,p.i+2].map(v=>v+(p.dx<0?-1:0)), zs=[p.k,p.k+1,p.k+2].map(v=>v+(p.dz<0?-1:0));
+        const fullX=v=>p.dx>0? v<=p.i+1 : v>=p.i, fullZ=v=>p.dz>0? v<=p.k+1 : v>=p.k;
+        const P=xs.map(xv=>zs.map(zv=>{ const x=ox+xv*s+(xv===xs[0]?g:xv===xs[2]?-g:0), z=oz+zv*s+(zv===zs[0]?g:zv===zs[2]?-g:0);
+          const peak=fullX(xv)&&fullZ(zv)&&!((p.dx>0?xv===xs[0]:xv===xs[2])&&false); const atOuterX=p.dx>0?xv===xs[2]:xv===xs[0], atOuterZ=p.dz>0?zv===zs[2]:zv===zs[0];
+          return [x,(atOuterX||atOuterZ)?y0+lip:y1,z]; }));
+        for(let a=0;a<2;a++) for(let c=0;c<2;c++) quad(P[a][c],P[a][c+1],P[a+1][c+1],P[a+1][c]);
+        const ring=[[0,0],[1,0],[2,0],[2,1],[2,2],[1,2],[0,2],[0,1]], X0=P[0][0][0], X1=P[2][0][0], Z0=P[0][0][2], Z1=P[0][2][2];
+        quad([X0,y0,Z0],[X1,y0,Z0],[X1,y0,Z1],[X0,y0,Z1]);
+        for(let r=0;r<8;r++){ const A=P[ring[r][0]][ring[r][1]], B=P[ring[(r+1)%8][0]][ring[(r+1)%8][1]]; quad([A[0],y0,A[2]],[B[0],y0,B[2]],B,A); }
+        continue; }
+      if(p.inv){ // inverted slope: full-height inner row, outer row hangs from the top (underside bevels in)
+        const px=Math.abs(p.dz), pz=Math.abs(p.dx);
+        for(let t=0;t<p.w;t++){ const ia=p.i-p.dx+px*t, ka=p.k-p.dz+pz*t, oa=p.i+px*t, oka=p.k+pz*t;
+          box(ox+ia*s+g,y0,oz+ka*s+g,ox+(ia+1)*s-g,y1,oz+(ka+1)*s-g); box(ox+oa*s+g,y0+h*0.45,oz+oka*s+g,ox+(oa+1)*s-g,y1,oz+(oka+1)*s-g);
+          if(free(ia,p.j,ka)) stud(ox+(ia+0.5)*s,y1,oz+(ka+0.5)*s); if(free(oa,p.j,oka)) stud(ox+(oa+0.5)*s,y1,oz+(oka+0.5)*s); }
+        continue; }
+      // slope footprint: low (outer) row at (i,k)+t·perp, high row one cell inward
+      const px=Math.abs(p.dz), pz=Math.abs(p.dx), lo=[p.i,p.k], hi=[p.i-p.dx,p.k-p.dz], w=p.w;
+      const ax0=Math.min(lo[0],hi[0]), az0=Math.min(lo[1],hi[1]), ax1=Math.max(lo[0],hi[0])+1+px*(w-1), az1=Math.max(lo[1],hi[1])+1+pz*(w-1);
+      const X0=ox+ax0*s+g, X1=ox+ax1*s-g, Z0=oz+az0*s+g, Z1=oz+az1*s-g, lip=h*0.18;
+      // edge heights: outward side drops to the lip, inward half stays full height
+      const yAt=(x,z)=>{ const inner=p.dx>0? x<=ox+(Math.max(lo[0],hi[0]))*s+1e-9 : p.dx<0? x>=ox+(Math.min(lo[0],hi[0])+1)*s-1e-9 : p.dz>0? z<=oz+(Math.max(lo[1],hi[1]))*s+1e-9 : z>=oz+(Math.min(lo[1],hi[1])+1)*s-1e-9; return inner?y1:y0+lip; };
+      const xm=p.dx? ox+(p.dx>0?Math.max(lo[0],hi[0]):Math.min(lo[0],hi[0])+1)*s : null, zm=p.dz? oz+(p.dz>0?Math.max(lo[1],hi[1]):Math.min(lo[1],hi[1])+1)*s : null;
+      const xs=p.dx?[X0,xm,X1]:[X0,X1], zs=p.dz?[Z0,zm,Z1]:[Z0,Z1];
+      // top surface strips + bottom + side walls (built as a small height field so it stays closed)
+      const T=xs.map(x=>zs.map(z=>[x,yAt(p.dx>0&&x===xm?x-1e-6:p.dx<0&&x===xm?x+1e-6:x, p.dz>0&&z===zm?z-1e-6:p.dz<0&&z===zm?z+1e-6:z),z]));
+      if(xm!=null){ T[1].forEach((v,c)=>{ v[1]=y1; }); } if(zm!=null){ T.forEach(r=>{ r[1][1]=y1; }); }
+      for(let a=0;a+1<xs.length;a++) for(let c=0;c+1<zs.length;c++) quad(T[a][c],T[a][c+1],T[a+1][c+1],T[a+1][c]);
+      quad([X0,y0,Z0],[X1,y0,Z0],[X1,y0,Z1],[X0,y0,Z1]);
+      const ring=[]; for(let a=0;a<xs.length;a++) ring.push([a,0]); for(let c=1;c<zs.length;c++) ring.push([xs.length-1,c]); for(let a=xs.length-2;a>=0;a--) ring.push([a,zs.length-1]); for(let c=zs.length-2;c>0;c--) ring.push([0,c]);
+      for(let r=0;r<ring.length;r++){ const A=T[ring[r][0]][ring[r][1]], B=T[ring[(r+1)%ring.length][0]][ring[(r+1)%ring.length][1]]; quad([A[0],y0,A[2]],[B[0],y0,B[2]],B,A); }
+      for(let t=0;t<w;t++){ const a=hi[0]+px*t, c=hi[1]+pz*t; if(free(a,p.j,c)) stud(ox+(a+0.5)*s, y1, oz+(c+0.5)*s); } }
+    return {verts,faces}; }
+  function partsTable(R){ const m=new Map(); for(const p of R.parts){ const c=colorOf(p,R.G,R.pal,R.ci,R.tm); const key=p.part+"|"+c[0]; const e=m.get(key)||{part:p.part,name:nameOf(p,R.unit),color:c,n:0}; e.n++; m.set(key,e); }
+    return [...m.values()].sort((a,b)=>b.n-a.n); }
+  MODS.lego={label:"LEGO", grp:"New", heavy:true,
+    params:[{k:"studs",l:"Size (studs across)",min:6,max:96,step:1,def:24},{k:"unit",l:"Build with",opts:["Bricks (9.6 mm tall)","Plates (3.2 mm tall)"],def:0},
+      {k:"lib",l:"Parts library",opts:["Basic (1×1 – 2×8)","Extended (long bricks, 4×, 6×, 8× plates)"],def:1},{k:"ramps",l:"Ramp edges (45° slopes)",bool:true,def:true},
+      {k:"fill",l:"Fill",opts:["Solid","Hollow shell"],def:0},{k:"wall",l:"Wall (studs, hollow)",min:1,max:4,step:1,def:1},
+      {k:"color",l:"Colour",opts:COLORS.map(c=>c[0]).concat(["Layered by height","By part type (each kind its own colour)"]),def:0},{k:"step",l:"Build steps (layers shown, 0 = all)",min:0,max:200,step:1,def:0},
+      {k:"offx",l:"Grid shift X (stud)",min:0,max:0.95,step:0.05,def:0},{k:"offy",l:"Grid shift Y (layer)",min:0,max:0.95,step:0.05,def:0},{k:"offz",l:"Grid shift Z (stud)",min:0,max:0.95,step:0.05,def:0}],
+    apply:(m,pp)=>{ if(!m||!m.faces||!m.faces.length) return m;
+      const unit=Math.round(+pp.unit||0)===1?"plate":"brick", studs=Math.max(6,Math.min(96,Math.round(+pp.studs||24)));
+      const G=voxelize(m,studs,unit,[pp.offx,pp.offy,pp.offz]); if(Math.round(+pp.fill||0)===1) hollow(G,Math.max(1,Math.round(+pp.wall||1)));
+      const parts=pack(G,unit,Math.round(+pp.lib??1)===1,pp.ramps!==false);
+      const cidx=Math.round(+pp.color||0), pal=cidx===COLORS.length?"height":cidx>COLORS.length?"type":"single", stepN=Math.round(+pp.step||0), top=stepN>0?Math.min(G.NY,stepN)-1:-1;
+      const out=geom(G,parts,top);
+      const cnt={}; for(const q of parts) cnt[q.part]=(cnt[q.part]||0)+1; const tm={}; Object.keys(cnt).sort((a,b)=>cnt[b]-cnt[a]||(a<b?-1:1)).forEach((k,i)=>tm[k]=i);
+      LAST={src:m,tm,G,parts,unit,pal,ci:pal==="single"?cidx:0,top,name:(layers&&layers[activeLayer]&&layers[activeLayer].name)||"TopMod model"};
+      out.lego=LAST; setTimeout(legoInfoSync,0); return out.faces.length?out:m; } };
+  // colour overlay: the mesh has no per-face colour, so draw each part's colour over it (studs included)
+  let anim=null;
+  window.legoOverlaySync=function(dm){ if(anim) return; drawOv(dm&&dm.lego); };
+  function drawOv(R0){ if(ov){ scene.remove(ov); ov.traverse(o=>{ if(o.geometry) o.geometry.dispose(); if(o.material) o.material.dispose(); }); ov=null; }
+    const R=R0; if(!R) return; const byCol=new Map();
+    for(const p of R.parts){ const c=colorOf(p,R.G,R.pal,R.ci,R.tm)[2]; let L=byCol.get(c); if(!L) byCol.set(c,L=[]); L.push(p); }
+    ov=new THREE.Group(); ov.name="legoColour";
+    for(const [c,L] of byCol){ const g=geom(R.G,L,R.top), pos=[]; for(const f of g.faces) for(let t=1;t<f.length-1;t++) for(const v of [f[0],f[t],f[t+1]]) pos.push(...g.verts[v]);
+      const bg=new THREE.BufferGeometry(); bg.setAttribute("position",new THREE.Float32BufferAttribute(pos,3)); bg.computeVertexNormals();
+      ov.add(new THREE.Mesh(bg,new THREE.MeshStandardMaterial({color:c,roughness:0.35,metalness:0.05,flatShading:true,polygonOffset:true,polygonOffsetFactor:-1,polygonOffsetUnits:-1}))); }
+    scene.add(ov); };
+  // exports
+  function saveText(fn,text,type){ const mh=window.webkit&&window.webkit.messageHandlers;
+    if(mh&&mh.saveOBJ){ mh.saveOBJ.postMessage({filename:fn,text}); toast&&toast("Saving "+fn); return; }
+    if(mh&&mh.exportOBJ){ mh.exportOBJ.postMessage({filename:fn,text}); return; }
+    const a=document.createElement("a"); a.href=URL.createObjectURL(new Blob([text],{type:type||"text/plain"})); a.download=fn; document.body.appendChild(a); a.click(); a.remove(); setTimeout(()=>URL.revokeObjectURL(a.href),3000); toast&&toast("Saved "+fn); }
+  function ldr(){ const R=LAST; if(!R) return; const G=R.G, nm=String(R.name).replace(/[^\w \-]+/g,""), U=R.unit==="plate"?8:24;
+    const L=["0 "+nm+" — brick build from TopMod 3D","0 Name: "+nm.replace(/ /g,"_")+".ldr","0 Author: TopMod 3D","0 "+R.parts.length+" parts, "+G.NX+" × "+G.NZ+" studs, "+G.NY+" layers",""];
+    // world (x, y up, z) → LDraw (x, −y, −z): a proper rotation, so the build is not mirrored
+    let lastJ=-1; [...R.parts].sort((a,b)=>a.j-b.j).forEach(p=>{ if(p.j!==lastJ){ if(lastJ>=0) L.push("0 STEP"); L.push("0 // layer "+(p.j+1)); lastJ=p.j; }
+      const c=colorOf(p,G,R.pal,R.ci,R.tm)[1], y=-(p.j+1)*U;
+      if(p.corner){ // part falls toward +X and −Z (LDraw) from its peak cell at the origin; pick the Y-rotation that matches
+        const A=[p.dx,0], B=[0,-p.dz]; let m="1 0 0 0 1 0 0 0 1";
+        for(const [cs,sn] of [[1,0],[0,1],[-1,0],[0,-1]]){ const ex=[cs,-sn], mz=[-sn,-cs]; const has=v=>(v[0]===A[0]&&v[1]===A[1])||(v[0]===B[0]&&v[1]===B[1]); if(has(ex)&&has(mz)){ m=cs+" 0 "+sn+" 0 1 0 "+(-sn)+" 0 "+cs; break; } }
+        const x=((p.i+0.5)-G.NX/2)*20, z=-((p.k+0.5)-G.NZ/2)*20; L.push("1 "+c+" "+x+" "+y+" "+z+" "+m+" "+p.part+".dat"); return; }
+      if(!p.slope){ const x=((p.i+p.w/2)-G.NX/2)*20, z=-((p.k+p.d/2)-G.NZ/2)*20; L.push("1 "+c+" "+x+" "+y+" "+z+" "+(p.rot?"0 0 1 0 1 0 -1 0 0":"1 0 0 0 1 0 0 0 1")+" "+p.part+".dat"); return; }
+      const px=Math.abs(p.dz), pz=Math.abs(p.dx), hx=p.i-p.dx, hz=p.k-p.dz, cx=(hx+0.5+px*(p.w-1)/2)-G.NX/2, cz=(hz+0.5+pz*(p.w-1)/2)-G.NZ/2;
+      const dX=p.dx, dZ=-p.dz;   // fall direction in LDraw; the part falls toward −Z → rotate about Y so −Z maps to (dX,dZ)
+      const sn=-dX, cs=-dZ; L.push("1 "+c+" "+(cx*20)+" "+y+" "+(-cz*20)+" "+cs+" 0 "+sn+" 0 1 0 "+(-sn)+" 0 "+cs+" "+p.part+".dat"); });
+    L.push("0 STEP"); saveText(nm.replace(/ /g,"_")+"_bricks.ldr", L.join("\r\n")+"\r\n", "application/x-ldraw"); }
+  // layer-by-layer build animation (redraws the colour overlay layer by layer; the modifier itself is not recomputed)
+  async function animate(btn){ if(anim){ anim.stop=true; return; } const R=LAST; if(!R) return; anim={stop:false}; if(btn) btn.textContent="■ Stop";
+    const vis=[meshObj,edgeObj,pointObj].map(o=>o&&o.visible); [meshObj,edgeObj,pointObj].forEach(o=>{ if(o) o.visible=false; });
+    const wait=ms=>new Promise(r=>setTimeout(r,ms)), dt=Math.max(120,Math.min(450,9000/R.G.NY));
+    try{ for(let t=0;t<R.G.NY&&!anim.stop;t++){ drawOv(Object.assign({},R,{top:t})); const st=document.getElementById("lgStat"); if(st) st.textContent="Building · layer "+(t+1)+" / "+R.G.NY; await wait(dt); } await wait(600); }
+    finally{ anim=null; [meshObj,edgeObj,pointObj].forEach((o,i)=>{ if(o) o.visible=vis[i]; }); drawOv(R); if(btn) btn.textContent="▶ Animate build"; legoInfoSync(); } }
+  // PDF build instructions: a cover (view + full parts list) and one page per layer (plan view, the layer below greyed, its parts)
+  function pdf(){ const R=LAST; if(!R) return; if(typeof _asetPdf!=="function"){ toast&&toast("PDF export unavailable",true); return; }
+    const G=R.G, W=1650, H=1275, pages=[], T=partsTable(R), plate=R.unit==="plate", hex=c=>"#"+c.toString(16).padStart(6,"0");
+    const page=()=>{ const c=document.createElement("canvas"); c.width=W; c.height=H; const g=c.getContext("2d"); g.fillStyle="#fff"; g.fillRect(0,0,W,H); return [c,g]; };
+    // cover
+    { const [c,g]=page(); g.fillStyle="#111"; g.font="700 44px Helvetica,Arial"; g.fillText("Brick build — "+R.name,70,100);
+      g.font="400 24px Helvetica,Arial"; g.fillStyle="#555"; g.fillText(R.parts.length+" parts · "+T.length+" kinds · "+G.NX+" × "+G.NZ+" studs · "+G.NY+" layers · "+(G.NX*0.8).toFixed(1)+" × "+(G.NZ*0.8).toFixed(1)+" × "+(G.NY*(plate?0.32:0.96)).toFixed(1)+" cm · TopMod 3D",70,140);
+      try{ drawOv(Object.assign({},R,{top:-1})); renderer.render(scene,camera); const src=renderer.domElement, S=Math.min(src.width,src.height); g.drawImage(src,(src.width-S)/2,(src.height-S)/2,S,S,70,180,760,760); g.strokeStyle="#ddd"; g.strokeRect(70,180,760,760); }catch(e){}
+      g.fillStyle="#111"; g.font="600 26px Helvetica,Arial"; g.fillText("Parts list",880,200); g.font="400 19px Helvetica,Arial";
+      let y=236, col=0; T.forEach((e,n)=>{ if(y>H-80){ y=236; col++; } const x=880+col*370; g.fillStyle=hex(e.color[2]); g.fillRect(x,y-15,18,18); g.strokeStyle="#0004"; g.strokeRect(x,y-15,18,18);
+        g.fillStyle="#222"; g.fillText(e.n+" × "+e.name+"  ("+e.part+", "+e.color[0]+")",x+28,y); y+=30; });
+      pages.push(c); }
+    // per layer
+    const cell=Math.min(1000/G.NX, 1000/G.NZ), X0=70, Y0=200;
+    const at=(i,k)=>[X0+i*cell, Y0+(G.NZ-1-k)*cell];   // plan view from above (z grows up the page)
+    for(let j=0;j<G.NY;j++){ const [c,g]=page(), L=R.parts.filter(p=>p.j===j), below=R.parts.filter(p=>p.j===j-1);
+      g.fillStyle="#111"; g.font="700 40px Helvetica,Arial"; g.fillText("Layer "+(j+1)+" / "+G.NY,70,100); g.font="400 22px Helvetica,Arial"; g.fillStyle="#666"; g.fillText(L.length+" parts this layer · grey = the layer below",70,140);
+      const rectOf=p=>{ if(p.corner) return [Math.min(p.i,p.i+p.dx),Math.min(p.k,p.k+p.dz),2,2]; if(!p.slope) return [p.i,p.k,p.w,p.d]; const px=Math.abs(p.dz), pz=Math.abs(p.dx), hx=p.i-p.dx, hz=p.k-p.dz; const i0=Math.min(p.i,hx), k0=Math.min(p.k,hz); return [i0,k0,px?p.w:2,pz?p.w:2]; };
+      g.lineWidth=1; for(const p of below){ const [i,k,w,d]=rectOf(p), [x,y]=at(i,k+d-1); g.fillStyle="#e9ecef"; g.fillRect(x+1,y+1,w*cell-2,d*cell-2); g.strokeStyle="#c8ccd0"; g.strokeRect(x+1,y+1,w*cell-2,d*cell-2); }
+      for(const p of L){ const [i,k,w,d]=rectOf(p), [x,y]=at(i,k+d-1), col=colorOf(p,G,R.pal,R.ci,R.tm); g.fillStyle=hex(col[2]); g.fillRect(x+2,y+2,w*cell-4,d*cell-4); g.lineWidth=2; g.strokeStyle="#00000088"; g.strokeRect(x+2,y+2,w*cell-4,d*cell-4);
+        if(p.slope){ const cx=x+w*cell/2, cy=y+d*cell/2, ax=p.dx*cell*0.6, ay=-p.dz*cell*0.6; g.strokeStyle="#000a"; g.lineWidth=3; g.beginPath(); g.moveTo(cx-ax,cy-ay); g.lineTo(cx+ax,cy+ay); g.stroke();
+          g.beginPath(); g.moveTo(cx+ax,cy+ay); g.lineTo(cx+ax*0.55-ay*0.35,cy+ay*0.55+ax*0.35); g.lineTo(cx+ax*0.55+ay*0.35,cy+ay*0.55-ax*0.35); g.closePath(); g.fillStyle="#000a"; g.fill(); }
+        else if(cell>=10){ g.fillStyle="#ffffff55"; for(let c2=0;c2<d;c2++) for(let a=0;a<w;a++){ const [sx,sy]=at(i+a,k+c2); g.beginPath(); g.arc(sx+cell/2,sy+cell/2,cell*0.3,0,7); g.fill(); } } }
+      g.strokeStyle="#bbb"; g.lineWidth=1; g.strokeRect(X0,Y0,G.NX*cell,G.NZ*cell);
+      const m=new Map(); for(const p of L){ const col=colorOf(p,G,R.pal,R.ci,R.tm), key=p.part+"|"+col[0]; const e=m.get(key)||{n:0,name:nameOf(p,R.unit),part:p.part,col}; e.n++; m.set(key,e); }
+      g.fillStyle="#111"; g.font="600 24px Helvetica,Arial"; g.fillText("Parts for this layer",1130,220); g.font="400 19px Helvetica,Arial"; let y=256;
+      [...m.values()].sort((a,b)=>b.n-a.n).forEach(e=>{ if(y>H-60) return; g.fillStyle=hex(e.col[2]); g.fillRect(1130,y-15,18,18); g.strokeStyle="#0004"; g.strokeRect(1130,y-15,18,18); g.fillStyle="#222"; g.fillText(e.n+" × "+e.name+"  ("+e.part+")",1158,y); y+=30; });
+      if(L.some(p=>p.slope)){ g.fillStyle="#666"; g.font="400 17px Helvetica,Arial"; g.fillText("Arrows: slopes fall in the arrow's direction",1130,H-60); }
+      pages.push(c); }
+    drawOv(R); _asetPdf(pages, String(R.name).replace(/[^\w]+/g,"_")+"_build_instructions.pdf", "Build instructions"); }
+  // Optimize the form: try grid shifts and keep the one that matches the shape's volume best with the fewest parts
+  function meshVol(M){ let v=0; for(const f of M.faces) for(let t=1;t<f.length-1;t++){ const a=M.verts[f[0]], b=M.verts[f[t]], c=M.verts[f[t+1]]; v+=(a[0]*(b[1]*c[2]-b[2]*c[1])-a[1]*(b[0]*c[2]-b[2]*c[0])+a[2]*(b[0]*c[1]-b[1]*c[0]))/6; } return Math.abs(v); }
+  async function optimize(btn){ const R=LAST; if(!R||!R.src) return; const L=layers[activeLayer], md=L&&(L.modifiers||[]).find(x=>x.type==="lego"); if(!md) return;
+    const pp=Object.assign({},md.params), unit=Math.round(+pp.unit||0)===1?"plate":"brick", studs=Math.max(6,Math.min(96,Math.round(+pp.studs||24))), V0=meshVol(R.src);
+    const st=document.getElementById("lgStat"), wait=()=>new Promise(r=>setTimeout(r,0)); if(btn) btn.disabled=true;
+    const shifts=[0,0.25,0.5,0.75], ys=[0,0.5]; let best=null, n=0; const total=shifts.length*shifts.length*ys.length;
+    try{ for(const fy of ys) for(const fx of shifts) for(const fz of shifts){ n++; if(st) st.textContent="Optimizing · "+n+" / "+total+"…"; await wait();
+        const G=voxelize(R.src,studs,unit,[fx,fy,fz]); if(Math.round(+pp.fill||0)===1) hollow(G,Math.max(1,Math.round(+pp.wall||1)));
+        let cells=0; for(let q=0;q<G.V.length;q++) cells+=G.V[q]; const cv=G.s*G.s*G.h, err=V0>0?Math.abs(cells*cv-V0)/cv:0;
+        const parts=pack(G,unit,Math.round(+(pp.lib??1))===1,pp.ramps!==false), score=parts.length+0.6*err;
+        if(!best||score<best.score) best={score,fx,fy,fz,n:parts.length}; }
+      Object.assign(md.params,{offx:best.fx,offy:best.fy,offz:best.fz}); rebuild(); renderModStack&&renderModStack(); try{ openModEdit(md.id); }catch(e){}
+      toast&&toast("Optimized: "+best.n+" parts · grid shift "+best.fx+" / "+best.fy+" / "+best.fz); }
+    catch(e){ toast&&toast("Optimize failed: "+e,true); }
+    finally{ if(btn) btn.disabled=false; } }
+  // cross-reference: BrickLink colour IDs for the wanted list (Brick Owl imports the same file into a wishlist)
+  const BLC={25:4,4:5,14:3,15:1,0:11,1:7,2:6,71:86,72:85,19:2,272:63,27:34,322:156,29:104,320:59,70:88,378:48,28:69,324:157,484:68,191:110,73:42,288:80,26:71,226:103,323:152};
+  function wanted(){ const R=LAST; if(!R) return; const x=['<?xml version="1.0" encoding="UTF-8"?>','<INVENTORY>'];
+    for(const e of partsTable(R)) x.push("  <ITEM><ITEMTYPE>P</ITEMTYPE><ITEMID>"+e.part+"</ITEMID><COLOR>"+(BLC[e.color[1]]??0)+"</COLOR><MINQTY>"+e.n+"</MINQTY></ITEM>");
+    x.push("</INVENTORY>"); saveText("parts_wanted_list.xml", x.join("\n")+"\n", "application/xml"); }
+  const boURL=pn=>"https://www.brickowl.com/search/catalog?query="+encodeURIComponent(pn), blURL=pn=>"https://www.bricklink.com/v2/catalog/catalogitem.page?P="+encodeURIComponent(pn);
+  function csv(){ const R=LAST; if(!R) return; const rows=["part,name,colour,count"]; for(const e of partsTable(R)) rows.push(e.part+",\""+e.name+"\","+e.color[0]+","+e.n);
+    rows.push(",TOTAL,,"+R.parts.length); saveText("parts_list.csv", rows.join("\n")+"\n", "text/csv"); }
+  // parts list + exports inside the modifier's Options
+  window.legoInfoSync=function(){ const box=document.getElementById("legoInfo"), R=LAST; if(!box||!R) return; const G=R.G, T=partsTable(R), plate=R.unit==="plate";
+    box.querySelector("#lgStat").textContent=R.parts.length.toLocaleString()+" parts · "+T.length+" kinds · "+G.NX+" × "+G.NZ+" studs · "+G.NY+" layers · "+(G.NX*0.8).toFixed(1)+" × "+(G.NZ*0.8).toFixed(1)+" × "+(G.NY*(plate?0.32:0.96)).toFixed(1)+" cm";
+    box.querySelector("#lgParts").innerHTML='<table style="width:100%;font-size:11px;border-collapse:collapse"><tr style="opacity:.6"><td></td><td>Part</td><td>No.</td><td style="text-align:right">Qty</td></tr>'+T.map(e=>'<tr><td style="padding:1px 4px"><span style="display:inline-block;width:10px;height:10px;border-radius:2px;background:#'+e.color[2].toString(16).padStart(6,"0")+';border:1px solid #0003"></span></td><td>'+e.name+' <span style="opacity:.55">'+e.color[0]+'</span></td><td style="opacity:.75;white-space:nowrap">'+e.part+' <a href="'+boURL(e.part)+'" target="_blank" rel="noopener" title="Find on Brick Owl" style="font-size:10px">BO</a> <a href="'+blURL(e.part)+'" target="_blank" rel="noopener" title="Find on BrickLink" style="font-size:10px">BL</a></td><td style="text-align:right">'+e.n+'</td></tr>').join("")+'<tr style="font-weight:600"><td></td><td>Total</td><td></td><td style="text-align:right">'+R.parts.length+'</td></tr></table>'; };
+  window.legoInfoPanel=function(){ const d=document.createElement("div"); d.id="legoInfo";
+    d.innerHTML='<div id="lgStat" style="font-size:11px;padding:6px 0;color:#8fce9b"></div>'
+      +'<div style="display:flex;gap:6px;margin:2px 0 6px"><button type="button" class="mkbtn" id="lgAnim" style="flex:1">▶ Animate build</button><button type="button" class="mkbtn" id="lgPdf" style="flex:1">Build PDF</button></div>'
+      +'<div style="display:flex;gap:6px;margin:0 0 6px"><button type="button" class="mkbtn" id="lgOpt" style="flex:1">⚙ Optimize the form</button></div>'
+      +'<div style="display:flex;gap:6px;margin:0 0 6px"><button type="button" class="mkbtn" id="lgLdr" style="flex:1">Export .ldr</button><button type="button" class="mkbtn" id="lgCsv" style="flex:1">Parts list .csv</button></div>'
+      +'<div style="display:flex;gap:6px;margin:0 0 4px"><button type="button" class="mkbtn" id="lgXml" style="flex:1">Wanted list .xml (Brick Owl / BrickLink)</button></div>'
+      +'<div style="font-size:10px;opacity:.65;margin:0 0 8px">BO / BL beside each part opens it on Brick Owl / BrickLink: prices, colours and other sets that use it. The wanted list imports into a Brick Owl wishlist or a BrickLink wanted list.</div>'
+      +'<div style="font-size:11px;font-weight:600;margin:4px 0 2px">Parts list</div><div id="lgParts" style="max-height:260px;overflow:auto"></div>';
+    d.querySelector("#lgLdr").onclick=ldr; d.querySelector("#lgCsv").onclick=csv; d.querySelector("#lgPdf").onclick=pdf; d.querySelector("#lgXml").onclick=wanted; d.querySelector("#lgOpt").onclick=e=>optimize(e.currentTarget); d.querySelector("#lgAnim").onclick=e=>animate(e.currentTarget); setTimeout(legoInfoSync,0); return d; };
+  // toolbar / menu: put the LEGO modifier on the current layer and open it
+  function open(){ if(!(layersOn&&layers[activeLayer])){ toast&&toast("LEGO needs a layer — make or select a shape first",true); return; }
+    const L=layers[activeLayer], have=(L.modifiers||[]).find(x=>x.type==="lego"); const md=have||addModifier("lego",{silent:true, returnMod:true});
+    if(md&&md.id!=null) setTimeout(()=>{ try{ openModEdit(md.id); }catch(e){} },50); }
+  window.__lego={open,ldr,csv,pdf,animate,optimize,wanted,get result(){ return LAST; }};
+  setTimeout(()=>{ const t=document.getElementById("tbLego"); if(t) t.addEventListener("click",e=>{ e.stopPropagation(); open(); });
+    const m=document.getElementById("miLego"); if(m) m.addEventListener("click",e=>{ e.stopPropagation(); document.querySelectorAll("#menubar .menu.open").forEach(x=>x.classList.remove("open")); open(); }); },0);
+})();
+
 // ---------- Melt: the form softens, slumps under gravity, drips and pools out on the ground ----------
 (function(){
   const C={heat:1, visc:0.35, spread:0.6, drips:0.5, detail:1, spring:0, playing:false, preset:"plastic"};
@@ -17242,7 +17537,7 @@ window.__ek={applyWhole:applyWhole,ops:ops,snapshot:snapshot,rebuild:rebuild,toa
     A.ctl=openPanel("aero","Aero — wind tunnel",
       '<div class="clS">Potential-flow solve on a voxel grid with a wake model — quick design feedback, not a CFD certification.</div>'
       +'<label class="clR"><span>Wind from</span><select id="aeDir"><option value="+x">−X → +X</option><option value="-x">+X → −X</option><option value="+z">−Z → +Z</option><option value="-z">+Z → −Z</option></select><em></em></label>'
-      +sl("aeRes","Resolution",32,110,2,64)+sl("aeLines","Streamlines",40,600,10,220)+sl("aeTurb","Wake swirl",0,1,0.01,0.45)
+      +sl("aeRes","Resolution",32,110,2,64)+sl("aeLines","Streamlines",40,300,10,220)+sl("aeTurb","Wake swirl",0,1,0.01,0.45)
       +'<label class="clC"><input type="checkbox" id="aeCp" checked> Surface pressure (Cp)</label><label class="clC"><input type="checkbox" id="aeAnim" checked> Animate flow</label>'
       +sl("aeBakeT","Baked tube thickness",0.1,3,0.05,1)
       +'<div class="clB"><button id="aeRun" class="pri">▶ Run</button><button id="aeBake" title="Turn the streamlines into solid tubes on a new layer">Bake lines</button><button id="aeClr">Clear</button></div><div class="clS" id="aeStats"></div>', ()=>{ aeroClear(); A.ctl=null; });
@@ -20791,7 +21086,7 @@ window.__tmCore={ get bboxObj(){return bboxObj}, get edgeObj(){return edgeObj}, 
   ["Analyze",["Diagnose","Curvature","Section","Interfere","Thickness","Measure","Overhang"]],
   ["Fabricate",["Seam","Paper","Plywood","Faces","Laser","Waffle","Print","Tree Sup"]],
   ["Render",["Render"]],
-  ["New",["Branches","WFC Pipes","Slime","Reaction","Cellular","Hyphae","Terrain","Origami"]]];
+  ["New",["Branches","WFC Pipes","Slime","Reaction","Cellular","Hyphae","Terrain","Origami","LEGO"]]];
  var HIDE=["TrueForm/Heal"], RENAME={"Parametric/Lattice":"Cage","Generate/Lattice":"Infill"};
  function run(){ var tb=document.getElementById("toolbar"); if(!tb) return; var row=tb.querySelector(".trow"); if(!row) return;
   var map={}; [].slice.call(tb.querySelectorAll("button.tb")).forEach(function(b){ var g=b.closest(".tgrp"), gl=g?g.getAttribute("data-label"):"", l=b.querySelector(".tlbl"), t=l?l.textContent.trim():"";
