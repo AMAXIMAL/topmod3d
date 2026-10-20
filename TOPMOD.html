@@ -1323,7 +1323,7 @@ html.inApp [data-act="fullscreen"],html.inApp [data-act="shortcuts"],html.inApp 
       <div class="mi" data-act="fabFaces">Plywood &mdash; face panels&hellip;</div>
       <div class="mi" data-act="fabLaser">Laser cut &mdash; finger joints&hellip;</div>
       <div class="mi" data-act="fabWaffle">Plywood &mdash; waffle (slice grid)&hellip;</div>
-      <div class="mi" id="miLego">LEGO &mdash; build from bricks&hellip;</div>
+      <div class="mi" id="miLego">Bricks &mdash; build from building bricks&hellip;</div>
       <div class="mi" data-act="nestOpt">Nest Optimizer (laser)</div>
       <div class="mi" data-act="showPrinter">Show 3D Printer (object on bed)</div>
       <div class="mi" data-act="sendPrinter">Send to 3D Printer (STL)&hellip;</div>
@@ -1461,7 +1461,7 @@ html.inApp [data-act="fullscreen"],html.inApp [data-act="shortcuts"],html.inApp 
         <button class="tb" data-op="slab" data-style="faces" title="Faces — one flat panel per face (Fabricate → Plywood faces)"><svg width="22" height="22" viewBox="0 0 22 22"><path d="M4 6l7-2.5L18 6l-7 2.5z" stroke="#CBA15A" stroke-width="1.3" fill="none" stroke-linejoin="round"/><path d="M4 6v6l7 2.5V8.5M18 6v6l-7 2.5" stroke="#8a6f3e" stroke-width="1.2" fill="none" stroke-linejoin="round"/></svg><span class="tlbl">Faces</span></button>
         <button class="tb" data-op="slab" data-style="laser" title="Laser — lay every face flat for laser cutting, with interlocking finger joints on shared edges (Fabricate → Laser cut)"><svg width="22" height="22" viewBox="0 0 22 22"><rect x="3.5" y="6.5" width="6" height="6" stroke="#00E5FF" stroke-width="1.3" fill="none"/><path d="M9.5 8.2h2v1.6h-2M9.5 10.4h2v1.6h-2" stroke="#FF8C22" stroke-width="1.1" fill="none"/><path d="M14 4.5l4.5 4.5M18.5 4.5L14 9" stroke="#ff3b6b" stroke-width="1.3" stroke-linecap="round"/></svg><span class="tlbl">Laser</span></button>
         <button class="tb" data-op="slab" data-style="waffle" title="Waffle — interlocking slice grid (Fabricate → Plywood waffle): two perpendicular slice sets notch together egg-crate style with dogbone corner relief"><svg width="22" height="22" viewBox="0 0 22 22"><path d="M5 4v14M9 4v14M13 4v14M17 4v14" stroke="#CBA15A" stroke-width="1.2"/><path d="M4 6h14M4 10h14M4 14h14" stroke="#8a6f3e" stroke-width="1.2"/></svg><span class="tlbl">Waffle</span></button>
-        <button class="tb" id="tbLego" title="LEGO — modifier: builds the shape from LEGO-compatible bricks or plates, with ramp edges, a bigger parts library, build steps, a parts list and .ldr export"><svg width="22" height="22" viewBox="0 0 22 22"><rect x="2.5" y="9" width="17" height="9" rx="1" fill="#FE8A18" stroke="#7a3d00" stroke-width="1"/><rect x="4.5" y="5.5" width="4" height="3.5" rx="1" fill="#FE8A18" stroke="#7a3d00" stroke-width="1"/><rect x="13.5" y="5.5" width="4" height="3.5" rx="1" fill="#FE8A18" stroke="#7a3d00" stroke-width="1"/></svg><span class="tlbl">LEGO</span></button>
+        <button class="tb" id="tbLego" title="Bricks — modifier: builds the shape from standard building bricks or plates, with ramp edges, a big parts library, build steps, a parts list and .ldr export"><svg width="22" height="22" viewBox="0 0 22 22"><rect x="2.5" y="9" width="17" height="9" rx="1" fill="#FE8A18" stroke="#7a3d00" stroke-width="1"/><rect x="4.5" y="5.5" width="4" height="3.5" rx="1" fill="#FE8A18" stroke="#7a3d00" stroke-width="1"/><rect x="13.5" y="5.5" width="4" height="3.5" rx="1" fill="#FE8A18" stroke="#7a3d00" stroke-width="1"/></svg><span class="tlbl">Bricks</span></button>
         <button class="tb" id="tb3dprint" title="3D Print — show the build plate, scale the model, and send the on-screen object to the printer"><svg width="22" height="22" viewBox="0 0 22 22"><rect x="4" y="9" width="14" height="7" rx="1" stroke="#00E5FF" stroke-width="1.4" fill="none"/><path d="M6 9V4.5h10V9" stroke="#CBA15A" stroke-width="1.3" fill="none" stroke-linejoin="round"/><rect x="7.5" y="12.5" width="7" height="5" rx="0.5" stroke="#FF8C22" stroke-width="1.3" fill="none"/><circle cx="15.4" cy="11.4" r="0.85" fill="#00E5FF"/></svg><span class="tlbl">Print</span></button>
         <button class="tb" id="tbRender" title="Render — save a high-res studio render (PNG): glass, metal, ceramic, wood, gems"><svg width="22" height="22" viewBox="0 0 22 22"><circle cx="11" cy="11" r="4.8" stroke="#00E5FF" stroke-width="1.4" fill="none"/><circle cx="9.2" cy="9.2" r="1.3" fill="#FF8C22"/><path d="M11 2.6v2M11 17.4v2M2.6 11h2M17.4 11h2M5.1 5.1l1.4 1.4M15.5 15.5l1.4 1.4M16.9 5.1l-1.4 1.4M6.5 15.5l-1.4 1.4" stroke="#CBA15A" stroke-width="1.2" stroke-linecap="round"/></svg><span class="tlbl">Render</span></button>
       </span>
@@ -17056,7 +17056,7 @@ window.__ek={applyWhole:applyWhole,ops:ops,snapshot:snapshot,rebuild:rebuild,toa
   document.querySelectorAll('[data-act="physics"]').forEach(el=>el.addEventListener("click",e=>{ e.stopPropagation(); document.querySelectorAll("#menubar .menu.open").forEach(m=>m.classList.remove("open")); open(); }));
 })();
 
-// ---------- LEGO: a live modifier that builds the shape coming into it (base geometry + modifiers above) from LEGO-compatible parts ----------
+// ---------- Bricks: a live modifier that builds the shape coming into it (base geometry + modifiers above) from standard building-brick parts ----------
 // Voxelizes on a stud grid (1 stud = 8 mm, brick 9.6 mm / plate 3.2 mm), optionally puts 45° slope bricks on top edges (ramp edges),
 // packs each layer with the largest parts that fit (direction turns every layer so joints overlap), and lists every part.
 // Exports LDraw .ldr (1 stud = 20 LDU, brick 24, plate 8; −Y up; parts modelled long along X, slopes fall toward −Z) and a parts list.
@@ -17221,7 +17221,7 @@ window.__ek={applyWhole:applyWhole,ops:ops,snapshot:snapshot,rebuild:rebuild,toa
     return {verts,faces}; }
   function partsTable(R){ const m=new Map(); for(const p of R.parts){ const c=colorOf(p,R.G,R.pal,R.ci,R.tm); const key=p.part+"|"+c[0]; const e=m.get(key)||{part:p.part,name:nameOf(p,R.unit),color:c,n:0}; e.n++; m.set(key,e); }
     return [...m.values()].sort((a,b)=>b.n-a.n); }
-  MODS.lego={label:"LEGO", grp:"New", heavy:true,
+  MODS.lego={label:"Bricks", grp:"New", heavy:true,
     params:[{k:"studs",l:"Size (studs across)",min:6,max:96,step:1,def:24},{k:"unit",l:"Build with",opts:["Bricks (9.6 mm tall)","Plates (3.2 mm tall)"],def:0},
       {k:"lib",l:"Parts library",opts:["Basic (1×1 – 2×8)","Extended (long bricks, 4×, 6×, 8× plates)"],def:1},{k:"ramps",l:"Ramp edges (45° slopes)",bool:true,def:true},
       {k:"fill",l:"Fill",opts:["Solid","Hollow shell"],def:0},{k:"wall",l:"Wall (studs, hollow)",min:1,max:4,step:1,def:1},
@@ -17338,8 +17338,8 @@ window.__ek={applyWhole:applyWhole,ops:ops,snapshot:snapshot,rebuild:rebuild,toa
       +'<div style="font-size:10px;opacity:.65;margin:0 0 8px">BO / BL beside each part opens it on Brick Owl / BrickLink: prices, colours and other sets that use it. The wanted list imports into a Brick Owl wishlist or a BrickLink wanted list.</div>'
       +'<div style="font-size:11px;font-weight:600;margin:4px 0 2px">Parts list</div><div id="lgParts" style="max-height:260px;overflow:auto"></div>';
     d.querySelector("#lgLdr").onclick=ldr; d.querySelector("#lgCsv").onclick=csv; d.querySelector("#lgPdf").onclick=pdf; d.querySelector("#lgXml").onclick=wanted; d.querySelector("#lgOpt").onclick=e=>optimize(e.currentTarget); d.querySelector("#lgAnim").onclick=e=>animate(e.currentTarget); setTimeout(legoInfoSync,0); return d; };
-  // toolbar / menu: put the LEGO modifier on the current layer and open it
-  function open(){ if(!(layersOn&&layers[activeLayer])){ toast&&toast("LEGO needs a layer — make or select a shape first",true); return; }
+  // toolbar / menu: put the Bricks modifier on the current layer and open it
+  function open(){ if(!(layersOn&&layers[activeLayer])){ toast&&toast("Bricks needs a layer — make or select a shape first",true); return; }
     const L=layers[activeLayer], have=(L.modifiers||[]).find(x=>x.type==="lego"); const md=have||addModifier("lego",{silent:true, returnMod:true});
     if(md&&md.id!=null) setTimeout(()=>{ try{ openModEdit(md.id); }catch(e){} },50); }
   window.__lego={open,ldr,csv,pdf,animate,optimize,wanted,get result(){ return LAST; }};
@@ -21129,7 +21129,7 @@ window.__tmCore={ get bboxObj(){return bboxObj}, get edgeObj(){return edgeObj}, 
   ["Analyze",["Diagnose","Curvature","Section","Interfere","Thickness","Measure","Overhang"]],
   ["Fabricate",["Seam","Paper","Plywood","Faces","Laser","Waffle","Print","Tree Sup"]],
   ["Render",["Render"]],
-  ["New",["Branches","WFC Pipes","Slime","Reaction","Cellular","Hyphae","Terrain","Origami","LEGO"]]];
+  ["New",["Branches","WFC Pipes","Slime","Reaction","Cellular","Hyphae","Terrain","Origami","Bricks"]]];
  var HIDE=["TrueForm/Heal"], RENAME={"Parametric/Lattice":"Cage","Generate/Lattice":"Infill"};
  function run(){ var tb=document.getElementById("toolbar"); if(!tb) return; var row=tb.querySelector(".trow"); if(!row) return;
   var map={}; [].slice.call(tb.querySelectorAll("button.tb")).forEach(function(b){ var g=b.closest(".tgrp"), gl=g?g.getAttribute("data-label"):"", l=b.querySelector(".tlbl"), t=l?l.textContent.trim():"";
