@@ -1345,6 +1345,7 @@ html.inApp [data-act="fullscreen"],html.inApp [data-act="shortcuts"],html.inApp 
       <div class="mi" data-rm="metal">Metal</div>
       <div class="mi" data-rm="wood">Wood</div>
       <div class="mi" data-rm="liquid">Liquid metal (animated)</div>
+      <div class="mi" data-rm="glass">Liquid glass (animated)</div>
       <div class="mi" data-act="lineArt">Line Art (pen-plotter styles)</div>
       <div class="mi" data-act="liveEq">Live Equations (math overlay)</div>
       <div class="msep"></div>
@@ -8214,7 +8215,8 @@ const matChrome=new THREE.MeshStandardMaterial(Object.assign({color:0xf2f5f7,met
 window.__matOpts=Object.assign({ plastic:{color:"#e8463c",rough:0.32,coat:0.6,flat:false},
   metal:{preset:"steel",color:"#b8bec6",rough:0.28,flat:false},
   wood:{a:"#d6a66a",b:"#8a5a2b",scale:6,grain:0.5,rough:0.62,flat:false},
-  liquid:{tint:"#e9eef5",scale:1.8,speed:0.3,liquid:0.35,refract:0.02,edge:0.5,blur:0.35,flat:false} }, window.__matOpts||{});
+  liquid:{tint:"#e9eef5",scale:1.8,speed:0.3,liquid:0.35,refract:0.02,edge:0.5,blur:0.35,flat:false},
+  glass:{trans:0.75,frost:0.15,tint:"#dff3ff",scale:1.6,speed:0.25,liquid:0.3,refract:0.03,edge:0.6,flat:false} }, window.__matOpts||{});
 const matPlastic=new THREE.MeshPhysicalMaterial(Object.assign({color:0xe8463c,roughness:0.32,metalness:0,clearcoat:0.6,clearcoatRoughness:0.12,envMap:envTex,envMapIntensity:0.9},PO));
 const matMetal=new THREE.MeshStandardMaterial(Object.assign({color:0xb8bec6,metalness:1,roughness:0.28,envMap:envTex,envMapIntensity:1.25},PO));
 const matWood=new THREE.MeshStandardMaterial(Object.assign({color:0xffffff,metalness:0,roughness:0.62,envMap:envTex,envMapIntensity:0.45},PO));
@@ -8236,7 +8238,8 @@ function applyMatOpts(){ const o=window.__matOpts;
   matMetal.color.set(o.metal.color); matMetal.roughness=+o.metal.rough; matMetal.flatShading=!!o.metal.flat;
   const u=matWood.userData.u; u.uWA.value.set(o.wood.a); u.uWB.value.set(o.wood.b); u.uWS.value=+o.wood.scale; u.uWG.value=+o.wood.grain; matWood.roughness=+o.wood.rough; matWood.flatShading=!!o.wood.flat;
   [matPlastic,matMetal,matWood].forEach(m=>m.needsUpdate=true);
-  if(window.__matLiquid){ const L=o.liquid, U=window.__matLiquid.uniforms; U.uTint.value.set(L.tint); U.uScale.value=+L.scale; U.uSpeed.value=+L.speed; U.uLiquid.value=+L.liquid; U.uRefr.value=+L.refract; U.uEdge.value=+L.edge; U.uBlur.value=+L.blur; U.uFlat.value=L.flat?1:0; } }
+  if(window.__matLiquid){ const L=o.liquid, U=window.__matLiquid.uniforms; U.uTint.value.set(L.tint); U.uScale.value=+L.scale; U.uSpeed.value=+L.speed; U.uLiquid.value=+L.liquid; U.uRefr.value=+L.refract; U.uEdge.value=+L.edge; U.uBlur.value=+L.blur; U.uFlat.value=L.flat?1:0; }
+  if(window.__matGlass){ const G=o.glass, U=window.__matGlass.uniforms; U.uTint.value.set(G.tint); U.uTrans.value=+G.trans; U.uFrost.value=+G.frost; U.uScale.value=+G.scale; U.uSpeed.value=+G.speed; U.uLiquid.value=+G.liquid; U.uRefr.value=+G.refract; U.uEdge.value=+G.edge; U.uFlat.value=G.flat?1:0; } }
 [matPlastic,matMetal,matWood].forEach(m=>m.userData.keepColor=true);
 applyMatOpts();
 
@@ -8274,6 +8277,51 @@ const matLiquid=new THREE.ShaderMaterial({ uniforms:{ u_time:{value:0}, uTint:{v
       gl_FragColor=vec4(col,1.0);
     }`, side:THREE.DoubleSide, extensions:{derivatives:true} });
 matLiquid.userData.keepColor=true; SHADER_MATS.push(matLiquid); window.__matLiquid=matLiquid; try{ applyMatOpts(); }catch(e){}
+
+// Liquid glass view: the same flowing light bands as Liquid metal, on a clear (or frosted) glass body. Transparency sets how much
+// you see through it; Frosted scatters the light — bands soften, the body turns milky and the surface gets a fine grain.
+const matGlass=new THREE.ShaderMaterial({ uniforms:{ u_time:{value:0}, uTint:{value:new THREE.Color(0xdff3ff)}, uTrans:{value:0.75}, uFrost:{value:0.15}, uScale:{value:1.6}, uSpeed:{value:0.25}, uLiquid:{value:0.3}, uRefr:{value:0.03}, uEdge:{value:0.6}, uFlat:{value:0} },
+  vertexShader:`attribute vec3 aSN; varying vec3 vN; varying vec3 vV; varying vec3 vP;
+    void main(){ vec4 mv=modelViewMatrix*vec4(position,1.0); vN=normalize(normalMatrix*(dot(aSN,aSN)>0.5?aSN:normal)); vV=-mv.xyz; vP=position; gl_Position=projectionMatrix*mv; }`,
+  fragmentShader:`precision highp float;
+    uniform float u_time; uniform vec3 uTint; uniform float uTrans, uFrost, uScale, uSpeed, uLiquid, uRefr, uEdge, uFlat;
+    varying vec3 vN; varying vec3 vV; varying vec3 vP;
+    float h3(vec3 p){ return fract(sin(dot(p,vec3(127.1,311.7,74.7)))*43758.5453); }
+    float n3(vec3 p){ vec3 i=floor(p), f=fract(p); f=f*f*(3.0-2.0*f);
+      return mix(mix(mix(h3(i),h3(i+vec3(1,0,0)),f.x),mix(h3(i+vec3(0,1,0)),h3(i+vec3(1,1,0)),f.x),f.y),
+                 mix(mix(h3(i+vec3(0,0,1)),h3(i+vec3(1,0,1)),f.x),mix(h3(i+vec3(0,1,1)),h3(i+vec3(1,1,1)),f.x),f.y),f.z); }
+    float flow(vec3 p){ return n3(p)*0.6+n3(p*2.07+3.1)*0.3+n3(p*4.3+7.7)*0.1; }
+    float band(float x, float soft){ float c=0.5+0.5*cos(6.28318*x); float w=mix(0.05,0.5,soft); return smoothstep(0.5-w,0.5+w,c); }
+    void main(){
+      vec3 n=normalize(vN); if(uFlat>0.5) n=normalize(cross(dFdx(-vV),dFdy(-vV))); vec3 v=normalize(vV);
+      bool back=dot(n,v)<0.0; if(back) n=-n;
+      // frosted glass: a fine grain tilts the normal a little, so reflections break up and blur
+      vec3 g=vec3(n3(vP*28.0),n3(vP*28.0+11.3),n3(vP*28.0+23.7))-0.5; n=normalize(n+g*uFrost*0.22);
+      float ndv=max(dot(n,v),0.0), t=u_time*uSpeed, soft=clamp(0.2+uFrost*0.9,0.0,1.0);
+      vec3 r=reflect(-v,n);
+      vec3 q=r*uScale+vP*0.35*uScale;
+      float wob=(flow(q*0.9+vec3(0.0,t,t*0.6))-0.5)*2.0*uLiquid*2.2;
+      float s=dot(r,normalize(vec3(0.25,1.0,0.15)))*uScale+wob+t*0.15;
+      vec3 refl=vec3(band(s-uRefr,soft), band(s,soft), band(s+uRefr,soft));            // reflected light bands
+      vec3 rf=refract(-v,n,1.0/1.5);                                                      // light bent through the glass
+      float s2=dot(rf,normalize(vec3(-0.3,0.9,0.2)))*uScale*1.3+wob*0.6-t*0.1;
+      float caus=band(s2,clamp(soft+0.15,0.0,1.0));
+      float fr=0.04+0.96*pow(1.0-ndv,5.0);                                                // Fresnel: glass reflects most at grazing angles
+      float rk=mix(0.35,0.12,uFrost)*(1.0-fr)+fr*(0.6+0.4*uEdge);                       // how much reflection shows
+      vec3 body=uTint*(0.82+0.3*caus);                                                    // see-through body with soft bright caustic bands
+      vec3 milk=mix(uTint,vec3(1.0),0.6)*(0.78+0.22*ndv);                                 // frosted: light scatters, body turns milky
+      body=mix(body,milk,uFrost*0.85);
+      float lum=max(max(refl.r,refl.g),refl.b);
+      vec3 col=body*(1.0-0.35*rk)+refl*rk*1.25;                                           // light bands add on top — glass never goes dark
+      col+=0.35*pow(max(r.y,0.0),24.0)*(1.0-uFrost*0.7);                                  // sharp sky glint (dulled by frost)
+      col+=fr*uEdge*0.3;
+      float a=mix(1.0,0.06,uTrans);                                                       // Transparency: solid -> clear
+      a=max(a,uFrost*mix(0.5,0.85,1.0-uTrans));                                           // frost hides what's behind
+      a=clamp(a+fr*0.5+rk*lum*0.55,0.0,1.0);
+      if(back) a*=0.6;                                                                    // far side shows faintly through
+      gl_FragColor=vec4(col,a);
+    }`, side:THREE.DoubleSide, transparent:true, depthWrite:false, extensions:{derivatives:true} });
+matGlass.userData.keepColor=true; SHADER_MATS.push(matGlass); window.__matGlass=matGlass; try{ applyMatOpts(); }catch(e){}
 function makeShader(frag, opts){
   const m=new THREE.ShaderMaterial(Object.assign({
     uniforms:{ u_time:{value:0} },
@@ -8434,7 +8482,8 @@ const RMODES={
   plastic:{mat:matPlastic, edge:[0x2a0a08,0.35], label:"Plastic"},
   metal:{mat:matMetal, edge:[0x1a1d22,0.3], label:"Metal"},
   wood:{mat:matWood, edge:[0x2a1806,0.35], label:"Wood"},
-  liquid:{mat:matLiquid, edge:[0x111318,0.25], label:"Liquid metal"}
+  liquid:{mat:matLiquid, edge:[0x111318,0.25], label:"Liquid metal"},
+  glass:{mat:matGlass, edge:[0x9fd8ff,0.12], label:"Liquid glass"}
 };
 const NEON=[0x00E5FF,0xFF2FA6,0x00E676,0xFFE14D,0xFF8C22,0xB26BFF];
 const matVert=new THREE.PointsMaterial({color:0x9fb3c8,size:0.055});
@@ -8628,7 +8677,7 @@ function rebuild(opts){
   const uvs=[]; for(let i=0;i<pos.length;i+=3){ uvs.push(pos[i]*0.5+0.5, pos[i+1]*0.5+0.5); }
   g.setAttribute("uv",new THREE.Float32BufferAttribute(uvs,2));
   g.computeVertexNormals();
-  if(renderMode==="liquid"){ try{   // liquid metal reads smooth normals (averaged across shared corners) so its light bands flow instead of tiling per face
+  if(renderMode==="liquid"||renderMode==="glass"){ try{   // liquid metal reads smooth normals (averaged across shared corners) so its light bands flow instead of tiling per face
     const P=g.attributes.position, N=g.attributes.normal, cnt=P.count, acc=new Map(), key=k=>Math.round(P.getX(k)*1e5)+","+Math.round(P.getY(k)*1e5)+","+Math.round(P.getZ(k)*1e5), keys=new Array(cnt);
     for(let k=0;k<cnt;k++){ const kk=keys[k]=key(k); let a=acc.get(kk); if(!a) acc.set(kk,a=[0,0,0]); a[0]+=N.getX(k); a[1]+=N.getY(k); a[2]+=N.getZ(k); }
     const sn=new Float32Array(cnt*3); for(let k=0;k<cnt;k++){ const a=acc.get(keys[k]), l=Math.hypot(a[0],a[1],a[2])||1; sn[k*3]=a[0]/l; sn[k*3+1]=a[1]/l; sn[k*3+2]=a[2]/l; }
@@ -9238,7 +9287,7 @@ function openGemOptions(m){
   const pop=$("#toolpop"); pop.classList.remove("hiddenPanel","empty"); $("#optionsToggle")&&$("#optionsToggle").classList.add("on");
   tpState={op:"gemview",btn:null,moved:[]};
 }
-const MAT_RM=/^(plastic|metal|wood|liquid)$/;
+const MAT_RM=/^(plastic|metal|wood|liquid|glass)$/;
 function openMatOptions(m){
   if(typeof closeToolPop==="function" && tpState && tpState.op!=="matview") try{ closeToolPop(); }catch(e){}
   const body=$("#tpBody"); if(!body) return; const o=window.__matOpts[m];
@@ -9251,6 +9300,8 @@ function openMatOptions(m){
       +col("color","Colour")+rng("rough","Roughness (polished ↔ brushed)",0,1,0.01)+chk("flat","Faceted (flat shading)");
   if(m==="liquid") h+=col("tint","Tint")+rng("scale","Band size (wide ↔ fine)",0.5,6,0.1)+rng("speed","Flow speed",0,1.5,0.01)+rng("liquid","Liquid (how much the bands ripple)",0,1,0.01)
       +rng("refract","Colour split at band edges",0,0.2,0.005)+rng("edge","Edge glow",0,1,0.01)+rng("blur","Softness",0,1,0.01)+chk("flat","Faceted (flat shading)");
+  if(m==="glass") h+=rng("trans","Transparency (solid ↔ clear)",0,1,0.01)+rng("frost","Frosted (clear ↔ frosted)",0,1,0.01)+col("tint","Tint")+rng("scale","Band size (wide ↔ fine)",0.5,6,0.1)+rng("speed","Flow speed",0,1.5,0.01)+rng("liquid","Liquid (how much the bands ripple)",0,1,0.01)
+      +rng("refract","Colour split at band edges",0,0.2,0.005)+rng("edge","Edge shine",0,1,0.01)+chk("flat","Faceted (flat shading)");
   if(m==="wood") h+=col("a","Light wood")+col("b","Dark grain")+rng("scale","Ring size (small ↔ large)",1,20,0.5)+rng("grain","Grain wobble",0,1.5,0.05)+rng("rough","Roughness",0,1,0.01)+chk("flat","Faceted (flat shading)");
   h+='<div class="modEditNote">Changes apply live.</div></div>';
   body.innerHTML=h; if(window.__numboxify) window.__numboxify(body);
@@ -13321,7 +13372,7 @@ function setLayersOn(on){
 $("#layersToggle")&&$("#layersToggle").addEventListener("click",()=>{ document.body.classList.toggle("rightTucked"); document.body.classList.add("rtForce"); $("#layersToggle").classList.toggle("on",!document.body.classList.contains("rightTucked")); });
 // View-style dropdown under the navigation cube
 (function(){ const vs=document.getElementById("viewStyleSel"); if(!vs) return;
-  const groups=[["Shading",["solid","normals","xray","galaxy","matrix","water","carbon","laser","patent","patent3d"]],["Materials",["plastic","metal","wood","liquid"]],["Gems (ray-traced)",["diamond","reddiamond","ruby","sapphire","emerald"]]];
+  const groups=[["Shading",["solid","normals","xray","galaxy","matrix","water","carbon","laser","patent","patent3d"]],["Materials",["plastic","metal","wood","liquid","glass"]],["Gems (ray-traced)",["diamond","reddiamond","ruby","sapphire","emerald"]]];
   vs.innerHTML=groups.map(([g,ks])=>'<optgroup label="'+g+'">'+ks.filter(k=>RMODES[k]).map(k=>'<option value="'+k+'">'+RMODES[k].label+'</option>').join("")+'</optgroup>').join("")+'<optgroup label="Drawing"><option value="__lineart">Line Art</option></optgroup>';
   vs.value=renderMode;
   vs.addEventListener("change",()=>{ const v=vs.value; if(v==="__lineart"){ if(window.__lineart) window.__lineart.open(); } else setRenderMode(v); });
@@ -22437,7 +22488,7 @@ body.duo #claudePanel,body.duoBottom #claudePanel{top:calc(var(--duoH,50vh) + 8p
    const g=m.geometry, ver=(g.attributes.position&&g.attributes.position.version)||0;
    if(g!==srcGeo||ver!==srcVer){ const h=smooth(g); if(!h) return; if(hull){ hull.geometry.dispose(); hull.geometry=h; } else { hull=new THREE.Mesh(h,mat); hull.renderOrder=1; hull.raycast=()=>{}; hull.userData.tmOverlay=true; } srcGeo=g; srcVer=ver; }
    if(hull.parent!==m){ hull.parent&&hull.parent.remove(hull); m.add(hull); }
-   hull.visible=m.visible!==false&&!/^(patent|patent3d|diamond|reddiamond|ruby|sapphire|emerald)$/.test(core.renderMode||"");   // post-processed / ray-traced views draw their own outlines
+   hull.visible=m.visible!==false&&!/^(patent|patent3d|diamond|reddiamond|ruby|sapphire|emerald|glass)$/.test(core.renderMode||"");   // post-processed / ray-traced views draw their own outlines; glass would show the dark hull through itself
  }
  const ren=core.renderer, orig=ren.render.bind(ren), v2=new THREE.Vector2();
  ren.render=function(sc,cm){ try{ sync(); if(on&&hull){ ren.getDrawingBufferSize(v2); mat.uniforms.uRes.value.copy(v2); mat.uniforms.uW.value=w*ren.getPixelRatio(); mat.uniforms.uCol.value.set(document.body.classList.contains("uiMono")?0x111111:0x000000); } }catch(e){} return orig(sc,cm); };
