@@ -13453,8 +13453,10 @@ try{ new ResizeObserver(()=>resize()).observe(canvas.parentElement); }catch(e){}
 
 // ---- Full screen mode (Shift+F to open / close): hides all chrome, and uses true browser fullscreen where supported ----
 function toggleFullscreen(force){
-  const on=(typeof force==="boolean")?force:!document.body.classList.contains("fullscreen");
-  document.body.classList.toggle("fullscreen", on);
+  // Full screen = the whole app goes full screen exactly as laid out (menus, toolbar, panels all stay) — only the browser chrome goes away
+  const inFs0=!!(document.fullscreenElement||document.webkitFullscreenElement);
+  const on=(typeof force==="boolean")?force:!inFs0;
+  document.body.classList.remove("fullscreen","fsT","fsO","fsL");
   try{
     const el=document.documentElement;
     if(on){ const rf=el.requestFullscreen||el.webkitRequestFullscreen||el.mozRequestFullScreen||el.msRequestFullscreen;
@@ -13466,10 +13468,8 @@ function toggleFullscreen(force){
     else { const xf=document.exitFullscreen||document.webkitExitFullscreen; if(xf && (document.fullscreenElement||document.webkitFullscreenElement)){ const p=xf.call(document); if(p&&p.catch) p.catch(()=>{}); } }
   }catch(e){}
   [50,250,600,1200].forEach(ms=>setTimeout(verifyFullscreenSize,ms));   // reflow after the chrome hides/shows and after the (possibly slow) fullscreen transition
-  if(on) setTimeout(()=>{ const sw=screen.width, sh=screen.height, iw=innerWidth, ih=innerHeight;
-    const short=(sh-ih>4)||(sw-iw>4);
-    toast&&toast("Full screen "+iw+"×"+ih+(short?"  (screen is "+sw+"×"+sh+" — the browser kept "+(sh-ih)+"px; use F11 / ⌃⌘F for true full screen)":"")+" — tap ⛶ (or Shift+F) to exit", short); },900);
-  else toast&&toast("Exited full screen");
+  [60,300,700].forEach(ms=>setTimeout(()=>dispatchEvent(new Event("resize")),ms));
+  toast&&toast(on?"Full screen — press Esc or ⛶ to exit":"Exited full screen");
 }
 // Verify the layout really spans the viewport we were given: percentage heights on html/body can stay stale
 // through a fullscreen transition in some browsers, leaving a dead band at the bottom. Pin the frame to the
@@ -13491,7 +13491,7 @@ document.querySelectorAll('[data-act="fullscreen"]').forEach(el=>el.addEventList
 // Esc leaves full-screen mode (immersive or whole-interface) — not while typing in a field
 addEventListener("keydown",e=>{ if(e.key!=="Escape") return; const t=e.target; if(t&&(t.tagName==="INPUT"||t.tagName==="TEXTAREA"||t.isContentEditable)) return;
   const inFs=!!(document.fullscreenElement||document.webkitFullscreenElement);
-  if(document.body.classList.contains("fullscreen")) toggleFullscreen(false);
+  if(document.body.classList.contains("fullscreen")||inFs) toggleFullscreen(false);
   else if(inFs){ try{ (document.exitFullscreen||document.webkitExitFullscreen).call(document); }catch(_){} } });
 
 resize(); applyCam(); rebuild(); updateUndoUI(); updateHint();
@@ -22742,7 +22742,7 @@ body.fullscreen #toast{top:56px!important}</style>
     [60,300,700].forEach(ms=>setTimeout(()=>dispatchEvent(new Event("resize")),ms)); };
   const w=document.getElementById("fsWhole"); if(w) w.addEventListener("click",e=>{ e.stopPropagation(); window.__fsWhole(); });
   const mi=document.querySelector('#menubar .mi[data-act="fullscreen"]');
-  if(mi&&!document.getElementById("miFsWhole")){ const n=document.createElement("div"); n.className="mi"; n.id="miFsWhole"; n.innerHTML="Full Screen — whole interface";
+  if(false&&mi&&!document.getElementById("miFsWhole")){ const n=document.createElement("div"); n.className="mi"; n.id="miFsWhole"; n.innerHTML="Full Screen — whole interface";
     n.addEventListener("click",e=>{ e.stopPropagation(); document.querySelectorAll("#menubar .menu.open").forEach(m=>m.classList.remove("open")); window.__fsWhole(); }); mi.after(n); }
 })();</script>
 <div id="duoSplit" title="Drag to resize the viewport · double-click to reset"></div>
