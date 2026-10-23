@@ -193,6 +193,10 @@ namespace TopModRhinoLink
                     {
                         try { ApplyFab(doc, sync, fab); } catch (Exception ex) { RhinoApp.WriteLine("TopMod: fab curves — " + ex.Message); }
                     }
+                    if (root.TryGetProperty("poles", out var pl) && pl.ValueKind == JsonValueKind.Object && doc != null)
+                    {
+                        try { ApplyPoles(doc, pl); } catch (Exception ex) { RhinoApp.WriteLine("TopMod: field poles — " + ex.Message); }
+                    }
                     if (root.TryGetProperty("cam", out var cam) && cam.ValueKind == JsonValueKind.Object && doc != null)
                     {
                         try { SyncCamera(doc, cam); } catch { }
@@ -201,6 +205,12 @@ namespace TopModRhinoLink
                 }
 
                 // ---- Rhino → page ----
+                var polesJson = TopModLinkPlugIn.Instance.Poles?.Pull();
+                if (polesJson != null)
+                {
+                    try { _web.ExecuteScript("return (window.__tmApplyPoles ? window.__tmApplyPoles(" + JsonSerializer.Serialize(polesJson) + ") : 'not ready');"); } catch { }
+                }
+
                 var pull = sync.Pull(_lastRhinoVersion);
                 if (pull != null)
                 {
@@ -214,6 +224,19 @@ namespace TopModRhinoLink
                 }
             }
             finally { _busy = false; }
+        }
+
+        static void ApplyPoles(RhinoDoc doc, JsonElement pl)
+        {
+            var poles = TopModLinkPlugIn.Instance.Poles; if (poles == null) return;
+            if (!pl.TryGetProperty("v", out var v) || v.ValueKind != JsonValueKind.Object) { poles.ApplyFromWeb(doc, null, null); return; }
+            string id = v.TryGetProperty("id", out var i) && i.ValueKind == JsonValueKind.String ? i.GetString() : null;
+            var pts = new System.Collections.Generic.List<double[]>();
+            if (v.TryGetProperty("pts", out var arr) && arr.ValueKind == JsonValueKind.Array)
+                foreach (var p in arr.EnumerateArray())
+                    if (p.ValueKind == JsonValueKind.Array && p.GetArrayLength() >= 3)
+                        pts.Add(new[] { p[0].GetDouble(), p[1].GetDouble(), p[2].GetDouble(), p.GetArrayLength() > 3 ? p[3].GetDouble() : 1 });
+            poles.ApplyFromWeb(doc, id, pts);
         }
 
         static void ApplyFab(RhinoDoc doc, LiveSync sync, JsonElement fab)

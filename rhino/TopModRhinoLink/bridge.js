@@ -86,7 +86,12 @@
     lastFab = key;
     return pay;
   }
-  var lastCam = "";
+  var lastCam = "", lastPoles = "null";
+  /* Rhino moved the pole points: json = {id, pts:[[x,y,z],...]} in TopMod world coords (inches, Y-up) */
+  window.__tmApplyPoles = function(json){
+    if(!ready || !B.setFieldPoles) return "not ready";
+    try{ var d = JSON.parse(json); var r = B.setFieldPoles(d.id, d.pts); return r; }catch(e){ return String(e); }
+  };
   window.__tmPoll = function(){
     var cam = null;
     if(ready && B.cam){
@@ -96,7 +101,10 @@
       }catch(e){}
     }
     var fab = null; if(ready){ try{ fab = fabPayload(); }catch(e){} }
-    var r = JSON.stringify({ out: out, cmds: cmds, ready: ready, why: why, cam: cam, fab: fab });
+    /* Field lines poles → Rhino points (sent only when they change; {v:null} = no poles any more) */
+    var poles = null;
+    if(ready && B.fieldPoles){ try{ var fp = B.fieldPoles(); var pk = JSON.stringify(fp); if(pk !== lastPoles){ lastPoles = pk; poles = { v: fp }; } }catch(e){} }
+    var r = JSON.stringify({ out: out, cmds: cmds, ready: ready, why: why, cam: cam, fab: fab, poles: poles });
     out = null; cmds = [];
     return r;
   };

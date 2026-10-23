@@ -29,7 +29,21 @@ window.__tmBridge={ get mesh(){return mesh}, set mesh(v){mesh=v}, get layers(){r
   get fabLive(){try{return !!((slabData&&slabData.count)||liveNet)}catch(e){return false}},
   fabMode:function(){try{return plyMode()}catch(e){return null}},
   slabPairs:function(){try{return slabFlattenPairs()}catch(e){return []}},
-  netMesh:function(){try{ if(!liveNet) return null; const L=layers.find(x=>x.id===liveNet.netId); return (L&&L.mesh)?TM.toOBJ(L.mesh,"net"):null; }catch(e){return null}} };
+  netMesh:function(){try{ if(!liveNet) return null; const L=layers.find(x=>x.id===liveNet.netId); return (L&&L.mesh)?TM.toOBJ(L.mesh,"net"):null; }catch(e){return null}},
+  /* Field lines poles <-> Rhino points: world (model) coords, Y-up inches; [x,y,z,q] per pole (q>0 north) */
+  _fieldSrc:function(){ const G=NEWGEN.ngField, FK=NG_MOD_KEY("ngField");
+    if(ngActive==="ngField"&&G.poles) return {id:"tool",P:G.poles,f:null,md:null,flat:!!(document.getElementById("ng_dim")&&document.getElementById("ng_dim").value==="2d")};
+    const L=layers[activeLayer]; if(!L||!L.modifiers) return null; let md=null;
+    if(modEditId!=null) md=L.modifiers.find(x=>x.id===modEditId&&x.type===FK&&x.params&&x.params.poleData);
+    if(!md) md=L.modifiers.find(x=>x.type===FK&&x.on!==false&&x.params&&x.params.poleData);
+    return md?{id:"mod"+md.id,P:md.params.poleData,f:md.params._fit||null,md,flat:(md.params.dim===1||md.params.dim==="1"||md.params.dim==="2d")}:null; },
+  fieldPoles:function(){ try{ const S=this._fieldSrc(); if(!S||!S.P||!S.P.length) return null; const f=S.f;
+    return {id:S.id,pts:S.P.map(p=>{ const c=f?[(p.c[0]-f.gc[0])*f.k+f.mc[0],(p.c[1]-f.gc[1])*f.k+f.mc[1],(p.c[2]-f.gc[2])*f.k+f.mc[2]]:p.c; return [c[0],c[1],c[2],p.q]; })}; }catch(e){ return null; } },
+  setFieldPoles:function(id,pts){ try{ const S=this._fieldSrc(); if(!S||S.id!==id||!S.P||S.P.length!==pts.length) return "stale"; const f=S.f;
+    if(S.md) try{ snapshot(); }catch(e){}
+    S.P.forEach((p,i)=>{ const w=pts[i]; const r=f?[(w[0]-f.mc[0])/f.k+f.gc[0],(w[1]-f.mc[1])/f.k+f.gc[1],(w[2]-f.mc[2])/f.k+f.gc[2]]:[w[0],w[1],w[2]]; p.c=[r[0],r[1],S.flat?0:r[2]]; });
+    if(S.md){ rebuild(); } else { ngCompute(); }
+    setTimeout(function(){ try{ window.__fieldHandles&&window.__fieldHandles(); }catch(e){} },0); return "ok"; }catch(e){ return String(e); } } };
 '''
 PUSH_OLD = "_rhinoT=setTimeout(rhinoPush,250)"
 PUSH_NEW = "_rhinoT=setTimeout(rhinoPush,window.__tmPushDelay||250)"
@@ -37,7 +51,8 @@ PUSH_NEW = "_rhinoT=setTimeout(rhinoPush,window.__tmPushDelay||250)"
 # names the export block relies on inside the app's closure; a missing one means the master changed shape
 NEEDED = ["function setRhinoLink(on){", "function rhinoPush(", "function fabMesh(", "function rebuild(", "function snapshot(",
           "function addLayer(", "function clearSel(", "function updateCrustUI(", "function renderLayerList(", "function renderModStack(",
-          "crustPairs", "function toast(", "camera.position", "slabFlattenPairs", "liveNet", "plyMode", "fabActive", "slabData"]
+          "crustPairs", "function toast(", "camera.position", "slabFlattenPairs", "liveNet", "plyMode", "fabActive", "slabData",
+          "const NEWGEN=", "const NG_MOD_KEY=", "let modEditId", "function ngCompute(", "let ngActive"]
 
 
 def apply(s):

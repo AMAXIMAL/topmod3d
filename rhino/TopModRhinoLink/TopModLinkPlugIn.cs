@@ -10,6 +10,7 @@ namespace TopModRhinoLink
     {
         public static TopModLinkPlugIn Instance { get; private set; }
         public LiveSync Sync { get; private set; }
+        public FieldPoles Poles { get; private set; }
         public TopModForm Form { get; set; }
 
         public TopModLinkPlugIn() { Instance = this; }
@@ -20,6 +21,7 @@ namespace TopModRhinoLink
         {
             LoadedAt = DateTime.Now;
             Sync = new LiveSync();
+            Poles = new FieldPoles();
             LiveSync.DowelDiameterIn = Settings.GetDouble("DowelIn", 0.25);
             EdgeConduit.Init((EdgeMode)Settings.GetInteger("EdgeMode", (int)EdgeMode.Visible));
             Rhino.UI.Panels.RegisterPanel(this, typeof(TopModPanel), "TopMod 3D", typeof(TopModLinkPlugIn).Assembly, "TopModRhinoLink.topmod.ico", Rhino.UI.PanelType.System);
@@ -29,6 +31,7 @@ namespace TopModRhinoLink
         protected override void OnShutdown()
         {
             Sync?.Dispose();
+            Poles?.Dispose();
         }
 
         /// <summary>Folder the app page is written to before loading (WKWebView wants a real file:// for a full-featured origin).</summary>
