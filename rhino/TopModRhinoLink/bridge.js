@@ -92,6 +92,12 @@
     if(!ready || !B.setFieldPoles) return "not ready";
     try{ var d = JSON.parse(json); var r = B.setFieldPoles(d.id, d.pts); return r; }catch(e){ return String(e); }
   };
+  /* Live/Pause in the Rhino toolbar: on resume, send everything again (model, fab curves, poles, camera) */
+  window.__tmResync = function(){
+    if(!ready) return;
+    lastFab = ""; lastCam = ""; lastPoles = "__resync";
+    try{ pushNow(wantMesh() ? "mesh" : "nurbs"); }catch(e){}
+  };
   window.__tmPoll = function(){
     var cam = null;
     if(ready && B.cam){

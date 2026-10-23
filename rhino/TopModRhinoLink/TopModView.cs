@@ -67,6 +67,9 @@ namespace TopModRhinoLink
                 RhinoApp.RunScript("_TopModDefaultLayout", false);
             });
 
+            _live = new Button { Text = "● Live", ToolTip = "Live: TopMod and Rhino mirror each other 1:1. Click to Pause — Rhino keeps what it has while you keep modeling; click again to send the current model across." };
+            _live.Click += (s, e) => SetPaused(!_paused);
+
             _separate = new Button { Text = "⧉ Separate", ToolTip = "Pop TopMod out of Rhino into its own window (drag it to another monitor). Press again to dock it back." };
             _separate.Click += (s, e) => Application.Instance.AsyncInvoke(ToggleSeparate);
 
@@ -77,7 +80,7 @@ namespace TopModRhinoLink
                 Orientation = Orientation.Horizontal,
                 Spacing = 4, Padding = new Padding(6, 4),
                 VerticalContentAlignment = VerticalAlignment.Center,
-                Items = { bake, bakeMesh, import, reload, new Panel { Width = 8 }, edges, new Panel { Width = 8 }, layoutOn, layoutOff, _separate, close, new StackLayoutItem(null, true), _status }
+                Items = { _live, bake, bakeMesh, import, reload, new Panel { Width = 8 }, edges, new Panel { Width = 8 }, layoutOn, layoutOff, _separate, close, new StackLayoutItem(null, true), _status }
             };
 
             Content = new TableLayout { Rows = { new TableRow(bar), new TableRow(_web) { ScaleHeight = true } } };
@@ -90,6 +93,23 @@ namespace TopModRhinoLink
         }
 
         Button _separate;
+        Button _live;
+        bool _paused;
+
+        /// <summary>Pause = stop the 1:1 copy both ways (model, fab curves, field poles, camera). Bake / Import still work.
+        /// Resume sends TopMod's current state across; Rhino-side edits to the live object made while paused are dropped.</summary>
+        void SetPaused(bool p)
+        {
+            _paused = p;
+            _live.Text = p ? "❚❚ Paused" : "● Live";
+            _live.TextColor = p ? Color.FromArgb(255, 140, 0) : SystemColors.ControlText;
+            if (!p)
+            {
+                _lastRhinoVersion = TopModLinkPlugIn.Instance.Sync.RhinoVersion;   // drop live-object edits made while paused
+                try { _web.ExecuteScript("window.__tmResync && window.__tmResync(); return 'ok';"); } catch { }
+            }
+            _status.Text = p ? "❚❚ paused — Rhino isn't following TopMod" : "resuming…";
+        }
 
         static bool IsFloating { get { var f = TopModLinkPlugIn.Instance?.Form; return f != null && f.Visible; } }
 
@@ -173,7 +193,7 @@ namespace TopModRhinoLink
                     if (root.TryGetProperty("out", out var o) && o.ValueKind == JsonValueKind.Object && doc != null)
                     {
                         int v = o.GetProperty("v").GetInt32();
-                        if (v > _lastWebVersion)
+                        if (v > _lastWebVersion && !_paused)
                         {
                             _lastWebVersion = v;
                             string mode = o.TryGetProperty("mode", out var md) ? md.GetString() : "nurbs";
@@ -189,24 +209,24 @@ namespace TopModRhinoLink
                                 case "bakeMesh": Bake(true); break;
                                 case "import": Import(); break;
                             }
-                    if (root.TryGetProperty("fab", out var fab) && fab.ValueKind == JsonValueKind.Object && doc != null)
+                    if (!_paused && root.TryGetProperty("fab", out var fab) && fab.ValueKind == JsonValueKind.Object && doc != null)
                     {
                         try { ApplyFab(doc, sync, fab); } catch (Exception ex) { RhinoApp.WriteLine("TopMod: fab curves — " + ex.Message); }
                     }
-                    if (root.TryGetProperty("poles", out var pl) && pl.ValueKind == JsonValueKind.Object && doc != null)
+                    if (!_paused && root.TryGetProperty("poles", out var pl) && pl.ValueKind == JsonValueKind.Object && doc != null)
                     {
                         try { ApplyPoles(doc, pl); } catch (Exception ex) { RhinoApp.WriteLine("TopMod: field poles — " + ex.Message); }
                     }
-                    if (root.TryGetProperty("cam", out var cam) && cam.ValueKind == JsonValueKind.Object && doc != null)
+                    if (!_paused && root.TryGetProperty("cam", out var cam) && cam.ValueKind == JsonValueKind.Object && doc != null)
                     {
                         try { SyncCamera(doc, cam); } catch { }
                     }
-                    _status.Text = Status(ready, doc, sync, why);
+                    _status.Text = _paused ? "❚❚ paused — Rhino isn't following TopMod" : Status(ready, doc, sync, why);
                 }
 
                 // ---- Rhino → page ----
                 var polesJson = TopModLinkPlugIn.Instance.Poles?.Pull();
-                if (polesJson != null)
+                if (polesJson != null && !_paused)
                 {
                     try { _web.ExecuteScript("return (window.__tmApplyPoles ? window.__tmApplyPoles(" + JsonSerializer.Serialize(polesJson) + ") : 'not ready');"); } catch { }
                 }
@@ -215,6 +235,7 @@ namespace TopModRhinoLink
                 if (pull != null)
                 {
                     var (ver, kind, obj) = pull.Value;
+                    if (_paused && kind != "import") { _lastRhinoVersion = ver; return; }   // paused: ignore live-object edits (Import still works)
                     string js = "return (window.__tmApply ? window.__tmApply(" + JsonSerializer.Serialize(kind) + "," + JsonSerializer.Serialize(obj) + ") : 'not ready');";
                     string res = null;
                     try { res = _web.ExecuteScript(js); } catch (Exception ex) { res = ex.Message; }
