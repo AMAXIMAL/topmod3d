@@ -1302,6 +1302,7 @@ html.inApp [data-act="fullscreen"],html.inApp [data-act="shortcuts"],html.inApp 
       <div class="mi" data-op="crust">Create Rind / Crust</div>
       <div class="mi" data-op="wireframe">Wireframe Modeling</div>
       <div class="mi" data-op="latticeFill">Lattice Fill (TPMS infill)&hellip;</div>
+      <div class="mi" data-op="spinFaces">Spin Faces (hinged panels)&hellip;</div>
       <div class="mi" data-act="topmodLook">The TopMod Look (dodeca · 6 twisted handles · rind)</div>
       <div class="mi" data-act="lookGuide">The TopMod Look &mdash; step-by-step guide (PDF)</div>
       <div class="mi" data-op="menger">Menger Sponge</div>
@@ -7529,6 +7530,36 @@ function latticeFill(m, p){
   return F2.length? {verts:V2, faces:F2} : m;
 }
 const AX=["x","y","z"];
+// ---------- Spin Faces: hinged panels. Faces are grouped by side count (largest first: biggest / middle / smallest);
+// each group spins about its own face normals, slides along them and shrinks, and every face becomes a loose plate ----------
+function spinFacesMesh(m,p){
+  const V=m.verts, F=m.faces; if(!V.length||!F.length) return m;
+  const cen=[0,0,0]; V.forEach(v=>{cen[0]+=v[0];cen[1]+=v[1];cen[2]+=v[2];}); cen[0]/=V.length; cen[1]/=V.length; cen[2]/=V.length;
+  const info=F.map(f=>{ let cx=0,cy=0,cz=0,nx=0,ny=0,nz=0; const k=f.length;
+    for(let i=0;i<k;i++){ const a=V[f[i]], b=V[f[(i+1)%k]]; cx+=a[0]; cy+=a[1]; cz+=a[2];
+      nx+=(a[1]-b[1])*(a[2]+b[2]); ny+=(a[2]-b[2])*(a[0]+b[0]); nz+=(a[0]-b[0])*(a[1]+b[1]); }
+    const l=Math.hypot(nx,ny,nz)||1; return {c:[cx/k,cy/k,cz/k], n:[nx/l,ny/l,nz/l]}; });
+  let inr=Infinity; info.forEach(q=>{ const d=(q.c[0]-cen[0])*q.n[0]+(q.c[1]-cen[1])*q.n[1]+(q.c[2]-cen[2])*q.n[2]; if(d>1e-6&&d<inr) inr=d; });
+  if(!isFinite(inr)){ let lo=[1e9,1e9,1e9],hi=[-1e9,-1e9,-1e9]; V.forEach(v=>{ for(let i=0;i<3;i++){ if(v[i]<lo[i])lo[i]=v[i]; if(v[i]>hi[i])hi[i]=v[i]; } }); inr=Math.max(hi[0]-lo[0],hi[1]-lo[1],hi[2]-lo[2])*0.25||1; }
+  const U=inr*0.4, T=Math.max(0.0005,(+p.thick||0.04))*U*2;
+  const sides=[...new Set(F.map(f=>f.length))].sort((a,b)=>b-a);
+  const verts=[], faces=[];
+  F.forEach((f,fi)=>{
+    const g=Math.min(sides.indexOf(f.length),2), q=info[fi];
+    const rad=((+p["spin"+g]||0)+(+p.spin||0))*Math.PI/180, co=Math.cos(rad), si=Math.sin(rad);
+    const slide=(+p["slide"+g]||0)*U, sh=(p["shrink"+g]==null)?0.9:+p["shrink"+g];
+    const n=q.n, k=f.length, base=verts.length;
+    const top=f.map(i=>{ const r=[(V[i][0]-q.c[0])*sh,(V[i][1]-q.c[1])*sh,(V[i][2]-q.c[2])*sh];
+      const dot=n[0]*r[0]+n[1]*r[1]+n[2]*r[2], cr=[n[1]*r[2]-n[2]*r[1], n[2]*r[0]-n[0]*r[2], n[0]*r[1]-n[1]*r[0]];
+      return [0,1,2].map(a=>q.c[a]+r[a]*co+cr[a]*si+n[a]*dot*(1-co)+n[a]*slide); });
+    top.forEach(t=>verts.push(t));
+    top.forEach(t=>verts.push([t[0]-n[0]*T,t[1]-n[1]*T,t[2]-n[2]*T]));
+    const tf=[],bf=[]; for(let i=0;i<k;i++){ tf.push(base+i); bf.push(base+k+(k-1-i)); }
+    faces.push(tf,bf);
+    for(let i=0;i<k;i++){ const j=(i+1)%k; faces.push([base+i,base+k+i,base+k+j,base+j]); }
+  });
+  return {verts,faces};
+}
 const MODS={
   // --- deformers (topology-preserving) ---
   twist:   {label:"Twist",    grp:"Deform", params:[{k:"angle",l:"Angle°",min:-360,max:360,step:1,def:180},{k:"axis",l:"Axis",axis:true,def:"y"}],
@@ -7564,6 +7595,13 @@ const MODS={
             apply:(m,p)=>TM.arrayMesh(m,{nx:Math.max(1,Math.round(p.count)),spacing:p.spacing})},
   thicken: {label:"Shell (Thicken)", grp:"Generate", params:[{k:"thickness",l:"Thickness",min:0.01,max:0.5,step:0.005,def:0.08}],
             apply:(m,p)=>TM.thickenSurface(m,p.thickness)},
+  spinfaces:{label:"Spin Faces (hinged panels)", grp:"New", params:[
+              {k:"spin",l:"Spin all °",min:-180,max:180,step:1,def:0},
+              {k:"spin0",l:"Biggest faces: spin °",min:-180,max:180,step:1,def:0},{k:"slide0",l:"Biggest faces: slide",min:-1,max:1.5,step:0.01,def:0},{k:"shrink0",l:"Biggest faces: shrink",min:0.3,max:1,step:0.01,def:0.9},
+              {k:"spin1",l:"Middle faces: spin °",min:-180,max:180,step:1,def:0},{k:"slide1",l:"Middle faces: slide",min:-1,max:1.5,step:0.01,def:0},{k:"shrink1",l:"Middle faces: shrink",min:0.3,max:1,step:0.01,def:0.9},
+              {k:"spin2",l:"Smallest faces: spin °",min:-180,max:180,step:1,def:0},{k:"slide2",l:"Smallest faces: slide",min:-1,max:1.5,step:0.01,def:0},{k:"shrink2",l:"Smallest faces: shrink",min:0.3,max:1,step:0.01,def:0.9},
+              {k:"thick",l:"Panel thickness",min:0.005,max:0.4,step:0.005,def:0.04}],
+            apply:(m,p)=>spinFacesMesh(m,p)},
   simplify:{label:"Simplify",  grp:"Generate", params:[{k:"fraction",l:"Keep",min:0.1,max:1,step:0.01,def:0.5}],
             apply:(m,p)=>TM.simplifyMesh(m,{fraction:p.fraction})},
   loop:    {label:"Subdivide (Loop)", grp:"Generate", params:[{k:"levels",l:"Levels",min:1,max:3,step:1,def:1}],
@@ -7647,7 +7685,7 @@ const OP_AS_MOD={ latticeFill:"latfill", catmull:"subdivide", doosabin:"smooth",
   dual:"dual", stellate:"stellate", doubleStellate:"dstellate", truncate:"truncate",
   pentagonalize:"pentagon", honeycomb:"honeycomb", planarize:"planarize",
   triangulate:"triangulate", subdivEdge:"subdivedges", quadRemesh:"quadremesh",
-  pipe:"pipe", wireframe:"wireframe", simplify:"simplify" };
+  pipe:"pipe", wireframe:"wireframe", simplify:"simplify", spinFaces:"spinfaces" };
 let toolReplaceId=null;   // set while a tool modifier is reopened for editing — its Apply replaces that modifier
 const TOOL_FNS=new Map(); let toolSeq=1;     // live tool modifiers: op closures (selection frozen at add time); baked result kept for reload
 // ---------- Coral: diffusion-limited aggregation (after the DLA approach in Michael Fogleman's dlaf, MIT) ----------
@@ -9354,6 +9392,7 @@ function setModeKeepSel(m){
 const P=id=>{ const el=$(id); if(!el) return NaN; const o=el.dataset?el.dataset.override:undefined; return parseFloat(o!==undefined&&o!==""? o : el.value); };
 
 const ops={
+  spinFaces(){ if(typeof isActiveLocked==="function"&&isActiveLocked()){ toast&&toast("Layer is locked",true); return; } addModifier("spinfaces"); },   // Spin Faces: hinged panels, a live modifier
   // ---- TrueForm (booleans / spatial / diagnostics) ----
   tfDiagnose(){
     const d=TF.diagnose(mesh);
@@ -12075,13 +12114,15 @@ const NEWGEN={
   // ---- 11. Tilt grid: an extruded tile grid whose blocks tilt / spin inside their cells (paper-relief walls) ----
   // ---- 12. Twist array: copies of a shape in a line (or grid), each turned by a pattern — kinetic louvres / fins ----
   ngTwist:{ label:"Twist array", title:"Twist array — a row of shapes turned into patterns", desc:"Copies a shape along a line (add rows for a grid) and turns every copy by a pattern — <b>wave</b>, <b>ripple</b>, a steady <b>twist</b> — like kinetic façade fins or louvres. Pick <b>This model</b> to array your own shape.",
-    params:[{sel:"src",l:"Shape",opts:[["fin","Fin (thin blade)"],["box","Block"],["hex","Hexagon prism"],["tri","Triangle prism"],["cyl","Cylinder"],["house","House"],["layer","This model"]]},
-      {sel:"axis",l:"Turn around",opts:[["y","Vertical axis"],["x","The row direction"],["z","Across the row"]]},
+    params:[{sel:"src",l:"Shape",opts:[["layer","This model"],["fin","Fin (thin blade)"],["box","Block"],["hex","Hexagon prism"],["tri","Triangle prism"],["cyl","Cylinder"],["house","House"]]},
+      {sel:"axis",l:"Turn around",opts:[["x","The row direction"],["y","Vertical axis"],["z","Across the row"]]},
       {sel:"pat",l:"Pattern",opts:[["wave","Wave"],["ripple","Ripple (from the centre)"],["twist","Steady twist"],["double","Double wave (rows too)"],["random","Random"]]},
-      ["count","Copies in the row",2,200,1,24],["rows","Rows",1,60,1,1],["gap","Spacing (× shape width)",0.6,6,0.05,1.4],["rgap","Row spacing (× shape depth)",0.6,6,0.05,1.3],
-      ["amp","Turn amount (degrees)",0,360,1,60],["freq","Waves along the row",0.25,8,0.25,1.5],["phase","Phase (degrees)",0,360,1,0],["rphase","Shift per row (degrees)",0,180,1,25],
-      ["scl","Size follows the pattern",-0.9,0.9,0.05,0],["lift","Lift follows the pattern",-2,2,0.05,0],
-      ["sw","Shape width",0.05,3,0.01,0.12],["sh","Shape height",0.1,6,0.05,1.6],["sd","Shape depth",0.05,3,0.01,0.7],["seed","Seed",1,200,1,7]],
+      ["count","Copies in the row",2,200,1,10],["rows","Rows",1,60,1,10],["gap","Spacing (× shape width)",0.6,6,0.05,1.75],["rgap","Row spacing (× shape depth)",0.6,6,0.05,1.7],
+      ["amp","Turn amount (degrees)",0,360,1,144],["freq","Waves along the row",0.25,8,0.25,1.5],["phase","Phase (degrees)",0,360,1,51],["rphase","Shift per row (degrees)",0,180,1,49],
+      {sel:"spat",l:"Scale pattern",opts:[["same","Same as the turn"],["ramp","Grow along the row"],["ripple","Ripple from the centre"],["wave","Wave"],["dome","Bigger in the middle"],["random","Random"]]},
+      {sel:"saxis",l:"Scale changes",opts:[["all","All directions"],["y","Height only"],["x","Width only"],["z","Depth only"]]},
+      ["scl","Scale amount",-0.95,3,0.05,-0.35],["lift","Lift follows the pattern",-2,2,0.05,0],
+      ["sw","Shape width",0.05,3,0.01,0.34],["seed","Seed",1,200,1,33]],
     build(o,m){
       const rnd=_ngRng(o.seed), D2R=Math.PI/180;
       // the shape: a prism built from an outline in the XZ plane, or the incoming model
@@ -12090,7 +12131,7 @@ const NEWGEN={
       const ngon=(k,rx,rz,off)=>{ const P=[]; for(let i=0;i<k;i++){ const a=(off||0)+i/k*Math.PI*2; P.push([Math.cos(a)*rx,-Math.sin(a)*rz]); } return P; };
       let S;
       if(o.src==="layer"&&m&&m.verts&&m.verts.length){ const B=_ngBBox(m); S={verts:m.verts.map(v=>[v[0]-B.c[0],v[1]-B.c[1],v[2]-B.c[2]]), faces:m.faces.map(f=>f.slice())}; }
-      else { const w=o.sw, h=o.sh, d=o.sd;
+      else { const w=o.sw, h=1, d=0.6;   // built-in shapes: width from the slider, fixed height and depth
         if(o.src==="box") S=prism([[-w/2,-d/2],[w/2,-d/2],[w/2,d/2],[-w/2,d/2]].reverse(),h);
         else if(o.src==="hex") S=prism(ngon(6,w/2,d/2,0),h);
         else if(o.src==="tri") S=prism(ngon(3,w/2,d/2,Math.PI/2),h);
@@ -12110,8 +12151,15 @@ const NEWGEN={
         else if(o.pat==="double") k=Math.sin(u*o.freq*Math.PI*2+ph)*Math.cos(v*o.freq*Math.PI*2);
         else if(o.pat==="random") k=rnd()*2-1;
         else k=Math.sin(u*o.freq*Math.PI*2+ph+j*o.rphase*D2R);
-        const a=k*o.amp*D2R, sc=Math.max(0.05,1+o.scl*k), y=o.lift*k*Hh*0.5, b0=V.length;
-        for(const p of S.verts){ const q=rot([p[0]*sc,p[1]*sc,p[2]*sc],a); V.push([q[0]+x,q[1]+y,q[2]+z]); }
+        let ks=k;   // scale pattern (−1..1), may differ from the turn pattern
+        if(o.spat==="ramp") ks=u*2-1;
+        else if(o.spat==="ripple"){ const R=Math.hypot(((nc-1)/2)*sx,((nr-1)/2)*sz)||1; ks=Math.sin(Math.hypot(x,z)/R*o.freq*Math.PI*2-ph); }
+        else if(o.spat==="wave") ks=Math.sin(u*o.freq*Math.PI*2+ph+j*o.rphase*D2R);
+        else if(o.spat==="dome"){ const R=Math.hypot(((nc-1)/2)*sx,((nr-1)/2)*sz)||1; ks=1-2*Math.min(1,Math.hypot(x,z)/R); }
+        else if(o.spat==="random") ks=rnd()*2-1;
+        const a=k*o.amp*D2R, sc=Math.max(0.05,1+o.scl*ks), y=o.lift*k*Hh*0.5, b0=V.length;
+        const sv=[o.saxis==="all"||o.saxis==="x"?sc:1, o.saxis==="all"||o.saxis==="y"?sc:1, o.saxis==="all"||o.saxis==="z"?sc:1];
+        for(const p of S.verts){ const q=rot([p[0]*sv[0],p[1]*sv[1],p[2]*sv[2]],a); V.push([q[0]+x,q[1]+y,q[2]+z]); }
         for(const f of S.faces) F.push(f.map(t=>t+b0)); }
       this.info=(nc*nr)+" copies · "+(F.length/1e3).toFixed(1)+"k faces";
       return F.length?{verts:V,faces:F}:null; } },
@@ -13548,6 +13596,7 @@ $$("[data-op]").filter(b=>!b.closest("#menubar")).forEach(b=>b.addEventListener(
     if(typeof isActiveLocked==="function" && isActiveLocked()){ toast&&toast("Layer is locked",true); return; }
     addModifier(OP_AS_MOD[op]); return;
   }
+  if(op==="ngTwist" && layersOn && layers[activeLayer] && !fabActive && !(typeof isActiveLocked==="function"&&isActiveLocked())){ addModifier("gen_ngTwist"); return; }   // Twist array: a live modifier on the base geometry
   if(op==="ngField" && layersOn && layers[activeLayer] && !fabActive && !(typeof isActiveLocked==="function"&&isActiveLocked())){ addModifier("gen_ngField"); return; }   // Field lines lives in the modifier stack
   if(b.closest("#toolbar") && OP_PARAMS[op]){
     if(b.dataset.style){                                  // fab style preset (e.g. the Faces button)
