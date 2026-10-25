@@ -1302,7 +1302,6 @@ html.inApp [data-act="fullscreen"],html.inApp [data-act="shortcuts"],html.inApp 
       <div class="mi" data-op="crust">Create Rind / Crust</div>
       <div class="mi" data-op="wireframe">Wireframe Modeling</div>
       <div class="mi" data-op="latticeFill">Lattice Fill (TPMS infill)&hellip;</div>
-      <div class="mi" data-op="spinFaces">Spin Faces (hinged panels)&hellip;</div>
       <div class="mi" data-act="topmodLook">The TopMod Look (dodeca · 6 twisted handles · rind)</div>
       <div class="mi" data-act="lookGuide">The TopMod Look &mdash; step-by-step guide (PDF)</div>
       <div class="mi" data-op="menger">Menger Sponge</div>
@@ -1482,6 +1481,7 @@ html.inApp [data-act="fullscreen"],html.inApp [data-act="shortcuts"],html.inApp 
         <button class="tb" data-op="ngField" title="Field lines — magnetic field lines between poles, 3D or 2D (drag the poles)"><svg width="22" height="22" viewBox="0 0 22 22"><path d="M5 11C5 4 17 4 17 11M5 11C5 18 17 18 17 11M5 11C6 7 16 7 17 11M5 11C6 15 16 15 17 11" fill="none" stroke="#00E5FF" stroke-width="1.2"/><circle cx="5" cy="11" r="2.2" fill="#FF3B30"/><circle cx="17" cy="11" r="2.2" fill="#3B82FF"/></svg><span class="tlbl">Field</span></button>
         <button class="tb" data-op="ngTilt" title="Tilt grid — extruded tiles that tilt and turn inside their cells (paper-relief walls)"><svg width="22" height="22" viewBox="0 0 22 22"><path d="M4 5l3-2 3 2v3l-3 2-3-2z" fill="#FF8C22"/><path d="M12 4l4-1 2 3-1 3-4 1-2-3z" fill="#00E5FF"/><path d="M5 13l3-1 3 2-1 3-3 1-3-2z" fill="#00E5FF"/><path d="M13 12l3-1 3 2v3l-3 2-3-2z" fill="#FF8C22"/></svg><span class="tlbl">Tilt</span></button>
         <button class="tb" data-op="ngTwist" title="Twist array — copies of a shape in a row, each turned by a wave / ripple / twist pattern (kinetic fins)"><svg width="22" height="22" viewBox="0 0 22 22"><g fill="#FF8C22"><rect x="2" y="5" width="2" height="12" transform="rotate(-20 3 11)"/><rect x="6" y="5" width="2" height="12" transform="rotate(10 7 11)"/><rect x="10" y="5" width="2" height="12" transform="rotate(35 11 11)"/><rect x="14" y="5" width="2" height="12" transform="rotate(10 15 11)"/><rect x="18" y="5" width="2" height="12" transform="rotate(-20 19 11)"/></g></svg><span class="tlbl">Twist</span></button>
+        <button class="tb" data-op="ngArmadillo" title="Armadillo — overlapping armour plates / shingles over every face (live modifier)"><svg width="22" height="22" viewBox="0 0 22 22"><g fill="#FF8C22" stroke="#7a3d00" stroke-width=".8"><path d="M3 15c2-5 14-5 16 0z"/><path d="M4 11c2-5 12-5 14 0z" fill="#ffae5c"/><path d="M6 7c2-4 8-4 10 0z" fill="#ffc98a"/></g></svg><span class="tlbl">Armadillo</span></button>
         <button class="tb" data-op="ngOrigami" title="Origami — folded tessellations"><svg width="22" height="22" viewBox="0 0 22 22"><path d="M3 6l4 3 4-3 4 3 4-3v10l-4 3-4-3-4 3-4-3z M7 9v10M15 9v10M11 6v10" stroke="#FF8C22" stroke-width="1.3" fill="none" stroke-linejoin="round"/></svg><span class="tlbl">Origami</span></button>
         <button class="tb" data-op="menger" title="Menger sponge"><img class="ticon" alt="Menger sponge"><span class="tlbl">Sponge</span></button>
         <button class="tb" data-op="gyroid" title="Gyroid surface"><img class="ticon" alt="Gyroid"><span class="tlbl">Gyroid</span></button>
@@ -7530,36 +7530,6 @@ function latticeFill(m, p){
   return F2.length? {verts:V2, faces:F2} : m;
 }
 const AX=["x","y","z"];
-// ---------- Spin Faces: hinged panels. Faces are grouped by side count (largest first: biggest / middle / smallest);
-// each group spins about its own face normals, slides along them and shrinks, and every face becomes a loose plate ----------
-function spinFacesMesh(m,p){
-  const V=m.verts, F=m.faces; if(!V.length||!F.length) return m;
-  const cen=[0,0,0]; V.forEach(v=>{cen[0]+=v[0];cen[1]+=v[1];cen[2]+=v[2];}); cen[0]/=V.length; cen[1]/=V.length; cen[2]/=V.length;
-  const info=F.map(f=>{ let cx=0,cy=0,cz=0,nx=0,ny=0,nz=0; const k=f.length;
-    for(let i=0;i<k;i++){ const a=V[f[i]], b=V[f[(i+1)%k]]; cx+=a[0]; cy+=a[1]; cz+=a[2];
-      nx+=(a[1]-b[1])*(a[2]+b[2]); ny+=(a[2]-b[2])*(a[0]+b[0]); nz+=(a[0]-b[0])*(a[1]+b[1]); }
-    const l=Math.hypot(nx,ny,nz)||1; return {c:[cx/k,cy/k,cz/k], n:[nx/l,ny/l,nz/l]}; });
-  let inr=Infinity; info.forEach(q=>{ const d=(q.c[0]-cen[0])*q.n[0]+(q.c[1]-cen[1])*q.n[1]+(q.c[2]-cen[2])*q.n[2]; if(d>1e-6&&d<inr) inr=d; });
-  if(!isFinite(inr)){ let lo=[1e9,1e9,1e9],hi=[-1e9,-1e9,-1e9]; V.forEach(v=>{ for(let i=0;i<3;i++){ if(v[i]<lo[i])lo[i]=v[i]; if(v[i]>hi[i])hi[i]=v[i]; } }); inr=Math.max(hi[0]-lo[0],hi[1]-lo[1],hi[2]-lo[2])*0.25||1; }
-  const U=inr*0.4, T=Math.max(0.0005,(+p.thick||0.04))*U*2;
-  const sides=[...new Set(F.map(f=>f.length))].sort((a,b)=>b-a);
-  const verts=[], faces=[];
-  F.forEach((f,fi)=>{
-    const g=Math.min(sides.indexOf(f.length),2), q=info[fi];
-    const rad=((+p["spin"+g]||0)+(+p.spin||0))*Math.PI/180, co=Math.cos(rad), si=Math.sin(rad);
-    const slide=(+p["slide"+g]||0)*U, sh=(p["shrink"+g]==null)?0.9:+p["shrink"+g];
-    const n=q.n, k=f.length, base=verts.length;
-    const top=f.map(i=>{ const r=[(V[i][0]-q.c[0])*sh,(V[i][1]-q.c[1])*sh,(V[i][2]-q.c[2])*sh];
-      const dot=n[0]*r[0]+n[1]*r[1]+n[2]*r[2], cr=[n[1]*r[2]-n[2]*r[1], n[2]*r[0]-n[0]*r[2], n[0]*r[1]-n[1]*r[0]];
-      return [0,1,2].map(a=>q.c[a]+r[a]*co+cr[a]*si+n[a]*dot*(1-co)+n[a]*slide); });
-    top.forEach(t=>verts.push(t));
-    top.forEach(t=>verts.push([t[0]-n[0]*T,t[1]-n[1]*T,t[2]-n[2]*T]));
-    const tf=[],bf=[]; for(let i=0;i<k;i++){ tf.push(base+i); bf.push(base+k+(k-1-i)); }
-    faces.push(tf,bf);
-    for(let i=0;i<k;i++){ const j=(i+1)%k; faces.push([base+i,base+k+i,base+k+j,base+j]); }
-  });
-  return {verts,faces};
-}
 const MODS={
   // --- deformers (topology-preserving) ---
   twist:   {label:"Twist",    grp:"Deform", params:[{k:"angle",l:"Angle°",min:-360,max:360,step:1,def:180},{k:"axis",l:"Axis",axis:true,def:"y"}],
@@ -7595,13 +7565,6 @@ const MODS={
             apply:(m,p)=>TM.arrayMesh(m,{nx:Math.max(1,Math.round(p.count)),spacing:p.spacing})},
   thicken: {label:"Shell (Thicken)", grp:"Generate", params:[{k:"thickness",l:"Thickness",min:0.01,max:0.5,step:0.005,def:0.08}],
             apply:(m,p)=>TM.thickenSurface(m,p.thickness)},
-  spinfaces:{label:"Spin Faces (hinged panels)", grp:"New", params:[
-              {k:"spin",l:"Spin all °",min:-180,max:180,step:1,def:0},
-              {k:"spin0",l:"Biggest faces: spin °",min:-180,max:180,step:1,def:0},{k:"slide0",l:"Biggest faces: slide",min:-1,max:1.5,step:0.01,def:0},{k:"shrink0",l:"Biggest faces: shrink",min:0.3,max:1,step:0.01,def:0.9},
-              {k:"spin1",l:"Middle faces: spin °",min:-180,max:180,step:1,def:0},{k:"slide1",l:"Middle faces: slide",min:-1,max:1.5,step:0.01,def:0},{k:"shrink1",l:"Middle faces: shrink",min:0.3,max:1,step:0.01,def:0.9},
-              {k:"spin2",l:"Smallest faces: spin °",min:-180,max:180,step:1,def:0},{k:"slide2",l:"Smallest faces: slide",min:-1,max:1.5,step:0.01,def:0},{k:"shrink2",l:"Smallest faces: shrink",min:0.3,max:1,step:0.01,def:0.9},
-              {k:"thick",l:"Panel thickness",min:0.005,max:0.4,step:0.005,def:0.04}],
-            apply:(m,p)=>spinFacesMesh(m,p)},
   simplify:{label:"Simplify",  grp:"Generate", params:[{k:"fraction",l:"Keep",min:0.1,max:1,step:0.01,def:0.5}],
             apply:(m,p)=>TM.simplifyMesh(m,{fraction:p.fraction})},
   loop:    {label:"Subdivide (Loop)", grp:"Generate", params:[{k:"levels",l:"Levels",min:1,max:3,step:1,def:1}],
@@ -7685,7 +7648,7 @@ const OP_AS_MOD={ latticeFill:"latfill", catmull:"subdivide", doosabin:"smooth",
   dual:"dual", stellate:"stellate", doubleStellate:"dstellate", truncate:"truncate",
   pentagonalize:"pentagon", honeycomb:"honeycomb", planarize:"planarize",
   triangulate:"triangulate", subdivEdge:"subdivedges", quadRemesh:"quadremesh",
-  pipe:"pipe", wireframe:"wireframe", simplify:"simplify", spinFaces:"spinfaces" };
+  pipe:"pipe", wireframe:"wireframe", simplify:"simplify" };
 let toolReplaceId=null;   // set while a tool modifier is reopened for editing — its Apply replaces that modifier
 const TOOL_FNS=new Map(); let toolSeq=1;     // live tool modifiers: op closures (selection frozen at add time); baked result kept for reload
 // ---------- Coral: diffusion-limited aggregation (after the DLA approach in Michael Fogleman's dlaf, MIT) ----------
@@ -9392,7 +9355,6 @@ function setModeKeepSel(m){
 const P=id=>{ const el=$(id); if(!el) return NaN; const o=el.dataset?el.dataset.override:undefined; return parseFloat(o!==undefined&&o!==""? o : el.value); };
 
 const ops={
-  spinFaces(){ if(typeof isActiveLocked==="function"&&isActiveLocked()){ toast&&toast("Layer is locked",true); return; } addModifier("spinfaces"); },   // Spin Faces: hinged panels, a live modifier
   // ---- TrueForm (booleans / spatial / diagnostics) ----
   tfDiagnose(){
     const d=TF.diagnose(mesh);
@@ -12113,6 +12075,63 @@ const NEWGEN={
   // ---- 10. Field lines: magnetic / electric field lines between poles, in 3D or flat 2D ----
   // ---- 11. Tilt grid: an extruded tile grid whose blocks tilt / spin inside their cells (paper-relief walls) ----
   // ---- 12. Twist array: copies of a shape in a line (or grid), each turned by a pattern — kinetic louvres / fins ----
+  // ---- 13. Armadillo: overlapping armour plates / shingles laid over every face of the model ----
+  ngArmadillo:{ label:"Armadillo", title:"Armadillo — panel systems", desc:"Turns every face into a panel system. <b>Folded panels</b>: the face's centre lifts and each face splits into triangular panels (centre → corner → edge midpoint) whose slant lengths stay the same as the flat face, so the pieces fold up from flat stock. <b>Overlapping plates</b>: armour plates / shingles that lap over each other.",
+    params:[{sel:"style",l:"Panel system",opts:[["fold","Folded panels (lifted centre, lengths kept)"],["plates","Overlapping plates"]]},
+      ["lift","Folded — lift (share of the face)",0,0.95,0.01,0.35],["pscale","Folded — panel size (gaps)",0.5,1,0.01,0.95],
+      {sel:"plate",l:"Plate shape",opts:[["face","Same as the face"],["round","Rounded"],["diamond","Diamond"],["hex","Hexagon"],["scale","Fish scale (pointed)"]]},
+      {sel:"flow",l:"Plates lap toward",opts:[["down","Down (shed like roof tiles)"],["up","Up"],["around","Around the vertical axis"],["out","Outward from the centre"]]},
+      ["overlap","Overlap (plate size)",0.5,2.5,0.05,1.35],["tilt","Lift (degrees)",0,60,1,14],["thick","Thickness",0,0.3,0.005,0.03],["offset","Gap above the surface",0,0.5,0.005,0.01],
+      ["shrink","Shrink toward the top",0,0.9,0.05,0],["jitter","Random tilt",0,30,1,0],["seed","Seed",1,200,1,7],
+      {chk:"keep",l:"Keep the model under the panels",def:false}],
+    build(o,m){
+      if(!m||!m.faces||!m.faces.length){ this.info="Needs a model — add the shape first"; return null; }
+      const rnd=_ngRng(o.seed), D2R=Math.PI/180, V=[], F=[], B=_ngBBox(m), sub=(a,b)=>[a[0]-b[0],a[1]-b[1],a[2]-b[2]], crs=(a,b)=>[a[1]*b[2]-a[2]*b[1],a[2]*b[0]-a[0]*b[2],a[0]*b[1]-a[1]*b[0]], dot=(a,b)=>a[0]*b[0]+a[1]*b[1]+a[2]*b[2], nrm=a=>{ const l=Math.hypot(a[0],a[1],a[2])||1; return [a[0]/l,a[1]/l,a[2]/l]; };
+      const rot=(v,ax,a)=>{ const c=Math.cos(a), s2=Math.sin(a), d=dot(ax,v); return [v[0]*c+(ax[1]*v[2]-ax[2]*v[1])*s2+ax[0]*d*(1-c), v[1]*c+(ax[2]*v[0]-ax[0]*v[2])*s2+ax[1]*d*(1-c), v[2]*c+(ax[0]*v[1]-ax[1]*v[0])*s2+ax[2]*d*(1-c)]; };
+      const H=(B.b[1]-B.a[1])||1; let plates=0;
+      if(o.style!=="plates"){   // ---- folded triangular panel system ----
+        for(const f of m.faces){ if(f.length<3) continue; const P=f.map(i=>m.verts[i]), n=P.length; const c=[0,0,0]; P.forEach(p=>{ c[0]+=p[0]; c[1]+=p[1]; c[2]+=p[2]; }); c[0]/=n; c[1]/=n; c[2]/=n;
+          let N=[0,0,0]; for(let i=0;i<n;i++){ const a=P[i], b=P[(i+1)%n]; N[0]+=(a[1]-b[1])*(a[2]+b[2]); N[1]+=(a[2]-b[2])*(a[0]+b[0]); N[2]+=(a[0]-b[0])*(a[1]+b[1]); } N=nrm(N);
+          const mids=P.map((p,i)=>{ const q=P[(i+1)%n]; return [(p[0]+q[0])/2,(p[1]+q[1])/2,(p[2]+q[2])/2]; });
+          let minL=1e9; mids.forEach(q=>{ minL=Math.min(minL,Math.hypot(...sub(q,c))); });
+          const dist=o.lift*minL, top=[c[0]+N[0]*dist,c[1]+N[1]*dist,c[2]+N[2]*dist];
+          // corner → slides toward the centre until its slant length to the lifted centre equals the flat length (same for edge midpoints)
+          const corner=P.map(p=>{ const d=sub(c,p), L=Math.hypot(...d)||1e-9, s2=1-Math.sqrt(Math.max(0,1-(dist*dist)/(L*L))); return [p[0]+d[0]*s2,p[1]+d[1]*s2,p[2]+d[2]*s2]; });
+          const mid=mids.map(q=>{ const d=sub(q,c), L=Math.hypot(...d)||1e-9, s2=Math.sqrt(Math.max(0,1-(dist*dist)/(L*L))); return [c[0]+d[0]*s2,c[1]+d[1]*s2,c[2]+d[2]*s2]; });
+          const tri=(A,Bp,C)=>{ const g=[(A[0]+Bp[0]+C[0])/3,(A[1]+Bp[1]+C[1])/3,(A[2]+Bp[2]+C[2])/3], k=o.pscale, S=q=>[g[0]+(q[0]-g[0])*k,g[1]+(q[1]-g[1])*k,g[2]+(q[2]-g[2])*k];
+            const T=[S(A),S(Bp),S(C)], b0=V.length, th=o.thick;
+            if(th>0){ const tn=nrm(crs(sub(T[1],T[0]),sub(T[2],T[0]))); T.forEach(p=>V.push(p)); T.forEach(p=>V.push([p[0]+tn[0]*th,p[1]+tn[1]*th,p[2]+tn[2]*th])); F.push([b0+2,b0+1,b0]); F.push([b0+3,b0+4,b0+5]); for(let q=0;q<3;q++){ const q1=(q+1)%3; F.push([b0+q,b0+q1,b0+3+q1,b0+3+q]); } }
+            else { T.forEach(p=>V.push(p)); F.push([b0,b0+1,b0+2]); } plates++; };
+          for(let i=0;i<n;i++){ tri(top,corner[i],mid[i]); tri(top,mid[i],corner[(i+1)%n]); } }
+        let out={verts:V,faces:F};
+        if(o.keep){ const off=m.verts.length; out={verts:m.verts.map(v=>v.slice()).concat(V), faces:m.faces.map(f=>f.slice()).concat(F.map(f=>f.map(i=>i+off)))}; }
+        this.info=plates+" folded panels · "+(F.length/1e3).toFixed(1)+"k faces"; return F.length?out:null; }
+      for(const f of m.faces){ if(f.length<3) continue; const P=f.map(i=>m.verts[i]); const c=[0,0,0]; P.forEach(p=>{ c[0]+=p[0]; c[1]+=p[1]; c[2]+=p[2]; }); c[0]/=P.length; c[1]/=P.length; c[2]/=P.length;
+        let N=[0,0,0]; for(let i=0;i<P.length;i++){ const a=P[i], b=P[(i+1)%P.length]; N[0]+=(a[1]-b[1])*(a[2]+b[2]); N[1]+=(a[2]-b[2])*(a[0]+b[0]); N[2]+=(a[0]-b[0])*(a[1]+b[1]); } N=nrm(N);
+        // flow direction projected into the face plane: the plate's trailing edge (against the flow) lifts off the surface
+        let fl=o.flow==="up"?[0,1,0]:o.flow==="around"?[-(c[2]-B.c[2]),0,(c[0]-B.c[0])]:o.flow==="out"?sub(c,B.c):[0,-1,0];
+        fl=sub(fl,N.map(x=>x*dot(fl,N))); if(Math.hypot(...fl)<1e-6){ fl=sub(P[0],c); fl=sub(fl,N.map(x=>x*dot(fl,N))); } const U=nrm(fl), W=crs(N,U);
+        const t=(c[1]-B.a[1])/H, sc=o.overlap*(1-o.shrink*t);
+        let loc;   // outline in (U,W) coordinates
+        if(o.plate==="face") loc=P.map(p=>{ const d=sub(p,c); return [dot(d,U)*sc,dot(d,W)*sc]; });
+        else { let rin=1e9; for(let i=0;i<P.length;i++){ const a=P[i], b=P[(i+1)%P.length], e=sub(b,a), el=Math.hypot(...e)||1, w=sub(c,a), tt=dot(w,e)/el/el, q=sub([a[0]+e[0]*tt,a[1]+e[1]*tt,a[2]+e[2]*tt],c); rin=Math.min(rin,Math.hypot(...q)); }
+          const r=rin*sc*1.15, k=o.plate==="round"?16:o.plate==="diamond"?4:o.plate==="hex"?6:12; loc=[];
+          for(let i=0;i<k;i++){ const a=i/k*Math.PI*2+(o.plate==="hex"?Math.PI/6:0); let x=Math.cos(a)*r, y=Math.sin(a)*r;
+            if(o.plate==="scale"){ const pt=Math.max(0,Math.cos(a)); x+=pt*pt*r*0.55; }   // pointed toward the flow
+            loc.push([x,y]); } }
+        // lift: rotate about W through the leading edge so the trailing edge rises
+        let mnx=1e9; loc.forEach(q=>{ if(q[0]<mnx) mnx=q[0]; }); const lift=(o.tilt+(o.jitter?(rnd()*2-1)*o.jitter:0))*D2R, base=[c[0]+N[0]*o.offset,c[1]+N[1]*o.offset,c[2]+N[2]*o.offset];
+        let mxx=-1e9; loc.forEach(q=>{ if(q[0]>mxx) mxx=q[0]; }); const hinge=mxx;   // leading edge (downstream) stays on the surface
+        const pts=loc.map(([x,y])=>{ const d=rot([U[0]*(x-hinge),U[1]*(x-hinge),U[2]*(x-hinge)],W,-lift); return [base[0]+d[0]+U[0]*hinge+W[0]*y, base[1]+d[1]+U[1]*hinge+W[1]*y, base[2]+d[2]+U[2]*hinge+W[2]*y]; });
+        const n=pts.length, b0=V.length, th=o.thick;
+        pts.forEach(p=>V.push(p.slice()));
+        if(th>0){ pts.forEach(p=>V.push([p[0]+N[0]*th,p[1]+N[1]*th,p[2]+N[2]*th])); F.push([...Array(n).keys()].map(k=>b0+n-1-k)); F.push([...Array(n).keys()].map(k=>b0+n+k)); for(let k=0;k<n;k++){ const k1=(k+1)%n; F.push([b0+k,b0+k1,b0+n+k1,b0+n+k]); } }
+        else F.push([...Array(n).keys()].map(k=>b0+k));
+        plates++; }
+      let out={verts:V,faces:F};
+      if(o.keep){ const off=m.verts.length; out={verts:m.verts.map(v=>v.slice()).concat(V), faces:m.faces.map(f=>f.slice()).concat(F.map(f=>f.map(i=>i+off)))}; }
+      this.info=plates+" plates · "+(F.length/1e3).toFixed(1)+"k faces"; return F.length?out:null; } },
+
   ngTwist:{ label:"Twist array", title:"Twist array — a row of shapes turned into patterns", desc:"Copies a shape along a line (add rows for a grid) and turns every copy by a pattern — <b>wave</b>, <b>ripple</b>, a steady <b>twist</b> — like kinetic façade fins or louvres. Pick <b>This model</b> to array your own shape.",
     params:[{sel:"src",l:"Shape",opts:[["layer","This model"],["fin","Fin (thin blade)"],["box","Block"],["hex","Hexagon prism"],["tri","Triangle prism"],["cyl","Cylinder"],["house","House"]]},
       {sel:"axis",l:"Turn around",opts:[["x","The row direction"],["y","Vertical axis"],["z","Across the row"]]},
@@ -12380,7 +12399,7 @@ function ngParamsToMod(G){ return G.params.map(p=>Array.isArray(p)? {k:p[0],l:p[
 function ngValsFromMod(G,pp){ const o={}; G.params.forEach(p=>{ if(Array.isArray(p)){ const v=+pp[p[0]]; o[p[0]]=isFinite(v)?v:p[5]; }
   else if(p.sel){ const i=Math.max(0,Math.min(p.opts.length-1,Math.round(+pp[p.sel]||0))); o[p.sel]=p.opts[i][0]; } else if(p.chk) o[p.chk]=!!pp[p.chk]; }); return o; }
 function ngModFromVals(G,o){ const pp={}; G.params.forEach(p=>{ if(Array.isArray(p)) pp[p[0]]=+o[p[0]]; else if(p.sel){ const i=p.opts.findIndex(x=>x[0]===o[p.sel]); pp[p.sel]=i<0?0:i; } else if(p.chk) pp[p.chk]=!!o[p.chk]; }); return pp; }
-const _ngUsesInput=o=>o.layout==="model"||o.on==="model"||o.src==="layer"||o.shape==="model"||o.from==="surface"||o.dom==="inside"||o.dom==="surface"||/^(in|on):/.test(o.dom||"")||o.box==="inside"||/^in:/.test(o.box||"")||o.shape==="fill"||/^fill:/.test(o.shape||"");
+const _ngUsesInput=o=>o.layout==="model"||o.on==="model"||o.src==="layer"||o.flow!==undefined||o.shape==="model"||o.from==="surface"||o.dom==="inside"||o.dom==="surface"||/^(in|on):/.test(o.dom||"")||o.box==="inside"||/^in:/.test(o.box||"")||o.shape==="fill"||/^fill:/.test(o.shape||"");
 for(const op in NEWGEN){ const G=NEWGEN[op];
   MODS[NG_MOD_KEY(op)]={label:G.label, grp:"Generate", heavy:true, params:ngParamsToMod(G),
     apply:(m,pp)=>{ const o=ngValsFromMod(G,pp); const g=G.build.call(G,o,m); if(!g||!g.faces||!g.faces.length) return m;
@@ -12415,6 +12434,7 @@ const _relImgCache=new Map();
 })();
 if(MODS[NG_MOD_KEY("ngTilt")]) MODS[NG_MOD_KEY("ngTilt")].grp="New";
 if(MODS[NG_MOD_KEY("ngTwist")]) MODS[NG_MOD_KEY("ngTwist")].grp="New";
+if(MODS[NG_MOD_KEY("ngArmadillo")]) MODS[NG_MOD_KEY("ngArmadillo")].grp="New";
 MODS.coral={label:"Coral", grp:"Generate", heavy:true,
   params:[{k:"from",l:"Grow from",opts:["A point","The ground (grows up)","This model's surface"],def:0},{k:"n",l:"Particles",min:50,max:20000,step:50,def:2500},{k:"conn",l:"Connections per node",min:2,max:8,step:1,def:3},
     {k:"sp",l:"Branch spacing",min:0.005,max:0.2,step:0.005,def:0.03},{k:"stick",l:"Stickiness",min:0.05,max:1,step:0.05,def:0.8},{k:"bias",l:"Up bias",min:0,max:1,step:0.05,def:0.15},
@@ -12996,7 +13016,7 @@ const OP_PARAMS={
   metaballs:["pMetaCount","pMetaRes","pMetaThresh","pMetaRadius","pMetaSeed","pMetaPts","pMetaLines","pMetaClosed","pMetaLineW","pMetaGum"],
   diffGrow:[],
   coral:[],
-  ngBranch:[], ngWfc:[], ngSlime:[], ngRD:[], ngCA:[], ngHyphae:[], ngTerrain:[], ngOrigami:[], ngRelief:[], ngField:[], ngTilt:[], ngTwist:[],
+  ngBranch:[], ngWfc:[], ngSlime:[], ngRD:[], ngCA:[], ngHyphae:[], ngTerrain:[], ngOrigami:[], ngRelief:[], ngField:[], ngTilt:[], ngTwist:[], ngArmadillo:[],
   tfMeasure:[],
   menger:["pMenger"], gyroid:["pGyro","pGyroRes","pGyroBox"], hybrid:["pHybInset","pHybCluster"], sierpinski:["pSierp","pSierpSep","pSierpGap"], scale:["pScale"],
   mirror:["pMirrorAxis","pMirrorCopy"],
@@ -13596,6 +13616,7 @@ $$("[data-op]").filter(b=>!b.closest("#menubar")).forEach(b=>b.addEventListener(
     if(typeof isActiveLocked==="function" && isActiveLocked()){ toast&&toast("Layer is locked",true); return; }
     addModifier(OP_AS_MOD[op]); return;
   }
+  if(op==="ngArmadillo" && layersOn && layers[activeLayer] && !fabActive && !(typeof isActiveLocked==="function"&&isActiveLocked())){ addModifier("gen_ngArmadillo"); return; }   // Armadillo plates: a live modifier on the model
   if(op==="ngTwist" && layersOn && layers[activeLayer] && !fabActive && !(typeof isActiveLocked==="function"&&isActiveLocked())){ addModifier("gen_ngTwist"); return; }   // Twist array: a live modifier on the base geometry
   if(op==="ngField" && layersOn && layers[activeLayer] && !fabActive && !(typeof isActiveLocked==="function"&&isActiveLocked())){ addModifier("gen_ngField"); return; }   // Field lines lives in the modifier stack
   if(b.closest("#toolbar") && OP_PARAMS[op]){
@@ -21687,7 +21708,7 @@ window.__tmCore={ get bboxObj(){return bboxObj}, get edgeObj(){return edgeObj}, 
   ["Analyze",["Diagnose","Curvature","Section","Interfere","Thickness","Measure","Overhang"]],
   ["Fabricate",["Seam","Paper","Plywood","Faces","Laser","Waffle","Print","Tree Sup"]],
   ["Render",["Render"]],
-  ["New",["Branches","WFC Pipes","Slime","Reaction","Cellular","Hyphae","Terrain","Relief","Tilt","Twist","Origami","Bricks"]]];
+  ["New",["Branches","WFC Pipes","Slime","Reaction","Cellular","Hyphae","Terrain","Relief","Tilt","Twist","Armadillo","Origami","Bricks"]]];
  var HIDE=["TrueForm/Heal"], RENAME={"Parametric/Lattice":"Cage","Generate/Lattice":"Infill"};
  function run(){ var tb=document.getElementById("toolbar"); if(!tb) return; var row=tb.querySelector(".trow"); if(!row) return;
   var map={}; [].slice.call(tb.querySelectorAll("button.tb")).forEach(function(b){ var g=b.closest(".tgrp"), gl=g?g.getAttribute("data-label"):"", l=b.querySelector(".tlbl"), t=l?l.textContent.trim():"";
