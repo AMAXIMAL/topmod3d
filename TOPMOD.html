@@ -1479,6 +1479,8 @@ html.inApp [data-act="fullscreen"],html.inApp [data-act="shortcuts"],html.inApp 
         <button class="tb" data-op="ngTerrain" title="Terrain — height field + erosion"><svg width="22" height="22" viewBox="0 0 22 22"><path d="M2 17l5-7 3 4 4-8 6 11z" fill="#FF8C22" opacity=".85"/><path d="M2 17h18" stroke="#00E5FF" stroke-width="1.4"/></svg><span class="tlbl">Terrain</span></button>
         <button class="tb" data-op="ngRelief" title="Relief — turn any picture into a raised 3D relief"><svg width="22" height="22" viewBox="0 0 22 22"><rect x="3" y="4" width="16" height="14" rx="1.5" fill="none" stroke="#00E5FF" stroke-width="1.4"/><path d="M5 15l4-5 3 3 2-2 3 4z" fill="#FF8C22"/><circle cx="14.5" cy="8" r="1.6" fill="#FF8C22"/></svg><span class="tlbl">Relief</span></button>
         <button class="tb" data-op="ngField" title="Field lines — magnetic field lines between poles, 3D or 2D (drag the poles)"><svg width="22" height="22" viewBox="0 0 22 22"><path d="M5 11C5 4 17 4 17 11M5 11C5 18 17 18 17 11M5 11C6 7 16 7 17 11M5 11C6 15 16 15 17 11" fill="none" stroke="#00E5FF" stroke-width="1.2"/><circle cx="5" cy="11" r="2.2" fill="#FF3B30"/><circle cx="17" cy="11" r="2.2" fill="#3B82FF"/></svg><span class="tlbl">Field</span></button>
+        <button class="tb" data-op="ngTilt" title="Tilt grid — extruded tiles that tilt and turn inside their cells (paper-relief walls)"><svg width="22" height="22" viewBox="0 0 22 22"><path d="M4 5l3-2 3 2v3l-3 2-3-2z" fill="#FF8C22"/><path d="M12 4l4-1 2 3-1 3-4 1-2-3z" fill="#00E5FF"/><path d="M5 13l3-1 3 2-1 3-3 1-3-2z" fill="#00E5FF"/><path d="M13 12l3-1 3 2v3l-3 2-3-2z" fill="#FF8C22"/></svg><span class="tlbl">Tilt</span></button>
+        <button class="tb" data-op="ngTwist" title="Twist array — copies of a shape in a row, each turned by a wave / ripple / twist pattern (kinetic fins)"><svg width="22" height="22" viewBox="0 0 22 22"><g fill="#FF8C22"><rect x="2" y="5" width="2" height="12" transform="rotate(-20 3 11)"/><rect x="6" y="5" width="2" height="12" transform="rotate(10 7 11)"/><rect x="10" y="5" width="2" height="12" transform="rotate(35 11 11)"/><rect x="14" y="5" width="2" height="12" transform="rotate(10 15 11)"/><rect x="18" y="5" width="2" height="12" transform="rotate(-20 19 11)"/></g></svg><span class="tlbl">Twist</span></button>
         <button class="tb" data-op="ngOrigami" title="Origami — folded tessellations"><svg width="22" height="22" viewBox="0 0 22 22"><path d="M3 6l4 3 4-3 4 3 4-3v10l-4 3-4-3-4 3-4-3z M7 9v10M15 9v10M11 6v10" stroke="#FF8C22" stroke-width="1.3" fill="none" stroke-linejoin="round"/></svg><span class="tlbl">Origami</span></button>
         <button class="tb" data-op="menger" title="Menger sponge"><img class="ticon" alt="Menger sponge"><span class="tlbl">Sponge</span></button>
         <button class="tb" data-op="gyroid" title="Gyroid surface"><img class="ticon" alt="Gyroid"><span class="tlbl">Gyroid</span></button>
@@ -8063,6 +8065,7 @@ function openModEdit(id){
     box.appendChild(row); wrap.appendChild(box); }
   if(md.type==="aset"){ try{ wrap.appendChild(asetInfoPanel()); }catch(e){} }
   if(md.type==="lego"){ try{ wrap.appendChild(window.legoInfoPanel()); }catch(e){} }
+  if(md.type==="gen_ngField"){ try{ wrap.appendChild(window.__fieldPanel(md)); }catch(e){} }
   if(md.type==="latfill"){ const inf=document.createElement("div"); inf.id="latInfo"; inf.className="modEditNote latInfo"; inf.dataset.mod=md.id; wrap.appendChild(inf); updateLatInfo(); }
   const saved=document.createElement("div"); saved.className="modEditNote"; saved.style.color="#8fce9b"; saved.style.marginTop="8px";
   saved.textContent="✓ Live — changes save automatically (no Apply needed).";
@@ -8075,6 +8078,7 @@ function openModEdit(id){
   tpState={op:"modedit",btn:null,moved:[]};
   $("#hint")&&($("#hint").textContent="Live modifier — changes apply and save automatically (no Apply needed). Enable/disable or reorder it in the stack; Flatten to bake.");
   renderModStack();
+  try{ setTimeout(()=>window.__fieldModSync&&window.__fieldModSync(),30); }catch(e){}   // Field lines modifier: show its draggable poles
 }
 function updateLatInfo(){
   const el=document.getElementById("latInfo"); if(!el) return;
@@ -8710,6 +8714,8 @@ function rebuild(opts){
   meshObj=new THREE.Mesh(g,_mat); scene.add(meshObj);
   try{ asetOverlaySync(dm); }catch(e){}
   try{ window.legoOverlaySync&&window.legoOverlaySync(dm); }catch(e){}
+  try{ window.__curveOverlay&&window.__curveOverlay(dm); }catch(e){}
+  try{ if(!(window.__fieldDragging)) window.__fieldModSync&&window.__fieldModSync(); }catch(e){}
   rebuildBBox();   // also while dragging, so the box follows the live result
 
   // OpenSubdiv cage editing: edges/points (and so picking) come from the control cage, the surface stays subdivided
@@ -10878,6 +10884,9 @@ canvas.addEventListener("pointerup",e=>{
   drag=null;
 });
 canvas.addEventListener("contextmenu",e=>e.preventDefault());
+// a drag that loses the pointer (system gesture, alt-tab, a dialog opening mid-drag) must end cleanly, not leave the camera latched
+["pointercancel","lostpointercapture"].forEach(ev=>canvas.addEventListener(ev,e=>{ if(e.pointerType==="touch") return; if(drag){ drag=null; }
+  try{ window.__gbUp&&window.__gbUp(); window.__arrUp&&window.__arrUp(); window.__metaUp&&window.__metaUp(); window.__mvUp&&window.__mvUp(); window.__mirUp&&window.__mirUp(); window.__cgUp&&window.__cgUp(); }catch(_){} }));
 /* Duo layout: the empty viewport area on the bottom half is a touch pad for the camera on the top half */
 (function(){ const vw=$("#viewWrap"); let pad=null;
   vw.addEventListener("pointerdown",e=>{ if(!document.body.classList.contains("duo")||e.target!==vw) return; try{ vw.setPointerCapture(e.pointerId); }catch(_){} pad={x:e.clientX,y:e.clientY,shift:e.shiftKey}; });
@@ -10906,6 +10915,8 @@ const touches=new Map();
 let pinchD=0, tapStart=null, panMid=null, gbTouch=false;
 canvas.addEventListener("touchstart",e=>{
   e.preventDefault();
+  // rebuild from the fingers actually down: a cancelled/lost touch must never linger (it made 1 finger act like 2 → camera "stuck")
+  { const keep=new Map(); for(const t of e.touches){ const o=touches.get(t.identifier); keep.set(t.identifier,o||{x:t.clientX,y:t.clientY}); } touches.clear(); keep.forEach((v,k)=>touches.set(k,v)); }
   for(const t of e.changedTouches) touches.set(t.identifier,{x:t.clientX,y:t.clientY});
   if(touches.size===1){
     const t=e.changedTouches[0];
@@ -10955,9 +10966,14 @@ canvas.addEventListener("touchmove",e=>{
     pinchD=d; panMid=mid;
   }
 },{passive:false});
+function _touchReset(){ touches.clear(); pinchD=0; panMid=null; tapStart=null;
+  if(gbTouch){ try{ ({gb:window.__gbUp,mir:window.__mirUp,meta:window.__metaUp,mv:window.__mvUp,arr:window.__arrUp,cg:window.__cgUp})[gbTouch]?.(); }catch(_){} gbTouch=false; } }
+canvas.addEventListener("touchcancel",e=>{ e.preventDefault(); _touchReset(); },{passive:false});
 canvas.addEventListener("touchend",e=>{
   e.preventDefault();
   for(const t of e.changedTouches) touches.delete(t.identifier);
+  if(e.touches.length===0&&touches.size) touches.clear();          // nothing is down any more
+  if(touches.size<2){ pinchD=0; panMid=null; }
   if(gbTouch){
     if(gbTouch==="gb") window.__gbUp();
     else if(gbTouch==="mir") window.__mirUp();
@@ -11571,17 +11587,29 @@ window.__metaMove=function(cx,cy){
 };
 window.__metaUp=function(){ const had=!!metaDrag; metaDrag=null; return had; };
 
+// ---- curves carried on a mesh (Field lines "Curves" style): drawn as smooth lines over the model ----
+(function(){ let grp=null; const mat=new THREE.LineBasicMaterial({color:0xff8c22}); mat.userData.tmOverlay=true;
+  window.__curveOverlay=dm=>{ if(grp){ scene.remove(grp); grp.traverse(o=>{ o.geometry&&o.geometry.dispose&&o.geometry.dispose(); }); grp=null; }
+    let C=dm&&dm.curves; if(!C||!C.length){ try{ const L=layers[activeLayer]; C=L&&L._ev&&L._ev.curves; }catch(e){} } if(!C||!C.length) return;
+    grp=new THREE.Group(); for(const c of C){ const g=new THREE.BufferGeometry().setFromPoints(c.pts.map(p=>new THREE.Vector3(p[0],p[1],p[2]))); grp.add(new THREE.Line(g,mat)); } scene.add(grp); };
+})();
 // ---- Field lines: draggable poles (move sphere, orange strength knob, click to flip N/S) — same feel as the Blobs gumballs ----
 (function(){
   let grp=null, drag=null; const ray=new THREE.Raycaster();
   const G=()=>NEWGEN.ngField;
-  const live=()=>ngActive==="ngField"&&G().poles&&G().poles.length;
+  const editMd=()=>{ try{ if(modEditId==null) return null; const L=layers[activeLayer]; const md=L&&(L.modifiers||[]).find(x=>x.id===modEditId); return md&&md.type===NG_MOD_KEY("ngField")&&md.params&&md.params.poleData?md:null; }catch(e){ return null; } };
+  // pole list being edited + raw↔world mapping (the modifier fits its output to the incoming shape)
+  const src=()=>{ if(ngActive==="ngField"&&G().poles) return {P:G().poles,f:null,md:null}; const md=editMd(); return md?{P:md.params.poleData,f:md.params._fit||null,md}:null; };
+  const toW=(c,f)=>f?[(c[0]-f.gc[0])*f.k+f.mc[0],(c[1]-f.gc[1])*f.k+f.mc[1],(c[2]-f.gc[2])*f.k+f.mc[2]]:c.slice();
+  const toR=(w,f)=>f?[(w[0]-f.mc[0])/f.k+f.gc[0],(w[1]-f.mc[1])/f.k+f.gc[1],(w[2]-f.mc[2])/f.k+f.gc[2]]:w.slice();
+  const handlesOn=S=>S.md? S.md.params.handles!==false : !($("#ng_handles")&&!$("#ng_handles").checked);
+  const live=()=>{ const S=src(); return !!(S&&S.P&&S.P.length&&handlesOn(S)); };
   function clear(){ if(grp){ scene.remove(grp); grp.traverse(o=>{ o.geometry&&o.geometry.dispose&&o.geometry.dispose(); o.material&&o.material.dispose&&o.material.dispose(); }); grp=null; } }
-  function show(){ clear(); if(!live()) return; grp=new THREE.Group(); const pick=[]; const hs=Math.max(0.03,Math.min(0.08,modelRadius()*0.03)), right=metaCamRight();
-    G().poles.forEach((p,idx)=>{ const c=new THREE.Vector3(...p.c), col=p.q>0?0xFF3B30:0x3B82FF;
+  function show(){ clear(); if(!live()) return; const S=src(); grp=new THREE.Group(); const pick=[]; const hs=Math.max(0.03,Math.min(0.08,modelRadius()*0.03)), right=metaCamRight();
+    S.P.forEach((p,idx)=>{ const c=new THREE.Vector3(...toW(p.c,S.f)), col=p.q>0?0xFF3B30:0x3B82FF;
       const mv=new THREE.Mesh(new THREE.SphereGeometry(hs,16,12), new THREE.MeshBasicMaterial({color:col,depthTest:false})); mv.position.copy(c); mv.renderOrder=999; grp.add(mv);
       const mvp=new THREE.Mesh(new THREE.SphereGeometry(hs*2,10,8), new THREE.MeshBasicMaterial({visible:false})); mvp.position.copy(c); mvp.userData={type:"move",idx}; grp.add(mvp); pick.push(mvp);
-      const kp=c.clone().add(right.clone().multiplyScalar(0.12+0.12*Math.abs(p.q)));
+      const sk=S.f?S.f.k:1, kp=c.clone().add(right.clone().multiplyScalar((0.12+0.12*Math.abs(p.q))*sk));
       const ln=new THREE.Line(new THREE.BufferGeometry().setFromPoints([c,kp]), new THREE.LineBasicMaterial({color:0xFF8C22,depthTest:false,transparent:true,opacity:0.7})); ln.renderOrder=998; grp.add(ln);
       const k=new THREE.Mesh(new THREE.BoxGeometry(hs*1.3,hs*1.3,hs*1.3), new THREE.MeshBasicMaterial({color:0xFF8C22,depthTest:false})); k.position.copy(kp); k.renderOrder=999; grp.add(k);
       const kpk=new THREE.Mesh(new THREE.BoxGeometry(hs*3,hs*3,hs*3), new THREE.MeshBasicMaterial({visible:false})); kpk.position.copy(kp); kpk.userData={type:"scale",idx}; grp.add(kpk); pick.push(kpk); });
@@ -11589,13 +11617,39 @@ window.__metaUp=function(){ const had=!!metaDrag; metaDrag=null; return had; };
   window.__fieldHandles=show; window.__fieldClear=clear;
   const ndc=(cx,cy)=>{ const r=canvas.getBoundingClientRect(); return {x:((cx-r.left)/r.width)*2-1, y:-((cy-r.top)/r.height)*2+1}; };
   const fDown=(cx,cy)=>{ if(!live()||!grp) return false; ray.setFromCamera(ndc(cx,cy),camera); const h=ray.intersectObjects(grp.userData.pick,false)[0]; if(!h) return false;
-    const u=h.object.userData, p=G().poles[u.idx], c=new THREE.Vector3(...p.c), q=metaPlaneHit(cx,cy,c); drag={type:u.type,idx:u.idx,off:q?q.clone().sub(c):new THREE.Vector3(),x:cx,y:cy,moved:false}; return true; };
+    const S=src(), u=h.object.userData, p=S.P[u.idx], c=new THREE.Vector3(...toW(p.c,S.f)), q=metaPlaneHit(cx,cy,c); if(S.md) try{ snapshot(); }catch(e){}   // one undo step per pole drag / flip
+    drag={type:u.type,idx:u.idx,off:q?q.clone().sub(c):new THREE.Vector3(),x:cx,y:cy,moved:false}; return true; };
+  const refresh=S=>{ if(S.md){ rebuild(); setTimeout(show,0); } else { show(); ngCompute(); } };
+  let snapT=0; function snapshotOnce(){ const t=Date.now(); if(t-snapT>800){ try{ snapshot(); }catch(e){} } snapT=t; }
   const fMove=(cx,cy)=>{ if(!drag) return false; if(Math.hypot(cx-drag.x,cy-drag.y)>4) drag.moved=true; if(!drag.moved) return true;
-    const p=G().poles[drag.idx], c=new THREE.Vector3(...p.c), q=metaPlaneHit(cx,cy,c); if(!q) return true;
-    if(drag.type==="move"){ const n=q.clone().sub(drag.off); p.c=[n.x,n.y,($("#ng_dim")&&$("#ng_dim").value==="2d")?0:n.z]; }
-    else { const s=Math.sign(p.q)||1; p.q=s*Math.max(0.1,Math.min(4,(q.distanceTo(c)-0.12)/0.12)); }
-    show(); ngCompute(); return true; };
-  const fUp=()=>{ if(!drag) return false; if(!drag.moved&&drag.type==="move"){ const p=G().poles[drag.idx]; p.q=-p.q; show(); ngCompute(); } drag=null; return true; };
+    const S=src(); if(!S) return true; const p=S.P[drag.idx], c=new THREE.Vector3(...toW(p.c,S.f)), q=metaPlaneHit(cx,cy,c); if(!q) return true;
+    const flat=S.md? (S.md.params.dim===1||S.md.params.dim==="1") : ($("#ng_dim")&&$("#ng_dim").value==="2d");
+    if(drag.type==="move"){ const n=q.clone().sub(drag.off), r=toR([n.x,n.y,n.z],S.f); p.c=[r[0],r[1],flat?0:r[2]]; }
+    else { const s=Math.sign(p.q)||1, sk=S.f?S.f.k:1; p.q=s*Math.max(0.1,Math.min(4,(q.distanceTo(c)/sk-0.12)/0.12)); }
+    refresh(S); return true; };
+  const fUp=()=>{ if(!drag) return false; if(!drag.moved&&drag.type==="move"){ const S=src(); if(S){ const p=S.P[drag.idx]; p.q=-p.q; refresh(S); } } drag=null; return true; };
+  // Field modifier extras: turn selected vertices into poles, export the curves for Rhino
+  window.__fieldPanel=md=>{ const d=document.createElement("div"); d.className="modEditNote"; d.style.cssText="line-height:1.5;margin-top:6px";
+    const bs="flex:1;min-width:90px;padding:6px 8px;border-radius:6px;border:1px solid var(--line,#2a3a48);background:transparent;color:inherit;cursor:pointer;font:600 11px var(--font,system-ui)";
+    d.innerHTML='<b>Poles from vertices</b> — switch to Vertex mode, select vertices on the model, then:<div style="display:flex;gap:6px;flex-wrap:wrap;margin:6px 0"><button data-q="1" style="'+bs+';color:#ff6b5e">Selected → North (+)</button><button data-q="-1" style="'+bs+';color:#6aa8ff">Selected → South (−)</button><button data-q="0" style="'+bs+'">Clear poles</button></div>'
+      +'<button id="fldDxf" style="'+bs+';width:100%">Export curves for Rhino (.dxf, degree-3 splines)</button>';
+    const opts=NEWGEN.ngField.params.find(p=>p.sel==="layout").opts, ci=opts.findIndex(x=>x[0]==="custom");
+    d.querySelectorAll("[data-q]").forEach(b=>b.onclick=()=>{ const q=+b.dataset.q; snapshot();
+      if(q===0){ md.params.poleData=[]; md.params.poleKey="custom"; md.params.layout=ci; rebuild(); openModEdit(md.id); return; }
+      const D=dispMesh(); const pts=selMode==="vert"?[...sel.verts].map(i=>D.verts[i]).filter(Boolean):[];
+      if(!pts.length){ undoStack.pop(); updateUndoUI&&updateUndoUI(); toast&&toast("Switch to Vertex mode and select one or more vertices first",true); return; }
+      const keep=md.params.poleKey==="custom"&&Array.isArray(md.params.poleData)?md.params.poleData:[];
+      pts.forEach(v=>keep.push({c:v.slice(),q:q}));
+      md.params.poleData=keep; md.params.poleKey="custom"; md.params.layout=ci; if(!+md.params.balls&&md.params.balls!==false) md.params.balls=true;
+      rebuild(); openModEdit(md.id); toast&&toast(pts.length+" vertex"+(pts.length>1?"es":"")+" → "+(q>0?"north (+)":"south (−)")+" poles"); });
+    d.querySelector("#fldDxf").onclick=()=>{ const L=layers[activeLayer], ev=L&&L._ev; const C=(ev&&ev.curves)||[];
+      if(!C.length){ toast&&toast("Set Line style to Curves first",true); return; }
+      const f=n=>(+n).toFixed(6).replace(/\.?0+$/,"")||"0", out=["0","SECTION","2","HEADER","9","$ACADVER","1","AC1015","9","$INSUNITS","70","1","0","ENDSEC","0","SECTION","2","ENTITIES"];
+      C.forEach((c,ci2)=>{ out.push("0","SPLINE","5",(0x100+ci2).toString(16).toUpperCase(),"100","AcDbEntity","8","FIELD_LINES","100","AcDbSpline","210","0","220","0","230","1","70","8","71","3","72",String(c.knots.length),"73",String(c.ctrl.length),"74","0");
+        c.knots.forEach(k=>out.push("40",f(k))); c.ctrl.forEach(v=>out.push("10",f(v[0]),"20",f(-v[2]),"30",f(v[1]))); });   // Y-up → Z-up for CAD
+      out.push("0","ENDSEC","0","EOF"); downloadText(out.join("\n")+"\n","field_lines_curves.dxf","application/dxf"); toast&&toast("Exported "+C.length+" degree-3 curves"); };
+    return d; };
+  window.__fieldModSync=()=>{ if(editMd()) show(); else if(ngActive!=="ngField") clear(); };
   const A=window.__metaActive, D=window.__metaDown, M=window.__metaMove, U=window.__metaUp;
   window.__metaActive=()=> (A&&A()) || (live()&&!!grp);
   window.__metaDown=(x,y)=> (A&&A()&&D(x,y)) || fDown(x,y);
@@ -12018,13 +12072,125 @@ const NEWGEN={
       return {verts:V, faces:F}; } },
 
   // ---- 10. Field lines: magnetic / electric field lines between poles, in 3D or flat 2D ----
+  // ---- 11. Tilt grid: an extruded tile grid whose blocks tilt / spin inside their cells (paper-relief walls) ----
+  // ---- 12. Twist array: copies of a shape in a line (or grid), each turned by a pattern — kinetic louvres / fins ----
+  ngTwist:{ label:"Twist array", title:"Twist array — a row of shapes turned into patterns", desc:"Copies a shape along a line (add rows for a grid) and turns every copy by a pattern — <b>wave</b>, <b>ripple</b>, a steady <b>twist</b> — like kinetic façade fins or louvres. Pick <b>This model</b> to array your own shape.",
+    params:[{sel:"src",l:"Shape",opts:[["fin","Fin (thin blade)"],["box","Block"],["hex","Hexagon prism"],["tri","Triangle prism"],["cyl","Cylinder"],["house","House"],["layer","This model"]]},
+      {sel:"axis",l:"Turn around",opts:[["y","Vertical axis"],["x","The row direction"],["z","Across the row"]]},
+      {sel:"pat",l:"Pattern",opts:[["wave","Wave"],["ripple","Ripple (from the centre)"],["twist","Steady twist"],["double","Double wave (rows too)"],["random","Random"]]},
+      ["count","Copies in the row",2,200,1,24],["rows","Rows",1,60,1,1],["gap","Spacing (× shape width)",0.6,6,0.05,1.4],["rgap","Row spacing (× shape depth)",0.6,6,0.05,1.3],
+      ["amp","Turn amount (degrees)",0,360,1,60],["freq","Waves along the row",0.25,8,0.25,1.5],["phase","Phase (degrees)",0,360,1,0],["rphase","Shift per row (degrees)",0,180,1,25],
+      ["scl","Size follows the pattern",-0.9,0.9,0.05,0],["lift","Lift follows the pattern",-2,2,0.05,0],
+      ["sw","Shape width",0.05,3,0.01,0.12],["sh","Shape height",0.1,6,0.05,1.6],["sd","Shape depth",0.05,3,0.01,0.7],["seed","Seed",1,200,1,7]],
+    build(o,m){
+      const rnd=_ngRng(o.seed), D2R=Math.PI/180;
+      // the shape: a prism built from an outline in the XZ plane, or the incoming model
+      const prism=(P,h)=>{ const V=[], F=[], n=P.length; P.forEach(([x,z])=>V.push([x,-h/2,z])); P.forEach(([x,z])=>V.push([x,h/2,z]));
+        F.push([...Array(n).keys()].map(k=>n-1-k)); F.push([...Array(n).keys()].map(k=>n+k)); for(let k=0;k<n;k++){ const k1=(k+1)%n; F.push([k,k1,n+k1,n+k]); } return {verts:V,faces:F}; };
+      const ngon=(k,rx,rz,off)=>{ const P=[]; for(let i=0;i<k;i++){ const a=(off||0)+i/k*Math.PI*2; P.push([Math.cos(a)*rx,-Math.sin(a)*rz]); } return P; };
+      let S;
+      if(o.src==="layer"&&m&&m.verts&&m.verts.length){ const B=_ngBBox(m); S={verts:m.verts.map(v=>[v[0]-B.c[0],v[1]-B.c[1],v[2]-B.c[2]]), faces:m.faces.map(f=>f.slice())}; }
+      else { const w=o.sw, h=o.sh, d=o.sd;
+        if(o.src==="box") S=prism([[-w/2,-d/2],[w/2,-d/2],[w/2,d/2],[-w/2,d/2]].reverse(),h);
+        else if(o.src==="hex") S=prism(ngon(6,w/2,d/2,0),h);
+        else if(o.src==="tri") S=prism(ngon(3,w/2,d/2,Math.PI/2),h);
+        else if(o.src==="cyl") S=prism(ngon(20,w/2,d/2,0),h);
+        else if(o.src==="house") S=prism([[-w/2,-d/2],[w/2,-d/2],[w/2,d*0.15],[0,d/2],[-w/2,d*0.15]].reverse(),h);
+        else S=prism([[-w/2,-d/2],[w/2,-d/2],[w/2,d/2],[-w/2,d/2]].reverse(),h); }
+      const SB=_ngBBox(S), W=Math.max(1e-6,SB.b[0]-SB.a[0]), Dp=Math.max(1e-6,SB.b[2]-SB.a[2]), Hh=Math.max(1e-6,SB.b[1]-SB.a[1]);
+      const nc=o.count|0, nr=o.rows|0, sx=W*o.gap, sz=Dp*o.rgap, V=[], F=[];
+      const ax=o.axis==="x"?[1,0,0]:o.axis==="z"?[0,0,1]:[0,1,0];
+      const rot=(v,a)=>{ const c=Math.cos(a), s2=Math.sin(a), d=ax[0]*v[0]+ax[1]*v[1]+ax[2]*v[2]; return [v[0]*c+(ax[1]*v[2]-ax[2]*v[1])*s2+ax[0]*d*(1-c), v[1]*c+(ax[2]*v[0]-ax[0]*v[2])*s2+ax[1]*d*(1-c), v[2]*c+(ax[0]*v[1]-ax[1]*v[0])*s2+ax[2]*d*(1-c)]; };
+      const ph=o.phase*D2R;
+      for(let j=0;j<nr;j++) for(let i=0;i<nc;i++){
+        const u=nc>1?i/(nc-1):0.5, v=nr>1?j/(nr-1):0.5, x=(i-(nc-1)/2)*sx, z=(j-(nr-1)/2)*sz;
+        let k;   // pattern value −1..1
+        if(o.pat==="twist") k=u*2-1;
+        else if(o.pat==="ripple"){ const R=Math.hypot(((nc-1)/2)*sx,((nr-1)/2)*sz)||1, r=Math.hypot(x,z)/R; k=Math.sin(r*o.freq*Math.PI*2-ph); }
+        else if(o.pat==="double") k=Math.sin(u*o.freq*Math.PI*2+ph)*Math.cos(v*o.freq*Math.PI*2);
+        else if(o.pat==="random") k=rnd()*2-1;
+        else k=Math.sin(u*o.freq*Math.PI*2+ph+j*o.rphase*D2R);
+        const a=k*o.amp*D2R, sc=Math.max(0.05,1+o.scl*k), y=o.lift*k*Hh*0.5, b0=V.length;
+        for(const p of S.verts){ const q=rot([p[0]*sc,p[1]*sc,p[2]*sc],a); V.push([q[0]+x,q[1]+y,q[2]+z]); }
+        for(const f of S.faces) F.push(f.map(t=>t+b0)); }
+      this.info=(nc*nr)+" copies · "+(F.length/1e3).toFixed(1)+"k faces";
+      return F.length?{verts:V,faces:F}:null; } },
+
+  ngTilt:{ label:"Tilt grid", title:"Tilt grid — tiles that tilt in their frames", desc:"A grid of extruded tiles (hexagons, squares, triangles, little houses…) where every block tilts and turns inside its own cell, driven by a pattern — like folded-paper relief walls. Use <b>On this model's faces</b> to tile any surface.",
+    params:[{sel:"on",l:"Tiles on",opts:[["grid","A flat grid"],["model","This model's faces"]]},{sel:"face",l:"Grid stands",opts:[["wall","Upright, like a wall relief"],["floor","Flat on the floor"]]},
+      {sel:"shape",l:"Tile shape",opts:[["hex","Hexagon"],["square","Square"],["tri","Triangle"],["oct","Octagon"],["round","Round"],["house","House (gable)"]]},
+      {sel:"mode",l:"Pattern",opts:[["dome","Tilt toward the centre"],["burst","Tilt away from the centre"],["wave","Ripple"],["swirl","Swirl"],["linear","One direction"],["random","Random"]]},
+      ["cols","Columns",3,60,1,15],["rows","Rows",3,60,1,15],["gap","Gap between tiles",0,0.6,0.01,0.08],
+      ["tilt","Tilt (degrees)",0,70,1,28],["spin","Turn in the frame (degrees)",0,180,1,0],["height","Height",0.02,2,0.01,0.3],["hvar","Height change to the edge",-1,1,0.05,-0.5],
+      ["shrink","Shrink toward the edge",0,1,0.05,0.55],["fall","Pattern falloff",0.2,3,0.05,1],["freq","Ripple / swirl count",0.5,8,0.25,2],["seed","Seed",1,200,1,7],
+      {chk:"circle",l:"Round outline (drop the corners)",def:true}],
+    build(o,m){
+      const V=[], F=[], rnd=_ngRng(o.seed), D2R=Math.PI/180;
+      const shapeN={hex:6,square:4,tri:3,oct:8,round:16,house:5}[o.shape]||6;
+      // unit outline in the cell's own (u,v) frame, radius 1
+      const outline=()=>{ if(o.shape==="house") return [[-0.8,-0.8],[0.8,-0.8],[0.8,0.25],[0,1],[-0.8,0.25]];
+        const off=o.shape==="square"||o.shape==="oct"?Math.PI/shapeN:(o.shape==="hex"?Math.PI/6:-Math.PI/2); const P=[]; for(let i=0;i<shapeN;i++){ const a=off+i/shapeN*Math.PI*2; P.push([Math.cos(a),Math.sin(a)]); } return P; };
+      const OUT=outline();
+      // one block: base outline on the cell plane, top = same outline tilted about the cell centre and raised along the normal
+      const block=(c,U,W,N,r,h,tiltAxis,tiltA,spin)=>{ const n=OUT.length, cs=Math.cos(spin), sn=Math.sin(spin);
+        const loc=OUT.map(([x,y])=>[(x*cs-y*sn)*r,(x*sn+y*cs)*r]);
+        const rot=(v,ax,a)=>{ const c2=Math.cos(a), s2=Math.sin(a), d=ax[0]*v[0]+ax[1]*v[1]+ax[2]*v[2]; return [v[0]*c2+(ax[1]*v[2]-ax[2]*v[1])*s2+ax[0]*d*(1-c2), v[1]*c2+(ax[2]*v[0]-ax[0]*v[2])*s2+ax[1]*d*(1-c2), v[2]*c2+(ax[0]*v[1]-ax[1]*v[0])*s2+ax[2]*d*(1-c2)]; };
+        const b0=V.length;
+        for(const [x,y] of loc) V.push([c[0]+U[0]*x+W[0]*y, c[1]+U[1]*x+W[1]*y, c[2]+U[2]*x+W[2]*y]);
+        const top=[c[0]+N[0]*h,c[1]+N[1]*h,c[2]+N[2]*h];
+        for(const [x,y] of loc){ const d=rot([U[0]*x+W[0]*y,U[1]*x+W[1]*y,U[2]*x+W[2]*y],tiltAxis,tiltA); V.push([top[0]+d[0],top[1]+d[1],top[2]+d[2]]); }
+        // keep the tilted top above the base everywhere (tall side never dips under the board)
+        let lo=1e9; for(let k=0;k<n;k++){ const t=V[b0+n+k], q=V[b0+k]; const dz=(t[0]-q[0])*N[0]+(t[1]-q[1])*N[1]+(t[2]-q[2])*N[2]; if(dz<lo) lo=dz; }
+        const lift=Math.max(0,h*0.15-lo); if(lift>0) for(let k=0;k<n;k++){ const t=V[b0+n+k]; t[0]+=N[0]*lift; t[1]+=N[1]*lift; t[2]+=N[2]*lift; }
+        F.push([...Array(n).keys()].map(k=>b0+n-1-k));             // bottom (faces the board)
+        F.push([...Array(n).keys()].map(k=>b0+n+k));               // tilted top
+        for(let k=0;k<n;k++){ const k1=(k+1)%n; F.push([b0+k,b0+k1,b0+n+k1,b0+n+k]); } };
+      // pattern: tilt direction (in-plane unit vector), amount 0..1, height factor, spin
+      const pat=(px,py,R)=>{ const r=Math.min(1,Math.hypot(px,py)/(R||1)), t=Math.pow(r,o.fall), ang=Math.atan2(py,px);
+        let dir=[Math.cos(ang),Math.sin(ang)], amt=t;
+        if(o.mode==="dome") dir=[-dir[0],-dir[1]];
+        else if(o.mode==="wave"){ amt=Math.sin(r*o.freq*Math.PI*2); }
+        else if(o.mode==="swirl"){ dir=[-Math.sin(ang+r*o.freq*Math.PI),Math.cos(ang+r*o.freq*Math.PI)]; }
+        else if(o.mode==="linear"){ dir=[1,0]; amt=0.5+0.5*Math.sin((px/(R||1))*o.freq*Math.PI); }
+        else if(o.mode==="random"){ const a=rnd()*Math.PI*2; dir=[Math.cos(a),Math.sin(a)]; amt=rnd(); }
+        return {dir,amt,r}; };
+      let cells=0;
+      if(o.on==="model"&&m&&m.faces&&m.faces.length){
+        const B=_ngBBox(m), Rm=B.s/2||1;
+        for(const f of m.faces){ if(f.length<3) continue; const P=f.map(i=>m.verts[i]); const c=[0,0,0]; P.forEach(p=>{ c[0]+=p[0]; c[1]+=p[1]; c[2]+=p[2]; }); c[0]/=P.length; c[1]/=P.length; c[2]/=P.length;
+          let N=[0,0,0]; for(let i=0;i<P.length;i++){ const a=P[i], b=P[(i+1)%P.length]; N[0]+=(a[1]-b[1])*(a[2]+b[2]); N[1]+=(a[2]-b[2])*(a[0]+b[0]); N[2]+=(a[0]-b[0])*(a[1]+b[1]); }
+          const nl=Math.hypot(...N)||1; N=N.map(x=>x/nl); let U=[P[0][0]-c[0],P[0][1]-c[1],P[0][2]-c[2]]; const ul=Math.hypot(...U)||1; U=U.map(x=>x/ul); const W=[N[1]*U[2]-N[2]*U[1],N[2]*U[0]-N[0]*U[2],N[0]*U[1]-N[1]*U[0]];
+          let rin=1e9; for(let i=0;i<P.length;i++){ const a=P[i], b=P[(i+1)%P.length], e=[b[0]-a[0],b[1]-a[1],b[2]-a[2]], el=Math.hypot(...e)||1, w=[c[0]-a[0],c[1]-a[1],c[2]-a[2]]; const t=(w[0]*e[0]+w[1]*e[1]+w[2]*e[2])/el/el, q=[a[0]+e[0]*t-c[0],a[1]+e[1]*t-c[1],a[2]+e[2]*t-c[2]]; rin=Math.min(rin,Math.hypot(...q)); }
+          const lp=[(c[0]-B.c[0]),(c[2]-B.c[2])], pp=pat(lp[0],lp[1],Rm), sc=Math.max(0.05,1-o.shrink*Math.pow(pp.r,2)), r=rin*(1-o.gap)*sc;
+          const h=Math.max(0.005,o.height*Rm*0.25*(1+o.hvar*pp.r)), td=[U[0]*pp.dir[0]+W[0]*pp.dir[1],U[1]*pp.dir[0]+W[1]*pp.dir[1],U[2]*pp.dir[0]+W[2]*pp.dir[1]];
+          const ax=[N[1]*td[2]-N[2]*td[1],N[2]*td[0]-N[0]*td[2],N[0]*td[1]-N[1]*td[0]], al=Math.hypot(...ax)||1;
+          block(c,U,W,N,r,h,ax.map(x=>x/al),-o.tilt*D2R*pp.amt,o.spin*D2R*pp.r); cells++; }
+        this.info=cells+" tiles on the model's faces"; return F.length?{verts:V,faces:F}:null; }
+      // flat grid on the XZ plane, tiles face up (+Y)
+      const nC=o.cols|0, nR=o.rows|0, hexGrid=o.shape==="hex"||o.shape==="round"||o.shape==="oct";
+      const dx=hexGrid?Math.sqrt(3):2, dy=hexGrid?1.5:2, triGrid=o.shape==="tri";
+      const W0=(nC-1)*dx, H0=(nR-1)*dy, R=Math.max(W0,H0)/2||1;
+      for(let j=0;j<nR;j++) for(let i=0;i<nC;i++){
+        let px=i*dx-W0/2+(hexGrid&&(j%2)?dx/2:0), py=j*dy-H0/2;
+        if(o.circle&&Math.hypot(px,py)>R*1.02) continue;
+        const pp=pat(px,py,R), sc=Math.max(0.05,1-o.shrink*Math.pow(pp.r,2)), r=(hexGrid?1:1)*(1-o.gap)*sc;
+        const h=Math.max(0.02,o.height*4*(1+o.hvar*pp.r));
+        const wall=o.face!=="floor", c=wall?[px,py,0]:[px,0,py], U=[1,0,0], W=wall?[0,1,0]:[0,0,-1], N=wall?[0,0,1]:[0,1,0], td=wall?[pp.dir[0],pp.dir[1],0]:[pp.dir[0],0,-pp.dir[1]];
+        const ax=[N[1]*td[2]-N[2]*td[1],N[2]*td[0]-N[0]*td[2],N[0]*td[1]-N[1]*td[0]], al=Math.hypot(...ax)||1;
+        let spin=o.spin*D2R*pp.r; if(triGrid&&((i+j)%2)) spin+=Math.PI;
+        block(c,U,W,N,r,h,ax.map(x=>x/al),-o.tilt*D2R*pp.amt,spin); cells++; }
+      this.info=cells+" tiles · "+(F.length/1e3).toFixed(1)+"k faces"; return F.length?{verts:V,faces:F}:null; } },
+
   ngField:{ label:"Field lines", title:"Field lines — magnetic poles", desc:"Field lines run out of every <b>north (+)</b> pole and curve into the <b>south (−)</b> poles, like iron filings around magnets. <b>Drag a pole</b> to move it, drag its <b>orange knob</b> to make it stronger or weaker, and <b>click a pole</b> to flip it between north and south.",
     params:[{sel:"dim",l:"Space",opts:[["3d","3D — lines in space"],["2d","2D — lines in a flat plane"]]},
-      {sel:"layout",l:"Poles",opts:[["random","Scattered"],["dipole","Bar magnet (one N, one S)"],["quad","Four poles (quadrupole)"],["ring","Ring of alternating poles"],["model","At this model's corners (alternating)"]]},
-      ["poles","Number of poles",2,20,1,6],["bal","North share",0,1,0.05,0.5],["lines","Lines per pole",2,64,1,16],["thick","Line thickness",0.002,0.06,0.001,0.012],["sides","Line sides",3,12,1,5],["reach","Reach (how far lines run)",1,6,0.1,2.4],["seed","Seed",1,200,1,7],
-      {chk:"arrows",l:"Arrows along the lines",def:true},{chk:"balls",l:"Pole spheres",def:true}],
+      {sel:"layout",l:"Poles",opts:[["random","Scattered"],["dipole","Bar magnet (one N, one S)"],["quad","Four poles (quadrupole)"],["ring","Ring of alternating poles"],["model","At this model's corners (alternating)"],["custom","Picked vertices (use the buttons below)"]]},
+      ["poles","Number of poles",2,20,1,6],["bal","North share",0,1,0.05,0.5],
+      {sel:"style",l:"Line style",opts:[["pipe","Pipes"],["line","Curves (degree-3 splines, like Rhino)"],["handle","Handles (like the Handle tool)"]]},["lines","Lines per pole",2,64,1,16],["thick","Line thickness",0.002,0.06,0.001,0.012],["sides","Line sides",3,12,1,5],["reach","Reach (how far lines run)",1,6,0.1,2.4],["seed","Seed",1,200,1,7],
+      ["swidth","Start width (at the north pole)",0.1,4,0.05,1],["taper","Taper (1 = comes to a point at the end)",0,1,0.01,0],["hwidth","Handles — width at the poles",0.5,8,0.1,3],["hpinch","Handles — pinch",0.05,1.6,0.05,0.85],["htwist","Handles — twist (corner steps)",-6,6,1,0],
+      {chk:"arrows",l:"Arrows along the lines",def:false},{chk:"balls",l:"Pole spheres",def:true},{chk:"handles",l:"Show pole handles (drag to edit)",def:true}],
     makePoles(o,m){ const r=_ngRng(o.seed), P=[], n=o.poles|0, flat=o.dim==="2d", z=()=>flat?0:(r()*2-1);
-      if(o.layout==="dipole"){ P.push({c:[-0.5,0,0],q:1},{c:[0.5,0,0],q:-1}); }
+      if(o.layout==="custom"){ return []; }
+      else if(o.layout==="dipole"){ P.push({c:[-0.5,0,0],q:1},{c:[0.5,0,0],q:-1}); }
       else if(o.layout==="quad"){ P.push({c:[-0.5,0.5,0],q:1},{c:[0.5,0.5,0],q:-1},{c:[0.5,-0.5,0],q:1},{c:[-0.5,-0.5,0],q:-1}); }
       else if(o.layout==="ring"){ const k=Math.max(2,n+(n%2)); for(let i=0;i<k;i++){ const a=i/k*Math.PI*2; P.push({c:[Math.cos(a)*0.75,Math.sin(a)*0.75,0],q:i%2?-1:1}); } }
       else if(o.layout==="model"&&m&&m.verts&&m.verts.length){ const B=_ngBBox(m), sc=2/(Math.max(B.b[0]-B.a[0],B.b[1]-B.a[1],B.b[2]-B.a[2],1e-9)), step=Math.max(1,Math.floor(m.verts.length/Math.min(40,Math.max(n,m.verts.length))));
@@ -12032,9 +12198,9 @@ const NEWGEN={
       else { for(let i=0;i<n;i++) P.push({c:[r()*2-1,r()*1.6-0.8,z()*0.8],q:0}); const np=Math.max(1,Math.min(n-1,Math.round(n*o.bal))); P.forEach((p,i)=>p.q=(i<np?1:-1)*(0.6+r()*0.8)); }
       return P; },
     build(o,m){
-      const flat=o.dim==="2d", key=[o.dim,o.layout,o.poles,o.bal,o.seed,o.layout==="model"&&m?m.verts.length:0].join("|");
+      const flat=o.dim==="2d", key=o.layout==="custom"?"custom":[o.dim,o.layout,o.poles,o.bal,o.seed,o.layout==="model"&&m?m.verts.length:0].join("|");
       if(!this.poles||this._key!==key){ this.poles=this.makePoles(o,m); this._key=key; }
-      const P=this.poles; if(!P.length) return null;
+      const P=this.poles; if(!P.length){ this.info="No poles yet — select vertices and press North (+) / South (−)"; return null; }
       if(flat) P.forEach(p=>p.c[2]=0);
       const R0=0.045, LIM=o.reach, V=[], F=[], tr=o.thick, sides=o.sides|0, pw=flat?1:2;
       const field=(x,y,z)=>{ let ex=0,ey=0,ez=0; for(const p of P){ const dx=x-p.c[0], dy=y-p.c[1], dz=z-p.c[2], r2=dx*dx+dy*dy+dz*dz+1e-9, k=p.q/Math.pow(r2,(pw+1)/2); ex+=dx*k; ey+=dy*k; ez+=dz*k; } return [ex,ey,ez]; };
@@ -12057,7 +12223,31 @@ const NEWGEN={
       P.forEach((p,i)=>{ if(p.q>=0) return; const want=Math.max(1,Math.round(o.lines*-p.q/qmax)), n=want-arrived[i]; if(n<=0) return;
         for(const s0 of seeds(p,n)){ const t=trace(s0,-1,i); t.pts.unshift(p.c.slice()); lines.push(t.pts.reverse()); } });
       let nl=0;
-      for(const L of lines){ if(L.length<3) continue; nl++; TM.sweepTube(L,tr,sides,V,F);
+      const prof=t=>o.swidth+((1-o.taper)-o.swidth)*t;   // width along the line: start width at the north end → (1 − taper) at the south end
+      const handleSweep=L=>{ // each field line as a TopMod-style handle: full width at the poles, pinched in the middle, the n-gon turning k corners along the way
+        const n=L.length, sub=(a,b)=>[a[0]-b[0],a[1]-b[1],a[2]-b[2]], nrm=a=>{ const l=Math.hypot(a[0],a[1],a[2])||1; return [a[0]/l,a[1]/l,a[2]/l]; }, crs=(a,b)=>[a[1]*b[2]-a[2]*b[1],a[2]*b[0]-a[0]*b[2],a[0]*b[1]-a[1]*b[0]], dt=(a,b)=>a[0]*b[0]+a[1]*b[1]+a[2]*b[2];
+        let len=[0]; for(let i=1;i<n;i++) len.push(len[i-1]+Math.hypot(...sub(L[i],L[i-1]))); const tot=len[n-1]||1;
+        const T=L.map((p,i)=>nrm(sub(L[Math.min(n-1,i+1)],L[Math.max(0,i-1)]))); let u=Math.abs(T[0][1])<0.9?[0,1,0]:[1,0,0]; u=nrm(crs(T[0],u));
+        const base=V.length, ns=sides, w0=tr*o.hwidth, turn=Math.round(o.htwist)*Math.PI*2/ns;
+        for(let i=0;i<n;i++){ if(i>0){ const pr=dt(u,T[i]); u=nrm([u[0]-T[i][0]*pr,u[1]-T[i][1]*pr,u[2]-T[i][2]*pr]); }
+          const t=len[i]/tot, r=Math.max(w0*1e-3,w0*(1-(1-o.hpinch)*Math.sin(Math.PI*t))*prof(t)), w=crs(T[i],u), tw=t*turn;
+          for(let k=0;k<ns;k++){ const a=k/ns*Math.PI*2+tw, c=Math.cos(a)*r, d=Math.sin(a)*r; V.push([L[i][0]+u[0]*c+w[0]*d, L[i][1]+u[1]*c+w[1]*d, L[i][2]+u[2]*c+w[2]*d]); } }
+        for(let i=0;i+1<n;i++) for(let k=0;k<ns;k++){ const a=base+i*ns+k, b=base+i*ns+(k+1)%ns; F.push([a,b,b+ns,a+ns]); }
+        const c0=[], c1=[]; for(let k=0;k<ns;k++){ c0.push(base+k); c1.push(base+(n-1)*ns+k); } F.push(c0.reverse(), c1); };
+      // smooth degree-3 B-spline through a thinned set of control points (clamped, uniform knots) — what Rhino calls a degree-3 curve
+      const bsp=L=>{ const C=[L[0]]; let acc=0; for(let i=1;i<L.length-1;i++){ acc+=Math.hypot(L[i][0]-L[i-1][0],L[i][1]-L[i-1][1],L[i][2]-L[i-1][2]); if(acc>0.07){ C.push(L[i]); acc=0; } } C.push(L[L.length-1]);
+        while(C.length<4) C.splice(1,0,[(C[0][0]+C[1][0])/2,(C[0][1]+C[1][1])/2,(C[0][2]+C[1][2])/2]);
+        const n=C.length, p=3, K=[]; for(let i=0;i<=n+p;i++) K.push(i<=p?0:(i>=n?n-p:i-p)); const kmax=n-p;
+        const ev=t=>{ let k=p; while(k<n-1&&t>=K[k+1]) k++; const d=[]; for(let j=0;j<=p;j++) d.push(C[k-p+j].slice());
+          for(let r=1;r<=p;r++) for(let j=p;j>=r;j--){ const i=k-p+j, den=K[i+p-r+1]-K[i], a=den>0?(t-K[i])/den:0; for(let q=0;q<3;q++) d[j][q]=(1-a)*d[j-1][q]+a*d[j][q]; } return d[p]; };
+        const pts=[]; const N=Math.max(8,(n-3)*8); for(let i=0;i<=N;i++) pts.push(ev(Math.min(kmax-1e-9,i/N*kmax)));
+        return {ctrl:C, knots:K, pts}; };
+      const curves=[];
+      for(const L of lines){ if(L.length<3) continue; nl++;
+        if(o.style==="line") curves.push(bsp(L));
+        else if(o.style==="handle") handleSweep(L);
+        else { const len=[0]; for(let i=1;i<L.length;i++) len.push(len[i-1]+Math.hypot(L[i][0]-L[i-1][0],L[i][1]-L[i-1][1],L[i][2]-L[i-1][2])); const tot=len[len.length-1]||1;
+          TM.sweepTube(L, len.map(d=>Math.max(tr*1e-3,tr*prof(d/tot))), sides, V, F); }
         if(o.arrows){ let acc=0; for(let k=1;k<L.length-1;k++){ const a=L[k-1], b=L[k]; acc+=Math.hypot(b[0]-a[0],b[1]-a[1],b[2]-a[2]); if(acc>0.28&&k<L.length-3){ acc=0;
             let t=[L[k+1][0]-a[0],L[k+1][1]-a[1],L[k+1][2]-a[2]]; const tl=Math.hypot(t[0],t[1],t[2])||1; t=t.map(v=>v/tl);
             let u=Math.abs(t[1])<0.9?[0,1,0]:[1,0,0]; let w=[t[1]*u[2]-t[2]*u[1],t[2]*u[0]-t[0]*u[2],t[0]*u[1]-t[1]*u[0]]; const wl=Math.hypot(...w)||1; w=w.map(v=>v/wl); u=[w[1]*t[2]-w[2]*t[1],w[2]*t[0]-w[0]*t[2],w[0]*t[1]-w[1]*t[0]];
@@ -12065,7 +12255,7 @@ const NEWGEN={
             for(let j=0;j<ns;j++){ const ang=j/ns*Math.PI*2, ca=Math.cos(ang)*ar, sa=Math.sin(ang)*ar; V.push([b[0]+u[0]*ca+w[0]*sa-t[0]*al*0.4, b[1]+u[1]*ca+w[1]*sa-t[1]*al*0.4, b[2]+u[2]*ca+w[2]*sa-t[2]*al*0.4]); }
             V.push([b[0]+t[0]*al*0.6,b[1]+t[1]*al*0.6,b[2]+t[2]*al*0.6]); const tip=V.length-1;
             for(let j=0;j<ns;j++) F.push([base0+j,base0+(j+1)%ns,tip]); F.push([...Array(ns).keys()].map(j=>base0+ns-1-j)); } } } }
-      if(o.balls){ for(const p of P){ const r=R0*(0.75+0.35*Math.min(2,Math.abs(p.q))), st=6, sl=10, b0=V.length;
+      if(o.balls||o.style==="line"){ for(const p of P){ const r=R0*(o.balls?1:0.35)*(0.75+0.35*Math.min(2,Math.abs(p.q))), st=6, sl=10, b0=V.length;
           V.push([p.c[0],p.c[1]+r,p.c[2]]); for(let i=1;i<st;i++){ const th=i/st*Math.PI; for(let j=0;j<sl;j++){ const ph=j/sl*Math.PI*2; V.push([p.c[0]+r*Math.sin(th)*Math.cos(ph),p.c[1]+r*Math.cos(th),p.c[2]+r*Math.sin(th)*Math.sin(ph)]); } } V.push([p.c[0],p.c[1]-r,p.c[2]]);
           const id=(i,j)=>b0+1+(i-1)*sl+(j%sl), bot=V.length-1;
           for(let j=0;j<sl;j++) F.push([b0,id(1,j+1),id(1,j)]);
@@ -12073,8 +12263,8 @@ const NEWGEN={
           for(let j=0;j<sl;j++) F.push([id(st-1,j),id(st-1,j+1),bot]); } }
       if(!F.length) return null;
       const nN=P.filter(p=>p.q>0).length;
-      this.info=nl+" field lines · "+nN+" N · "+(P.length-nN)+" S"+(flat?" · 2D":" · 3D");
-      return {verts:V, faces:F}; } }
+      this.info=nl+" field lines"+(curves.length?" (degree-3 curves)":"")+" · "+nN+" N · "+(P.length-nN)+" S"+(flat?" · 2D":" · 3D");
+      const out={verts:V, faces:F}; if(curves.length) out.curves=curves; return out; } }
 };
 let ngActive=null, ngTimer=0, ngBase=null;
 function ngValues(op){ const G=NEWGEN[op], o={}; for(const p of G.params){ if(Array.isArray(p)){ const v=P("#ng_"+p[0]); o[p[0]]=isFinite(v)?v:p[5]; } else if(p.sel){ o[p.sel]=($("#ng_"+p.sel)||{}).value; } else if(p.chk){ const c=$("#ng_"+p.chk); o[p.chk]=c?c.checked:p.def; } } return o; }
@@ -12103,7 +12293,7 @@ function ngOpen(op){
   $("#hint")&&($("#hint").textContent=G.title+" — change any setting to regenerate; Apply adds it to the modifier stack.");
   ngCompute(); }
 function ngClose(commit){ if(!ngActive) return; const op=ngActive, G=NEWGEN[op]; ngActive=null; clearTimeout(ngTimer); try{ window.__fieldClear&&window.__fieldClear(); }catch(e){} rebuild();
-  if(commit&&_genToStack(NG_MOD_KEY(op), ngModFromVals(G,G._lastVals||{}), G.label)) return;
+  if(commit){ const pp=ngModFromVals(G,G._lastVals||{}); try{ G.toMod&&G.toMod(pp); }catch(e){} if(_genToStack(NG_MOD_KEY(op), pp, G.label)) return; }
   if(commit){ const g=G.last; if(g&&g.faces&&g.faces.length){ addLayer({verts:g.verts.map(v=>v.slice()),faces:g.faces.map(f=>f.slice())},false); try{ layers[activeLayer].name=G.label; renderLayerList&&renderLayerList(); }catch(e){} toast&&toast(G.label+" → new layer"); } else toast&&toast("Nothing to keep yet",true); } }
 window.__newgen={ NEWGEN, ngValues };
 /* New-category generators + Coral as live modifiers: each one regenerates from the incoming mesh (base + modifiers above it).
@@ -12142,13 +12332,41 @@ function ngParamsToMod(G){ return G.params.map(p=>Array.isArray(p)? {k:p[0],l:p[
 function ngValsFromMod(G,pp){ const o={}; G.params.forEach(p=>{ if(Array.isArray(p)){ const v=+pp[p[0]]; o[p[0]]=isFinite(v)?v:p[5]; }
   else if(p.sel){ const i=Math.max(0,Math.min(p.opts.length-1,Math.round(+pp[p.sel]||0))); o[p.sel]=p.opts[i][0]; } else if(p.chk) o[p.chk]=!!pp[p.chk]; }); return o; }
 function ngModFromVals(G,o){ const pp={}; G.params.forEach(p=>{ if(Array.isArray(p)) pp[p[0]]=+o[p[0]]; else if(p.sel){ const i=p.opts.findIndex(x=>x[0]===o[p.sel]); pp[p.sel]=i<0?0:i; } else if(p.chk) pp[p.chk]=!!o[p.chk]; }); return pp; }
-const _ngUsesInput=o=>o.layout==="model"||o.shape==="model"||o.from==="surface"||o.dom==="inside"||o.dom==="surface"||/^(in|on):/.test(o.dom||"")||o.box==="inside"||/^in:/.test(o.box||"")||o.shape==="fill"||/^fill:/.test(o.shape||"");
+const _ngUsesInput=o=>o.layout==="model"||o.on==="model"||o.src==="layer"||o.shape==="model"||o.from==="surface"||o.dom==="inside"||o.dom==="surface"||/^(in|on):/.test(o.dom||"")||o.box==="inside"||/^in:/.test(o.box||"")||o.shape==="fill"||/^fill:/.test(o.shape||"");
 for(const op in NEWGEN){ const G=NEWGEN[op];
   MODS[NG_MOD_KEY(op)]={label:G.label, grp:"Generate", heavy:true, params:ngParamsToMod(G),
     apply:(m,pp)=>{ const o=ngValsFromMod(G,pp); const g=G.build.call(G,o,m); if(!g||!g.faces||!g.faces.length) return m;
       if(!_ngUsesInput(o)) return _genFit(g,m);
       if((o.shape==="model"||o.from==="surface")&&m&&m.faces.length){ const off=g.verts.length; return {verts:g.verts.concat(m.verts.map(v=>v.slice())), faces:g.faces.concat(m.faces.map(f=>f.map(i=>i+off)))}; }
       return g; } }; }
+// Field lines + Relief as live modifiers: the modifier keeps its own poles (draggable while editing it) / its own picture
+NEWGEN.ngField.toMod=function(pp){ if(this.poles){ pp.poleData=JSON.parse(JSON.stringify(this.poles)); pp.poleKey=this._key; } };
+NEWGEN.ngRelief.toMod=function(pp){ if(!this.img) return; const iw=this.img.naturalWidth||this.img.width, ih=this.img.naturalHeight||this.img.height, k=Math.min(1,480/Math.max(iw,ih));
+  const c=document.createElement("canvas"); c.width=Math.max(1,Math.round(iw*k)); c.height=Math.max(1,Math.round(ih*k)); c.getContext("2d").drawImage(this.img,0,0,c.width,c.height); pp.imgData=c.toDataURL("image/png"); pp.imgName=this.imgName||""; };
+const _relImgCache=new Map();
+(function(){
+  const FK=NG_MOD_KEY("ngField"), RK=NG_MOD_KEY("ngRelief"), GF=NEWGEN.ngField, GR=NEWGEN.ngRelief;
+  const fit=(g,m)=>{ const bb=V=>{ const a=[1e9,1e9,1e9], b=[-1e9,-1e9,-1e9]; for(const v of V) for(let d=0;d<3;d++){ if(v[d]<a[d])a[d]=v[d]; if(v[d]>b[d])b[d]=v[d]; } return [a,b]; };
+    const [ga,gb]=bb(g.verts), [ma,mb]=bb(m.verts), gs=Math.max(gb[0]-ga[0],gb[1]-ga[1],gb[2]-ga[2])||1, ms=Math.max(mb[0]-ma[0],mb[1]-ma[1],mb[2]-ma[2])||gs, k=ms/gs;
+    const gc=[0,1,2].map(d=>(ga[d]+gb[d])/2), mc=[0,1,2].map(d=>(ma[d]+mb[d])/2); return {gc,mc,k}; };
+  if(MODS[FK]){ MODS[FK].grp="Simulate"; MODS[FK].apply=(m,pp)=>{ const o=ngValsFromMod(GF,pp), key=o.layout==="custom"?"custom":[o.dim,o.layout,o.poles,o.bal,o.seed,o.layout==="model"&&m?m.verts.length:0].join("|");
+      const saveP=GF.poles, saveK=GF._key;
+      if(pp.poleData&&pp.poleKey===key){ GF.poles=JSON.parse(JSON.stringify(pp.poleData)); GF._key=key; } else { GF.poles=null; GF._key=null; }
+      let g=null; try{ g=GF.build.call(GF,o,m); }catch(e){}
+      const P=GF.poles; GF.poles=saveP; GF._key=saveK;
+      if(!g||!g.faces||!g.faces.length) return m;
+      if(P){ const js=JSON.stringify(P); if(js!==JSON.stringify(pp.poleData||null)){ pp.poleData=JSON.parse(js); pp.poleKey=key; } }
+      if(o.layout==="model"||o.layout==="custom"||!m||!m.verts||!m.verts.length){ pp._fit=null;   // poles sit on the model itself: keep the model and add the lines
+        if(!m||!m.verts||!m.verts.length) return g; const off=m.verts.length; const r={verts:m.verts.map(v=>v.slice()).concat(g.verts), faces:m.faces.map(f=>f.slice()).concat(g.faces.map(f=>f.map(i=>i+off)))}; if(g.curves) r.curves=g.curves; return r; }
+      const F=fit(g,m); pp._fit=F; const T=v=>[(v[0]-F.gc[0])*F.k+F.mc[0],(v[1]-F.gc[1])*F.k+F.mc[1],(v[2]-F.gc[2])*F.k+F.mc[2]];
+      const r={verts:g.verts.map(T), faces:g.faces}; if(g.curves) r.curves=g.curves.map(c=>({ctrl:c.ctrl.map(T), knots:c.knots, pts:c.pts.map(T)})); return r; }; }
+  if(MODS[RK]){ MODS[RK].grp="New"; MODS[RK].apply=(m,pp)=>{ const o=ngValsFromMod(GR,pp); let img=null;
+      if(pp.imgData){ img=_relImgCache.get(pp.imgData); if(!img){ img=new Image(); img._ok=false; img.onload=()=>{ img._ok=true; try{ layers.forEach(L=>{ L._evKey=null; }); rebuild(); }catch(e){} }; img.src=pp.imgData; _relImgCache.set(pp.imgData,img); } if(!img._ok) return m; }
+      const save=GR.img, saveN=GR.imgName; GR.img=img||null; GR.imgName=pp.imgName||""; let g=null; try{ g=GR.build.call(GR,o,m); }catch(e){} GR.img=save; GR.imgName=saveN;
+      if(!g||!g.faces||!g.faces.length) return m; return _genFit(g,m); }; }
+})();
+if(MODS[NG_MOD_KEY("ngTilt")]) MODS[NG_MOD_KEY("ngTilt")].grp="New";
+if(MODS[NG_MOD_KEY("ngTwist")]) MODS[NG_MOD_KEY("ngTwist")].grp="New";
 MODS.coral={label:"Coral", grp:"Generate", heavy:true,
   params:[{k:"from",l:"Grow from",opts:["A point","The ground (grows up)","This model's surface"],def:0},{k:"n",l:"Particles",min:50,max:20000,step:50,def:2500},{k:"conn",l:"Connections per node",min:2,max:8,step:1,def:3},
     {k:"sp",l:"Branch spacing",min:0.005,max:0.2,step:0.005,def:0.03},{k:"stick",l:"Stickiness",min:0.05,max:1,step:0.05,def:0.8},{k:"bias",l:"Up bias",min:0,max:1,step:0.05,def:0.15},
@@ -12730,7 +12948,7 @@ const OP_PARAMS={
   metaballs:["pMetaCount","pMetaRes","pMetaThresh","pMetaRadius","pMetaSeed","pMetaPts","pMetaLines","pMetaClosed","pMetaLineW","pMetaGum"],
   diffGrow:[],
   coral:[],
-  ngBranch:[], ngWfc:[], ngSlime:[], ngRD:[], ngCA:[], ngHyphae:[], ngTerrain:[], ngOrigami:[], ngRelief:[], ngField:[],
+  ngBranch:[], ngWfc:[], ngSlime:[], ngRD:[], ngCA:[], ngHyphae:[], ngTerrain:[], ngOrigami:[], ngRelief:[], ngField:[], ngTilt:[], ngTwist:[],
   tfMeasure:[],
   menger:["pMenger"], gyroid:["pGyro","pGyroRes","pGyroBox"], hybrid:["pHybInset","pHybCluster"], sierpinski:["pSierp","pSierpSep","pSierpGap"], scale:["pScale"],
   mirror:["pMirrorAxis","pMirrorCopy"],
@@ -13201,7 +13419,7 @@ $("#snapToggle")&&$("#snapToggle").addEventListener("click",()=>{ snapToGrid=!sn
   }
 }
 function closeToolPop(){
-  if(!tpState) return; toolReplaceId=null;
+  if(!tpState) return; toolReplaceId=null; setTimeout(()=>{ try{ window.__fieldModSync&&window.__fieldModSync(); }catch(e){} },0);
   { const b=document.getElementById("tpBody"); if(b) b.querySelectorAll(":scope > .smCtl").forEach(n=>n.remove()); }   // Simulate windows (Aero, Cloth, FEA…) don't leak into the next tool's Options { const _fl=$("#modFlatten"); if(_fl&&(tpState.op==="lattice"||tpState.op==="bejewel")) _fl.style.display=_fl.disabled?"none":""; }
   if(["slab","sliceEdges","laser"].indexOf(tpState.op)>=0){ setTimeout(()=>{ try{ window.__homeView&&window.__homeView(true); }catch(e){} },60); }   // leaving fabrication: come back from the zoomed-out parts view
   if(tpState.op==="scale") endScalePreview();
@@ -13330,6 +13548,7 @@ $$("[data-op]").filter(b=>!b.closest("#menubar")).forEach(b=>b.addEventListener(
     if(typeof isActiveLocked==="function" && isActiveLocked()){ toast&&toast("Layer is locked",true); return; }
     addModifier(OP_AS_MOD[op]); return;
   }
+  if(op==="ngField" && layersOn && layers[activeLayer] && !fabActive && !(typeof isActiveLocked==="function"&&isActiveLocked())){ addModifier("gen_ngField"); return; }   // Field lines lives in the modifier stack
   if(b.closest("#toolbar") && OP_PARAMS[op]){
     if(b.dataset.style){                                  // fab style preset (e.g. the Faces button)
       const ms=$("#mkPlyMode"); if(ms) ms.value=b.dataset.style;
@@ -17805,7 +18024,8 @@ window.__ek={applyWhole:applyWhole,ops:ops,snapshot:snapshot,rebuild:rebuild,toa
   // Bake lines: every streamline becomes a capped tube (parallel-transport frames), all on one new layer
   function aeroBake(){
     const B=A.baked; if(!B||!B.lines.length){ toast&&toast("Run Aero first — then bake its streamlines",true); return; }
-    const k=A.ctl?+A.ctl.querySelector("#aeBakeT").value||1:1, r=B.L*0.004*k, sides=5, minStep=Math.max(r*3,B.L*0.09), verts=[], faces=[];
+    const pipe=!!(A.ctl&&A.ctl.querySelector("#aePipe")&&A.ctl.querySelector("#aePipe").checked);
+    const k=A.ctl?+A.ctl.querySelector("#aeBakeT").value||1:1, r=pipe? B.L*0.004*k : B.L*0.0012, sides=pipe?12:3, minStep=pipe?Math.max(r*3,B.L*0.06):B.L*0.03, verts=[], faces=[];   // lines: hair-thin 3-sided strands that follow the flow closely · pipes: round tubes at the chosen thickness
     const sub=(a,b)=>[a[0]-b[0],a[1]-b[1],a[2]-b[2]], nrm=a=>{ const l=Math.hypot(a[0],a[1],a[2])||1; return [a[0]/l,a[1]/l,a[2]/l]; }, crs=(a,b)=>[a[1]*b[2]-a[2]*b[1],a[2]*b[0]-a[0]*b[2],a[0]*b[1]-a[1]*b[0]], dt=(a,b)=>a[0]*b[0]+a[1]*b[1]+a[2]*b[2];
     let tubes=0;
     for(const ln of B.lines){
@@ -17823,15 +18043,16 @@ window.__ek={applyWhole:applyWhole,ops:ops,snapshot:snapshot,rebuild:rebuild,toa
       tubes++; }
     if(!faces.length){ toast&&toast("No streamlines to bake",true); return; }
     addLayer({verts,faces}, false); try{ if(layers[activeLayer]) layers[activeLayer].name="Aero streamlines"; renderLayerList&&renderLayerList(); }catch(e){}
-    toast&&toast("Baked "+tubes+" streamlines → new layer");
+    toast&&toast("Baked "+tubes+" streamlines as "+(pipe?"pipes":"lines")+" → new layer");
   }
   function aeroOpen(){
     A.ctl=openPanel("aero","Aero — wind tunnel",
       '<div class="clS">Potential-flow solve on a voxel grid with a wake model — quick design feedback, not a CFD certification.</div>'
       +'<label class="clR"><span>Wind from</span><select id="aeDir"><option value="+x">−X → +X</option><option value="-x">+X → −X</option><option value="+z">−Z → +Z</option><option value="-z">+Z → −Z</option></select><em></em></label>'
-      +sl("aeRes","Resolution",32,110,2,64)+sl("aeLines","Streamlines",40,300,10,220)+sl("aeTurb","Wake swirl",0,1,0.01,0.45)
+      +sl("aeRes","Resolution",32,110,2,50)+sl("aeLines","Streamlines",10,300,10,100)+sl("aeTurb","Wake swirl",0,1,0.01,0.5)
       +'<label class="clC"><input type="checkbox" id="aeCp" checked> Surface pressure (Cp)</label><label class="clC"><input type="checkbox" id="aeAnim" checked> Animate flow</label>'
-      +sl("aeBakeT","Baked tube thickness",0.1,3,0.05,1)
+      +'<label class="clC"><input type="checkbox" id="aePipe"> Bake as pipes (round tubes) — off = thin lines</label>'
+      +sl("aeBakeT","Pipe thickness",0.1,3,0.05,1)
       +'<div class="clB"><button id="aeRun" class="pri">▶ Run</button><button id="aeBake" title="Turn the streamlines into solid tubes on a new layer">Bake lines</button><button id="aeClr">Clear</button></div><div class="clS" id="aeStats"></div>', ()=>{ aeroClear(); A.ctl=null; });
     if(!A.ctl) return;
     A.ctl.querySelector("#aeRun").onclick=aeroRun; A.ctl.querySelector("#aeClr").onclick=aeroClear; A.ctl.querySelector("#aeBake").onclick=aeroBake;
@@ -20349,17 +20570,33 @@ void main(){
 /* Push / pull handle: select face(s) and an arrow appears on their normal. Drag = push/pull (moves the faces along their normal); Shift+drag = extrude (new side walls). Live; release commits */
 (function(){
  const acc=()=>new THREE.Color(getComputedStyle(document.body).getPropertyValue("--tmAcc").trim()||"#00b4d8");
- const mat=new THREE.MeshBasicMaterial({color:0x00b4d8,depthTest:false,depthWrite:false,transparent:true,opacity:0.95}); mat.userData.tmOverlay=true;
+ const mat=new THREE.MeshBasicMaterial({color:0xffd23f,depthTest:false,depthWrite:false,transparent:true,opacity:0.95}); mat.userData.tmOverlay=true;   // yellow: stands apart from the cyan face selection
  const matHot=new THREE.MeshBasicMaterial({color:0xff8c22,depthTest:false,depthWrite:false,transparent:true,opacity:1}); matHot.userData.tmOverlay=true;
  const grp=new THREE.Group(); grp.visible=false; grp.renderOrder=1000;
- const shaft=new THREE.Mesh(new THREE.CylinderGeometry(0.035,0.035,1,12),mat); shaft.position.y=0.5; shaft.renderOrder=1000;
- const head=new THREE.Mesh(new THREE.ConeGeometry(0.11,0.3,20),mat); head.position.y=1.12; head.renderOrder=1000;
- const knob=new THREE.Mesh(new THREE.SphereGeometry(0.07,16,12),mat); knob.renderOrder=1000;
+ const shaft=new THREE.Mesh(new THREE.CylinderGeometry(0.022,0.022,1,12),mat); shaft.position.y=0.5; shaft.renderOrder=1000;
+ const head=new THREE.Mesh(new THREE.ConeGeometry(0.075,0.22,20),mat); head.position.y=1.1; head.renderOrder=1000;
+ const knob=new THREE.Mesh(new THREE.SphereGeometry(0.045,16,12),mat); knob.renderOrder=1000;
+ /* scale gumball on the face: red X / green Y / blue Z boxes (world axes) — drag a box to scale the face(s) along that axis, Shift+drag a box for uniform scale */
+ const sg=new THREE.Group(); sg.visible=false; sg.renderOrder=1000;
+ const SAX=[[new THREE.Vector3(1,0,0),0xff4d4d,"X"],[new THREE.Vector3(0,1,0),0x4dd96b,"Y"],[new THREE.Vector3(0,0,1),0x4d8dff,"Z"]];
+ SAX.forEach(([ax,col])=>{ const m=new THREE.MeshBasicMaterial({color:col,depthTest:false,depthWrite:false,transparent:true,opacity:0.95}); m.userData.tmOverlay=true;
+   const ln=new THREE.Mesh(new THREE.CylinderGeometry(0.01,0.01,0.6,6),m); ln.position.copy(ax.clone().multiplyScalar(0.3)); ln.quaternion.setFromUnitVectors(new THREE.Vector3(0,1,0),ax);
+   const cb=new THREE.Mesh(new THREE.BoxGeometry(0.075,0.075,0.075),m); cb.position.copy(ax.clone().multiplyScalar(0.62));
+   [ln,cb].forEach(o=>{ o.renderOrder=1000; o.raycast=()=>{}; sg.add(o); }); });
+ scene.add(sg);
  [shaft,head,knob].forEach(m=>{ m.raycast=()=>{}; grp.add(m); }); scene.add(grp);
  const tip=document.createElement("div"); tip.id="ppTip"; tip.style.cssText="position:fixed;z-index:46;display:none;transform:translate(-50%,-140%);pointer-events:none;font:700 11px var(--mono,monospace);color:#fff;background:rgba(10,14,20,.85);padding:2px 7px;border-radius:6px"; document.body.appendChild(tip);
  let key="", C=null, N=null, L=1, drag=null, only=null;
  const vec=a=>new THREE.Vector3(a[0],a[1],a[2]);
+ function selVerts(){ const set=new Set();
+   if(selMode==="face") for(const fi of sel.faces){ const f=mesh.faces[fi]; if(f) for(const vi of f) set.add(vi); }
+   else if(selMode==="edge") for(const k of sel.edges){ const [a,b]=String(k).split("_").map(Number); if(mesh.verts[a]) set.add(a); if(mesh.verts[b]) set.add(b); }
+   else if(selMode==="vert") for(const v of sel.verts) if(mesh.verts[v]) set.add(+v);
+   return [...set]; }
  function compute(){ const M=dispMesh(); const c=new THREE.Vector3(), n=new THREE.Vector3(), fns=[]; let cnt=0;
+   if(selMode!=="face"){ const vs=selVerts(); if(!vs.length) return false; for(const vi of vs) c.add(vec(mesh.verts[vi])); C=c.divideScalar(vs.length); N=new THREE.Vector3(0,1,0);
+     let mn=[1e9,1e9,1e9],mx=[-1e9,-1e9,-1e9]; for(const v of M.verts) for(let i=0;i<3;i++){ if(v[i]<mn[i]) mn[i]=v[i]; if(v[i]>mx[i]) mx[i]=v[i]; }
+     L=Math.max(mx[0]-mn[0],mx[1]-mn[1],mx[2]-mn[2],0.2)*0.2; return true; }
    const order=[...sel.faces]; only=null;
    const fnOf=fi=>{ const f=M.faces[fi]; if(!f||f.length<3) return null; const fn=new THREE.Vector3(); for(let i=0;i<f.length;i++){ const a=vec(M.verts[f[i]]), b=vec(M.verts[f[(i+1)%f.length]]); fn.x+=(a.y-b.y)*(a.z+b.z); fn.y+=(a.z-b.z)*(a.x+b.x); fn.z+=(a.x-b.x)*(a.y+b.y); } return fn.lengthSq()>0?fn.normalize():null; };
    /* faces pointing different ways (e.g. a second face clicked on another side): the arrow follows the most recently selected face */
@@ -20369,28 +20606,51 @@ void main(){
      if(fn.lengthSq()>0){ fn.normalize(); fns.push(fn.clone()); n.add(fn); } cnt++; }
    if(!cnt||n.lengthSq()<1e-12) return false; C=c.divideScalar(cnt); N=n.normalize();
    let mn=[1e9,1e9,1e9],mx=[-1e9,-1e9,-1e9]; for(const v of M.verts) for(let i=0;i<3;i++){ if(v[i]<mn[i]) mn[i]=v[i]; if(v[i]>mx[i]) mx[i]=v[i]; }
-   L=Math.max(mx[0]-mn[0],mx[1]-mn[1],mx[2]-mn[2],0.2)*0.32; return true; }
- function active(){ return selMode==="face"&&sel.faces.size>0&&!tpState&&!(window.__demo&&window.__demo.on&&window.__demo.on())&&!(typeof isActiveLocked==="function"&&isActiveLocked()); }
- function place(d){ const p=C.clone().addScaledVector(N,d||0); grp.position.copy(p); grp.quaternion.setFromUnitVectors(new THREE.Vector3(0,1,0),N); grp.scale.setScalar(L); }
- function sync(){ if(drag){ grp.visible=true; return; }
-   if(!active()){ grp.visible=false; key=""; return; }
-   const mo=(typeof meshObj!=="undefined"&&meshObj)?meshObj.uuid:"", k=[...sel.faces].join(",")+"|"+mo;
+   L=Math.max(mx[0]-mn[0],mx[1]-mn[1],mx[2]-mn[2],0.2)*0.2; return true; }
+ function active(){ return ((selMode==="face"&&sel.faces.size>0)||(selMode==="edge"&&sel.edges.size>0)||(selMode==="vert"&&sel.verts.size>0))&&!tpState&&!(window.__demo&&window.__demo.on&&window.__demo.on())&&!(typeof isActiveLocked==="function"&&isActiveLocked()); }
+ function place(d){ const p=C.clone().addScaledVector(N,d||0); grp.position.copy(p); grp.quaternion.setFromUnitVectors(new THREE.Vector3(0,1,0),N); grp.scale.setScalar(L);
+   sg.position.copy(C); sg.scale.setScalar(L); }
+ let shiftDown=false; const matX=new THREE.MeshBasicMaterial({color:0x37d67a,depthTest:false,depthWrite:false,transparent:true,opacity:0.95}); matX.userData.tmOverlay=true;
+ addEventListener("keydown",e=>{ if(e.key==="Shift"&&!shiftDown){ shiftDown=true; if(!drag) [shaft,head,knob].forEach(m=>m.material=matX); } });
+ addEventListener("keyup",e=>{ if(e.key==="Shift"){ shiftDown=false; if(!drag) [shaft,head,knob].forEach(m=>m.material=mat); } });
+ addEventListener("blur",()=>{ shiftDown=false; if(!drag) [shaft,head,knob].forEach(m=>m.material=mat); });
+ function sync(){ if(drag){ grp.visible=drag.kind==="pull"||drag.kind==="extrude"; sg.visible=drag.kind==="scale"||drag.kind==="move"; return; }
+   if(!active()){ grp.visible=false; sg.visible=false; key=""; return; }
+   const mo=(typeof meshObj!=="undefined"&&meshObj)?meshObj.uuid:"", k=selMode+"|"+[...(selMode==="face"?sel.faces:selMode==="edge"?sel.edges:sel.verts)].join(",")+"|"+mo;
    if(k!==key){ key=k; if(!compute()){ C=null; grp.visible=false; return; } place(0); }
-   grp.visible=!!C; mat.color.copy(acc()); }
+   grp.visible=!!C&&selMode==="face"; sg.visible=!!C&&dispMesh()===mesh; }
  const ren=renderer, orig=ren.render.bind(ren); ren.render=function(sc,cm){ try{ if(cm===camera) sync(); }catch(e){} return orig(sc,cm); };
  const scr=p=>{ const v=p.clone().project(camera), r=canvas.getBoundingClientRect(); return {x:r.left+(v.x+1)/2*r.width, y:r.top+(1-v.y)/2*r.height}; };
- function hit(x,y){ if(!grp.visible||!C) return false; const a=scr(grp.position), b=scr(grp.position.clone().addScaledVector(N,L*1.27));
+ function hit(x,y){ if(!grp.visible||!C||selMode!=="face") return false; const a=scr(grp.position), b=scr(grp.position.clone().addScaledVector(N,L*1.27));
    const dx=b.x-a.x, dy=b.y-a.y, l2=dx*dx+dy*dy||1, t=Math.max(0,Math.min(1,((x-a.x)*dx+(y-a.y)*dy)/l2)), px=a.x+t*dx-x, py=a.y+t*dy-y; return px*px+py*py<(16*16)&&t>0.12; }   // grab the shaft / head, not the base where the face itself is
- function down(x,y,shift){ if(!hit(x,y)) return false;
+ function sHit(x,y){ if(!sg.visible||!C) return -1; for(let i=0;i<3;i++){ const q=scr(C.clone().addScaledVector(SAX[i][0],L*0.62)); if((q.x-x)**2+(q.y-y)**2<14*14) return i; } return -1; }
+ function mHit(x,y){ if(!sg.visible||!C) return -1; const a=scr(C); for(let i=0;i<3;i++){ const b=scr(C.clone().addScaledVector(SAX[i][0],L*0.62)); const dx=b.x-a.x, dy=b.y-a.y, l2=dx*dx+dy*dy||1, t=((x-a.x)*dx+(y-a.y)*dy)/l2; if(t<0.2||t>0.8) continue; const px=a.x+t*dx-x, py=a.y+t*dy-y; if(px*px+py*py<8*8) return i; } return -1; }
+ function down(x,y,shift){
+   const si=sHit(x,y), mi=si<0?mHit(x,y):-1;
+   if(si>=0||mi>=0){ const ax=si>=0?si:mi; const vs=selVerts().map(vi=>[vi,mesh.verts[vi].slice()]); if(!vs.length) return false; snapshot();
+     const a=scr(C), b=scr(C.clone().addScaledVector(SAX[ax][0],L*0.62)); let sx=b.x-a.x, sy=b.y-a.y; const ppu=Math.hypot(sx,sy)||1; sx/=ppu; sy/=ppu;
+     drag={x,y,sx,sy,ppu,d:0,kind:si>=0?"scale":"move",axis:ax,uni:!!shift,vs,c:C.clone(),f:1}; return true; }
+   if(!hit(x,y)) return false;
    if(only!=null&&sel.faces.size>1){ sel.faces.clear(); sel.faces.add(only); try{ rebuildOverlay(); }catch(_){} try{ updateHint(); }catch(_){} key=[...sel.faces].join(",")+"|"+((typeof meshObj!=="undefined"&&meshObj)?meshObj.uuid:""); }   // pulling one face of a mixed selection: the selection becomes that face
    let kind="pull", vs=null;
    if(shift||dispMesh()!==mesh){ kind="extrude"; if(!beginExtrudePreview()) return false; }   // with live modifiers the base cage differs, so pull via an extrude
    else { const set=new Set(); for(const fi of sel.faces){ const f=mesh.faces[fi]; if(f) for(const vi of f) set.add(vi); } vs=[...set].map(vi=>[vi,mesh.verts[vi].slice()]); snapshot(); }
    const a=scr(C), b=scr(C.clone().add(N)); let sx=b.x-a.x, sy=b.y-a.y; const ppu=Math.hypot(sx,sy)||1; sx/=ppu; sy/=ppu;
-   drag={x,y,sx,sy,ppu,d:0,kind,vs}; [shaft,head,knob].forEach(m=>m.material=matHot); return true; }
- function move(x,y){ if(!drag) return; const d=((x-drag.x)*drag.sx+(y-drag.y)*drag.sy)/drag.ppu; drag.d=d; if(drag.kind==="extrude") updateExtrudePreview(d); else { for(const [vi,o] of drag.vs) mesh.verts[vi]=[o[0]+N.x*d,o[1]+N.y*d,o[2]+N.z*d]; rebuild(); } place(d);
+   drag={x,y,sx,sy,ppu,d:0,kind,vs}; [shaft,head,knob].forEach(m=>m.material=kind==="extrude"?matX:matHot); return true; }
+ function move(x,y,shift){ if(!drag) return;
+   if(drag.kind==="move"){ const t=((x-drag.x)*drag.sx+(y-drag.y)*drag.sy)/drag.ppu*(L*0.62), i=drag.axis; drag.d=t;
+     for(const [vi,o] of drag.vs){ const v=o.slice(); v[i]+=t; mesh.verts[vi]=v; } rebuild(); sg.position.copy(drag.c.clone().addScaledVector(SAX[i][0],t));
+     const q=scr(sg.position); tip.style.display="block"; tip.style.left=q.x+"px"; tip.style.top=q.y+"px"; tip.textContent="Move "+SAX[i][2]+" "+(t>=0?"+":"")+(window.__fmtLen?window.__fmtLen(t):t.toFixed(2)); return; }
+   if(drag.kind==="scale"){ const t=((x-drag.x)*drag.sx+(y-drag.y)*drag.sy)/drag.ppu, f=Math.max(0.02,1+t); drag.f=f; const c=drag.c, i=drag.axis;
+     for(const [vi,o] of drag.vs){ const v=[o[0],o[1],o[2]]; for(let k=0;k<3;k++) if(drag.uni||k===i) v[k]=[c.x,c.y,c.z][k]+(o[k]-[c.x,c.y,c.z][k])*f; mesh.verts[vi]=v; }
+     rebuild(); const q=scr(c.clone().addScaledVector(SAX[i][0],L*0.62*f)); tip.style.display="block"; tip.style.left=q.x+"px"; tip.style.top=q.y+"px"; tip.textContent="Scale "+(drag.uni?"XYZ":SAX[i][2])+" ×"+f.toFixed(2); return; }
+   // holding Shift while pulling switches to extrude (new side walls)
+   if(shift&&drag.kind==="pull"&&!drag.switched){ for(const [vi,o] of drag.vs) mesh.verts[vi]=o; undoStack.pop(); try{ updateUndoUI(); }catch(_){} rebuild(); if(beginExtrudePreview()){ drag.kind="extrude"; drag.switched=true; [shaft,head,knob].forEach(m=>m.material=matX); } }
+   const d=((x-drag.x)*drag.sx+(y-drag.y)*drag.sy)/drag.ppu; drag.d=d; if(drag.kind==="extrude") updateExtrudePreview(d); else { for(const [vi,o] of drag.vs) mesh.verts[vi]=[o[0]+N.x*d,o[1]+N.y*d,o[2]+N.z*d]; rebuild(); } place(d);
    const p=scr(grp.position.clone().addScaledVector(N,L*1.3)); tip.style.display="block"; tip.style.left=p.x+"px"; tip.style.top=p.y+"px"; tip.textContent=(drag.kind==="extrude"?"Extrude ":"Push/pull ")+(d>=0?"+":"")+(window.__fmtLen?window.__fmtLen(d):d.toFixed(2)); }
- function up(){ if(!drag) return; const dg=drag, d=dg.d; drag=null; tip.style.display="none"; [shaft,head,knob].forEach(m=>m.material=mat);
+ function up(){ if(!drag) return; const dg=drag, d=dg.d; drag=null; tip.style.display="none"; [shaft,head,knob].forEach(m=>m.material=shiftDown?matX:mat);
+   if(dg.kind==="move"){ if(Math.abs(dg.d)<1e-4){ for(const [vi,o] of dg.vs) mesh.verts[vi]=o; undoStack.pop(); updateUndoUI(); rebuild(); } else { try{ toast("Move "+SAX[dg.axis][2]+" "+(window.__fmtLen?window.__fmtLen(dg.d):dg.d.toFixed(2))+" ✓"); }catch(e){} } key=""; return; }
+   if(dg.kind==="scale"){ if(Math.abs(dg.f-1)<1e-3){ for(const [vi,o] of dg.vs) mesh.verts[vi]=o; undoStack.pop(); updateUndoUI(); rebuild(); } else { try{ toast("Scale "+(dg.uni?"XYZ":SAX[dg.axis][2])+" ×"+dg.f.toFixed(2)+" ✓"); }catch(e){} } key=""; return; }
    if(dg.kind==="extrude") endExtrudePreview(Math.abs(d)>0.001);
    else if(Math.abs(d)<=0.001){ for(const [vi,o] of dg.vs) mesh.verts[vi]=o; undoStack.pop(); updateUndoUI(); rebuild(); }
    else { try{ toast("Push/pull "+(window.__fmtLen?window.__fmtLen(d):d.toFixed(2))+" ✓  (Shift+drag the arrow to extrude)"); }catch(e){} }
@@ -20398,10 +20658,10 @@ void main(){
  const wrap=document.getElementById("viewWrap");
  wrap.addEventListener("pointerdown",e=>{ if(e.button!==0&&e.pointerType!=="touch") return; if(down(e.clientX,e.clientY,e.shiftKey)){ e.stopPropagation(); e.preventDefault(); try{ wrap.setPointerCapture(e.pointerId); }catch(_){} } },true);
  wrap.addEventListener("touchstart",e=>{ if(drag){ e.stopPropagation(); e.preventDefault(); } },{capture:true,passive:false});   // keep the camera still while pulling
- addEventListener("pointermove",e=>{ if(drag){ e.stopPropagation(); move(e.clientX,e.clientY); } },true);
+ addEventListener("pointermove",e=>{ if(drag){ e.stopPropagation(); move(e.clientX,e.clientY,e.shiftKey); } },true);
  addEventListener("pointerup",e=>{ if(drag){ e.stopPropagation(); up(); } },true);
  addEventListener("pointercancel",()=>up(),true);
- window.__pushPull={hit,get visible(){ return grp.visible; }};
+ window.__pushPull={hit:(x,y)=>hit(x,y)||sHit(x,y)>=0||mHit(x,y)>=0,get visible(){ return grp.visible||sg.visible; }};
 })();
 
 window.__tmCore={ get bboxObj(){return bboxObj}, get edgeObj(){return edgeObj}, get RMODES(){return RMODES}, handleClick:(x,y,sh)=>handleClick(x,y,sh), get meshObj(){return meshObj}, get yaw(){return yaw}, get pitch(){return pitch}, get renderMode(){return renderMode}, setYawPitch:(y,p)=>{ yaw=y; pitch=p; applyCam(); }, get OP_PARAMS(){return OP_PARAMS}, get MODS(){return MODS}, get OP_AS_MOD(){return OP_AS_MOD}, get ops(){return ops},
@@ -21371,14 +21631,14 @@ window.__tmCore={ get bboxObj(){return bboxObj}, get edgeObj(){return edgeObj}, 
   ["Extrude",["Extrude","Dome","Pinch","Stellate","DblStell","Greeble"]],
   ["Deform",["Twist","Bend","Taper","Bulge","Spherify","Noise","Cage Edit"]],
   ["Generate",["Parametric/Lattice","Sponge","Gyroid","TPMS","Sierp","Hybrid","Rössler","Wave","Cymatics","K=−1","Weave","Chain","Voronoi","Tree","Maze","Maze 3D","Breeze","Text"]],
-  ["Simulate",["Cloth","Physics","Melt","Growth","Coral","Blobs","Generate/Lattice","Aero","FEA","TopOpt","Wrap","Pour"]],
+  ["Simulate",["Cloth","Physics","Melt","Growth","Coral","Blobs","Generate/Lattice","Aero","Field","FEA","TopOpt","Wrap","Pour"]],
   ["Boolean",["Union","Diff","Intersect","Split","Drill","Hull","Cut"]],
   ["Clean-up",["Edit/Heal","Fill Holes","Flip","Crease","Triangle","Quad","Simplify","Planarize","Orient","Voxel"]],
   ["Gems",["Gem Cut","GEM","Bejewel","ASET"]],
   ["Analyze",["Diagnose","Curvature","Section","Interfere","Thickness","Measure","Overhang"]],
   ["Fabricate",["Seam","Paper","Plywood","Faces","Laser","Waffle","Print","Tree Sup"]],
   ["Render",["Render"]],
-  ["New",["Branches","WFC Pipes","Slime","Reaction","Cellular","Hyphae","Terrain","Relief","Field lines","Origami","Bricks"]]];
+  ["New",["Branches","WFC Pipes","Slime","Reaction","Cellular","Hyphae","Terrain","Relief","Tilt","Twist","Origami","Bricks"]]];
  var HIDE=["TrueForm/Heal"], RENAME={"Parametric/Lattice":"Cage","Generate/Lattice":"Infill"};
  function run(){ var tb=document.getElementById("toolbar"); if(!tb) return; var row=tb.querySelector(".trow"); if(!row) return;
   var map={}; [].slice.call(tb.querySelectorAll("button.tb")).forEach(function(b){ var g=b.closest(".tgrp"), gl=g?g.getAttribute("data-label"):"", l=b.querySelector(".tlbl"), t=l?l.textContent.trim():"";
