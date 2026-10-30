@@ -21032,7 +21032,8 @@ void main(){
   let native=false; try{ native=!!(window.webkit&&window.webkit.messageHandlers); }catch(e){}
   const ok=/^https?:$/.test(location.protocol)&&!native;
   const hide=()=>{ ["miV2","miV2Sep"].forEach(id=>{ const e=document.getElementById(id); if(e) e.style.display="none"; }); };
-  if(!ok){ if(document.readyState==="loading") document.addEventListener("DOMContentLoaded",hide); else hide(); return; }
+  if(!ok){ const hide2=()=>{ hide(); document.querySelectorAll('#toolbar [data-op^="ngC2"]').forEach(b=>{ b.style.display="none"; b.dataset.tbHidden="1"; }); };   // the app (no website): v2 and the TopMod 2 engine tools are website-only
+    if(document.readyState==="loading") document.addEventListener("DOMContentLoaded",()=>{ hide2(); setTimeout(hide2,1500); }); else { hide2(); setTimeout(hide2,1500); } return; }
   window.__tmOpenV2=()=>{ if(document.getElementById("tmV2Frame")) return; let p=location.pathname; if(!/\/$|\.html?$/i.test(p)) p+="/";
     if(!document.getElementById("tmV2Css")){ const st=document.createElement("style"); st.id="tmV2Css"; st.textContent="#tmV2Frame{position:fixed;inset:0;width:100vw;height:100vh;border:0;z-index:2147483000;background:#ececec}"; document.head.appendChild(st); }
     const f=document.createElement("iframe"); f.id="tmV2Frame"; f.title="TopMod 2.0"; f.allow="fullscreen; clipboard-read; clipboard-write"; f.src=p.replace(/[^\/]*$/,"")+"v2/";
