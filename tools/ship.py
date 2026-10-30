@@ -60,7 +60,13 @@ build = uploaded + 1 if a.push else int(re.search(r"CURRENT_PROJECT_VERSION = (\
 pbx = re.sub(r"MARKETING_VERSION = [\d.]+;", f"MARKETING_VERSION = {ver};", pbx)
 pbx = re.sub(r"CURRENT_PROJECT_VERSION = \d+;", f"CURRENT_PROJECT_VERSION = {build};", pbx)
 open(PBX, "w", encoding="utf-8").write(pbx)
-shutil.copy2(MASTER, RES)
+# the app gets the TopMod 2 engine inlined (the site loads it as topmodcore.js), so the TopMod 2 tools work offline in the app
+CORE = os.path.join(ROOT, "site", "software-topmod", "topmodcore.js")
+if os.path.exists(CORE):
+    _h = open(MASTER, encoding="utf-8").read(); _i = _h.index("<script")
+    open(RES, "w", encoding="utf-8").write(_h[:_i] + "<script>/* TopMod 2 engine (original TopMod 2.0 C++, WebAssembly) bundled for the app */\n" + open(CORE, encoding="utf-8").read() + "\n</script>\n" + _h[_i:])
+else:
+    shutil.copy2(MASTER, RES)
 
 def zip_ios(path):
     with zipfile.ZipFile(path, "w", zipfile.ZIP_DEFLATED) as z:
