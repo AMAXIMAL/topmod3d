@@ -1538,6 +1538,10 @@ html.inApp [data-act="fullscreen"],html.inApp [data-act="shortcuts"],html.inApp 
         <button class="tb" data-op="ngMk3Slot" title="Slotted v3 — grid at any angle or radial fins and rings, dog-bones, kerf, true-shape nesting (modifier)"><svg width="22" height="22" viewBox="0 0 22 22"><path d="M3 15l8-4 8 4M3 15l8 4 8-4M7 8v9M11 6v11M15 8v9" stroke="#d8b47e" stroke-width="1.3" fill="none" stroke-linejoin="round"/><circle cx="17.5" cy="5" r="2.6" fill="none" stroke="#5aa7e8" stroke-width="0.9"/></svg><span class="tlbl">Slotted v3</span></button>
         <button class="tb" data-op="ngMk3Panel" title="Panels v3 — one panel per face with finger joints, labels, nesting and export (modifier)"><svg width="22" height="22" viewBox="0 0 22 22"><path d="M4 6h6v2h2V6h6v12H4z" fill="none" stroke="#d8b47e" stroke-width="1.3" stroke-linejoin="round"/><path d="M4 10h2v2H4M18 10h-2v2h2" stroke="#d8b47e" stroke-width="1"/></svg><span class="tlbl">Panels v3</span></button>
         <button class="tb" data-op="ngMk3Fold" title="Folded v3 — papercraft from the model's own faces, painted seams, tabs, true-shape nesting (modifier)"><svg width="22" height="22" viewBox="0 0 22 22"><path d="M3 17l5-11 5 11zM8 6h9l-4 11M17 6l2 8-6 3" stroke="#eeeae2" stroke-width="1.2" fill="none" stroke-linejoin="round"/><path d="M13 17l4-11" stroke="#ef5a43" stroke-width="1.2"/></svg><span class="tlbl">Folded v3</span></button>
+        <button class="tb" data-bui="search" title="Search — find any tool or menu command by typing (F3 or ⌘/Ctrl+K): matches initials and forgives typos"><svg width="22" height="22" viewBox="0 0 22 22"><circle cx="9.5" cy="9.5" r="5.5" fill="none" stroke="#00E5FF" stroke-width="1.6"/><path d="M13.6 13.6L19 19" stroke="#FF8C22" stroke-width="2" stroke-linecap="round"/></svg><span class="tlbl">Search</span></button>
+        <button class="tb" data-bui="pie" title="Pie menu — your 8 most-used tools around the cursor (hold Q, release over a tool)"><svg width="22" height="22" viewBox="0 0 22 22"><circle cx="11" cy="11" r="2.4" fill="#FF8C22"/><g stroke="#00E5FF" stroke-width="1.4" fill="none"><rect x="1.5" y="9" width="5" height="4" rx="1.5"/><rect x="15.5" y="9" width="5" height="4" rx="1.5"/><rect x="8.5" y="2" width="5" height="4" rx="1.5"/><rect x="8.5" y="16" width="5" height="4" rx="1.5"/></g></svg><span class="tlbl">Pie</span></button>
+        <button class="tb" data-bui="scrub" title="Scrub fields — drag any number sideways to change it (Shift = fine, Ctrl/Cmd = snap), click to type, and type maths like 3/8 or 2*pi (toggle)"><svg width="22" height="22" viewBox="0 0 22 22"><rect x="2" y="7" width="18" height="8" rx="2.5" fill="none" stroke="#00E5FF" stroke-width="1.4"/><path d="M6 11h10M6 11l2-2M6 11l2 2M16 11l-2-2M16 11l-2 2" stroke="#FF8C22" stroke-width="1.3" stroke-linecap="round" fill="none"/></svg><span class="tlbl">Scrub</span></button>
+        <button class="tb" data-bui="nodes" title="Nodes — the active layer's modifier stack as a node chain: drag to reorder, toggle, open, remove"><svg width="22" height="22" viewBox="0 0 22 22"><rect x="1.5" y="4" width="6" height="5" rx="1.2" fill="none" stroke="#00E5FF" stroke-width="1.3"/><rect x="14.5" y="13" width="6" height="5" rx="1.2" fill="none" stroke="#00E5FF" stroke-width="1.3"/><path d="M7.5 6.5C12 6.5 10 15.5 14.5 15.5" stroke="#FF8C22" stroke-width="1.4" fill="none"/></svg><span class="tlbl">Nodes</span></button>
         <button class="tb" data-op="ngOrigami" title="Origami — folded tessellations"><svg width="22" height="22" viewBox="0 0 22 22"><path d="M3 6l4 3 4-3 4 3 4-3v10l-4 3-4-3-4 3-4-3z M7 9v10M15 9v10M11 6v10" stroke="#FF8C22" stroke-width="1.3" fill="none" stroke-linejoin="round"/></svg><span class="tlbl">Origami</span></button>
         <button class="tb" data-op="menger" title="Menger sponge"><img class="ticon" alt="Menger sponge"><span class="tlbl">Sponge</span></button>
         <button class="tb" data-op="gyroid" title="Gyroid surface"><img class="ticon" alt="Gyroid"><span class="tlbl">Gyroid</span></button>
@@ -8868,13 +8872,13 @@ function rebuild(opts){
   edgeObj=new THREE.LineSegments(eg,cageOn?matCageEdge:matEdge); scene.add(edgeObj);
   // very dense meshes (gyroid, high-level fractals): edge/vertex overlays drown the surface
   const dense=edgeList.length>60000;
-  edgeObj.visible=cageOn || ($("#tgEdges").checked && !dense);
+  edgeObj.visible=cageOn || ($("#tgEdges").checked && !dense && !em.noWire);   // v3 fabrication output reads as clean surfaces (no wire)
 
   const vpos=[]; em.verts.forEach(v=>vpos.push(...v));
   const vg=new THREE.BufferGeometry();
   vg.setAttribute("position",new THREE.Float32BufferAttribute(vpos,3));
   pointObj=new THREE.Points(vg,cageOn?matCageVert:matVert); scene.add(pointObj);
-  pointObj.visible=cageOn || ($("#tgVerts").checked && !dense);
+  pointObj.visible=cageOn || ($("#tgVerts").checked && !dense && !em.noWire);
   if(typeof buildCageObjs==="function") buildCageObjs(dm, cageOn, light);
 
   rebuildOverlay();
@@ -12129,6 +12133,76 @@ const _HAT=(function(){
     const out=[]; const walk=(g,M)=>{ if(g.leaf){ out.push({label:g.label,T:M}); return; } for(const c of g.children) walk(c.g,mul(M,c.T)); }; walk(root,ident); return out; }
   return {tiles,HAT,KITES,tp,mul};
 })();
+// Hat tiling ON the model: every face of the base geometry is broken into hat pieces (one plane-aligned aperiodic tiling per face plane,
+// clipped to the face). Coplanar faces share their plane's tiling, so a flat area tiles seamlessly across its faces.
+function _hatSplit(G,o,M){
+  const CL=window.ClipperLib; if(!CL){ G.info="Polygon library missing."; return null; }
+  if(!M||!M.faces||!M.faces.length){ G.info="Needs a model — this mode breaks up the current layer's faces into hats."; return null; }
+  let R=0; for(const v of M.verts) R=Math.max(R,Math.hypot(v[0],v[1],v[2])); R=R*1.05+o.tile;
+  const s=o.tile/3, hatA=2*Math.sqrt(3)*s*s, need=Math.PI*R*R/hatA*2.2, counts=[4,25,169,1156,7921,54289];
+  let lv=1; while(lv<5&&counts[lv]<need) lv++;
+  const short=counts[lv]<need;
+  const T=_HAT.tiles(lv,"H"), ra=o.rot*Math.PI/180, ca=Math.cos(ra), sa=Math.sin(ra);
+  let mx=0,my=0; const raw=T.map(t=>{ const p=_HAT.HAT.map(q=>_HAT.tp(t.T,q)); let x=0,y=0; p.forEach(q=>{ x+=q.x; y+=q.y; }); mx+=x/13; my+=y/13; return {p,label:t.label}; }); mx/=T.length; my/=T.length;
+  // tiles in plane units, centred at the origin; bucketed for lookup
+  const cell=o.tile*1.2, grid=new Map(), tiles=raw.map((t,i)=>{ const P=t.p.map(q=>{ const x=(q.x-mx)*s, y=(q.y-my)*s; return [x*ca-y*sa, x*sa+y*ca]; });
+    let a=[1e9,1e9], b=[-1e9,-1e9]; P.forEach(q=>{ a=[Math.min(a[0],q[0]),Math.min(a[1],q[1])]; b=[Math.max(b[0],q[0]),Math.max(b[1],q[1])]; });
+    for(let gx=Math.floor(a[0]/cell);gx<=Math.floor(b[0]/cell);gx++) for(let gy=Math.floor(a[1]/cell);gy<=Math.floor(b[1]/cell);gy++){ const k=gx+","+gy; (grid.get(k)||grid.set(k,[]).get(k)).push(i); }
+    return {P,label:t.label}; });
+  const COL={H1:0x0b7fc6,H:0x94cdeb,T:0xfbfbfb,P:0xdcdcdc,F:0xa8a8a8}, SC=1e6/Math.max(R,1e-6);
+  const toC=r=>r.map(q=>({X:Math.round(q[0]*SC),Y:Math.round(q[1]*SC)})), fromC=r=>r.map(q=>[q.X/SC,q.Y/SC]);
+  const V=[], F=[], FC=[], key=new Map(), eps=R*2e-5, vid=p=>{ const cx=Math.floor(p[0]/eps), cy=Math.floor(p[1]/eps), cz=Math.floor(p[2]/eps);   // weld within eps (neighbour cells too)
+    for(let a=-1;a<=1;a++) for(let b=-1;b<=1;b++) for(let c=-1;c<=1;c++){ const L=key.get((cx+a)+","+(cy+b)+","+(cz+c)); if(L) for(const i of L){ const q=V[i]; if(Math.abs(q[0]-p[0])<eps&&Math.abs(q[1]-p[1])<eps&&Math.abs(q[2]-p[2])<eps) return i; } }
+    const i=V.length; V.push(p); const k=cx+","+cy+","+cz; (key.get(k)||key.set(k,[]).get(k)).push(i); return i; };
+  const pieces=[]; let skipped=0;
+  for(let fi=0;fi<M.faces.length;fi++){ const f=M.faces[fi]; if(f.length<3) continue; const P3=f.map(i=>M.verts[i]);
+    let nx=0,ny=0,nz=0; for(let i=0;i<P3.length;i++){ const a=P3[i], b=P3[(i+1)%P3.length]; nx+=(a[1]-b[1])*(a[2]+b[2]); ny+=(a[2]-b[2])*(a[0]+b[0]); nz+=(a[0]-b[0])*(a[1]+b[1]); }
+    const nl=Math.hypot(nx,ny,nz); if(nl<1e-12){ skipped++; continue; } const n=[nx/nl,ny/nl,nz/nl];
+    // plane frame from the world axes (so every face on the same plane gets the same tiling)
+    const ax=Math.abs(n[1])>0.9?[1,0,0]:[0,1,0], dd=ax[0]*n[0]+ax[1]*n[1]+ax[2]*n[2]; let u=[ax[0]-n[0]*dd,ax[1]-n[1]*dd,ax[2]-n[2]*dd]; const ul=Math.hypot(...u); u=u.map(x=>x/ul);
+    const v=[n[1]*u[2]-n[2]*u[1], n[2]*u[0]-n[0]*u[2], n[0]*u[1]-n[1]*u[0]], off=P3.reduce((acc,p)=>acc+p[0]*n[0]+p[1]*n[1]+p[2]*n[2],0)/P3.length;
+    const poly=P3.map(p=>[p[0]*u[0]+p[1]*u[1]+p[2]*u[2], p[0]*v[0]+p[1]*v[1]+p[2]*v[2]]); let a=[1e9,1e9], b=[-1e9,-1e9]; poly.forEach(q=>{ a=[Math.min(a[0],q[0]),Math.min(a[1],q[1])]; b=[Math.max(b[0],q[0]),Math.max(b[1],q[1])]; });
+    const cand=new Set(); for(let gx=Math.floor(a[0]/cell);gx<=Math.floor(b[0]/cell);gx++) for(let gy=Math.floor(a[1]/cell);gy<=Math.floor(b[1]/cell);gy++){ const L=grid.get(gx+","+gy); if(L) L.forEach(i=>cand.add(i)); }
+    // 2D → 3D back onto the ORIGINAL (possibly non-planar) face: barycentric in its fan triangles, so shared edges line up exactly
+    const fan=[]; for(let k=1;k<poly.length-1;k++) fan.push([0,k,k+1]);
+    const to3=q=>{ let best=null, bd=1e18;
+      for(const [i0,i1,i2] of fan){ const A=poly[i0],B=poly[i1],C=poly[i2], d=(B[1]-C[1])*(A[0]-C[0])+(C[0]-B[0])*(A[1]-C[1]); if(Math.abs(d)<1e-18) continue;
+        const l1=((B[1]-C[1])*(q[0]-C[0])+(C[0]-B[0])*(q[1]-C[1]))/d, l2=((C[1]-A[1])*(q[0]-C[0])+(A[0]-C[0])*(q[1]-C[1]))/d, l3=1-l1-l2, out=Math.max(0,-l1)+Math.max(0,-l2)+Math.max(0,-l3);
+        if(out<bd){ bd=out; best=[i0,i1,i2,l1,l2,l3]; if(out<=1e-9) break; } }
+      if(!best) return [n[0]*off+u[0]*q[0]+v[0]*q[1], n[1]*off+u[1]*q[0]+v[1]*q[1], n[2]*off+u[2]*q[0]+v[2]*q[1]];
+      const [i0,i1,i2,l1,l2,l3]=best, A=P3[i0],B=P3[i1],C=P3[i2]; return [A[0]*l1+B[0]*l2+C[0]*l3, A[1]*l1+B[1]*l2+C[1]*l3, A[2]*l1+B[2]*l2+C[2]*l3]; };
+    if(!cand.size){ pieces.push({P2:poly,to3,n,col:0x888888}); continue; }
+    for(const ti of cand){ const c=new CL.Clipper(); c.AddPath(toC(tiles[ti].P),CL.PolyType.ptSubject,true); c.AddPath(toC(poly),CL.PolyType.ptClip,true);
+      const sol=new CL.Paths(); c.Execute(CL.ClipType.ctIntersection,sol,CL.PolyFillType.pftNonZero,CL.PolyFillType.pftNonZero);
+      for(const r of sol){ if(Math.abs(CL.Clipper.Area(r))<(SC*o.tile*2e-5)**2) continue; let P2=fromC(r); let ar=0; for(let i=0;i<P2.length;i++){ const p=P2[i],q=P2[(i+1)%P2.length]; ar+=p[0]*q[1]-q[0]*p[1]; } if(ar<0) P2=P2.reverse();
+        pieces.push({P2,to3,n,col:COL[tiles[ti].label]||0xcccccc}); } } }
+  const tiled=o.out==="splittiles";
+  if(!tiled){ // remesh: weld, close T-junctions on shared edges, keep hat-shaped faces
+    const polys=pieces.map(pc=>pc.P2.map(q=>vid(pc.to3(q))));
+    const h=new Map(), hc=o.tile*0.5, hk=(p)=>Math.floor(p[0]/hc)+","+Math.floor(p[1]/hc)+","+Math.floor(p[2]/hc);
+    V.forEach((p,i)=>{ const k=hk(p); (h.get(k)||h.set(k,[]).get(k)).push(i); });
+    const onSeg=(a,b,p)=>{ const ab=[b[0]-a[0],b[1]-a[1],b[2]-a[2]], ap=[p[0]-a[0],p[1]-a[1],p[2]-a[2]], L2=ab[0]**2+ab[1]**2+ab[2]**2; if(L2<1e-18) return -1; const t=(ap[0]*ab[0]+ap[1]*ab[1]+ap[2]*ab[2])/L2; if(t<=1e-6||t>=1-1e-6) return -1;
+      const d2=(ap[0]-ab[0]*t)**2+(ap[1]-ab[1]*t)**2+(ap[2]-ab[2]*t)**2; return d2<(eps*2)**2?t:-1; };
+    polys.forEach((f,pi)=>{ const out=[]; for(let i=0;i<f.length;i++){ const ia=f[i], ib=f[(i+1)%f.length], A=V[ia], B=V[ib]; out.push(ia);
+        const lo=[Math.min(A[0],B[0]),Math.min(A[1],B[1]),Math.min(A[2],B[2])], hi=[Math.max(A[0],B[0]),Math.max(A[1],B[1]),Math.max(A[2],B[2])], ins=[];
+        for(let x=Math.floor((lo[0]-eps*3)/hc);x<=Math.floor((hi[0]+eps*3)/hc);x++) for(let y=Math.floor((lo[1]-eps*3)/hc);y<=Math.floor((hi[1]+eps*3)/hc);y++) for(let z=Math.floor((lo[2]-eps*3)/hc);z<=Math.floor((hi[2]+eps*3)/hc);z++){ const L=h.get(x+","+y+","+z); if(!L) continue;
+          for(const j of L){ if(j===ia||j===ib) continue; const t=onSeg(A,B,V[j]); if(t>0) ins.push([t,j]); } }
+        ins.sort((p,q)=>p[0]-q[0]); for(const [,j] of ins) if(out[out.length-1]!==j) out.push(j); }
+      const g=out.filter((x,i)=>x!==out[(i+1)%out.length]); if(g.length>=3){ F.push(g); FC.push(pieces[pi].col); } });
+    G.info=pieces.length+" hat pieces on "+M.faces.length+" faces · level "+lv+" tiling"+(short?" · ⚠ some far faces fell outside the tiling — make the hats bigger":"")+(skipped?" · "+skipped+" degenerate faces skipped":"");
+    const r={verts:V,faces:F}; if(o.col) r.fcolors=FC; return r; }
+  // loose hat tiles that follow the surface: inset by the gap, thickened inward
+  for(const pc of pieces){ let cx=0,cy=0; pc.P2.forEach(q=>{ cx+=q[0]; cy+=q[1]; }); cx/=pc.P2.length; cy/=pc.P2.length; const g=Math.max(0,1-o.gap);
+    const Q=pc.P2.map(q=>[cx+(q[0]-cx)*g, cy+(q[1]-cy)*g]), n=pc.n, th=o.h, o0=V.length, m=Q.length;
+    Q.forEach(q=>V.push(pc.to3(q))); Q.forEach(q=>{ const p=pc.to3(q); V.push([p[0]-n[0]*th,p[1]-n[1]*th,p[2]-n[2]*th]); });
+    let tris=null, star=true; for(let i=0;i<m&&star;i++){ const a=Q[i], b=Q[(i+1)%m]; if((a[0]-cx)*(b[1]-cy)-(a[1]-cy)*(b[0]-cx)<=1e-12) star=false; }
+    if(star){ F.push(Q.map((_,i)=>o0+i)); FC.push(pc.col); F.push(Q.map((_,i)=>o0+m+m-1-i)); FC.push(pc.col); }
+    else { try{ tris=THREE.ShapeUtils.triangulateShape(Q.map(q=>new THREE.Vector2(q[0],q[1])),[]); }catch(e){ tris=[]; }
+      for(const t of tris){ const cr=(Q[t[1]][0]-Q[t[0]][0])*(Q[t[2]][1]-Q[t[0]][1])-(Q[t[1]][1]-Q[t[0]][1])*(Q[t[2]][0]-Q[t[0]][0]), tt=cr>=0?t:[t[0],t[2],t[1]];
+        F.push([o0+tt[0],o0+tt[1],o0+tt[2]]); FC.push(pc.col); F.push([o0+m+tt[2],o0+m+tt[1],o0+m+tt[0]]); FC.push(pc.col); } }
+    for(let i=0;i<m;i++){ const j=(i+1)%m; F.push([o0+i,o0+m+i,o0+m+j,o0+j]); FC.push(pc.col); } }
+  G.info=pieces.length+" hat tiles on "+M.faces.length+" faces · level "+lv+" tiling"+(short?" · ⚠ some far faces fell outside the tiling — make the hats bigger":"");
+  const r={verts:V,faces:F}; if(o.col) r.fcolors=FC; return r; }
 /* ---- AMX Make engine (v2 fabrication tools): slicing, interlocking slots, radial fins, folded nets, nesting ---- */
 function _mk2Build(M, st){
 const CL=window.ClipperLib, S=1000, IN=25.4, clamp=(x,a,b)=>Math.max(a,Math.min(b,x));
@@ -12391,7 +12465,7 @@ function buildFolded(M){
     const n=new THREE.Vector3().crossVectors(B.clone().sub(A),C.clone().sub(A)); const ar=n.length()/2; if(ar<1e-6) continue; faces.push({v:[a,b,c], n:n.normalize(), area:ar}); }
   const F=faces.length; const ekey=(a,b)=>a<b?a+'_'+b:b+'_'+a; const edges=new Map();
   faces.forEach((f,fi)=>{ for(let k=0;k<3;k++){ const a=f.v[k],b=f.v[(k+1)%3], key=ekey(a,b); (edges.get(key)||edges.set(key,[]).get(key)).push(fi); } });
-  const netOf=new Int32Array(F).fill(-1), Q2=new Array(F); const nets=[];
+  const netOf=new Int32Array(F).fill(-1), Q2=new Array(F), par=new Array(F); const nets=[];
   const order=[...faces.keys()].sort((a,b)=>faces[b].area-faces[a].area);
   const bboxOf=T=>[Math.min(T[0][0],T[1][0],T[2][0]),Math.min(T[0][1],T[1][1],T[2][1]),Math.max(T[0][0],T[1][0],T[2][0]),Math.max(T[0][1],T[1][1],T[2][1])];
   const bbHit=(a,b)=>a[0]<b[2]&&b[0]<a[2]&&a[1]<b[3]&&b[1]<a[3];
@@ -12413,7 +12487,7 @@ function buildFolded(M){
       const nb=[Math.min(net.bb[0],bb[0]),Math.min(net.bb[1],bb[1]),Math.max(net.bb[2],bb[2]),Math.max(net.bb[3],bb[3])]; const nw=nb[2]-nb[0]+2*tabH, nh=nb[3]-nb[1]+2*tabH;
       if(Math.max(nw,nh)>Lmax||Math.min(nw,nh)>Lmin) continue;
       let hit=false; for(const o of net.tris){ if(o.fi===c.fi) continue; if(bbHit(bb,o.bb)&&triOverlap(T,o.T)){ hit=true; break; } }
-      if(hit) continue; Q2[c.gi]=T; add(c.gi); pushE(c.gi); } }
+      if(hit) continue; Q2[c.gi]=T; par[c.gi]={p:c.fi,a:c.a,b:c.b}; add(c.gi); pushE(c.gi); } }
   // classify edges, number cuts, tabs
   const near=(p,q)=>Math.hypot(p[0]-q[0],p[1]-q[1])<1e-6*(1+Math.abs(p[0])+Math.abs(p[1]));
   const netLines=nets.map(()=>[]), netTexts=nets.map(()=>[]), netTabs=nets.map(()=>[]);
@@ -12448,7 +12522,7 @@ function buildFolded(M){
     const geo=new THREE.BufferGeometry(); geo.setAttribute('position',new THREE.BufferAttribute(pos,3)); geo.computeVertexNormals();
     return {id, regions, texts, lines:netLines[ni], geo3d:geo, links:[]}; });
   if(nets.length>F*0.5 && F>20) warnings.push('Many small nets: try fewer faces or a smoother model.');
-  return {parts, warnings, cut3d, faceCount:F};
+  return {parts, warnings, cut3d, faceCount:F, fold:{P:Float64Array.from(P), faces:faces.map(f=>({v:f.v, n:[f.n.x,f.n.y,f.n.z]})), par, nets:nets.map(n=>n.faces.slice())}};
 }
 
 // ───────────────────────── NESTING (MaxRects) ─────────────────────────
@@ -12548,7 +12622,9 @@ function _mk2Run(G,o,m,mode,extra){
   const mat=_MK2MAT.find(x=>x[0]===o.mat)||_MK2MAT[0], sh=_MK2SHEET.find(x=>x[0]===o.sheet)||_MK2SHEET[0];
   const st=Object.assign({mode, thick:mat[2]||Math.max(0.1,o.tk), fit:o.fit!=null?o.fit:0.15, sheetW:sh[2], sheetH:sh[3], gap:o.gap,
     stAxis:"y", stDowels:2, stDowelD:6.35, stReg:true, ilA:7, ilB:7, ilAngle:90, ilRot:0, raFins:8, raRings:5, foFaces:140, foTab:8, foPerf:false, relief:"none", bitD:3.175}, extra);
-  const t0=performance.now(); let r; try{ r=_mk2Build(M,st); }catch(e){ G.info="Could not build: "+(e&&e.message||e); return null; }
+  const t0=performance.now(); let r;
+  const sig=JSON.stringify(st,(k2,v)=>typeof v==="function"?undefined:(v instanceof Set?"set"+v.size:v))+"|"+m.verts.length+"|"+m.faces.length+"|"+(m.verts[0]||[]).join(",")+"|"+(m.verts[m.verts.length-1]||[]).join(",")+"|"+o.ht;
+  if(G._mk2Sig===sig&&G._mk2R) r=G._mk2R; else { try{ r=_mk2Build(M,st); }catch(e){ G.info="Could not build: "+(e&&e.message||e); return null; } G._mk2Sig=sig; G._mk2R=r; }
   r.k=k; r.c=c; r.matName=mat[1]; r.sheetName=sh[1]; window.__mk2=r;
   const N=r.parts.length; if(!N){ G.info="No parts — the model may be too small for this material, or not closed."; return null; }
   const step=Math.min(N,Math.max(0,o.step|0)), upto=step?step:N;
@@ -12582,7 +12658,20 @@ function _mk2Run(G,o,m,mode,extra){
             slab({outer:[[a[0]+px,a[1]+py],[a[0]-px,a[1]-py],[b[0]-px,b[1]-py],[b[0]+px,b[1]+py]],holes:[]},(x,y,z)=>[x0+x,z,-y],th,hz,0x2b2b2b); } } }
       x0+=W+Math.max(30,W*0.06); });
   } else {
-    for(const p of r.parts){ if(p.order>=upto) continue; const col=(step&&p.order===step-1)?CUR:(mode==="folded"&&p.order%2?PAPER2:BIRCH);
+    const unf=mode==="folded"&&r.fold&&o.unf>0?Math.min(1,o.unf/100):0;
+    if(unf){ const FD=r.fold, P=FD.P, X=new Array(FD.faces.length), vx=i=>[P[3*i],P[3*i+1],P[3*i+2]];
+      const rodr=(e,a)=>{ const c=Math.cos(a), s=Math.sin(a), C=1-c, [x,y,z]=e; return [[c+x*x*C, x*y*C-z*s, x*z*C+y*s],[y*x*C+z*s, c+y*y*C, y*z*C-x*s],[z*x*C-y*s, z*y*C+x*s, c+z*z*C]]; };
+      const mm=(A,B)=>A.map(r0=>[0,1,2].map(j=>r0[0]*B[0][j]+r0[1]*B[1][j]+r0[2]*B[2][j])), mv=(A,v)=>[A[0][0]*v[0]+A[0][1]*v[1]+A[0][2]*v[2],A[1][0]*v[0]+A[1][1]*v[1]+A[1][2]*v[2],A[2][0]*v[0]+A[2][1]*v[1]+A[2][2]*v[2]];
+      const I=[[1,0,0],[0,1,0],[0,0,1]];
+      FD.nets.forEach((list,ni)=>{ const part=r.parts[ni]; if(!part||part.order>=upto) return; const col=(step&&part.order===step-1)?CUR:(ni%2?PAPER2:BIRCH);
+        for(const fi of list){ const pr=FD.par[fi]; if(!pr){ X[fi]={R:I,t:[0,0,0]}; continue; }
+          const A=vx(pr.a), B=vx(pr.b); let e=[B[0]-A[0],B[1]-A[1],B[2]-A[2]]; const el=Math.hypot(...e)||1; e=e.map(q=>q/el);
+          const nC=FD.faces[fi].n, nP=FD.faces[pr.p].n, cx=[nC[1]*nP[2]-nC[2]*nP[1], nC[2]*nP[0]-nC[0]*nP[2], nC[0]*nP[1]-nC[1]*nP[0]];
+          const th=Math.atan2(e[0]*cx[0]+e[1]*cx[1]+e[2]*cx[2], nC[0]*nP[0]+nC[1]*nP[1]+nC[2]*nP[2]), Rh=rodr(e,th*unf), RA=mv(Rh,A), th2=[A[0]-RA[0],A[1]-RA[1],A[2]-RA[2]], Mp=X[pr.p]||{R:I,t:[0,0,0]};
+          const Rt=mv(Mp.R,th2); X[fi]={R:mm(Mp.R,Rh), t:[Rt[0]+Mp.t[0],Rt[1]+Mp.t[1],Rt[2]+Mp.t[2]]}; }
+        for(const fi of list){ const Mx=X[fi], o0=V.length; for(const vi of FD.faces[fi].v){ const q=mv(Mx.R,vx(vi)); V.push(toM([q[0]+Mx.t[0],q[1]+Mx.t[1],q[2]+Mx.t[2]])); } F.push([o0,o0+1,o0+2]); FC.push(col); } });
+    }
+    if(!unf) for(const p of r.parts){ if(p.order>=upto) continue; const col=(step&&p.order===step-1)?CUR:(mode==="folded"&&p.order%2?PAPER2:BIRCH);
       if(p.geo3d){ const a=p.geo3d.attributes.position.array; let cx=0,cy=0,cz=0; for(let i=0;i<a.length;i+=3){ cx+=a[i]; cy+=a[i+1]; cz+=a[i+2]; } const nn=a.length/3; cx/=nn; cy/=nn; cz/=nn;
         const off=[(cx-centre[0])*ex,(cy-centre[1])*ex,(cz-centre[2])*ex], o0=V.length;
         for(let i=0;i<a.length;i+=3) V.push(toM([a[i]+off[0],a[i+1]+off[1],a[i+2]+off[2]])); for(let i=0;i<nn;i+=3){ F.push([o0+i,o0+i+1,o0+i+2]); FC.push(col); } continue; }
@@ -12637,6 +12726,14 @@ function _mk2Export(kind){
     a(0,"ENDSEC",0,"EOF"); dl(L.join("\r\n"), name+".dxf","application/dxf"); }
   (typeof toast==="function")&&toast("Exported "+r.sheets.length+" sheet"+(r.sheets.length>1?"s":"")+" ("+kind.toUpperCase()+", mm)"); }
 window.__mk2Export=_mk2Export; if(typeof module!=="undefined") global.__mk2Export=_mk2Export;
+
+window.__mkPlayUnfold=function(){ const el=document.getElementById("ng_unf"); if(!el) return; if(window.__mkPlayT){ cancelAnimationFrame(window.__mkPlayT); window.__mkPlayT=0; }
+  const sel=document.getElementById("ng_show"); if(sel&&sel.value==="sheets"){ sel.value="assembled"; sel.dispatchEvent(new Event("change",{bubbles:true})); }
+  const from=+el.value>=99?0:+el.value, to=from>=50?0:100, t0=performance.now(), dur=2600; let last=-1;
+  const tick=now=>{ const k=Math.min(1,(now-t0)/dur), e=k<0.5?2*k*k:1-Math.pow(-2*k+2,2)/2, v=Math.round(from+(to-from)*e);
+    if(v!==last){ last=v; el.value=v; el.dispatchEvent(new Event("input",{bubbles:true})); el.dispatchEvent(new Event("change",{bubbles:true})); }
+    if(k<1) window.__mkPlayT=requestAnimationFrame(tick); else window.__mkPlayT=0; };
+  window.__mkPlayT=requestAnimationFrame(tick); };
 /* ---- v3 fabrication tools: v2 engine + the original tools' techniques (bevel/sand lines, finger-joint panels, seams, kerf, true-shape nesting) ---- */
 function _mk3Common(matDef,sheetDef,withFit){ const P=_mk2Common(matDef,sheetDef,withFit), i=P.findIndex(p=>p&&p.sel==="sheet");
   P.splice(i,0,["kerf","Kerf compensation (mm, laser ≈ 0.15)",0,1.5,0.01,0]);
@@ -13792,15 +13889,16 @@ const NEWGEN={
       const dz=Math.max(2,Math.round(o.depth/S*m)), nz=dz+4, ny=Math.ceil((ymax-lo+4*cl)/cl)+2, Gs=new Float32Array(m*ny*nz);
       for(let i=0;i<m;i++) for(let j=0;j<ny;j++){ const u=(i+0.5)*cl, v=lo-2*cl+j*cl, dv=sm(u,v); if(dv<thr*0.3) continue; for(let k=2;k<2+dz;k++) Gs[(i*ny+j)*nz+k]=dv; }
       const res=_ngIso(Gs,m,ny,nz,thr,[-0.5*S,(-2*cl)*S,-(nz/2)*cl*S],cl*S); this.info=info; return res; } },
-  ngHat:{ label:"Hat tiling", title:"Hat tiling — the aperiodic monotile", desc:"Covers the plane with one single shape, the <b>hat</b>, in a pattern that never repeats. It's built by substitution: hats group into four kinds of clusters (H, T, P, F), the clusters group into bigger clusters of the same four kinds, and so on. Make loose <b>tiles</b>, a joined <b>mesh</b> (hats or their kites — a remesh), <b>outlines</b>, or <b>drape</b> the mesh over this model as a new surface.",
-    params:[{sel:"out",l:"Make",opts:[["tiles","Tiles (loose, with gaps)"],["mesh","Mesh (joined — remesh)"],["lines","Outlines (tubes)"],["drape","Drape over this model (top view)"]]},
+  ngHat:{ label:"Hat tiling", title:"Hat tiling — the aperiodic monotile", desc:"Covers the plane with one single shape, the <b>hat</b>, in a pattern that never repeats. It's built by substitution: hats group into four kinds of clusters (H, T, P, F), the clusters group into bigger clusters of the same four kinds, and so on. Make loose <b>tiles</b>, a joined <b>mesh</b> (hats or their kites — a remesh), <b>outlines</b>, or <b>drape</b> the mesh over this model as a new surface — or <b>break up the model itself</b>: every face of the base geometry is cut into hat pieces (a remesh), or into separate hat tiles with gaps that follow the surface.",
+    params:[{sel:"out",l:"Make",opts:[["split","Break up this model into hats (remesh its faces)"],["splittiles","This model as hat tiles (gaps + thickness)"],["tiles","Tiles (loose, with gaps)"],["mesh","Mesh (joined — remesh)"],["lines","Outlines (tubes)"],["drape","Drape over this model (top view)"]]},
       Object.assign({sel:"faces",l:"Faces",opts:[["hats","One face per hat"],["kites","Kites (4 sides each, 8 per hat)"]]},{when:["out",["mesh","drape"]]}),
-      {sel:"crop",l:"Cut to",opts:[["circle","Circle"],["square","Square"],["hex","Hexagon"],["model","This model's footprint"],["none","Whole cluster"]]},
-      ["size","Area size",0.5,8,0.1,3],["tile","Hat size",0.05,2,0.01,0.4],["rot","Rotate",0,60,1,0],
-      Object.assign(["h","Thickness",0.002,0.5,0.002,0.04],{when:["out",["tiles","mesh","drape"]]}),Object.assign(["gap","Gap",0,0.4,0.01,0.08],{when:["out",["tiles"]]}),
+      Object.assign({sel:"crop",l:"Cut to",opts:[["circle","Circle"],["square","Square"],["hex","Hexagon"],["model","This model's footprint"],["none","Whole cluster"]]},{when:["out",["tiles","mesh","lines","drape"]]}),
+      Object.assign(["size","Area size",0.5,8,0.1,3],{when:["out",["tiles","mesh","lines","drape"]]}),["tile","Hat size",0.05,2,0.01,0.4],["rot","Rotate",0,60,1,0],
+      Object.assign(["h","Thickness",0.002,0.5,0.002,0.04],{when:["out",["splittiles","tiles","mesh","drape"]]}),Object.assign(["gap","Gap",0,0.4,0.01,0.08],{when:["out",["splittiles","tiles"]]}),
       Object.assign(["r","Line thickness",0.002,0.05,0.001,0.008],{when:["out",["lines"]]}),
       {chk:"col",l:"Colour by cluster kind",def:true}],
     build(o,M){
+      if(o.out==="split"||o.out==="splittiles"){ o.on="model"; return _hatSplit(this,o,M); }
       const useM=(o.crop==="model"||o.out==="drape")&&M&&M.faces&&M.faces.length; if(o.crop==="model"||o.out==="drape") o.on="model";
       const s=o.tile/3, area=o.size*o.size, hatA=2*Math.sqrt(3)*s*s, need=area/hatA*(o.crop==="none"?1:2.4);
       const counts=[4,25,169,1156,7921,54289]; let lv=1; while(lv<5&&counts[lv]<need) lv++;
@@ -13931,31 +14029,33 @@ const NEWGEN={
       {sel:"relief",l:"Slot corners",opts:[["none","Square (laser)"],["dogbone","Dog-bone (CNC)"]]},Object.assign(["bit","Bit Ø (mm)",0.5,12.7,0.05,3.175],{when:["relief",["dogbone"]]})],
     build(o,m){ return _mk2Run(this,o,m,"radial",{raFins:o.fins|0,raRings:o.rings|0,relief:o.relief,bitD:o.bit}); } },
   ngMk2Fold:{ label:"Folded v2", title:"Folded v2 — papercraft nets with glue tabs", desc:"Simplifies the model to the number of <b>faces</b> you choose and unfolds it into flat <b>nets</b> that fit the sheet, with numbered matching edges and <b>glue tabs</b>. Solid lines cut, dashed lines are mountain folds, dash-dot are valley folds. Turn on <b>perforated folds</b> for stiff card.",
-    params:[..._mk2Common("stock","let",false),["faces","Faces",12,1200,2,140],["tab","Glue tab (mm)",0,20,0.5,8],{chk:"perf",l:"Perforate folds (stiff stock)",def:false}],
+    params:[..._mk2Common("stock","let",false),["faces","Faces",12,1200,2,140],["tab","Glue tab (mm)",0,20,0.5,8],Object.assign(["unf","Unfold (0 = folded · 100 = flat)",0,100,1,0],{when:["show",["assembled","exploded"]]}),{chk:"perf",l:"Perforate folds (stiff stock)",def:false}],
+    extraHTML:'<div class="param"><button class="mkbtn" style="width:100%" onclick="window.__mkPlayUnfold&&window.__mkPlayUnfold()">▶ Play the unfold</button></div>',
     build(o,m){ return _mk2Run(this,o,m,"folded",{foFaces:o.faces|0,foTab:o.tab,foPerf:!!o.perf}); } },
   ngMk3Stack:{ label:"Stacked v3", title:"Stacked v3 — layers, dowels, etch + bevel sanding lines", desc:"The v2 stack (dowels where they pass through the most layers, next-layer outline etched) plus the original's <b>bevel</b> idea: cut each layer to its <b>outer</b> profile (the larger of its top and bottom) with both edges etched as <b>sand-to lines</b>, so you sand the stack down to the true curved surface — or cut the <b>inner</b> profile for a stepped look that never overhangs. Also adds <b>kerf</b> compensation and <b>true-shape nesting</b>.",
     params:[..._mk3Common("p14","l24",false),{sel:"axis",l:"Slice direction",opts:[["y","Vertical (layers stack up)"],["x","Side (X)"],["z","Front (Z)"]]},
       {sel:"bevel",l:"Layer profile",opts:[["outer","Outer + sand-to lines (sand to the true surface)"],["mid","Middle of the layer (v2)"],["inner","Inner (stepped, never overhangs)"]]},
       ["dw","Dowels",0,4,1,2],Object.assign(["dwd","Dowel Ø (mm)",1,30,0.05,6.35],{when:["dw",["1","2","3","4"]]}),{chk:"reg",l:"Etch next-layer outline",def:true}],
-    build(o,m){ return _mk2Run(this,o,m,"stacked",Object.assign(_mk3Extra(o),{stAxis:o.axis,stBevel:o.bevel,stDowels:o.dw|0,stDowelD:o.dwd,stReg:!!o.reg})); } },
+    build(o,m){ const r0=(()=>{ return _mk2Run(this,o,m,"stacked",Object.assign(_mk3Extra(o),{stAxis:o.axis,stBevel:o.bevel,stDowels:o.dw|0,stDowelD:o.dwd,stReg:!!o.reg})); })(); if(r0) r0.noWire=true; return r0; } },
   ngMk3Slot:{ label:"Slotted v3", title:"Slotted v3 — interlocking slices: grid at any angle, or radial fins & rings", desc:"One tool for every slotted slice-form: a <b>grid</b> of two slice families at any angle (the original waffle at 90°), or <b>radial</b> fins locked by rings. Slots are labelled with their mating part; corners can be square, <b>dog-bone</b> or <b>T-bone</b>. Adds <b>kerf</b> compensation and <b>true-shape nesting</b> from the original tools.",
     params:[..._mk3Common("p14","l24",true),{sel:"layout",l:"Layout",opts:[["grid","Grid — two slice families"],["radial","Radial — fins and rings"]]},
       Object.assign(["a","Slices A",1,60,1,7],{when:["layout",["grid"]]}),Object.assign(["b","Slices B",1,60,1,7],{when:["layout",["grid"]]}),
       Object.assign(["ang","Angle between A and B (°)",20,90,1,90],{when:["layout",["grid"]]}),Object.assign(["rot","Rotate grid (°)",-180,180,1,0],{when:["layout",["grid"]]}),
       Object.assign(["fins","Fins",2,36,1,8],{when:["layout",["radial"]]}),Object.assign(["rings","Rings",1,40,1,5],{when:["layout",["radial"]]}),
       {sel:"relief",l:"Slot corners",opts:[["none","Square (laser)"],["dogbone","Dog-bone (CNC)"]]},Object.assign(["bit","Bit Ø (mm)",0.5,12.7,0.05,3.175],{when:["relief",["dogbone"]]})],
-    build(o,m){ return _mk2Run(this,o,m,o.layout==="radial"?"radial":"interlock",Object.assign(_mk3Extra(o),{ilA:o.a|0,ilB:o.b|0,ilAngle:o.ang,ilRot:o.rot,raFins:o.fins|0,raRings:o.rings|0,relief:o.relief,bitD:o.bit})); } },
+    build(o,m){ const r0=(()=>{ return _mk2Run(this,o,m,o.layout==="radial"?"radial":"interlock",Object.assign(_mk3Extra(o),{ilA:o.a|0,ilB:o.b|0,ilAngle:o.ang,ilRot:o.rot,raFins:o.fins|0,raRings:o.rings|0,relief:o.relief,bitD:o.bit})); })(); if(r0) r0.noWire=true; return r0; } },
   ngMk3Panel:{ label:"Panels v3", title:"Panels v3 — one panel per face with finger joints", desc:"The original <b>Faces / Laser</b> technique on the v2 pipeline: every face of the model becomes a flat panel, and shared edges get interlocking <b>finger joints</b> (box joints) so the panels lock back into the 3D form. Edge numbers match between panels; corners can be kept solid; <b>seams</b> you paint with the Seam tool stay plain cuts. Panels are labelled, nested on sheets, stepped in assembly order (bottom up) and exported like the other Make tools.",
     params:[..._mk3Common("bb3","l24",true),{chk:"fing",l:"Finger joints on shared edges",def:true},Object.assign(["fw","Finger width (mm)",2,80,0.5,12],{when:["fing",[true]]}),
       Object.assign(["em","Solid corners (mm, no fingers near corners)",0,60,0.5,4],{when:["fing",[true]]}),
       {sel:"relief",l:"Inside corners",opts:[["none","Square (laser)"],["dogbone","Dog-bone (CNC)"],["tbone","T-bone (CNC)"]]},Object.assign(["bit","Bit Ø (mm)",0.5,12.7,0.05,3.175],{when:["relief",["dogbone","tbone"]]}),
       {chk:"seam",l:"Painted seams stay plain cuts",def:true}],
-    build(o,m){ return _mk2Run(this,o,m,"custom",Object.assign(_mk3Extra(o),{customBuild:_mk3Panels(o,m)})); } },
+    build(o,m){ const r0=(()=>{ return _mk2Run(this,o,m,"custom",Object.assign(_mk3Extra(o),{customBuild:_mk3Panels(o,m)})); })(); if(r0) r0.noWire=true; return r0; } },
   ngMk3Fold:{ label:"Folded v3", title:"Folded v3 — papercraft from the model's own faces, with seams", desc:"The v2 unfolder (nets that fit the sheet, numbered edges, glue tabs, mountain/valley folds) plus the original papercraft's strengths: unfold the model's <b>own faces</b> (quads stay quads — no fold lines across flat faces) and honour the <b>seams</b> you paint with the Seam tool as forced cuts. Or simplify to a target face count. Adds <b>true-shape nesting</b>.",
     params:[..._mk3Common("stock","let",false),{sel:"src",l:"Faces",opts:[["model","The model's own faces (uses painted seams)"],["simp","Simplify to a face count"]]},
-      Object.assign(["faces","Faces",12,1200,2,140],{when:["src",["simp"]]}),["tab","Glue tab (mm)",0,20,0.5,8],{chk:"perf",l:"Perforate folds (stiff stock)",def:false}],
+      Object.assign(["faces","Faces",12,1200,2,140],{when:["src",["simp"]]}),["tab","Glue tab (mm)",0,20,0.5,8],Object.assign(["unf","Unfold (0 = folded · 100 = flat)",0,100,1,0],{when:["show",["assembled","exploded"]]}),{chk:"perf",l:"Perforate folds (stiff stock)",def:false}],
+    extraHTML:'<div class="param"><button class="mkbtn" style="width:100%" onclick="window.__mkPlayUnfold&&window.__mkPlayUnfold()">▶ Play the unfold</button></div>',
     build(o,m){ const useM=o.src!=="simp", seams=(useM&&typeof seamEdges!=="undefined"&&seamEdges&&seamEdges.size&&m&&typeof mesh!=="undefined"&&mesh&&mesh.verts&&mesh.verts.length===m.verts.length)?seamEdges:null;
-      return _mk2Run(this,o,m,"folded",Object.assign(_mk3Extra(o),{foFaces:useM?0:o.faces|0,foTab:o.tab,foPerf:!!o.perf,foFlat:true,seams})); } },
+      const r0=_mk2Run(this,o,m,"folded",Object.assign(_mk3Extra(o),{foFaces:useM?0:o.faces|0,foTab:o.tab,foPerf:!!o.perf,foFlat:true,seams})); if(r0) r0.noWire=true; return r0; } },
   ngField:{ label:"Field lines", title:"Field lines — magnetic poles", desc:"Field lines run out of every <b>north (+)</b> pole and curve into the <b>south (−)</b> poles, like iron filings around magnets. <b>Drag a pole</b> to move it, drag its <b>orange knob</b> to make it stronger or weaker, and <b>click a pole</b> to flip it between north and south.",
     params:[{sel:"dim",l:"Space",opts:[["3d","3D — lines in space"],["2d","2D — lines in a flat plane"]]},
       {sel:"layout",l:"Poles",opts:[["random","Scattered"],["dipole","Bar magnet (one N, one S)"],["quad","Four poles (quadrupole)"],["ring","Ring of alternating poles"],["model","At this model's corners (alternating)"],["custom","Picked vertices (use the buttons below)"]]},
@@ -14168,6 +14268,9 @@ const _relImgCache=new Map();
 if(MODS[NG_MOD_KEY("ngTilt")]) MODS[NG_MOD_KEY("ngTilt")].grp="New";
 if(MODS[NG_MOD_KEY("ngTwist")]) MODS[NG_MOD_KEY("ngTwist")].grp="New";
 if(MODS[NG_MOD_KEY("ngGothic")]) MODS[NG_MOD_KEY("ngGothic")].grp="New"; if(MODS[NG_MOD_KEY("ngFDM")]) MODS[NG_MOD_KEY("ngFDM")].grp="Simulate"; ["ngPile","ngRays","ngBlackHole","ngMPM"].forEach(k=>{ if(MODS[NG_MOD_KEY(k)]) MODS[NG_MOD_KEY(k)].grp="Simulate"; }); if(MODS[NG_MOD_KEY("ngRDLines")]) MODS[NG_MOD_KEY("ngRDLines")].grp="New"; if(MODS[NG_MOD_KEY("ngHat")]) MODS[NG_MOD_KEY("ngHat")].grp="Subdivide"; if(MODS[NG_MOD_KEY("ngMandel")]) MODS[NG_MOD_KEY("ngMandel")].grp="Generate"; ["ngMk2Stack","ngMk2Lock","ngMk2Radial","ngMk2Fold","ngMk3Stack","ngMk3Slot","ngMk3Panel","ngMk3Fold"].forEach(k=>{ if(MODS[NG_MOD_KEY(k)]) MODS[NG_MOD_KEY(k)].grp="Fabricate"; });
+// bridge for the Nodes view (New ▸ Nodes): read / reorder / toggle / open / remove the active layer's modifiers
+window.__mkStack={ get:()=>{ const L=layers[activeLayer]; return (L&&L.modifiers||[]).map(m=>{ const R=MODS[m.type]||{}; return {id:m.id,on:m.on!==false,label:(m.params&&m.params.op&&m.type==="tool"?(m.label||R.label||m.params.op):(R.label||m.type)),grp:R.grp||""}; }); },
+  move:(id,d)=>moveModifier(id,d), toggle:id=>toggleModifier(id), open:id=>openModEdit(id), remove:id=>removeModifier(id) };
 MODS.coral={label:"Coral", grp:"Generate", heavy:true,
   params:[{k:"from",l:"Grow from",opts:["A point","The ground (grows up)","This model's surface"],def:0},{k:"n",l:"Particles",min:50,max:20000,step:50,def:2500},{k:"conn",l:"Connections per node",min:2,max:8,step:1,def:3},
     {k:"sp",l:"Branch spacing",min:0.005,max:0.2,step:0.005,def:0.03},{k:"stick",l:"Stickiness",min:0.05,max:1,step:0.05,def:0.8},{k:"bias",l:"Up bias",min:0,max:1,step:0.05,def:0.15},
@@ -23505,7 +23608,7 @@ window.__tmCore={ get bboxObj(){return bboxObj}, get edgeObj(){return edgeObj}, 
   ["Analyze",["Diagnose","Curvature","Section","Interfere","Thickness","Measure","Overhang"]],
   ["Fabricate",["Seam","Paper","Plywood","Faces","Laser","Waffle","Stacked v2","Interlock v2","Radial v2","Folded v2","Stacked v3","Slotted v3","Panels v3","Folded v3","Print","Tree Sup"]],
   ["Render",["Render","Tile Tex","Paint"]],
-  ["New",["Branches","WFC Pipes","Slime","Reaction","RD Lines","Cellular","Hyphae","Terrain","Relief","Tilt","Generate/Twist","Gothic","Origami","Bricks"]]];
+  ["New",["Branches","WFC Pipes","Slime","Reaction","RD Lines","Cellular","Hyphae","Terrain","Relief","Tilt","Generate/Twist","Gothic","Origami","Bricks","Search","Pie","Scrub","Nodes"]]];
  var HIDE=["TrueForm/Heal"], RENAME={"Parametric/Lattice":"Cage","Generate/Lattice":"Infill"};
  function run(){ var tb=document.getElementById("toolbar"); if(!tb) return; var row=tb.querySelector(".trow"); if(!row) return;
   var map={}; [].slice.call(tb.querySelectorAll("button.tb")).forEach(function(b){ var g=b.closest(".tgrp"), gl=g?g.getAttribute("data-label"):"", l=b.querySelector(".tlbl"), t=l?l.textContent.trim():"";
@@ -23585,6 +23688,207 @@ window.__tmCore={ get bboxObj(){return bboxObj}, get edgeObj(){return edgeObj}, 
    sel.addEventListener("click",function(e){ e.stopPropagation(); });
    sel.addEventListener("change",function(){ var el=menu._map[+sel.value]; sel.selectedIndex=0; if(el){ try{ el.click(); }catch(e){} } document.querySelectorAll("#menubar .menu.open").forEach(function(m){m.classList.remove("open");}); }); }); }
  if(document.readyState==="complete") setTimeout(init,50); else addEventListener("load",function(){ setTimeout(init,50); }); })();</script>
+<style id="tmBuiCss">
+/* Blender-style UI tools (New ▸ Search · Pie · Scrub · Nodes) — written for TopMod, inspired by Blender's interaction rules */
+#tmSearch{position:fixed;left:50%;top:14%;transform:translateX(-50%);width:min(560px,92vw);z-index:2147482000;background:#1f2328;color:#e8eaec;border:1px solid #3a4048;border-radius:10px;box-shadow:0 18px 48px rgba(0,0,0,.45);font:13px/1.35 -apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif;overflow:hidden}
+#tmSearch input{width:100%;box-sizing:border-box;border:0;border-bottom:1px solid #3a4048;background:#16191d;color:#fff;padding:12px 14px;font:15px/1.2 inherit;outline:none}
+#tmSearch .rs{max-height:min(56vh,420px);overflow:auto}
+#tmSearch .it{display:flex;gap:10px;align-items:center;padding:7px 14px;cursor:pointer}
+#tmSearch .it.on{background:#2d5d8a}
+#tmSearch .it b{font-weight:600}
+#tmSearch .it .g{margin-left:auto;color:#8f99a3;font-size:11px;white-space:nowrap}
+#tmSearch .it .ic{width:20px;height:20px;flex:none;display:grid;place-items:center}
+#tmSearch .it .ic svg{width:20px;height:20px}
+#tmSearch .hint{padding:6px 14px;color:#8f99a3;font-size:11px;border-top:1px solid #2b3036}
+#tmPie{position:fixed;inset:0;z-index:2147482000;pointer-events:auto}
+#tmPie svg{position:absolute;inset:0;width:100%;height:100%;pointer-events:none}
+#tmPie .pi{position:absolute;transform:translate(-50%,-50%);background:#24292f;color:#e8eaec;border:1px solid #444c56;border-radius:16px;padding:6px 12px 6px 8px;font:12px/1 -apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif;display:flex;gap:6px;align-items:center;white-space:nowrap;box-shadow:0 4px 14px rgba(0,0,0,.35)}
+#tmPie .pi svg{position:static;width:18px;height:18px}
+#tmPie .pi.on{background:#2d6fb0;border-color:#5aa7e8}
+#tmPie .pc{position:absolute;transform:translate(-50%,-50%);color:#8f99a3;font:11px/1 -apple-system,sans-serif;background:rgba(20,22,26,.8);padding:4px 8px;border-radius:8px}
+body.tmScrub input.numbox,body.tmScrub input.tmNb{cursor:ew-resize}
+body.tmScrub input.numbox:focus,body.tmScrub input.tmNb:focus{cursor:text}
+#tmNodes{position:fixed;left:50%;bottom:72px;transform:translateX(-50%);width:min(980px,94vw);height:230px;z-index:2147481000;background:#1b1f24;border:1px solid #3a4048;border-radius:10px;box-shadow:0 18px 48px rgba(0,0,0,.4);color:#e8eaec;font:12px/1.3 -apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif;display:flex;flex-direction:column}
+#tmNodes .hd{display:flex;align-items:center;gap:10px;padding:7px 12px;border-bottom:1px solid #2b3036;color:#aab3bc}
+#tmNodes .hd b{color:#e8eaec;letter-spacing:.04em}
+#tmNodes .hd button{margin-left:auto;background:none;border:0;color:#aab3bc;font-size:18px;cursor:pointer}
+#tmNodes .cv{position:relative;flex:1;overflow:auto;background-image:radial-gradient(#2a3036 1px,transparent 1px);background-size:16px 16px}
+#tmNodes .nd{position:absolute;top:56px;width:150px;background:#2a3038;border:1px solid #47515c;border-radius:8px;box-shadow:0 4px 12px rgba(0,0,0,.35);cursor:grab;user-select:none}
+#tmNodes .nd.off{opacity:.45}
+#tmNodes .nd.drag{cursor:grabbing;z-index:5;box-shadow:0 10px 24px rgba(0,0,0,.5);border-color:#5aa7e8}
+#tmNodes .nd .t{padding:6px 9px;border-radius:8px 8px 0 0;font-weight:600;color:#fff;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+#tmNodes .nd .b{display:flex;gap:6px;padding:6px 9px;align-items:center;color:#aab3bc}
+#tmNodes .nd .b button{background:#1d2228;border:1px solid #47515c;color:#cfd6dd;border-radius:5px;padding:2px 7px;cursor:pointer;font-size:11px}
+#tmNodes .nd .so,#tmNodes .nd .si{position:absolute;top:18px;width:10px;height:10px;border-radius:50%;background:#5aa7e8;border:2px solid #1b1f24}
+#tmNodes .nd .so{right:-7px}#tmNodes .nd .si{left:-7px}
+#tmNodes svg.wires{position:absolute;left:0;top:0;pointer-events:none}
+</style>
+<script>/* Blender-style UI tools: F3 search, Q pie, scrub-and-expression number fields, modifier node view */
+(function(){
+  const $q=(s,r)=>(r||document).querySelector(s), $qa=(s,r)=>[...(r||document).querySelectorAll(s)];
+  const toastMsg=(m)=>{ try{ (window.toast||(()=>{}))(m); }catch(e){} };
+  const closeMenus=()=>$qa("#menubar .menu.open").forEach(m=>m.classList.remove("open"));
+  const typingIn=t=>t&&(t.tagName==="TEXTAREA"||t.isContentEditable||(t.tagName==="INPUT"&&!/^(range|checkbox|radio|button|submit|color)$/i.test(t.type||"text"))||t.tagName==="SELECT");
+
+  // ---------- safe math expressions for number fields: 2*pi, 3/8, 1/2+0.125, sqrt(2), 25.4*0.25, 360/7 ----------
+  function evalExpr(src){
+    let s0=String(src).trim().toLowerCase(); if(!s0.includes("(")) s0=s0.replace(/,/g,"."); const s=s0.replace(/×/g,"*").replace(/÷/g,"/").replace(/°/g,"");
+    if(/^[-+]?(\d+\.?\d*|\.\d+)(e[-+]?\d+)?$/.test(s)) return null;                    // plain number: leave it to the field
+    const T=[]; let i=0; const F={sin:Math.sin,cos:Math.cos,tan:Math.tan,asin:Math.asin,acos:Math.acos,atan:Math.atan,sqrt:Math.sqrt,abs:Math.abs,floor:Math.floor,ceil:Math.ceil,round:Math.round,log:Math.log10,ln:Math.log,exp:Math.exp,min:Math.min,max:Math.max,pow:Math.pow,rad:x=>x*Math.PI/180,deg:x=>x*180/Math.PI};
+    const C={pi:Math.PI,tau:Math.PI*2,e:Math.E,phi:(1+Math.sqrt(5))/2};
+    while(i<s.length){ const c=s[i];
+      if(/\s/.test(c)){ i++; continue; }
+      if(/[\d.]/.test(c)){ const m=s.slice(i).match(/^(\d+\.?\d*|\.\d+)(e[-+]?\d+)?/); if(!m) return null; T.push({n:+m[0]}); i+=m[0].length; continue; }
+      if(/[a-z]/.test(c)){ const m=s.slice(i).match(/^[a-z]+/)[0]; T.push({w:m}); i+=m.length; continue; }
+      if("+-*/^%(),".includes(c)){ T.push({o:c}); i++; continue; }
+      return null; }
+    let p=0; const peek=()=>T[p], eat=o=>{ if(T[p]&&T[p].o===o){ p++; return true; } return false; };
+    const unit=v=>{ const t=peek(); if(t&&t.w==="x"){ p++; } return v; };
+    const prim=()=>{ const t=T[p++]; if(!t) throw 0;
+      if(t.n!==undefined) return unit(t.n);
+      if(t.o==="("){ const v=expr(); if(!eat(")")) throw 0; return unit(v); }
+      if(t.o==="-") return -fac(); if(t.o==="+") return fac();
+      if(t.w){ if(C[t.w]!==undefined) return C[t.w]; if(F[t.w]){ if(!eat("(")) throw 0; const a=[expr()]; while(eat(",")) a.push(expr()); if(!eat(")")) throw 0; return F[t.w](...a); } }
+      throw 0; };
+    const fac=()=>{ let v=prim(); if(eat("^")) v=Math.pow(v,fac()); return v; };
+    const term=()=>{ let v=fac(); for(;;){ if(eat("*")) v*=fac(); else if(eat("/")) v/=fac(); else if(eat("%")) v%=fac(); else if(peek()&&(peek().n!==undefined||peek().o==="("||(peek().w&&(C[peek().w]!==undefined||F[peek().w])))) v*=fac(); else return v; } };
+    const expr=()=>{ let v=term(); for(;;){ if(eat("+")) v+=term(); else if(eat("-")) v-=term(); else return v; } };
+    try{ const v=expr(); if(p!==T.length||!isFinite(v)) return null; return +(+v).toPrecision(10); }catch(e){ return null; } }
+  window.__tmEvalExpr=evalExpr;
+  const isNumBox=el=>el&&el.tagName==="INPUT"&&(el.classList.contains("numbox")||el.classList.contains("tmNb")||(el.type==="text"&&el.parentElement&&el.parentElement.querySelector('input[type="range"]')));
+  const preEval=el=>{ if(!isNumBox(el)) return; const v=evalExpr(el.value); if(v!==null) el.value=String(v); };
+  document.addEventListener("keydown",e=>{ if(e.key==="Enter"||e.key==="Tab") preEval(e.target); },true);
+  document.addEventListener("change",e=>preEval(e.target),true);
+  document.addEventListener("blur",e=>preEval(e.target),true);
+
+  // ---------- scrub: drag a number field sideways (hidden wrapping cursor) — Shift = fine, Ctrl/Cmd = snap; a click still types ----------
+  let scrubOn=true; try{ scrubOn=localStorage.getItem("tm_scrub")!=="0"; }catch(e){}
+  document.body.classList.toggle("tmScrub",scrubOn);
+  const rangeFor=box=>{ let e=box.previousElementSibling; for(let k=0;e&&k<4;k++,e=e.previousElementSibling){ if(e.matches&&e.matches('input[type="range"]')) return e; }
+    const par=box.parentElement; if(!par) return null; const rs=par.querySelectorAll('input[type="range"]'); return rs.length===1?rs[0]:null; };
+  let sc=null;
+  document.addEventListener("pointerdown",e=>{ if(!scrubOn||e.button!==0) return; const box=e.target; if(!isNumBox(box)||document.activeElement===box) return;
+    const r=rangeFor(box); if(!r) return; e.preventDefault();
+    sc={box,r,x0:e.clientX,acc:0,moved:false,v0:parseFloat(box.value)||parseFloat(r.value)||0,id:e.pointerId,mn:parseFloat(r.min),mx:parseFloat(r.max),st:parseFloat(r.step)||0}; },true);
+  document.addEventListener("pointermove",e=>{ if(!sc) return; const locked=document.pointerLockElement===sc.box, dx=locked?(Math.abs(e.movementX)<400?e.movementX:0):(e.clientX-sc.x0-sc.acc);
+    if(!sc.moved){ if(Math.abs(e.clientX-sc.x0)<3&&!document.pointerLockElement) return; sc.moved=true; try{ sc.box.requestPointerLock&&sc.box.requestPointerLock(); }catch(_){} }
+    sc.acc+=dx; const span=(isFinite(sc.mx)&&isFinite(sc.mn)&&sc.mx>sc.mn)?(sc.mx-sc.mn):Math.max(1,Math.abs(sc.v0)*2);
+    let v=sc.v0+sc.acc*span/320*(e.shiftKey?0.1:1);
+    if(e.ctrlKey||e.metaKey){ const sn=sc.st>0?sc.st*Math.max(1,Math.round(span/sc.st/20)):span/20; v=Math.round(v/sn)*sn; } else if(sc.st>0&&!e.shiftKey) v=Math.round(v/sc.st)*sc.st;
+    if(isFinite(sc.mn)) v=Math.max(sc.mn,v); if(isFinite(sc.mx)) v=Math.min(sc.mx,v);
+    v=+v.toPrecision(8); sc.box.value=String(v); sc.r.value=String(v); sc.r.dispatchEvent(new Event("input",{bubbles:true})); },true);
+  const endScrub=e=>{ if(!sc) return; const s=sc; sc=null; try{ document.pointerLockElement&&document.exitPointerLock(); }catch(_){}
+    if(s.moved){ s.r.dispatchEvent(new Event("change",{bubbles:true})); s.box.blur(); }
+    else { s.box.focus(); try{ s.box.select(); }catch(_){} } };
+  document.addEventListener("pointerup",endScrub,true); document.addEventListener("pointercancel",endScrub,true);
+  document.addEventListener("keydown",e=>{ if(sc&&e.key==="Escape"){ const s=sc; sc=null; try{ document.exitPointerLock(); }catch(_){} s.box.value=String(s.v0); s.r.value=String(s.v0); s.r.dispatchEvent(new Event("input",{bubbles:true})); s.r.dispatchEvent(new Event("change",{bubbles:true})); } },true);
+
+  // ---------- command index (toolbar tools + every menu item) ----------
+  function commands(){ const out=[], seen=new Set();
+    $qa("#toolbar button.tb").forEach(b=>{ if(b.dataset.tbHidden||b.style.display==="none"||b.dataset.bui) return; const l=b.querySelector(".tlbl"); const name=l?l.textContent.trim():""; if(!name) return;
+      const g=b.closest(".tgrp"), grp=g?g.getAttribute("data-label"):"Tools", key="t:"+grp+"/"+name; if(seen.has(key)) return; seen.add(key);
+      const svg=b.querySelector("svg"); out.push({name, grp:"Tool · "+grp, desc:(b.title||"").split("—").slice(1).join("—").trim(), el:b, key, icon:svg?svg.outerHTML:""}); });
+    $qa("#menubar > .menu").forEach(m=>{ const t=m.querySelector(".mtitle"); const mt=t?t.textContent.trim():""; let sub="";
+      $qa(".mlist > *",m).forEach(el=>{ if(el.classList.contains("mlab")){ sub=el.textContent.trim(); return; } if(!el.classList.contains("mi")) return;
+        const c=el.cloneNode(true); $qa(".kbd",c).forEach(k=>k.remove()); const name=c.textContent.replace(/\s+/g," ").replace(/…$/,"").trim(); if(!name) return;
+        const key="m:"+mt+"/"+name; if(seen.has(key)) return; seen.add(key); out.push({name, grp:mt+(sub?" ▸ "+sub:""), desc:"", el, key, icon:""}); }); });
+    return out; }
+  // fuzzy match: word initials (cc → Catmull-Clark), prefixes, substrings, ordered letters, and one typo per word
+  const lev1=(a,b)=>{ if(Math.abs(a.length-b.length)>1) return false; let i=0,j=0,d=0; while(i<a.length&&j<b.length){ if(a[i]===b[j]){ i++; j++; continue; } if(++d>1) return false;
+      if(a.length>b.length) i++; else if(b.length>a.length) j++; else if(a[i+1]===b[j]&&a[i]===b[j+1]){ i+=2; j+=2; } else { i++; j++; } } return d+(a.length-i)+(b.length-j)<=1; };
+  function score(q,c){ const hay=(c.name+" "+c.grp+" "+c.desc).toLowerCase(), name=c.name.toLowerCase(), words=name.split(/[\s\-—·\/()&,.]+/).filter(Boolean);
+    let s=0; if(name===q) return 1000; if(name.startsWith(q)) s+=400; else if(name.includes(q)) s+=250; else if(hay.includes(q)) s+=120;
+    const init=words.map(w=>w[0]).join(""); if(q.length>=2&&init.startsWith(q.replace(/\s+/g,""))) s+=300;
+    const qw=q.split(/\s+/).filter(Boolean); let all=true;
+    for(const w of qw){ const hit=words.some(x=>x.startsWith(w))||hay.includes(w)||(w.length>=4&&words.some(x=>lev1(w,x.slice(0,w.length))||lev1(w,x))); if(hit) s+=60; else all=false; }
+    if(!all&&s<250){ let i=0; for(const ch of q.replace(/\s+/g,"")){ i=name.indexOf(ch,i); if(i<0) return 0; i++; } s+=40; }
+    return s+(recent.indexOf(c.key)>=0?80-recent.indexOf(c.key)*6:0); }
+  let recent=[]; try{ recent=JSON.parse(localStorage.getItem("tm_recentCmd")||"[]"); }catch(e){}
+  const remember=k=>{ recent=[k,...recent.filter(x=>x!==k)].slice(0,12); try{ localStorage.setItem("tm_recentCmd",JSON.stringify(recent)); }catch(e){} };
+  const run=c=>{ remember(c.key); closeMenus(); setTimeout(()=>{ try{ c.el.click(); }catch(e){} },10); };
+
+  // ---------- F3 search ----------
+  function openSearch(){ if($q("#tmSearch")) return; closeMenus(); const cmds=commands();
+    const w=document.createElement("div"); w.id="tmSearch"; w.innerHTML='<input type="text" placeholder="Search tools and menus…  (try: cc, extrude, hat, fillet, export dxf)" spellcheck="false"><div class="rs"></div><div class="hint">↑↓ choose · Enter run · Esc close · matches initials and forgives typos · F3 or ⌘/Ctrl+K anywhere</div>';
+    document.body.appendChild(w); const inp=w.querySelector("input"), rs=w.querySelector(".rs"); let list=[], at=0;
+    const draw=()=>{ const q=inp.value.trim().toLowerCase();
+      list=q? cmds.map(c=>({c,s:score(q,c)})).filter(x=>x.s>0).sort((a,b)=>b.s-a.s).slice(0,40).map(x=>x.c) : recent.map(k=>cmds.find(c=>c.key===k)).filter(Boolean).concat(cmds.filter(c=>c.grp.startsWith("Tool")).slice(0,12)).filter((c,i,a)=>a.indexOf(c)===i).slice(0,20);
+      at=Math.min(at,Math.max(0,list.length-1));
+      rs.innerHTML=list.map((c,i)=>'<div class="it'+(i===at?' on':'')+'" data-i="'+i+'"><span class="ic">'+(c.icon||"")+'</span><b>'+c.name.replace(/</g,"&lt;")+'</b><span class="g">'+c.grp.replace(/</g,"&lt;")+'</span></div>').join("")||'<div class="it" style="color:#8f99a3">No matches</div>';
+      const on=rs.querySelector(".on"); if(on) on.scrollIntoView({block:"nearest"}); };
+    const close=()=>{ w.remove(); removeEventListener("pointerdown",outside,true); };
+    const outside=e=>{ if(!w.contains(e.target)) close(); };
+    inp.addEventListener("input",()=>{ at=0; draw(); });
+    inp.addEventListener("keydown",e=>{ e.stopPropagation();
+      if(e.key==="ArrowDown"){ e.preventDefault(); at=Math.min(list.length-1,at+1); draw(); } else if(e.key==="ArrowUp"){ e.preventDefault(); at=Math.max(0,at-1); draw(); }
+      else if(e.key==="Enter"){ e.preventDefault(); const c=list[at]; close(); if(c) run(c); } else if(e.key==="Escape"){ e.preventDefault(); close(); } });
+    rs.addEventListener("click",e=>{ const it=e.target.closest(".it[data-i]"); if(!it) return; const c=list[+it.dataset.i]; close(); if(c) run(c); });
+    addEventListener("pointerdown",outside,true); draw(); setTimeout(()=>inp.focus(),0); }
+
+  // ---------- Q pie: your 8 most recently used tools around the cursor ----------
+  const DEF=["Catmull","Extrude","Handle","Fillet","Bridge","Dome","DooSabin","Move"];
+  let mouse=[innerWidth/2,innerHeight/2]; addEventListener("pointermove",e=>{ mouse=[e.clientX,e.clientY]; },true);
+  function pieItems(){ const cmds=commands().filter(c=>c.grp.startsWith("Tool")); const pick=[];
+    for(const k of recent){ const c=cmds.find(x=>x.key===k); if(c&&!pick.includes(c)) pick.push(c); if(pick.length>=8) break; }
+    for(const n of DEF){ if(pick.length>=8) break; const c=cmds.find(x=>x.name===n); if(c&&!pick.includes(c)) pick.push(c); }
+    return pick.slice(0,8); }
+  let pie=null;
+  function openPie(fromKey){ if(pie) return; closeMenus(); const items=pieItems(); if(!items.length) return;
+    const [cx,cy]=[Math.min(Math.max(mouse[0],170),innerWidth-170),Math.min(Math.max(mouse[1],130),innerHeight-130)], R=118;
+    const w=document.createElement("div"); w.id="tmPie"; let html='<svg><circle cx="'+cx+'" cy="'+cy+'" r="14" fill="none" stroke="#8f99a3" stroke-width="2"/><line id="tmPieLn" x1="'+cx+'" y1="'+cy+'" x2="'+cx+'" y2="'+cy+'" stroke="#5aa7e8" stroke-width="2"/></svg>';
+    const order=[0,4,2,6,1,3,5,7], ang=k=>[-Math.PI/2+Math.PI,0,-Math.PI/2,Math.PI/2,-Math.PI*3/4,-Math.PI/4,Math.PI*3/4,Math.PI/4][k];   // Blender order: W E S N NW NE SW SE
+    const pos=[]; items.forEach((c,i)=>{ const a=[Math.PI,0,Math.PI/2,-Math.PI/2,-Math.PI*3/4,-Math.PI/4,Math.PI*3/4,Math.PI/4][i]; const x=cx+Math.cos(a)*R*(i>=4?0.95:1.1), y=cy+Math.sin(a)*R*(i>=4?0.95:0.85); pos.push({a,c});
+      html+='<div class="pi" data-i="'+i+'" style="left:'+x+'px;top:'+y+'px">'+(c.icon||"")+'<span>'+c.name.replace(/</g,"&lt;")+'</span></div>'; });
+    html+='<div class="pc" style="left:'+cx+'px;top:'+(cy+34)+'px">'+(fromKey?"release Q over a tool":"click a tool · Esc")+'</div>';
+    w.innerHTML=html; document.body.appendChild(w); let cur=-1;
+    const pick=(x,y)=>{ const dx=x-cx, dy=y-cy; if(Math.hypot(dx,dy)<22){ cur=-1; } else { const a=Math.atan2(dy,dx); let best=-1,bd=9; pos.forEach((p,i)=>{ let d=Math.abs(Math.atan2(Math.sin(a-p.a),Math.cos(a-p.a))); if(d<bd){ bd=d; best=i; } }); cur=best; }
+      $qa(".pi",w).forEach((el,i)=>el.classList.toggle("on",i===cur)); const ln=w.querySelector("#tmPieLn"); if(ln){ ln.setAttribute("x2",cur<0?cx:x); ln.setAttribute("y2",cur<0?cy:y); } };
+    const mv=e=>pick(e.clientX,e.clientY), done=(go)=>{ w.remove(); pie=null; removeEventListener("pointermove",mv,true); removeEventListener("pointerdown",dn,true); removeEventListener("keydown",kd,true); removeEventListener("keyup",ku,true); if(go&&cur>=0) run(items[cur]); };
+    const dn=e=>{ e.preventDefault(); e.stopPropagation(); pick(e.clientX,e.clientY); done(true); }, kd=e=>{ if(e.key==="Escape"){ e.preventDefault(); e.stopPropagation(); done(false); } },
+      ku=e=>{ if(fromKey&&(e.key==="q"||e.key==="Q")&&cur>=0){ e.preventDefault(); done(true); } };
+    addEventListener("pointermove",mv,true); addEventListener("pointerdown",dn,true); addEventListener("keydown",kd,true); addEventListener("keyup",ku,true);
+    pie={done}; pick(mouse[0],mouse[1]); }
+
+  // remember tools clicked anywhere (feeds Search's recents and the pie)
+  document.addEventListener("click",e=>{ const b=e.target.closest&&e.target.closest("#toolbar button.tb"); if(!b||b.dataset.bui) return; const l=b.querySelector(".tlbl"); const g=b.closest(".tgrp"); if(l) remember("t:"+(g?g.getAttribute("data-label"):"Tools")+"/"+l.textContent.trim()); },true);
+
+  // ---------- Nodes: the active layer's modifier stack as a node chain (drag to reorder, toggle, open, remove) ----------
+  function openNodes(){ let w=$q("#tmNodes"); if(w){ w.remove(); return; } const S=window.__mkStack; if(!S){ toastMsg("Modifier stack not ready"); return; }
+    w=document.createElement("div"); w.id="tmNodes"; w.innerHTML='<div class="hd"><b>NODES</b><span>Modifier stack of the active layer — drag a node to reorder · click its name to edit</span><button title="Close">×</button></div><div class="cv"></div>';
+    document.body.appendChild(w); w.querySelector(".hd button").onclick=()=>{ w.remove(); clearInterval(tick); };
+    const cv=w.querySelector(".cv"); let sig="";
+    const COLS={Generate:"#5b4a8a",Simulate:"#2f6f6a",Fabricate:"#8a6a3e",Subdivide:"#3c6a9e",New:"#7a3f6c",Deform:"#6e5a2a","TopMod 2":"#455a64"};
+    const draw=()=>{ const st=S.get(); const s=JSON.stringify(st.map(m=>[m.id,m.on,m.label])); if(s===sig) return; sig=s;
+      const N=st.length+2, gap=40, W=150, total=N*W+(N-1)*gap+40; cv.innerHTML='<svg class="wires" width="'+Math.max(total,cv.clientWidth)+'" height="200"></svg>';
+      const xs=i=>20+i*(W+gap); const nodes=[{label:"Base mesh",grp:"",fixed:true}].concat(st).concat([{label:"Output",grp:"",fixed:true}]);
+      let wires=""; for(let i=0;i<N-1;i++){ const x1=xs(i)+W, x2=xs(i+1), y=79; wires+='<path d="M'+x1+' '+y+' C'+(x1+gap/2)+' '+y+' '+(x2-gap/2)+' '+y+' '+x2+' '+y+'" stroke="#5aa7e8" stroke-width="2" fill="none" opacity=".7"/>'; }
+      cv.querySelector("svg").innerHTML=wires;
+      nodes.forEach((n,i)=>{ const d=document.createElement("div"); d.className="nd"+(n.on===false?" off":""); d.style.left=xs(i)+"px";
+        const col=n.fixed?"#3a434d":(COLS[n.grp]||"#3d566e");
+        d.innerHTML='<div class="t" style="background:'+col+'">'+String(n.label).replace(/</g,"&lt;")+'</div><div class="b">'+(n.fixed?(i===0?"the layer's own mesh":"what you see"):'<button data-a="tog">'+(n.on===false?"Off":"On")+'</button><button data-a="del" title="Remove">✕</button><span style="margin-left:auto;font-size:10px">'+(n.grp||"")+'</span>')+'</div>'+(i<N-1?'<span class="so"></span>':'')+(i>0?'<span class="si"></span>':'');
+        cv.appendChild(d); if(n.fixed) return;
+        d.querySelector('[data-a="tog"]').onclick=ev=>{ ev.stopPropagation(); S.toggle(n.id); sig=""; draw(); };
+        d.querySelector('[data-a="del"]').onclick=ev=>{ ev.stopPropagation(); S.remove(n.id); sig=""; draw(); };
+        d.querySelector(".t").onclick=()=>{ if(!d._dragged) S.open(n.id); };
+        d.addEventListener("pointerdown",ev=>{ if(ev.target.tagName==="BUTTON") return; const x0=ev.clientX, l0=parseFloat(d.style.left); d._dragged=false; d.setPointerCapture(ev.pointerId);
+          const mv=e2=>{ const dx=e2.clientX-x0; if(Math.abs(dx)>4){ d._dragged=true; d.classList.add("drag"); } d.style.left=(l0+dx)+"px"; };
+          const up=e2=>{ d.releasePointerCapture(ev.pointerId); d.removeEventListener("pointermove",mv); d.removeEventListener("pointerup",up); d.classList.remove("drag");
+            if(d._dragged){ const from=i-1, to=Math.max(0,Math.min(st.length-1,Math.round((parseFloat(d.style.left)-20)/(W+gap))-1)); let k=from; while(k<to){ S.move(n.id,1); k++; } while(k>to){ S.move(n.id,-1); k--; } }
+            sig=""; draw(); setTimeout(()=>{ d._dragged=false; },0); };
+          d.addEventListener("pointermove",mv); d.addEventListener("pointerup",up); }); }); };
+    draw(); const tick=setInterval(()=>{ if(!document.body.contains(w)){ clearInterval(tick); return; } draw(); },700); }
+
+  // ---------- wiring: toolbar buttons + keys ----------
+  function act(k){ if(k==="search") openSearch(); else if(k==="pie") openPie(false); else if(k==="nodes") openNodes();
+    else if(k==="scrub"){ scrubOn=!scrubOn; try{ localStorage.setItem("tm_scrub",scrubOn?"1":"0"); }catch(e){} document.body.classList.toggle("tmScrub",scrubOn); const b=$q('#toolbar [data-bui="scrub"]'); if(b) b.classList.toggle("on",scrubOn); toastMsg(scrubOn?"Scrub fields on — drag any number sideways (Shift fine · Ctrl snap) · type maths like 3/8 or 2*pi":"Scrub fields off"); } }
+  window.__tmBui={search:openSearch,pie:openPie,nodes:openNodes,act};
+  document.addEventListener("click",e=>{ const b=e.target.closest&&e.target.closest("[data-bui]"); if(!b) return; e.preventDefault(); e.stopPropagation(); act(b.dataset.bui); },true);
+  addEventListener("keydown",e=>{ if(typingIn(e.target)&&e.key!=="F3") return;
+    if(e.key==="F3"||((e.metaKey||e.ctrlKey)&&!e.shiftKey&&!e.altKey&&(e.key==="k"||e.key==="K"))){ e.preventDefault(); e.stopPropagation(); openSearch(); return; }
+    if((e.key==="q"||e.key==="Q")&&!e.metaKey&&!e.ctrlKey&&!e.altKey&&!e.repeat&&!$q("#tmSearch")){ e.preventDefault(); e.stopPropagation(); openPie(true); } },true);
+  const mark=()=>{ const b=$q('#toolbar [data-bui="scrub"]'); if(b) b.classList.toggle("on",scrubOn); }; if(document.readyState==="complete") mark(); else addEventListener("load",mark);
+})();</script>
+
 <script>/* Make ▸ v2 tools + sheet export */
 (function(){ function init(){ document.querySelectorAll("[data-mk2op]").forEach(function(el){ el.addEventListener("click",function(e){ e.stopPropagation(); document.querySelectorAll("#menubar .menu.open").forEach(function(m){m.classList.remove("open");}); var b=document.querySelector('#toolbar [data-op="'+el.dataset.mk2op+'"]'); if(b) b.click(); }); });
   document.querySelectorAll("[data-mk2exp]").forEach(function(el){ el.addEventListener("click",function(e){ e.stopPropagation(); document.querySelectorAll("#menubar .menu.open").forEach(function(m){m.classList.remove("open");}); if(window.__mk2Export) window.__mk2Export(el.dataset.mk2exp); }); }); }
