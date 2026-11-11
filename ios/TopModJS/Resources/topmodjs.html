@@ -1286,6 +1286,10 @@ html.inApp [data-act="fullscreen"],html.inApp [data-act="shortcuts"],html.inApp 
 
 
 
+
+
+
+
 <!--SEL-MI--><div class="mi" data-op="selSides">Select Faces with the Same Number of Sides</div><div class="mi" data-op="selFacing">Select Faces Pointing the Same Way</div><div class="mi" data-op="selFlat">Select Flat Area</div><div class="mi" data-op="selIsland">Select Connected Piece (Island)</div><div class="mi" data-op="selBigger">Select Bigger Faces</div><div class="mi" data-op="selSmaller">Select Smaller Faces</div><div class="mi" data-op="selRandom">Select Random</div><!--SEL-MI-END-->
       <div class="mi" data-op="selChecker">Checkerboard Select Faces</div>
       <div class="mi" data-op="selEfromF">Select Edges from Faces</div>
@@ -10652,6 +10656,13 @@ async function importMeshFile(f){
     toast("Imported "+f.name+" — "+m.faces.length+" faces"+(notes.length?" ("+notes.join(", ")+")":"")+(m.faces.length>30000?" · heavy mesh, tools may be slow":""));
   }catch(e){ toast(String(e),true); }
 }
+/*NATIVE-SAVE*/(function(){ const H=()=>window.webkit&&window.webkit.messageHandlers&&window.webkit.messageHandlers.saveFile, isFile=a=>!!(a&&a.download&&/^(blob:|data:)/i.test(a.href||""));
+  const send=a=>{ const h=H(); let fn=a.download||"topmod-file"; try{ if(window.__expName){ const x=/\.[a-z0-9]+$/i.exec(fn); fn=window.__expName+(x?x[0]:""); } }catch(e){}
+    fetch(a.href).then(r=>r.arrayBuffer()).then(buf=>{ const u=new Uint8Array(buf); let s=""; for(let i=0;i<u.length;i+=32768) s+=String.fromCharCode.apply(null,u.subarray(i,i+32768)); h.postMessage({filename:fn,b64:btoa(s)}); })
+      .catch(()=>{ try{ toast("Could not save "+fn,true); }catch(e){} }); };
+  const oc=HTMLAnchorElement.prototype.click; HTMLAnchorElement.prototype.click=function(){ if(H()&&isFile(this)){ send(this); return; } return oc.apply(this,arguments); };
+  document.addEventListener("click",e=>{ const a=e.target&&e.target.closest&&e.target.closest("a[download]"); if(a&&e.isTrusted&&H()&&isFile(a)){ e.preventDefault(); send(a); } },true);
+})();/*NATIVE-SAVE-END*/
 /*NATIVE-PICK*/window.__tmNativePick=function(kind){ try{ const h=window.webkit&&window.webkit.messageHandlers&&window.webkit.messageHandlers.importFile; if(!h) return false; h.postMessage({kind:kind}); return true; }catch(e){ return false; } };
 window.__tmNativeFile=async function(kind,name,b64){ try{ if(!name||b64==null){ toast("That file could not be read",true); return; }
     const bin=atob(b64), u=new Uint8Array(bin.length); for(let i=0;i<bin.length;i++) u[i]=bin.charCodeAt(i); const f=new File([u],name);
@@ -13788,13 +13799,32 @@ function _tsConc(G,T,o,M){ const V=[], F=[], FC=[], K=Math.max(1,Math.round(o.n)
 function _tsHalftone(G,T,o,M){ const az=o.az*Math.PI/180, el=o.el*Math.PI/180, L=[Math.cos(el)*Math.cos(az),Math.sin(el),Math.cos(el)*Math.sin(az)], V=[], F=[], seg=Math.max(5,Math.round(o.seg)); let c=0; T.F.forEach((f,fi)=>{ const fr=_tsFrame(T,fi); let rin=Infinity; f.forEach((a,i)=>{ const p=T.V[a], q=T.V[f[(i+1)%f.length]], e=_erN(_erS(q,p)); rin=Math.min(rin,_erD(_erS(fr.c,p),_erX(fr.n,e))); }); let sh=(1-_erD(fr.n,L))/2; if(o.inv) sh=1-sh; const r=rin*(o.min+(1-o.min)*Math.pow(sh,o.gamma))*o.size; if(!(r>rin*0.03)) return;
     if(o.kind==="ball") _tsBall(fr.c,r,V,F,8); else { const ring=h=>{ const P=[]; for(let k=0;k<seg;k++){ const t=k/seg*2*Math.PI; P.push(_erA(_erA(fr.c,_erM(fr.n,h)),_erA(_erM(fr.u,r*Math.cos(t)),_erM(fr.w,r*Math.sin(t))))); } return P; }; _tsPrism(ring(o.thick*T.mel),ring(-0.02*T.mel),V,F); } c++; });
   return _tsOut(G,V,F,null,M,o.keep,c+" dots sized by the light"); }
-function _tsFins(G,T,o,M){ const V=[], F=[], FC=[], ring=_tsRing(T), w=o.thick*T.mel/2, gap=o.gap*T.mel, pal=_erPal(9); let c=0;
-  // how far each side of a fin is cut back at a corner, so it meets the neighbouring fins on a clean mitre line
-  const cut=(v,u,s)=>{ const R=ring(v), d=_erN(_erS(T.V[u],T.V[v])), k=R.indexOf(u), res=[w,w]; if(k<0||R.length<2) return res; for(const nb of [R[(k+1)%R.length],R[(k-1+R.length)%R.length]]){ if(nb===u) continue; const e=_erN(_erS(T.V[nb],T.V[v])), th=Math.acos(Math.max(-1,Math.min(1,_erD(d,e)))), x=Math.min((w+gap/2)/Math.tan(Math.max(0.15,th/2)),_tsLen(T.V[u],T.V[v])*0.45); if(_erD(e,s)>0) res[0]=x; else res[1]=x; } return res; };
-  T.F.forEach((f,fi)=>f.forEach((a,i)=>{ const t=T.tw(fi,i); if(t&&t[0]<fi) return; const b=f[(i+1)%f.length], n=_erN(t?_erA(T.nf[fi],T.nf[t[0]]):T.nf[fi]), p=T.V[a], q=T.V[b], L=_tsLen(p,q); if(L<1e-9) return; const e=_erN(_erS(q,p)), s=_erN(_erX(e,n)), ca=cut(a,b,s), cb=cut(b,a,s), h=o.h*T.mel, tp=L*o.taper/2, na=o.match?T.vn[a]:n, nb=o.match?T.vn[b]:n;
-      const plan=(z,inset)=>{ const at=(x,y,end)=>_erA(_erA(_erA(p,_erM(e,x)),_erM(s,y)),_erM(end?nb:na,z)), g=gap/2+inset; return [at(g,0,0),at(Math.max(g,ca[0]+inset),w,0),at(L-Math.max(g,cb[0]+inset),w,1),at(L-g,0,1),at(L-Math.max(g,cb[1]+inset),-w,1),at(Math.max(g,ca[1]+inset),-w,0)]; };
-      const f0=F.length; _tsPrism(plan(h,tp),plan(-0.03*T.mel,0),V,F); for(let k=f0;k<F.length;k++) FC.push(pal[c%9]); c++; }));
-  return _tsOut(G,V,F,o.col?FC:null,M,o.keep,c+" separate fins, mitred so they meet cleanly at every corner"); }
+function _tsFins(G,T,o,M){ const V=[], F=[], FC=[], ring=_tsRing(T), w=o.thick*T.mel/2, gap=o.gap*T.mel, pal=_erPal(9), mode=o.joint||"mitre", cl=x=>Math.max(-1,Math.min(1,x)); let c=0;
+  const perp=(d,n)=>{ const r=_erS(d,_erM(n,_erD(d,n))), l=Math.hypot(r[0],r[1],r[2]); return l>1e-9?_erM(r,1/l):_erN(d); };
+  const nbs=(v,u)=>{ const R=ring(v), k=R.indexOf(u); if(k<0||R.length<2) return {R,k:Math.max(0,k),a:null,b:null}; const a=R[(k+1)%R.length], b=R[(k-1+R.length)%R.length]; return {R,k,a:a===u?null:a,b:b===u?null:b}; };
+  // flat / interlock: how far a square-cut fin stops short of the corner so it clears its neighbours
+  const setback=(v,u)=>{ const N=nbs(v,u), d=_erN(_erS(T.V[u],T.V[v])); let x=gap/2; for(const nb of [N.a,N.b]){ if(nb==null) continue; const e=_erN(_erS(T.V[nb],T.V[v])), th=Math.acos(cl(_erD(d,e))); x=Math.max(x,(w+gap/2)/Math.tan(Math.max(0.15,th/2))); } return Math.min(x,_tsLen(T.V[u],T.V[v])*0.45); };
+  // mitre: the cutting plane on each side of the fin — it holds the corner's own axis and bisects the angle to the neighbouring fin, so both fins end on the same plane
+  const planes=(v,u,s)=>{ const N=nbs(v,u), up=T.vn[v], d=perp(_erS(T.V[u],T.V[v]),up), out=[null,null]; for(const nb of [N.a,N.b]){ if(nb==null) continue; const e=perp(_erS(T.V[nb],T.V[v]),up); let m=_erS(d,e); const l=Math.hypot(m[0],m[1],m[2]); m=l<1e-6?d:_erM(m,1/l); if(_erD(m,d)<0.05) m=d; out[_erD(e,s)>0?0:1]={pt:_erA(T.V[v],_erM(m,gap/2)),m}; }
+    const fl={pt:_erA(T.V[v],_erM(d,gap/2)),m:d}; if(!out[0]) out[0]=out[1]||fl; if(!out[1]) out[1]=out[0]; return out; };
+  const flat=(v,u)=>{ const d=perp(_erS(T.V[u],T.V[v]),T.vn[v]), P={pt:_erA(T.V[v],_erM(d,setback(v,u))),m:d}; return [P,P]; };
+  T.F.forEach((f,fi)=>f.forEach((a,i)=>{ const t=T.tw(fi,i); if(t&&t[0]<fi) return; const b=f[(i+1)%f.length], n=_erN(t?_erA(T.nf[fi],T.nf[t[0]]):T.nf[fi]), p=T.V[a], q=T.V[b], L=_tsLen(p,q); if(L<1e-9) return; const e=_erN(_erS(q,p)), s=_erN(_erX(e,n)), h=o.h*T.mel, z0=-0.03*T.mel, f0=F.length;
+      if(mode==="lock"){ // finger joint: the height is split into as many bands as fins meet at the corner; each fin reaches the corner in its own band and stops short in the others. Every fin at a corner stands along that corner's own axis, so the bands line up.
+        const end=(v,u)=>{ const N=nbs(v,u), k=Math.max(1,N.R.length), xs=setback(v,u); return k<2?{xs:0,za:z0,zb:h}:{xs,za:z0+(h-z0)*N.k/k+(N.k?gap/2:0),zb:z0+(h-z0)*(N.k+1)/k-(N.k<k-1?gap/2:0)}; }, EA=end(a,b), EB=end(b,a), na=T.vn[a], nb=T.vn[b];
+        const Z=[...new Set([z0,h,EA.za,EA.zb,EB.za,EB.zb].map(z=>+z.toFixed(9)))].sort((x,y)=>x-y), nI=Z.length-1, xl=[], xr=[]; for(let k=0;k<nI;k++){ const zm=(Z[k]+Z[k+1])/2; xl.push(zm>EA.za&&zm<EA.zb?0:EA.xs); xr.push(L-(zm>EB.za&&zm<EB.zb?0:EB.xs)); }
+        const ids=new Map(), vid=(x,z,y)=>{ const key=x.toFixed(7)+"_"+z.toFixed(7)+"_"+(y>0?1:0); let id=ids.get(key); if(id===undefined){ const tt=x/L, up=_erL(na,nb,tt); id=V.length; V.push(_erA(_erA(_erA(p,_erM(e,x)),_erM(up,z)),_erM(s,y))); ids.set(key,id); } return id; };
+        const edge=(k,z,other)=>{ const xs=[xl[k],xr[k]]; if(other>=0&&other<nI) for(const x of [xl[other],xr[other]]) if(x>xl[k]+1e-9&&x<xr[k]-1e-9) xs.push(x); return [...new Set(xs.map(x=>+x.toFixed(7)))].sort((x,y)=>x-y); };
+        const hz=(x0,x1,z,upw)=>{ if(x1-x0<1e-9) return; const q=[vid(x0,z,-w),vid(x1,z,-w),vid(x1,z,w),vid(x0,z,w)]; F.push(upw?q.reverse():q); };
+        for(let k=0;k<nI;k++){ const bo=edge(k,Z[k],k-1), to=edge(k,Z[k+1],k+1); F.push(bo.map(x=>vid(x,Z[k],w)).concat(to.slice().reverse().map(x=>vid(x,Z[k+1],w)))); F.push(to.map(x=>vid(x,Z[k+1],-w)).concat(bo.slice().reverse().map(x=>vid(x,Z[k],-w))));
+          F.push([vid(xl[k],Z[k],w),vid(xl[k],Z[k+1],w),vid(xl[k],Z[k+1],-w),vid(xl[k],Z[k],-w)]); F.push([vid(xr[k],Z[k],-w),vid(xr[k],Z[k+1],-w),vid(xr[k],Z[k+1],w),vid(xr[k],Z[k],w)]);
+          if(k){ if(xl[k]<xl[k-1]) hz(xl[k],xl[k-1],Z[k],false); else hz(xl[k-1],xl[k],Z[k],true); if(xr[k]>xr[k-1]) hz(xr[k-1],xr[k],Z[k],false); else hz(xr[k],xr[k-1],Z[k],true); } }
+        hz(xl[0],xr[0],Z[0],false); hz(xl[nI-1],xr[nI-1],Z[nI],true); }
+      else { const na=o.match?T.vn[a]:n, nb=o.match?T.vn[b]:n, PA=mode==="flat"?flat(a,b):planes(a,b,s), PB=mode==="flat"?flat(b,a):planes(b,a,s), tp=L*o.taper/2;
+        const plan=(z,inset)=>{ const ln=y=>[_erA(_erA(p,_erM(s,y)),_erM(na,z)),_erA(_erA(q,_erM(s,y)),_erM(nb,z))], hit=(A0,B0,P)=>{ const dn=_erD(_erS(B0,A0),P.m); return dn>1e-9?_erD(_erS(P.pt,A0),P.m)/dn:0; }, pt=(y,end,pl)=>{ const [A0,B0]=ln(y), S=end?B0:A0, E=end?A0:B0; let tt=0; for(const P of pl) tt=Math.max(tt,hit(S,E,P)); tt=Math.max(0,Math.min(0.45,tt+inset/L)); return _erL(S,E,tt); };
+          return [pt(0,0,PA),pt(w,0,[PA[0]]),pt(w,1,[PB[0]]),pt(0,1,PB),pt(-w,1,[PB[1]]),pt(-w,0,[PA[1]])]; };
+        _tsPrism(plan(h,tp),plan(z0,0),V,F); }
+      for(let k=f0;k<F.length;k++) FC.push(pal[c%9]); c++; }));
+  return _tsOut(G,V,F,o.col?FC:null,M,o.keep,c+" separate fins, "+(mode==="lock"?"finger-jointed: each one reaches the corner in its own band of the height":mode==="flat"?"cut square and stopped short of every corner":"mitred on a shared plane at every corner")); }
 /* ---- generators ---- */
 function _tsSuper(G,o){ const sf=(a,m,n1,n2,n3)=>{ const t=m*a/4, r=Math.pow(Math.pow(Math.abs(Math.cos(t)),n2)+Math.pow(Math.abs(Math.sin(t)),n3),-1/n1); return Number.isFinite(r)?Math.min(r,8):8; }, N=Math.round(o.res);
   const r=_tsSurf((u,v)=>{ const th=-Math.PI+2*Math.PI*u, ph=-Math.PI/2+Math.PI*v, r1=sf(th,o.m1,o.n1,o.n2,o.n3), r2=sf(ph,o.m2,o.n1b,o.n2,o.n3); return [r1*Math.cos(th)*r2*Math.cos(ph),r2*Math.sin(ph),r1*Math.sin(th)*r2*Math.cos(ph)]; },N*2,N,0); _ngOrient(r.verts,r.faces); G.info=r.faces.length+" faces"; return r; }
@@ -15681,8 +15711,8 @@ const NEWGEN={
   ngTsConc:{ label:"Concentric", title:"Concentric — nested wire loops in every face", desc:"Draws <b>nested loops</b> inside every face, shrinking toward its centre; raise them into wire domes or sink them into funnels.", lbl:"Concentric", ico:'<rect x="3" y="3" width="16" height="16" fill="none" stroke="#FF8C22" stroke-width="1.2"/><rect x="6" y="6" width="10" height="10" fill="none" stroke="#FF8C22" stroke-width="1.2"/><rect x="9" y="9" width="4" height="4" fill="none" stroke="#FF8C22" stroke-width="1.2"/>',
     params:[["n","Loops",1,12,1,4],["fill","Reach to the centre",0.1,1,0.01,0.9],["start","Inset of the first",0,0.5,0.01,0.05],["h","Rise",-3,3,0.01,0],["r","Wire thickness",0.01,0.3,0.005,0.05],["sides","Sides",3,10,1,5],{chk:"col",l:"Colours",def:true},{chk:"keep",l:"Keep the model",def:false}],
     build(o,M){ o.on="model"; const T=_erTopo(M); if(!T){ this.info="Needs a model with faces."; return null; } return _tsConc(this,T,o,M); } },
-  ngTsFins:{ label:"Fins", title:"Fins — a standing fin on every edge", desc:"Stands a thin <b>fin on every edge</b>, pointing straight out of the surface. At every corner the fins are <b>mitred to fit one another</b>, like the corners of Wire, but each fin stays a separate part.", lbl:"Fins", ico:'<path d="M3 17h16" stroke="#00E5FF" stroke-width="1.2"/><path d="M5 17V6M9 17V4M13 17V5M17 17V8" stroke="#FF8C22" stroke-width="1.8"/>',
-    params:[["h","Height",0.05,4,0.01,0.6],["thick","Thickness",0.01,0.5,0.005,0.06],["gap","Gap between fins",0,0.3,0.002,0.01],["taper","Taper the top",0,0.95,0.01,0],{chk:"match",l:"Match the ends (fins lean to meet at each corner)",def:true},{chk:"col",l:"Colour each fin",def:true},{chk:"keep",l:"Keep the model",def:false}],
+  ngTsFins:{ label:"Fins", title:"Fins — a standing fin on every edge", desc:"Stands a thin <b>fin on every edge</b>, pointing straight out of the surface. Each fin stays a separate part. <b>Corners</b>: mitred so the fins meet on a shared cut, cut flat, or interlocked like a finger joint.", lbl:"Fins", ico:'<path d="M3 17h16" stroke="#00E5FF" stroke-width="1.2"/><path d="M5 17V6M9 17V4M13 17V5M17 17V8" stroke="#FF8C22" stroke-width="1.8"/>',
+    params:[{sel:"joint",l:"Corners",opts:[["mitre","Mitre (fins meet on a shared cut)"],["flat","Flat (square ends)"],["lock","Interlock (finger joint)"]]},["h","Height",0.05,4,0.01,0.6],["thick","Thickness",0.01,0.5,0.005,0.06],["gap","Gap between fins",0,0.3,0.002,0.01],Object.assign(["taper","Taper the top",0,0.95,0.01,0],{when:["joint",["mitre","flat"]]}),Object.assign({chk:"match",l:"Match the ends (fins lean to meet at each corner)",def:true},{when:["joint",["mitre","flat"]]}),{chk:"col",l:"Colour each fin",def:true},{chk:"keep",l:"Keep the model",def:false}],
     build(o,M){ o.on="model"; const T=_erTopo(M); if(!T){ this.info="Needs a model with faces."; return null; } return _tsFins(this,T,o,M); } },
   ngTsShell3:{ label:"Seashell", title:"Seashell — a growing spiral shell", desc:"Sweeps an opening round a <b>growing spiral</b>, the way a snail builds its shell. Change the growth, the drop and the opening for snails, nautilus, cones and turrets; add ribs.", lbl:"Seashell", ico:'<path d="M17 16c-6 3-13-1-12-7s9-7 11-2-3 7-6 5-2-5 1-5" fill="none" stroke="#FF8C22" stroke-width="1.5"/>',
     params:[["turns","Turns",1,10,0.25,4],["grow","Growth",0.02,0.4,0.005,0.14],["R","Coil radius",0,2,0.01,0.6],["a","Opening size",0.1,1.5,0.01,0.55],["oval","Opening height",0.3,2.5,0.01,1],["drop","Drop (turret height)",0,5,0.01,1.2],["rib","Rib depth",0,0.3,0.005,0],["ribs","Ribs per turn",1,40,1,12],["thick","Wall thickness",0.005,0.2,0.005,0.03],["res","Detail",16,120,2,48]],

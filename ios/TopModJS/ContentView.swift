@@ -63,6 +63,12 @@ final class ExportBridge: NSObject, WKScriptMessageHandler, UIDocumentPickerDele
                   let data = Data(base64Encoded: String(dataURL[dataURL.index(after: comma)...])) else { return }
             tmpURL = FileManager.default.temporaryDirectory.appendingPathComponent(filename)
             do { try data.write(to: tmpURL) } catch { return }
+        } else if message.name == "saveFile", let b64 = body["b64"] as? String {
+            // any file the page would otherwise download (STL, GLB, 3MF, PDF, ZIP, PNG, project files…), as base64
+            let filename = ((body["filename"] as? String) ?? "topmod-file").replacingOccurrences(of: "/", with: "-")
+            guard let data = Data(base64Encoded: b64) else { return }
+            tmpURL = FileManager.default.temporaryDirectory.appendingPathComponent(filename)
+            do { try data.write(to: tmpURL) } catch { return }
         } else {
             guard let text = body["text"] as? String else { return }
             let filename = (body["filename"] as? String) ?? "topmod.obj"
@@ -78,7 +84,7 @@ final class ExportBridge: NSObject, WKScriptMessageHandler, UIDocumentPickerDele
             var top = root
             while let presented = top.presentedViewController { top = presented }
 
-            if message.name == "saveOBJ" || message.name == "saveImage" {
+            if message.name == "saveOBJ" || message.name == "saveImage" || message.name == "saveFile" {
                 // Native Save: let the user choose a location in Files.
                 let picker = UIDocumentPickerViewController(forExporting: [tmpURL], asCopy: true)
                 picker.shouldShowFileExtensions = true
@@ -375,6 +381,12 @@ final class ImportBridge: NSObject, WKScriptMessageHandler, UIDocumentPickerDele
     func userContentController(_ ucc: WKUserContentController, didReceive message: WKScriptMessage) {
         let body = message.body as? [String: Any] ?? [:]
         kind = ((body["kind"] as? String) == "project") ? "project" : "mesh"
+        #if DEBUG
+        // Simulator test hook: TM_TEST_IMPORT=<file path> skips the picker and imports that file (never compiled into release builds).
+        if let t = ProcessInfo.processInfo.environment["TM_TEST_IMPORT"] {
+            documentPicker(UIDocumentPickerViewController(forOpeningContentTypes: [UTType.item]), didPickDocumentsAt: [URL(fileURLWithPath: t)]); return
+        }
+        #endif
         DispatchQueue.main.async {
             guard
                 let scene = UIApplication.shared.connectedScenes.first as? UIWindowScene,
@@ -417,6 +429,7 @@ struct TopModWebView: UIViewRepresentable {
         config.userContentController.add(bridge, name: "exportOBJ")
         config.userContentController.add(bridge, name: "saveOBJ")
         config.userContentController.add(bridge, name: "saveImage")
+        config.userContentController.add(bridge, name: "saveFile")
         let arBridge = ARQuickLookBridge()
         config.userContentController.add(arBridge, name: "arQuickLook")
         context.coordinator.arBridge = arBridge
