@@ -442,7 +442,7 @@ input.tmNb:focus{border-color:var(--cyan,#00E5FF);background:rgba(0,229,255,0.14
 #genusBadge.pulse{animation:gp .55s ease}
 @keyframes gp{0%{background:rgba(0,229,255,0.55);box-shadow:0 0 22px var(--cyan-dim)}100%{background:rgba(0,229,255,0.12)}}
 #keys{font-size:10px;letter-spacing:0.3px}
-#fileImport{display:none}
+#fileImport,#projectImport,input.tmHiddenFile{position:fixed!important;left:50%;top:40%;width:2px;height:2px;opacity:0;pointer-events:none;border:0;padding:0;margin:0;z-index:-1}
 /* ---- compact layout: tablets / small windows ---- */
 @media(max-width:900px){
   #menubar{gap:4px;padding-left:8px;padding-right:8px;overflow-x:auto;scrollbar-width:none;flex-wrap:nowrap}
@@ -1189,7 +1189,7 @@ html.inApp [data-act="fullscreen"],html.inApp [data-act="shortcuts"],html.inApp 
  window.TM_IN_APP=!!(mh&&(mh.exportOBJ||mh.saveOBJ||mh.photoImage));
  document.documentElement.classList.add("inApp");
  document.addEventListener("DOMContentLoaded",function(){document.body.classList.add("inApp");
-   if(window.TM_IN_APP){ var fi=document.getElementById("fileImport"); if(fi) fi.removeAttribute("accept"); }   // iOS greys out .stl/.3mf for unknown UTIs
+   if(window.TM_IN_APP){ ["fileImport","projectImport"].forEach(function(id){ var fi=document.getElementById(id); if(fi) fi.removeAttribute("accept"); }); }   // iOS greys out .stl/.3mf for unknown UTIs
    var a=document.querySelector('[data-act="about"]'); if(a) a.textContent="About TopMod 3D";
    document.querySelectorAll("[title]").forEach(function(e){e.removeAttribute("title")});
  });
@@ -1270,6 +1270,9 @@ html.inApp [data-act="fullscreen"],html.inApp [data-act="shortcuts"],html.inApp 
       <div class="mi" data-op="selSimilar">Select Similar</div>
       <div class="mi" data-op="selByArea">Select Faces by Surface Area</div>
       <div class="mi" data-op="selByColour">Select Faces by Colour</div>
+
+
+
 
 
 
@@ -8678,7 +8681,7 @@ const matTexture=new THREE.MeshStandardMaterial({color:0xffffff,roughness:0.55,m
     tex.needsUpdate=true; };
   draw("knot"); window.__tileN=2;
   let lastPat=""; window.__tileTex=(pat,n,show)=>{ window.__tileN=n||window.__tileN||2; if(pat==="image"&&!img){ if(show) window.__loadTileImage&&window.__loadTileImage(); return; } if(pat!==lastPat||pat==="image"){ draw(pat||"knot"); lastPat=pat; } try{ if(show&&renderMode!=="texture") setRenderMode("texture"); }catch(e){} };   // the modifier only redraws the tile; the view switches when the tool is used
-  window.__loadTileImage=()=>{ const fi=document.createElement("input"); fi.type="file"; fi.accept="image/*"; fi.onchange=()=>{ const f=fi.files&&fi.files[0]; if(!f) return; const im=new Image(); im.onload=()=>{ img=im; draw("image"); try{ setRenderMode("texture"); rebuild(); }catch(e){} }; im.src=URL.createObjectURL(f); }; fi.click(); };
+  window.__loadTileImage=()=>{ const fi=document.createElement("input"); fi.type="file"; fi.accept="image/*"; fi.onchange=()=>{ const f=fi.files&&fi.files[0]; if(!f) return; const im=new Image(); im.onload=()=>{ img=im; draw("image"); try{ setRenderMode("texture"); rebuild(); }catch(e){} }; im.src=URL.createObjectURL(f); }; fi.className="tmHiddenFile"; document.body.appendChild(fi); fi.click(); setTimeout(()=>{ try{ fi.remove(); }catch(e){} },120000); };
 })();
 let renderMode="solid";
 const RMODES={
@@ -10626,8 +10629,8 @@ const MeshImport=(()=>{
   return {read, clean, parseOBJ, parseSTL, parsePLY, parseOFF, parseGLB, parseGLTF, parse3MF};
 })();
 window.__import=MeshImport;
-$("#fileImport").addEventListener("change",async ev=>{
-  const f=ev.target.files[0]; if(!f) return; ev.target.value="";
+$("#fileImport").addEventListener("change",ev=>{ const f=ev.target.files[0]; if(!f) return; ev.target.value=""; importMeshFile(f); });
+async function importMeshFile(f){
   try{
     toast("Importing "+f.name+"…");
     const r=await MeshImport.read(f), m=r.mesh;
@@ -10640,7 +10643,22 @@ $("#fileImport").addEventListener("change",async ev=>{
     const notes=[]; if(r.scaled) notes.push("scaled ×"+(+r.scale.toPrecision(3))); if(r.dropped) notes.push(r.dropped+" non-manifold faces removed");
     toast("Imported "+f.name+" — "+m.faces.length+" faces"+(notes.length?" ("+notes.join(", ")+")":"")+(m.faces.length>30000?" · heavy mesh, tools may be slow":""));
   }catch(e){ toast(String(e),true); }
-});
+}
+/*NATIVE-PICK*/window.__tmNativePick=function(kind){ try{ const h=window.webkit&&window.webkit.messageHandlers&&window.webkit.messageHandlers.importFile; if(!h) return false; h.postMessage({kind:kind}); return true; }catch(e){ return false; } };
+window.__tmNativeFile=async function(kind,name,b64){ try{ if(!name||b64==null){ toast("That file could not be read",true); return; }
+    const bin=atob(b64), u=new Uint8Array(bin.length); for(let i=0;i<bin.length;i++) u[i]=bin.charCodeAt(i); const f=new File([u],name);
+    if(/\.(tmod|tm3|topmod)$/i.test(name)||(kind==="project"&&!/\.(obj|stl|ply|off|glb|gltf|3mf)$/i.test(name))){ loadProject(await f.text(), name.replace(/\.(tmod|tm3|topmod|json|txt)$/i,"")); toast("Opened "+name); }
+    else await importMeshFile(f); }catch(e){ toast(String(e),true); } };/*NATIVE-PICK-END*/
+/*DROP-IMPORT*/(function(){ const isFile=e=>{ const t=e.dataTransfer&&e.dataTransfer.types; return !!t&&[].indexOf.call(t,"Files")>=0; }; let n=0;
+  const veil=()=>{ let v=document.getElementById("tmDropVeil"); if(!v){ v=document.createElement("div"); v.id="tmDropVeil"; v.textContent="Drop a model here — OBJ · STL · PLY · OFF · GLB · 3MF · TMOD"; v.style.cssText="position:fixed;inset:10px;z-index:10040;display:none;align-items:center;justify-content:center;border:3px dashed #19c8e6;border-radius:18px;background:rgba(10,20,28,.55);color:#fff;font:700 18px system-ui,-apple-system,sans-serif;text-align:center;padding:20px;pointer-events:none"; document.body.appendChild(v); } return v; };
+  addEventListener("dragenter",e=>{ if(!isFile(e)) return; e.preventDefault(); n++; veil().style.display="flex"; });
+  addEventListener("dragover",e=>{ if(!isFile(e)) return; e.preventDefault(); try{ e.dataTransfer.dropEffect="copy"; }catch(_){} });
+  addEventListener("dragleave",e=>{ if(!isFile(e)) return; n=Math.max(0,n-1); if(!n) veil().style.display="none"; });
+  addEventListener("drop",async e=>{ if(!isFile(e)) return; e.preventDefault(); n=0; veil().style.display="none"; const fs=[...(e.dataTransfer.files||[])]; if(!fs.length) return toast("That drop had no file in it",true);
+    for(const f of fs){ if(/\.(tmod|tm3|topmod)$/i.test(f.name)){ try{ loadProject(await f.text(), f.name.replace(/\.(tmod|tm3|topmod)$/i,"")); toast("Opened "+f.name); }catch(err){ toast(String(err),true); } }
+      else if(/\.(obj|stl|ply|off|glb|gltf|3mf)$/i.test(f.name)) await importMeshFile(f);
+      else toast("Can't import "+f.name+" — use OBJ, STL, PLY, OFF, GLB or 3MF",true); } });
+})();/*DROP-IMPORT-END*/
 
 $("#projectImport")&&$("#projectImport").addEventListener("change",ev=>{
   const f=ev.target.files[0]; if(!f) return;
@@ -18262,7 +18280,7 @@ function initMenus(){
     if(a==="undo")undo(); else if(a==="redo")redo();
     else if(a==="newProject"){ newProject(); }   // no confirm(): blocked in the iOS web view — ⌘Z / Undo restores the previous scene
     else if(a==="hands"){ const hb=$("#handFab"); if(hb) hb.click(); else toast&&toast("Hand tracking isn't available in this build",true); }
-    else if(a==="import")$("#fileImport").click();
+    else if(a==="import"){ if(!window.__tmNativePick("mesh")) $("#fileImport").click(); }
     else if(a==="export")$("#btnExport").click();
     else if(a==="exportWire") exportWireframe("obj");
     else if(a==="exportWireDXF") exportWireframe("dxf");
@@ -18289,7 +18307,7 @@ function initMenus(){
     else if(a==="frameAll"){ if(window.__tm&&window.__tm.frameAll){window.__tm.frameAll();toast&&toast("Zoom to fit");} }
     else if(a==="saveProject")saveProject();
     else if(a==="saveProjectAs")saveProjectAs();
-    else if(a==="openProject")$("#projectImport").click();
+    else if(a==="openProject"){ if(!window.__tmNativePick("project")) $("#projectImport").click(); }
     else if(a==="screenshot"){ if(window.__tmShot) window.__tmShot(); else saveScreenshot(); }
     else if(a==="shortcuts")showShortcuts();
     else if(a==="about")toast("TOPMOD.JS — topological mesh modeler · DLFL ops · HTML5 remake");
@@ -27301,10 +27319,25 @@ body.uiMono #tmPaywall .pw{background:#fff;color:#111;border-color:#d7dbe0}
 #tmDonate .dnFoot{display:flex;justify-content:space-between;align-items:center;margin-top:14px;font-size:13px;color:#6b7480}
 #tmDonate .dnFoot button{background:none;border:0;color:#6b7480;text-decoration:underline;cursor:pointer;font:13px var(--font,system-ui)}
 #tmDonate .dnMsg{min-height:18px;margin-top:8px;font-size:13px;text-align:center;color:#2e7d32}
-@media (max-width:700px){ #tmDonate .dn{flex-direction:column} #tmDonate .dnL{padding:24px 22px} #tmDonate .dnL h2{font-size:32px} #tmDonate .dnL p{font-size:14px} }
+#tmDonate .dn{max-height:calc(100dvh - 24px - env(safe-area-inset-top) - env(safe-area-inset-bottom));overflow:auto;-webkit-overflow-scrolling:touch}
+#tmDonate .dnCoffee{display:none}
+@media (max-width:700px),(max-height:520px){
+  #tmDonate{padding:12px;padding-top:calc(12px + env(safe-area-inset-top));padding-bottom:calc(12px + env(safe-area-inset-bottom));align-items:flex-end}
+  #tmDonate .dn{flex-direction:column;width:min(460px,100%);border-radius:18px}
+  #tmDonate .dnL{flex:none;padding:16px 18px 12px} #tmDonate .dnL h2{font-size:24px;margin:0 0 6px} #tmDonate .dnL p{display:none} #tmDonate .dnL p.dnCoffee{display:block;font-size:14px;margin:0}
+  #tmDonate .dnL #dnShare{display:none}
+  #tmDonate .dnR{flex:none;padding:14px 16px 14px}
+  #tmDonate .dnAmts{grid-template-columns:repeat(4,1fr);gap:8px} #tmDonate .dnAmts button{padding:13px 0;font-size:17px;min-height:48px} #tmDonate .dnOther{display:none}
+  #tmDonate .dnMore{display:grid;grid-template-columns:repeat(3,1fr);gap:8px;margin-top:8px} #tmDonate .dnMore button{padding:11px 0;font-size:15px;min-height:44px}
+  #tmDonate .dnOnce{display:none}
+  #tmDonate .dnGo{margin-top:12px;padding:16px;font-size:18px;min-height:54px;border-radius:12px}
+  #tmDonate .dnFoot{margin-top:10px} #tmDonate .dnFoot button{font-size:15px;padding:10px 6px;min-height:44px}
+}
+@media (max-height:520px){ #tmDonate{align-items:center} #tmDonate .dn{flex-direction:row;width:min(720px,100%)} #tmDonate .dnL{flex:.8;display:flex;flex-direction:column;justify-content:center} #tmDonate .dnR{flex:1.2} #tmDonate .dnMore{display:none} }
 </style>
 <div id="tmDonate" role="dialog" aria-label="Donate to TopMod"><div class="dn">
-  <div class="dnL"><h2>Keep TopMod free</h2>
+  <div class="dnL"><h2 id="dnTitle">Keep TopMod free</h2>
+    <p class="dnCoffee">TopMod is free. If you like it, buy me a coffee &#9749; &mdash; one time, no subscription.</p>
     <p><b>TopMod has been free software for everyone to use.</b></p>
     <p>Contributions make a real difference.</p>
     <p>Please share, comment, donate and like to spread the word.</p>
@@ -27321,7 +27354,7 @@ body.uiMono #tmPaywall .pw{background:#fff;color:#111;border-color:#d7dbe0}
 <script>(function(){
   /* Donate prompt. In the iPhone/iPad app a donation is a one-time tip through the App Store (tipStore bridge, consumable in-app purchases);
      on the web the button opens TM_DONATE_URL when one is set. Shown after "No" on the demo prompt (at most once a week) and from Help ▸ Donate. */
-  const D=document.getElementById("tmDonate"), go=document.getElementById("dnGo"), msg=document.getElementById("dnMsg"); let tier=25, prices={};
+  const D=document.getElementById("tmDonate"), go=document.getElementById("dnGo"), msg=document.getElementById("dnMsg"); const PHONE=()=>matchMedia("(max-width:700px),(max-height:520px)").matches; let tier=PHONE()?5:25, prices={}, busy=null;
   const H=()=>window.webkit&&window.webkit.messageHandlers&&window.webkit.messageHandlers.tipStore;
   // Web donations: set TM_DONATE_URL (below) to either
   //   · one link with {amount} in it — e.g. "https://www.paypal.com/paypalme/NAME/{amount}USD"; or
@@ -27331,13 +27364,13 @@ body.uiMono #tmPaywall .pw{background:#fff;color:#111;border-color:#d7dbe0}
   const webLink=t=>{ const u=WEB_URL(); if(!u) return ""; if(typeof u==="object") return u[t]||u.other||"";
     return u.includes("{amount}")? u.replace(/\{amount\}/g,t) : u+(u.includes("?")?"&":"?")+"amount="+t; };
   const label=t=>prices[t]||("$"+t);
-  function pick(t){ tier=t; D.querySelectorAll("[data-t]").forEach(b=>b.classList.toggle("on",+b.dataset.t===t)); go.innerHTML="Donate "+label(t)+" &#9829;"; msg.textContent=""; }
+  function pick(t){ tier=t; D.querySelectorAll("[data-t]").forEach(b=>b.classList.toggle("on",+b.dataset.t===t)); go.innerHTML=(PHONE()&&t<=5?"Buy me a coffee &middot; ":"Donate ")+label(t)+(PHONE()&&t<=5?" &#9749;":" &#9829;"); msg.textContent=""; }
   D.querySelectorAll("[data-t]").forEach(b=>b.onclick=()=>pick(+b.dataset.t));
   document.getElementById("dnOther").onclick=()=>{ document.getElementById("dnMore").classList.toggle("on"); };
-  function open(){ msg.textContent=""; go.disabled=false; pick(tier); D.classList.add("on"); document.querySelectorAll("#menubar .menu.open").forEach(m=>m.classList.remove("open")); try{ H()&&H().postMessage({action:"prices"}); }catch(e){} }
+  function open(){ msg.textContent=""; go.disabled=false; clearTimeout(busy); document.getElementById("dnTitle").textContent=PHONE()?"Buy me a coffee":"Keep TopMod free"; pick(tier); D.classList.add("on"); document.querySelectorAll("#menubar .menu.open").forEach(m=>m.classList.remove("open")); try{ H()&&H().postMessage({action:"prices"}); }catch(e){} }
   function close(){ D.classList.remove("on"); }
   go.onclick=()=>{ const h=H();
-    if(h){ go.disabled=true; msg.style.color="#6b7480"; msg.textContent="Contacting the App Store…"; h.postMessage({action:"tip",amount:tier}); return; }
+    if(h){ go.disabled=true; msg.style.color="#6b7480"; msg.textContent="Contacting the App Store…"; clearTimeout(busy); busy=setTimeout(()=>{ go.disabled=false; msg.style.color="#6b7480"; msg.textContent="Still waiting for the App Store — you can try again."; },45000); h.postMessage({action:"tip",amount:tier}); return; }
     const u=webLink(tier); if(u){ window.open(u,"_blank","noopener"); msg.style.color="#2e7d32"; msg.textContent="Thank you — your support keeps TopMod free! ♥"; try{ localStorage.setItem("tm_donated",String(Date.now())); }catch(e){} setTimeout(close,2200); return; }
     msg.style.color="#6b7480"; msg.textContent="Donations are available in the TopMod 3D app on iPhone and iPad."; };
   document.getElementById("dnShare").onclick=async()=>{ const d={title:"TopMod 3D",text:"TopMod 3D — free topological 3D modeling",url:"https://amaximal.com/software/topmod"};
@@ -27346,7 +27379,7 @@ body.uiMono #tmPaywall .pw{background:#fff;color:#111;border-color:#d7dbe0}
   document.getElementById("dnLater").onclick=close; D.addEventListener("click",e=>{ if(e.target===D) close(); });
   window.__tmTip={ open, close,
     prices(p){ prices=p||{}; D.querySelectorAll("[data-t]").forEach(b=>{ const t=+b.dataset.t; if(prices[t]) b.textContent=prices[t]; }); pick(tier); },
-    done(ok,m){ go.disabled=false; msg.style.color=ok?"#2e7d32":"#c62828"; msg.textContent=m||(ok?"Thank you — your support keeps TopMod free! ♥":"");
+    done(ok,m){ clearTimeout(busy); go.disabled=false; msg.style.color=ok?"#2e7d32":"#c62828"; msg.textContent=m||(ok?"Thank you — your support keeps TopMod free! ♥":"");
       if(ok){ try{ localStorage.setItem("tm_donated",String(Date.now())); }catch(e){} setTimeout(close,2200); } } };
   const can=()=>!!(H()||WEB_URL());   // web: only once a donation link (TM_DONATE_URL) is configured
   const btn=document.getElementById("donateBtn"); if(btn){ btn.addEventListener("click",open); const sync=()=>{ btn.style.display=can()?"":"none"; }; sync(); setTimeout(sync,1500); }

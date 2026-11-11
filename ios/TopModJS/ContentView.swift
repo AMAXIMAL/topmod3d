@@ -4,6 +4,7 @@ import ARKit
 import Photos
 import Network
 import QuickLook
+import UniformTypeIdentifiers
 
 // MARK: - Custom scheme handler
 // Serves the bundled single-file app over topmod:// with EXPLICIT Content-Type
@@ -364,6 +365,49 @@ final class LocalServer {
     }
 }
 
+// MARK: - Native file import
+// The page posts {kind: "mesh" | "project"} on window.webkit.messageHandlers.importFile; the app shows the Files picker
+// and hands the chosen file back as window.__tmNativeFile(kind, name, base64). (The web file input does not open on some iPads.)
+final class ImportBridge: NSObject, WKScriptMessageHandler, UIDocumentPickerDelegate {
+    weak var webView: WKWebView?
+    private var kind = "mesh"
+
+    func userContentController(_ ucc: WKUserContentController, didReceive message: WKScriptMessage) {
+        let body = message.body as? [String: Any] ?? [:]
+        kind = ((body["kind"] as? String) == "project") ? "project" : "mesh"
+        DispatchQueue.main.async {
+            guard
+                let scene = UIApplication.shared.connectedScenes.first as? UIWindowScene,
+                let root = scene.keyWindow?.rootViewController
+            else { self.js("window.__tmNativeFile && window.__tmNativeFile('mesh', null, null)"); return }
+            var top = root
+            while let presented = top.presentedViewController { top = presented }
+            let picker = UIDocumentPickerViewController(forOpeningContentTypes: [UTType.item], asCopy: true)
+            picker.delegate = self
+            picker.allowsMultipleSelection = false
+            picker.shouldShowFileExtensions = true
+            top.present(picker, animated: true)
+        }
+    }
+
+    func documentPicker(_ controller: UIDocumentPickerViewController, didPickDocumentsAt urls: [URL]) {
+        guard let url = urls.first else { return }
+        let kind = self.kind
+        DispatchQueue.global(qos: .userInitiated).async {
+            let scoped = url.startAccessingSecurityScopedResource()
+            defer { if scoped { url.stopAccessingSecurityScopedResource() } }
+            guard let data = try? Data(contentsOf: url) else {
+                self.js("window.__tmNativeFile && window.__tmNativeFile('\(kind)', null, null)"); return
+            }
+            let nameJSON = (try? JSONSerialization.data(withJSONObject: [url.lastPathComponent]))
+                .flatMap { String(data: $0, encoding: .utf8) } ?? "[\"model\"]"
+            self.js("window.__tmNativeFile && window.__tmNativeFile('\(kind)', \(nameJSON)[0], '\(data.base64EncodedString())')")
+        }
+    }
+
+    private func js(_ s: String) { DispatchQueue.main.async { self.webView?.evaluateJavaScript(s, completionHandler: nil) } }
+}
+
 struct TopModWebView: UIViewRepresentable {
 
     func makeUIView(context: Context) -> WKWebView {
@@ -397,6 +441,11 @@ struct TopModWebView: UIViewRepresentable {
         config.userContentController.add(tips, name: "tipStore")
         context.coordinator.tips = tips
 
+        // Import Mesh / Load: native Files picker (see ImportBridge).
+        let importer = ImportBridge()
+        config.userContentController.add(importer, name: "importFile")
+        context.coordinator.importer = importer
+
         // LiDAR depth provider — refines hand-tracking depth when available.
         let lidar = LiDARProvider()
         let lidarBridge = LiDARBridge()
@@ -410,6 +459,7 @@ struct TopModWebView: UIViewRepresentable {
         lidarBridge.webView = webView
         context.coordinator.pro?.webView = webView
         context.coordinator.tips?.webView = webView
+        context.coordinator.importer?.webView = webView
         context.coordinator.photos?.webView = webView
 
         // Grant camera/mic capture requests from the page (see WebUIDelegate).
@@ -490,6 +540,7 @@ struct TopModWebView: UIViewRepresentable {
         var arBridge: ARQuickLookBridge?
         var pro: ProStore?
         var tips: TipStore?
+        var importer: ImportBridge?
         var uiDelegate: WebUIDelegate?
         var server: LocalServer?
         var didFallback = false
