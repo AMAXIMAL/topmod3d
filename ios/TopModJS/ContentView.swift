@@ -277,6 +277,15 @@ final class LiDARBridge: NSObject, WKScriptMessageHandler {
 // (MediaPipe) calls navigator.mediaDevices.getUserMedia; without a WKUIDelegate that
 // grants the request, the camera never opens. NSCameraUsageDescription is already set.
 final class WebUIDelegate: NSObject, WKUIDelegate {
+    // Links that open a new window (target="_blank", window.open) go to Safari; without this the web view ignores them.
+    func webView(_ webView: WKWebView, createWebViewWith configuration: WKWebViewConfiguration,
+                 for navigationAction: WKNavigationAction, windowFeatures: WKWindowFeatures) -> WKWebView? {
+        if let url = navigationAction.request.url, let scheme = url.scheme?.lowercased(), scheme == "https" || scheme == "http" || scheme == "mailto" {
+            UIApplication.shared.open(url)
+        }
+        return nil
+    }
+
     func webView(_ webView: WKWebView,
                  requestMediaCapturePermissionFor origin: WKSecurityOrigin,
                  initiatedByFrame frame: WKFrameInfo,
