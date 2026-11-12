@@ -1392,6 +1392,8 @@ html.inApp [data-act="fullscreen"],html.inApp [data-act="shortcuts"],html.inApp 
 
 
 
+
+
 <!--SEL-MI--><div class="mi" data-op="selSides">Select Faces with the Same Number of Sides</div><div class="mi" data-op="selFacing">Select Faces Pointing the Same Way</div><div class="mi" data-op="selFlat">Select Flat Area</div><div class="mi" data-op="selIsland">Select Connected Piece (Island)</div><div class="mi" data-op="selBigger">Select Bigger Faces</div><div class="mi" data-op="selSmaller">Select Smaller Faces</div><div class="mi" data-op="selRandom">Select Random</div><div class="mi" data-op="selGround">Align to Ground — the selected face sits on the floor</div><!--SEL-MI-END-->
       <div class="mi" data-op="selChecker">Checkerboard Select Faces</div>
       <div class="mi" data-op="selEfromF">Select Edges from Faces</div>
@@ -16265,6 +16267,8 @@ function _ngResolveSpace(o,M){ const m=/^(in|on):(.+)$/.exec(o.dom||""); if(!m) 
   Object.defineProperty(p,"opts",{get:_ngSpaceOpts, configurable:true}); p.dyn=true;
   const b=G.build; G.build=function(o,M){ const r=_ngResolveSpace(o,M); return b.call(this,r.o,r.M); }; });
 
+
+
 /*TS-DYN*/
 { const G=NEWGEN.ngTsPack; if(G){ const nm=(L,i)=>(L.name||("Layer "+(i+1)))+(i===activeLayer?" (current)":""), pi=G.params.find(x=>x&&x.sel==="into"), pk=G.params.find(x=>x&&x.sel==="kind"), base=pk.opts.slice();
   Object.defineProperty(pi,"opts",{get:()=>{ const o=[["model","This model"]]; try{ (layers||[]).forEach((L,i)=>{ if(L&&i!==activeLayer) o.push(["in:"+L.id,"Layer “"+nm(L,i)+"”"]); }); }catch(e){} return o; }, configurable:true}); pi.dyn=true;
@@ -25814,8 +25818,8 @@ window.__tmCore={ get bboxObj(){return bboxObj}, get edgeObj(){return edgeObj}, 
  "Boolean":["Union","Diff","Intersect","Drill","Hull","Cut"],
  "Fabricate":["Plywood","Faces","Laser","Paper","Fins","Waffle","Stacked v2","Interloc*","Radial v2","Folded v2","Stacked v3","Slotted v3","Panels v3","Folded v3","Bricks","Print","Tree Sup","Mould M*","Vacuum*","Seam"],
  "Akleman's":["Knot","Plain We*","Star Solid","Hamilton","Twirl","Sierp M*","Slit Sculpt","Corner*","D-Form","Face Re*","Semi-Reg","Soft Poly","Skin","Loft Tiles","Regular","Woven T*","Auto Ha*"],
- "Lab":["Pie","Nodes","Cracks","Hat Tile"],
- "Test":["Animator","Circles"]};
+ "Lab":["Animator","Pie","Nodes","Cracks","Hat Tile"],
+ "Test":["Circles"]};
  var UIKEYS=["tm_tb_user","tmUI","tmGrpShut","tmTbW2","tmOcW","tmOpW","tmVp","tmVpSlots","tmUnits","tmRTop","tmRA","tmRB","tmSilW","tmSil","tmDuoH","tmTbZoom","tm_tbstyle","tm_tbtab"];
  function lab(b){ var l=b.querySelector(".tlbl"); return l?l.textContent.trim():""; }
  function applyDef(){ var all=[].slice.call(tb.querySelectorAll("button.tb")).filter(vis), gs={}; [].slice.call(tb.querySelectorAll(".tgrp")).forEach(function(g){ var l=g.getAttribute("data-label"); if(!gs[l]&&g.querySelector("button.tb:not([data-tb-hidden])")) gs[l]=g; });
@@ -25916,7 +25920,7 @@ window.__tmCore={ get bboxObj(){return bboxObj}, get edgeObj(){return edgeObj}, 
   var dg=null, hd=P.querySelector(".anHead"); hd.addEventListener("pointerdown",function(e){ if(e.target.tagName==="BUTTON"||P.classList.contains("docked")) return; var r=P.getBoundingClientRect(); dg={x:e.clientX-r.left,y:e.clientY-r.top}; P.style.transform="none"; P.style.left=r.left+"px"; P.style.top=r.top+"px"; P.style.bottom="auto"; hd.setPointerCapture(e.pointerId); });
   hd.addEventListener("pointermove",function(e){ if(!dg) return; P.style.left=Math.max(0,Math.min(innerWidth-80,e.clientX-dg.x))+"px"; P.style.top=Math.max(0,Math.min(innerHeight-40,e.clientY-dg.y))+"px"; }); hd.addEventListener("pointerup",function(){ dg=null; });
   }
- function mk(){ var tb=document.getElementById("toolbar"); if(!tb||tb.querySelector('[data-anim="1"]')) return; var g=[].slice.call(tb.querySelectorAll(".tgrp")).filter(function(x){ return x.getAttribute("data-label")==="Test"; })[0]; if(!g) return;
+ function mk(){ var tb=document.getElementById("toolbar"); if(!tb||tb.querySelector('[data-anim="1"]')) return; var g=[].slice.call(tb.querySelectorAll(".tgrp")).filter(function(x){ return x.getAttribute("data-label")==="Lab"; })[0]; if(!g) return;
   var b=document.createElement("button"); b.className="tb"; b.type="button"; b.dataset.anim="1"; b.id="tbAnimator"; b.title="Animator — loop the sliders of your tools on a timeline"; b.innerHTML='<svg width="22" height="22" viewBox="0 0 22 22"><path d="M2 17h18M2 11h18M2 5h18" stroke="#7a3d00" stroke-width="1"/><circle cx="6" cy="5" r="2.200" fill="#FF8C22"/><circle cx="14" cy="11" r="2.200" fill="#00E5FF"/><circle cx="9" cy="17" r="2.200" fill="#FF8C22"/><path d="M17 2l3 3-3 3" fill="none" stroke="#00E5FF" stroke-width="1.400"/></svg><span class="tlbl">Animator</span>';
   b.addEventListener("click",function(e){ e.stopPropagation(); e.preventDefault(); open(); }); g.insertBefore(b,g.querySelector("button.tb")); }
  window.__tmAnim={mount:mount,openMod:function(id){ C=window.__tmCore; curId=id; open(); },openFor:function(id){ C=window.__tmCore; ensure(); sync(); var m=find(id); if(m&&nums(m).length&&!tracks.some(function(T){ return T.mod===id; })){ addTrack(m,nums(m)[0]); } open(); },au:function(){ return AU; },open:open,auto:function(){ open(); if(auto()) play(); },state:function(){ return {tracks:tracks,playing:playing,t:t}; }};
