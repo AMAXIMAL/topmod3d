@@ -1365,6 +1365,11 @@ html.inApp [data-act="fullscreen"],html.inApp [data-act="shortcuts"],html.inApp 
 
 
 
+
+
+
+
+
 <!--SEL-MI--><div class="mi" data-op="selSides">Select Faces with the Same Number of Sides</div><div class="mi" data-op="selFacing">Select Faces Pointing the Same Way</div><div class="mi" data-op="selFlat">Select Flat Area</div><div class="mi" data-op="selIsland">Select Connected Piece (Island)</div><div class="mi" data-op="selBigger">Select Bigger Faces</div><div class="mi" data-op="selSmaller">Select Smaller Faces</div><div class="mi" data-op="selRandom">Select Random</div><div class="mi" data-op="selGround">Align to Ground — the selected face sits on the floor</div><!--SEL-MI-END-->
       <div class="mi" data-op="selChecker">Checkerboard Select Faces</div>
       <div class="mi" data-op="selEfromF">Select Edges from Faces</div>
@@ -8179,7 +8184,7 @@ function renderModStack(){
   const isPrim=!!(L&&L.gen);
   const baseRow=document.createElement("div"); baseRow.className="modRow modBase"+(isPrim?" editable":"")+((isPrim&&tpState&&tpState.op==="prim:"+L.gen.prim)?" sel":"");
   const bIcon=document.createElement("span"); bIcon.className="modOn modBaseIcon"; bIcon.innerHTML=isPrim?"&#9672;":"&#9633;";
-  const bName=document.createElement("span"); bName.className="modName"; bName.textContent=L?(isPrim?primLabel(L.gen.prim):"Base mesh"):"—";
+  const bName=document.createElement("span"); bName.className="modName"; bName.textContent=L?(isPrim?primLabel(L.gen.prim):(L.baseName||"Base mesh")):"—";
   const bTag=document.createElement("span"); bTag.className="modBaseTag"; bTag.textContent="base";
   baseRow.appendChild(bIcon); baseRow.appendChild(bName); baseRow.appendChild(bTag);
   if(L) baseRow.appendChild(mk("modBtn modSwap","&#8644;","Change the base shape — modifiers stay",()=>openBasePicker(baseRow)));
@@ -10249,7 +10254,7 @@ function updateCrustUI(){
 // ---------- primitives & file ----------
 function loadPrim(p){
   try{ setTimeout(()=>window.__guide&&window.__guide.log("Primitive · "+primLabel(p),{reset:true}),0); }catch(e){}
-  snapshot(); mesh=TM.primitives[p](); crustPairs=null; if(layers[activeLayer]){ layers[activeLayer].steps=[]; layers[activeLayer].mesh=mesh; } clearSel(false); rebuild(); updateCrustUI(); renderModStack&&renderModStack();
+  snapshot(); mesh=TM.primitives[p](); crustPairs=null; if(layers[activeLayer]){ layers[activeLayer].steps=[]; layers[activeLayer].mesh=mesh; layers[activeLayer].baseName=primLabel(p); } clearSel(false); rebuild(); updateCrustUI(); renderModStack&&renderModStack();
 }
 // parametric primitives: build from current slider values
 // ---- Text → 2D contours (system font via canvas raster + marching squares) ----
@@ -10419,7 +10424,7 @@ function refreshPrimPreview(){
   });
 }
 function endPrimPreview(commit){
-  if(!primPreviewName) return;
+  if(!primPreviewName) return; const _rev=!commit&&primSnapDone&&!_tmAutoRun();
   try{ const nm=primPreviewName; setTimeout(()=>window.__guide&&window.__guide.log("Primitive · "+primLabel(nm),{reset:true}),0); }catch(e){}
   primPreviewName=null; primPrevMesh=null; primSnapDone=false;
   // Edits are live-committed as you go (same model as modifiers), so both Apply and Close keep the
@@ -10427,6 +10432,7 @@ function endPrimPreview(commit){
   crustPairs=null; clearSel(false);
   rebuild(); updateCrustUI(); if(typeof renderLayerList==="function") renderLayerList();
   primEditId=null; primEditAnchor=null;
+  if(_rev){ const st=tpState; tpState=null; try{ undo(); }catch(e){} tpState=st; }   /* closed without Apply: back to the shape before */
 }
 const PRIM_LABEL_MAP={diamond:"Gem Cut",sineWave:"Sine Wave",maze3d:"Maze 3D",pseudospherical:"Pseudospherical",buckyball:"Buckyball",rossler:"Rössler",chainmail:"Chainmail",voronoi:"Voronoi",weave:"Weave",cymatics:"Cymatics",tpms:"TPMS Block",breeze:"Breeze Block"};
 function primLabel(name){ return PRIM_LABEL_MAP[name] || (name.charAt(0).toUpperCase()+name.slice(1)); }
@@ -10458,8 +10464,12 @@ function primClick(name,btn){
     const op="prim:"+name;
     if(tpState&&tpState.op===op){ closeToolPop(); return; }
     openToolPop(op, btn);
-  } else { closeToolPop(); loadPrim(name); }
+  } else { closeToolPop(); loadPrim(name); _primKeepOpen(name,btn); }
 }
+/*SOLID-APPLY*/ const _tmAutoRun=()=>(Date.now()-(window.__tmAutoT||0))<20000;   // demo / AI Builder steps keep what they make without pressing Apply
+function _primKeepOpen(name,btn){ if(_tmAutoRun()) return; const pop=$("#toolpop"), body=$("#tpBody"); if(!pop||!body) return; pop.classList.remove("hiddenPanel","empty"); $("#optionsToggle")&&$("#optionsToggle").classList.add("on");
+  $("#tpTitle").textContent=primLabel(name)+" — adjust & Apply"; body.innerHTML='<div class="modEditNote" style="margin:10px 12px;line-height:1.5">✓ Live preview — <b>'+primLabel(name)+'</b> is the new base shape of this layer; its modifiers stay. <b>Apply</b> keeps it. Closing without Apply goes back to the shape you had.</div>';
+  $("#tpApply")&&($("#tpApply").style.display=""); tpState={op:"primkeep",btn:btn||null,moved:[],name:name}; btn&&btn.classList.add("on"); try{ renderModStack(); }catch(e){} }
 $$("#toolbar [data-p]").forEach(b=>b.addEventListener("click",()=>primClick(b.dataset.p,b)));
 $$("#mbPrims [data-p]").forEach(b=>b.addEventListener("click",()=>primClick(b.dataset.p,null)));
 $("#btnUndo")&&$("#btnUndo").addEventListener("click",undo);
@@ -16340,7 +16350,9 @@ window.__NEWGEN=NEWGEN; window.__MODS=MODS;/*LOADPT*/{ const G=NEWGEN.ngT2Stress
   const o0=G.onOpen; G.onOpen=function(body){ try{ G._sf=(typeof sel!=="undefined"&&sel.faces&&sel.faces.size)?[...sel.faces]:null; }catch(e){ G._sf=null; }
     const n=document.createElement("div"); n.style.cssText="padding:2px 12px 6px;font-size:11px;color:var(--text-dim)"; n.textContent=G._sf?("Working on the "+G._sf.length+" selected face"+(G._sf.length>1?"s":"")+". Clear the selection first to do the whole model."):"Tip: select faces first (press 3) to work on just those; with nothing selected the whole model is used."; body.insertBefore(n,body.children[1]||null); if(o0) o0.call(this,body); };
   const t0=G.toMod; G.toMod=function(pp){ pp.selF=G._sf?G._sf.slice():null; if(t0) t0.call(this,pp); };
-  const MD=MODS[NG_MOD_KEY(op)]; if(MD){ const A0=MD.apply; MD.apply=(m,pp)=>{ const keep=G._sf; G._sf=(pp&&pp.selF)||null; try{ return A0(m,pp); } finally{ G._sf=keep; } }; } });/*SELFIRST-END*/ if(MODS[NG_MOD_KEY("ngGothic")]) MODS[NG_MOD_KEY("ngGothic")].grp="Generate";/*TS-GRP*/ Object.entries({"ngTsSpiral": "Test", "ngTsRemesh": "Test", "ngTsCircle": "Test", "ngTsSpirals": "Test", "ngTsScatter": "Test", "ngTsFur": "Test", "ngTsStarPat": "Extrude", "ngTsKoch": "Extrude", "ngTsPillow": "Extrude", "ngTsShingle": "Test", "ngTsExplode": "Edit", "ngTsAux": "Test", "ngTsSym": "Edit", "ngTsConc": "Test", "ngTsFins": "Test", "ngTsShell3": "Test", "ngTsMinimal": "Test", "ngTsImmerse": "Test", "ngTsHopf": "Test", "ngTsAttract": "Test", "ngTsHilbert": "Test", "ngTsApollo": "Test", "ngTsZono": "Primitives", "ngTsHarm": "Test", "ngTsHelix": "Test", "ngTsLCurve": "Test", "ngTsTwTorus": "Test", "ngTsFlower": "Test", "ngTsCogs": "Test", "ngTsIris": "Test", "ngTsBarn": "Test", "ngTsMush": "Test", "ngTsCryst": "Test", "ngTsPineCone": "Test", "ngTsPineTree": "Test", "ngTsCracks": "Test", "ngTsBevelA": "Edit", "ngTsGear": "Test", "ngTsSpiro": "Test", "ngTsPack": "Test", "ngT2HexPerf": "Topology", "ngT2String": "Test", "ngT2Braid": "Akleman's", "ngT2ChainE": "Test", "ngT2Tenseg": "Test", "ngT2Sandw": "Topology", "ngT2Stress": "Topology", "ngT2Space": "Topology", "ngT2HexPan": "Subdivide", "ngT2Mould": "Fabricate", "ngT2Buck": "Fabricate", "ngT2Revolve": "Test", "ngT2Bolt": "Generate"}).forEach(([k,g])=>{ if(MODS[NG_MOD_KEY(k)]) MODS[NG_MOD_KEY(k)].grp=g; });/*TS-GRP-END*/ if(MODS[NG_MOD_KEY("ngOrigami")]) MODS[NG_MOD_KEY("ngOrigami")].grp="Subdivide"; ["ngBranch","ngHyphae","ngSlime","ngRD","ngCA","ngWfc"].forEach(k=>{ if(MODS[NG_MOD_KEY(k)]) MODS[NG_MOD_KEY(k)].grp="Grow"; }); ["ngErWeave","ngErHam","ngErSierp","ngErTwirl","ngErSlit","ngErCorner","ngErDForm","ngErFace","ngErKnot","ngErSemi","ngErSoft","ngErSkin","ngErLoft","ngErStar","ngErRegular","ngErHandles","ngErWoven","ngRingMail"].forEach(k=>{ if(MODS[NG_MOD_KEY(k)]) MODS[NG_MOD_KEY(k)].grp="Akleman's"; }); if(MODS[NG_MOD_KEY("ngFDM")]) MODS[NG_MOD_KEY("ngFDM")].grp="Simulate"; ["ngPile","ngRays","ngBlackHole","ngMPM"].forEach(k=>{ if(MODS[NG_MOD_KEY(k)]) MODS[NG_MOD_KEY(k)].grp="Simulate"; }); if(MODS[NG_MOD_KEY("ngRDLines")]) MODS[NG_MOD_KEY("ngRDLines")].grp="Grow"; if(MODS[NG_MOD_KEY("ngHat")]) MODS[NG_MOD_KEY("ngHat")].grp="Subdivide"; if(MODS[NG_MOD_KEY("ngMandel")]) MODS[NG_MOD_KEY("ngMandel")].grp="Generate"; ["ngMk2Stack","ngMk2Lock","ngMk2Radial","ngMk2Fold","ngMk3Stack","ngMk3Slot","ngMk3Panel","ngMk3Fold"].forEach(k=>{ if(MODS[NG_MOD_KEY(k)]) MODS[NG_MOD_KEY(k)].grp="Fabricate"; });
+  const MD=MODS[NG_MOD_KEY(op)]; if(MD){ const A0=MD.apply; MD.apply=(m,pp)=>{ const keep=G._sf; G._sf=(pp&&pp.selF)||null; try{ return A0(m,pp); } finally{ G._sf=keep; } }; } });
+/* Wire: only triangles and quads come out (faces with more sides are split) */
+{ const MD=MODS.wireframe; if(MD){ const A0=MD.apply; MD.apply=(m,p)=>{ const r=A0(m,p); if(!r||!r.faces||r.fcolors||!r.faces.some(f=>f.length>4)) return r; const F=[]; r.faces.forEach(f=>{ if(f.length<=4){ F.push(f); return; } let i=1; for(;i+2<f.length;i+=2) F.push([f[0],f[i],f[i+1],f[i+2]]); if(i+1<f.length) F.push([f[0],f[i],f[i+1]]); }); return Object.assign({},r,{faces:F}); }; } }/*SELFIRST-END*/ if(MODS[NG_MOD_KEY("ngGothic")]) MODS[NG_MOD_KEY("ngGothic")].grp="Generate";/*TS-GRP*/ Object.entries({"ngTsSpiral": "Test", "ngTsRemesh": "Test", "ngTsCircle": "Test", "ngTsSpirals": "Test", "ngTsScatter": "Test", "ngTsFur": "Test", "ngTsStarPat": "Extrude", "ngTsKoch": "Extrude", "ngTsPillow": "Extrude", "ngTsShingle": "Test", "ngTsExplode": "Edit", "ngTsAux": "Test", "ngTsSym": "Edit", "ngTsConc": "Test", "ngTsFins": "Test", "ngTsShell3": "Test", "ngTsMinimal": "Test", "ngTsImmerse": "Test", "ngTsHopf": "Test", "ngTsAttract": "Test", "ngTsHilbert": "Test", "ngTsApollo": "Test", "ngTsZono": "Primitives", "ngTsHarm": "Test", "ngTsHelix": "Test", "ngTsLCurve": "Test", "ngTsTwTorus": "Test", "ngTsFlower": "Test", "ngTsCogs": "Test", "ngTsIris": "Test", "ngTsBarn": "Test", "ngTsMush": "Test", "ngTsCryst": "Test", "ngTsPineCone": "Test", "ngTsPineTree": "Test", "ngTsCracks": "Test", "ngTsBevelA": "Edit", "ngTsGear": "Test", "ngTsSpiro": "Test", "ngTsPack": "Test", "ngT2HexPerf": "Topology", "ngT2String": "Test", "ngT2Braid": "Akleman's", "ngT2ChainE": "Test", "ngT2Tenseg": "Test", "ngT2Sandw": "Topology", "ngT2Stress": "Topology", "ngT2Space": "Topology", "ngT2HexPan": "Subdivide", "ngT2Mould": "Fabricate", "ngT2Buck": "Fabricate", "ngT2Revolve": "Test", "ngT2Bolt": "Generate"}).forEach(([k,g])=>{ if(MODS[NG_MOD_KEY(k)]) MODS[NG_MOD_KEY(k)].grp=g; });/*TS-GRP-END*/ if(MODS[NG_MOD_KEY("ngOrigami")]) MODS[NG_MOD_KEY("ngOrigami")].grp="Subdivide"; ["ngBranch","ngHyphae","ngSlime","ngRD","ngCA","ngWfc"].forEach(k=>{ if(MODS[NG_MOD_KEY(k)]) MODS[NG_MOD_KEY(k)].grp="Grow"; }); ["ngErWeave","ngErHam","ngErSierp","ngErTwirl","ngErSlit","ngErCorner","ngErDForm","ngErFace","ngErKnot","ngErSemi","ngErSoft","ngErSkin","ngErLoft","ngErStar","ngErRegular","ngErHandles","ngErWoven","ngRingMail"].forEach(k=>{ if(MODS[NG_MOD_KEY(k)]) MODS[NG_MOD_KEY(k)].grp="Akleman's"; }); if(MODS[NG_MOD_KEY("ngFDM")]) MODS[NG_MOD_KEY("ngFDM")].grp="Simulate"; ["ngPile","ngRays","ngBlackHole","ngMPM"].forEach(k=>{ if(MODS[NG_MOD_KEY(k)]) MODS[NG_MOD_KEY(k)].grp="Simulate"; }); if(MODS[NG_MOD_KEY("ngRDLines")]) MODS[NG_MOD_KEY("ngRDLines")].grp="Grow"; if(MODS[NG_MOD_KEY("ngHat")]) MODS[NG_MOD_KEY("ngHat")].grp="Subdivide"; if(MODS[NG_MOD_KEY("ngMandel")]) MODS[NG_MOD_KEY("ngMandel")].grp="Generate"; ["ngMk2Stack","ngMk2Lock","ngMk2Radial","ngMk2Fold","ngMk3Stack","ngMk3Slot","ngMk3Panel","ngMk3Fold"].forEach(k=>{ if(MODS[NG_MOD_KEY(k)]) MODS[NG_MOD_KEY(k)].grp="Fabricate"; });
 // bridge for the Nodes view (New ▸ Nodes): read / reorder / toggle / open / remove the active layer's modifiers
 window.__mkStack={ get:()=>{ const L=layers[activeLayer]; return (L&&L.modifiers||[]).map(m=>{ const R=MODS[m.type]||{}; return {id:m.id,on:m.on!==false,label:(m.params&&m.params.op&&m.type==="tool"?(m.label||R.label||m.params.op):(R.label||m.type)),grp:R.grp||"",err:m._err||"",
       params:(R.params||[]).filter(d=>d&&d.k&&!d.axis).map(d=>{ let show=true; if(d.when){ const cur=+m.params[d.when[0]]; show=d.when[1].includes(cur); } const v=m.params[d.k]; return d.opts?{k:d.k,l:d.l,opts:[...d.opts],v:Math.round(+v||0),show}:d.bool?{k:d.k,l:d.l,bool:true,v:!!v,show}:{k:d.k,l:d.l,min:d.min,max:d.max,step:d.step,v:+v,show}; })}; }); },
@@ -17418,6 +17430,7 @@ function closeToolPop(){
   if(tpState.op && OP_PREVIEW[tpState.op]) discardOpPreview();
   if(tpState.op==="array") endArrayPreview(false);
   if(tpState.op==="mirror") endMirrorPreview();
+  if(tpState.op==="primkeep"){ $("#tpBody").innerHTML=""; if(!tpState.kept&&!_tmAutoRun()){ const st=tpState; tpState=null; try{ undo(); }catch(e){} tpState=st; } }
   if(tpState.op && tpState.op.startsWith("prim:")){ endPrimPreview(false); $("#toolpop").classList.remove("prim-"+tpState.op.slice(5)); $("#toolpop").classList.remove("prim-any"); }
   if(tpState.op==="lineart"){ if(window.__lineart) window.__lineart._detach(); }
   if(tpState.op==="gemview"){ $("#tpBody").innerHTML=""; $("#tpApply")&&($("#tpApply").style.display=""); }
@@ -17448,6 +17461,7 @@ $("#tpClose").addEventListener("click",()=>{ _tmDropFresh(null); closeToolPop();
 $("#tpApply").addEventListener("click",()=>{
   if(!tpState) return;
   if(tpState.op==="modedit"){ closeToolPop(); $("#toolpop").classList.add("hiddenPanel"); $("#optionsToggle")&&$("#optionsToggle").classList.remove("on"); return; }
+  if(tpState.op==="primkeep"){ tpState.kept=true; closeToolPop(); $("#toolpop").classList.add("hiddenPanel"); $("#optionsToggle")&&$("#optionsToggle").classList.remove("on"); return; }
   if(tpState.op==="lattice"){ bakeLattice(); return; }
   if(tpState.op==="bejewel"){ bejewelToModifier(); return; }
   if(tpState.op==="sliceEdges"){ for(const k of sel.edges) seamEdges.add(k); clearSel&&clearSel(); buildSeamOverlay(); const c=$("#sliceCount"); if(c)c.textContent=seamEdges.size+" seam edge"+(seamEdges.size!==1?"s":"")+" set."; if(liveNet) refreshLiveNet(); toast&&toast(seamEdges.size+" seam edges"); return; }
@@ -20767,7 +20781,7 @@ window.__ek={applyWhole:applyWhole,ops:ops,snapshot:snapshot,rebuild:rebuild,toa
     try{ window.__guide&&window.__guide.log(label||"Equation",{reset:true,key:"eqsurf"}); }catch(e){}
   }
   // ---- line interpreter ----
-  function clickOp(sel){ const b=document.querySelector(sel); if(!b) return false; b.click(); try{ window.__tmKeepFresh&&window.__tmKeepFresh(); }catch(e){} try{ window.__tmKeepFresh&&window.__tmKeepFresh(); }catch(e){} try{ window.__tmKeepFresh&&window.__tmKeepFresh(); }catch(e){} try{ window.__tmKeepFresh&&window.__tmKeepFresh(); }catch(e){} try{ window.__tmKeepFresh&&window.__tmKeepFresh(); }catch(e){} try{ window.__tmKeepFresh&&window.__tmKeepFresh(); }catch(e){} try{ window.__tmKeepFresh&&window.__tmKeepFresh(); }catch(e){} try{ window.__tmKeepFresh&&window.__tmKeepFresh(); }catch(e){} try{ window.__tmKeepFresh&&window.__tmKeepFresh(); }catch(e){} try{ window.__tmKeepFresh&&window.__tmKeepFresh(); }catch(e){} try{ window.__tmKeepFresh&&window.__tmKeepFresh(); }catch(e){} try{ window.__tmKeepFresh&&window.__tmKeepFresh(); }catch(e){} try{ window.__tmKeepFresh&&window.__tmKeepFresh(); }catch(e){} try{ window.__tmKeepFresh&&window.__tmKeepFresh(); }catch(e){} try{ window.__tmKeepFresh&&window.__tmKeepFresh(); }catch(e){} try{ window.__tmKeepFresh&&window.__tmKeepFresh(); }catch(e){} try{ window.__tmKeepFresh&&window.__tmKeepFresh(); }catch(e){} try{ window.__tmKeepFresh&&window.__tmKeepFresh(); }catch(e){} try{ window.__tmKeepFresh&&window.__tmKeepFresh(); }catch(e){} try{ window.__tmKeepFresh&&window.__tmKeepFresh(); }catch(e){} try{ window.__tmKeepFresh&&window.__tmKeepFresh(); }catch(e){} try{ window.__tmKeepFresh&&window.__tmKeepFresh(); }catch(e){} try{ window.__tmKeepFresh&&window.__tmKeepFresh(); }catch(e){} try{ window.__tmKeepFresh&&window.__tmKeepFresh(); }catch(e){} try{ window.__tmKeepFresh&&window.__tmKeepFresh(); }catch(e){} try{ window.__tmKeepFresh&&window.__tmKeepFresh(); }catch(e){} try{ window.__tmKeepFresh&&window.__tmKeepFresh(); }catch(e){} try{ window.__tmKeepFresh&&window.__tmKeepFresh(); }catch(e){} try{ window.__tmKeepFresh&&window.__tmKeepFresh(); }catch(e){} try{ window.__tmKeepFresh&&window.__tmKeepFresh(); }catch(e){} try{ window.__tmKeepFresh&&window.__tmKeepFresh(); }catch(e){} try{ window.__tmKeepFresh&&window.__tmKeepFresh(); }catch(e){} try{ window.__tmKeepFresh&&window.__tmKeepFresh(); }catch(e){} try{ window.__tmKeepFresh&&window.__tmKeepFresh(); }catch(e){} try{ window.__tmKeepFresh&&window.__tmKeepFresh(); }catch(e){} try{ window.__tmKeepFresh&&window.__tmKeepFresh(); }catch(e){} try{ window.__tmKeepFresh&&window.__tmKeepFresh(); }catch(e){} try{ window.__tmKeepFresh&&window.__tmKeepFresh(); }catch(e){} try{ window.__tmKeepFresh&&window.__tmKeepFresh(); }catch(e){}
+  function clickOp(sel){ window.__tmAutoT=Date.now(); const b=document.querySelector(sel); if(!b) return false; b.click(); try{ window.__tmKeepFresh&&window.__tmKeepFresh(); }catch(e){} try{ window.__tmKeepFresh&&window.__tmKeepFresh(); }catch(e){} try{ window.__tmKeepFresh&&window.__tmKeepFresh(); }catch(e){} try{ window.__tmKeepFresh&&window.__tmKeepFresh(); }catch(e){} try{ window.__tmKeepFresh&&window.__tmKeepFresh(); }catch(e){} try{ window.__tmKeepFresh&&window.__tmKeepFresh(); }catch(e){} try{ window.__tmKeepFresh&&window.__tmKeepFresh(); }catch(e){} try{ window.__tmKeepFresh&&window.__tmKeepFresh(); }catch(e){} try{ window.__tmKeepFresh&&window.__tmKeepFresh(); }catch(e){} try{ window.__tmKeepFresh&&window.__tmKeepFresh(); }catch(e){} try{ window.__tmKeepFresh&&window.__tmKeepFresh(); }catch(e){} try{ window.__tmKeepFresh&&window.__tmKeepFresh(); }catch(e){} try{ window.__tmKeepFresh&&window.__tmKeepFresh(); }catch(e){} try{ window.__tmKeepFresh&&window.__tmKeepFresh(); }catch(e){} try{ window.__tmKeepFresh&&window.__tmKeepFresh(); }catch(e){} try{ window.__tmKeepFresh&&window.__tmKeepFresh(); }catch(e){} try{ window.__tmKeepFresh&&window.__tmKeepFresh(); }catch(e){} try{ window.__tmKeepFresh&&window.__tmKeepFresh(); }catch(e){} try{ window.__tmKeepFresh&&window.__tmKeepFresh(); }catch(e){} try{ window.__tmKeepFresh&&window.__tmKeepFresh(); }catch(e){} try{ window.__tmKeepFresh&&window.__tmKeepFresh(); }catch(e){} try{ window.__tmKeepFresh&&window.__tmKeepFresh(); }catch(e){} try{ window.__tmKeepFresh&&window.__tmKeepFresh(); }catch(e){} try{ window.__tmKeepFresh&&window.__tmKeepFresh(); }catch(e){} try{ window.__tmKeepFresh&&window.__tmKeepFresh(); }catch(e){} try{ window.__tmKeepFresh&&window.__tmKeepFresh(); }catch(e){} try{ window.__tmKeepFresh&&window.__tmKeepFresh(); }catch(e){} try{ window.__tmKeepFresh&&window.__tmKeepFresh(); }catch(e){} try{ window.__tmKeepFresh&&window.__tmKeepFresh(); }catch(e){} try{ window.__tmKeepFresh&&window.__tmKeepFresh(); }catch(e){} try{ window.__tmKeepFresh&&window.__tmKeepFresh(); }catch(e){} try{ window.__tmKeepFresh&&window.__tmKeepFresh(); }catch(e){} try{ window.__tmKeepFresh&&window.__tmKeepFresh(); }catch(e){} try{ window.__tmKeepFresh&&window.__tmKeepFresh(); }catch(e){} try{ window.__tmKeepFresh&&window.__tmKeepFresh(); }catch(e){} try{ window.__tmKeepFresh&&window.__tmKeepFresh(); }catch(e){} try{ window.__tmKeepFresh&&window.__tmKeepFresh(); }catch(e){} try{ window.__tmKeepFresh&&window.__tmKeepFresh(); }catch(e){} try{ window.__tmKeepFresh&&window.__tmKeepFresh(); }catch(e){} try{ window.__tmKeepFresh&&window.__tmKeepFresh(); }catch(e){}
     setTimeout(()=>{ const a=document.getElementById("tpApply"); if(tpState && a && a.offsetParent!==null && getComputedStyle(a).display!=="none") a.click(); },350); return true; }
   async function line(raw){
     const ln=raw.replace(/(#|\/\/).*$/,"").trim(); if(!ln) return;
@@ -26861,7 +26875,7 @@ body.duo #claudePanel,body.duoBottom #claudePanel{top:calc(var(--duoH,50vh) + 8p
     return o; }
   async function step(s,say){
     if(s.new){ C.newProject(); await wait(120); return "New scene"; }
-    if(s.prim){ const name=s.prim; C.closeToolPop(); C.primClick(name,document.querySelector('#toolbar [data-p="'+name+'"]'));
+    if(s.prim){ const name=s.prim; window.__tmAutoT=Date.now(); C.closeToolPop(); C.primClick(name,document.querySelector('#toolbar [data-p="'+name+'"]'));
       await wait(60); for(const [k,v] of Object.entries(s.params||{})) setInput(k,v); await wait(200);
       C.closeToolPop(); await wait(60); return "Primitive · "+name; }
     if(s.select){ const n=selectFaces(s.select); return "Selected "+n+" faces"; }
