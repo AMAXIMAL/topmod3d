@@ -271,11 +271,12 @@
 				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
 				ASSETCATALOG_COMPILER_GLOBAL_ACCENT_COLOR_NAME = AccentColor;
 				CODE_SIGN_STYLE = Automatic;
-				CURRENT_PROJECT_VERSION = 58;
+				CURRENT_PROJECT_VERSION = 59;
 				ENABLE_PREVIEWS = YES;
 				GENERATE_INFOPLIST_FILE = YES;
 				INFOPLIST_KEY_CFBundleDisplayName = "TOPMOD 3D";
 				INFOPLIST_KEY_NSCameraUsageDescription = "TOPMOD uses the camera and LiDAR for hand-tracking gesture control with depth refinement.";
+				INFOPLIST_KEY_NSMicrophoneUsageDescription = "TOPMOD listens to the microphone only when you pick Mic in the Animator, so your model can move to sound.";
 				INFOPLIST_KEY_NSHumanReadableCopyright = "Based on TopMod by Ergun Akleman (Texas A&M University).";
 				INFOPLIST_KEY_NSPhotoLibraryAddUsageDescription = "TOPMOD 3D saves your screenshots and spin videos to your photo library.";
 				INFOPLIST_KEY_UIApplicationSupportsIndirectInputEvents = YES;
@@ -288,7 +289,7 @@
 					"$(inherited)",
 					"@executable_path/Frameworks",
 				);
-				MARKETING_VERSION = 4.4;
+				MARKETING_VERSION = 4.5;
 				PRODUCT_BUNDLE_IDENTIFIER = com.amaximal.topmodjs;
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				SUPPORTED_PLATFORMS = "iphoneos iphonesimulator";
@@ -305,11 +306,12 @@
 				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
 				ASSETCATALOG_COMPILER_GLOBAL_ACCENT_COLOR_NAME = AccentColor;
 				CODE_SIGN_STYLE = Automatic;
-				CURRENT_PROJECT_VERSION = 58;
+				CURRENT_PROJECT_VERSION = 59;
 				ENABLE_PREVIEWS = YES;
 				GENERATE_INFOPLIST_FILE = YES;
 				INFOPLIST_KEY_CFBundleDisplayName = "TOPMOD 3D";
 				INFOPLIST_KEY_NSCameraUsageDescription = "TOPMOD uses the camera and LiDAR for hand-tracking gesture control with depth refinement.";
+				INFOPLIST_KEY_NSMicrophoneUsageDescription = "TOPMOD listens to the microphone only when you pick Mic in the Animator, so your model can move to sound.";
 				INFOPLIST_KEY_NSHumanReadableCopyright = "Based on TopMod by Ergun Akleman (Texas A&M University).";
 				INFOPLIST_KEY_NSPhotoLibraryAddUsageDescription = "TOPMOD 3D saves your screenshots and spin videos to your photo library.";
 				INFOPLIST_KEY_UIApplicationSupportsIndirectInputEvents = YES;
@@ -322,7 +324,7 @@
 					"$(inherited)",
 					"@executable_path/Frameworks",
 				);
-				MARKETING_VERSION = 4.4;
+				MARKETING_VERSION = 4.5;
 				PRODUCT_BUNDLE_IDENTIFIER = com.amaximal.topmodjs;
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				SUPPORTED_PLATFORMS = "iphoneos iphonesimulator";
